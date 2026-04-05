@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
-    "@types/node": "25.5.0",
+    "@types/node": "25.5.2",
     "@types/ws": "^8.18.1",
     "bufferutil": "^4.1.0",
     "dotenv": "^17.3.1",
