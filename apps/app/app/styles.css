@@ -1,0 +1,25 @@
+@import "tailwindcss";
+@import "@repo/design-system/styles/globals.css";
+
+/* ─── Sidebar: active state ─────────────────────────────────────────────── */
+/* Override the shadcn default (sidebar-accent / lavender) with primary green */
+[data-sidebar="menu-button"][data-active="true"] {
+  background-color: color-mix(in srgb, var(--sidebar-primary) 10%, transparent);
+  color: var(--sidebar-primary);
+  font-weight: 500;
+}
+
+[data-sidebar="menu-button"][data-active="true"]:hover {
+  background-color: color-mix(in srgb, var(--sidebar-primary) 15%, transparent);
+  color: var(--sidebar-primary);
+}
+
+/* ─── Sidebar: floating shadow ──────────────────────────────────────────── */
+/* Replace shadow-sm with the DESIGN.md ambient shadow spec */
+[data-variant="floating"] [data-sidebar="sidebar"] {
+  box-shadow: 0 12px 32px rgba(53, 51, 64, 0.06) !important;
+}
+
+.dark [data-variant="floating"] [data-sidebar="sidebar"] {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25) !important;
+}
