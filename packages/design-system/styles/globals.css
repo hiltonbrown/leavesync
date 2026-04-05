@@ -1,0 +1,264 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@source "../**/*.{ts,tsx}";
+
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *), &:is([data-theme="dark"] *));
+
+:root,
+[data-theme="light"] {
+  /* LeaveSync light mode — botanical editorial */
+  --background: #FCF8FF;
+  --foreground: #1C1A26;
+  --card: #FFFFFF;
+  --card-foreground: #1C1A26;
+  --popover: #FFFFFF;
+  --popover-foreground: #1C1A26;
+  --primary: #336A3B;
+  --primary-foreground: #FFFFFF;
+  --primary-container: #6DA671;
+  --on-primary-container: #1B3620;
+  --secondary: #CAE8BC;
+  --secondary-foreground: #2A3D24;
+  --tertiary: #57624F;
+  --muted: #F1EBFD;
+  --muted-foreground: #46454E;
+  --accent: #EBE5F7;
+  --accent-foreground: #1C1A26;
+  --surface-variant: #E0DDE6;
+  --inverse-surface: #312F3C;
+  --inverse-on-surface: #F3EFF8;
+  --outline: #777680;
+  --outline-variant: #C1C9BD;
+  --destructive: #BA1A1A;
+  --destructive-foreground: #FFFFFF;
+  --error-container: #FFDAD6;
+  --success: #6DA671;
+  --border: color-mix(in srgb, #C1C9BD 15%, transparent);
+  --input: #E5E0F1;
+  --ring: #336A3B;
+  --chart-1: #336A3B;
+  --chart-2: #6DA671;
+  --chart-3: #4B6542;
+  --chart-4: #CAE8BC;
+  --chart-5: #57624F;
+  --radius: 1rem;
+  --sidebar: #F6F1FF;
+  --sidebar-foreground: #1C1A26;
+  --sidebar-primary: #336A3B;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #EBE5F7;
+  --sidebar-accent-foreground: #1C1A26;
+  --sidebar-border: color-mix(in srgb, #C1C9BD 15%, transparent);
+  --sidebar-ring: #336A3B;
+
+  --font-weight-bold: 700;
+}
+
+.dark,
+[data-theme="dark"] {
+  /* LeaveSync dark mode */
+  --background: #131218;
+  --foreground: #E6E1EC;
+  --card: #0E0D13;
+  --card-foreground: #E6E1EC;
+  --popover: #211F26;
+  --popover-foreground: #E6E1EC;
+  --primary: #8FD496;
+  --primary-foreground: #003912;
+  --primary-container: #1F5226;
+  --on-primary-container: #ABEDB0;
+  --secondary: #374E2E;
+  --secondary-foreground: #C8E6BB;
+  --tertiary: #B8C9AB;
+  --muted: #211F26;
+  --muted-foreground: #C8C5D0;
+  --accent: #2B2931;
+  --accent-foreground: #E6E1EC;
+  --surface-variant: #46454E;
+  --inverse-surface: #E6E1EC;
+  --inverse-on-surface: #312F3C;
+  --outline: #918F9A;
+  --outline-variant: #46454E;
+  --destructive: #FFB4AB;
+  --destructive-foreground: #690005;
+  --error-container: #93000A;
+  --success: #8FD496;
+  --border: color-mix(in srgb, #46454E 15%, transparent);
+  --input: #36343C;
+  --ring: #8FD496;
+  --chart-1: #8FD496;
+  --chart-2: #AECAA1;
+  --chart-3: #B8C9AB;
+  --chart-4: #374E2E;
+  --chart-5: #1F5226;
+  --sidebar: #1C1B22;
+  --sidebar-foreground: #E6E1EC;
+  --sidebar-primary: #8FD496;
+  --sidebar-primary-foreground: #003912;
+  --sidebar-accent: #2B2931;
+  --sidebar-accent-foreground: #E6E1EC;
+  --sidebar-border: color-mix(in srgb, #46454E 15%, transparent);
+  --sidebar-ring: #8FD496;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-plus-jakarta-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive: var(--destructive);
+  --color-error-container: var(--error-container);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-surface-variant: var(--surface-variant);
+  --color-inverse-surface: var(--inverse-surface);
+  --color-inverse-on-surface: var(--inverse-on-surface);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-tertiary: var(--tertiary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-success: var(--success);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  /* Typography scale — Plus Jakarta Sans */
+  --text-display-lg: 3.5rem;
+  --text-display-md: 2.75rem;
+  --text-display-sm: 2.25rem;
+  --text-headline-lg: 2rem;
+  --text-headline-md: 1.75rem;
+  --text-title-lg: 1.375rem;
+  --text-title-md: 1rem;
+  --text-title-sm: 0.875rem;
+  --text-body-lg: 1.125rem;
+  --text-body-md: 1rem;
+  --text-body-sm: 0.875rem;
+  --text-label-lg: 0.875rem;
+  --text-label-md: 0.75rem;
+  --text-label-sm: 0.6875rem;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+}
+
+/* This layer is added by shadcn/ui */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* This layer is by next-forge */
+@layer base {
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    @apply border-border;
+  }
+  * {
+    @apply min-w-0;
+  }
+  html {
+    text-rendering: optimizelegibility;
+  }
+  body {
+    @apply min-h-[100dvh];
+  }
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-muted-foreground;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    @apply cursor-pointer;
+  }
+}
+
+/* Typography plugin */
+@utility prose {
+  --tw-prose-body: var(--color-foreground);
+  --tw-prose-headings: var(--color-foreground);
+  --tw-prose-lead: var(--color-muted-foreground);
+  --tw-prose-links: var(--color-primary);
+  --tw-prose-bold: var(--color-foreground);
+  --tw-prose-counters: var(--color-foreground);
+  --tw-prose-bullets: var(--color-muted-foreground);
+  --tw-prose-hr: var(--color-muted-foreground);
+  --tw-prose-quotes: var(--color-muted-foreground);
+  --tw-prose-quote-borders: var(--color-border);
+  --tw-prose-captions: var(--color-muted-foreground);
+  --tw-prose-code: var(--color-foreground);
+  --tw-prose-pre-code: var(--color-foreground);
+  --tw-prose-pre-bg: var(--color-background);
+  --tw-prose-th-borders: var(--color-border);
+  --tw-prose-td-borders: var(--color-border);
+  --tw-prose-invert-body: var(--color-foreground);
+  --tw-prose-invert-headings: var(--color-foreground);
+  --tw-prose-invert-lead: var(--color-muted-foreground);
+  --tw-prose-invert-links: var(--color-primary);
+  --tw-prose-invert-bold: var(--color-foreground);
+  --tw-prose-invert-counters: var(--color-foreground);
+  --tw-prose-invert-bullets: var(--color-foreground);
+  --tw-prose-invert-hr: var(--color-muted-foreground);
+  --tw-prose-invert-quotes: var(--color-muted-foreground);
+  --tw-prose-invert-quote-borders: var(--color-border);
+  --tw-prose-invert-captions: var(--color-muted-foreground);
+  --tw-prose-invert-code: var(--color-foreground);
+  --tw-prose-invert-pre-code: var(--color-foreground);
+  --tw-prose-invert-pre-bg: var(--color-background);
+  --tw-prose-invert-th-borders: var(--color-border);
+  --tw-prose-invert-td-borders: var(--color-border);
+}
