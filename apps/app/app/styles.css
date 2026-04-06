@@ -4,14 +4,14 @@
 /* ─── Sidebar: active state ─────────────────────────────────────────────── */
 /* Override the shadcn default (sidebar-accent / lavender) with primary green */
 [data-sidebar="menu-button"][data-active="true"] {
-  background-color: color-mix(in srgb, var(--sidebar-primary) 10%, transparent);
-  color: var(--sidebar-primary);
   font-weight: 500;
+  color: var(--sidebar-primary);
+  background-color: color-mix(in srgb, var(--sidebar-primary) 10%, transparent);
 }
 
 [data-sidebar="menu-button"][data-active="true"]:hover {
-  background-color: color-mix(in srgb, var(--sidebar-primary) 15%, transparent);
   color: var(--sidebar-primary);
+  background-color: color-mix(in srgb, var(--sidebar-primary) 15%, transparent);
 }
 
 /* ─── Sidebar: floating shadow ──────────────────────────────────────────── */

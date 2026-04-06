@@ -1,0 +1,391 @@
+"use client";
+
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@repo/design-system/components/ui/avatar";
+import { Button } from "@repo/design-system/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@repo/design-system/components/ui/card";
+import { Input } from "@repo/design-system/components/ui/input";
+import { Label } from "@repo/design-system/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/design-system/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@repo/design-system/components/ui/table";
+import { MailIcon, UserMinusIcon, UserPlusIcon } from "lucide-react";
+import { useState, useTransition } from "react";
+import { toast } from "@repo/design-system/components/ui/sonner";
+import { inviteMember } from "@/app/actions/settings/invite-member";
+import { removeMember } from "@/app/actions/settings/remove-member";
+import { updateMemberRole } from "@/app/actions/settings/update-member-role";
+import { ConfirmActionDialog } from "../components/confirm-action-dialog";
+import { RoleBadge } from "../components/role-badge";
+import { SettingsSectionHeader } from "../components/settings-section-header";
+
+type OrgRole = "org:owner" | "org:admin" | "org:manager" | "org:viewer";
+
+interface Member {
+  emailAddress: string;
+  firstName: string | null;
+  imageUrl: string;
+  lastName: string | null;
+  membershipId: string;
+  role: string;
+  userId: string;
+}
+
+interface PendingInvitation {
+  createdAt: number;
+  emailAddress: string;
+  id: string;
+  role: string;
+}
+
+interface MembersClientProps {
+  currentUserId: string;
+  currentUserRole: string;
+  members: Member[];
+  pendingInvitations: PendingInvitation[];
+}
+
+const ROLE_OPTIONS: { value: OrgRole; label: string }[] = [
+  { value: "org:admin", label: "Admin" },
+  { value: "org:manager", label: "Manager" },
+  { value: "org:viewer", label: "Viewer" },
+];
+
+const getInitials = (
+  firstName: string | null,
+  lastName: string | null,
+  email: string
+) => {
+  if (firstName && lastName) {
+    return `${firstName[0]}${lastName[0]}`.toUpperCase();
+  }
+  if (firstName) {
+    return firstName[0].toUpperCase();
+  }
+  return email[0].toUpperCase();
+};
+
+export const MembersClient = ({
+  members,
+  pendingInvitations,
+  currentUserId,
+  currentUserRole,
+}: MembersClientProps) => {
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<OrgRole>("org:viewer");
+  const [isPendingInvite, startInviteTransition] = useTransition();
+  const [removeTarget, setRemoveTarget] = useState<Member | null>(null);
+  const [isRoleUpdating, startRoleTransition] = useTransition();
+
+  const isOwner = currentUserRole === "org:owner";
+
+  const handleInvite = () => {
+    if (!inviteEmail) {
+      return;
+    }
+    startInviteTransition(async () => {
+      const result = await inviteMember({
+        emailAddress: inviteEmail,
+        role: inviteRole,
+      });
+      if (result.ok) {
+        toast.success(`Invitation sent to ${inviteEmail}`);
+        setInviteEmail("");
+      } else {
+        toast.error(result.error);
+      }
+    });
+  };
+
+  const handleRoleChange = (member: Member, role: OrgRole) => {
+    startRoleTransition(async () => {
+      const result = await updateMemberRole({
+        membershipId: member.userId,
+        role,
+      });
+      if (result.ok) {
+        toast.success(
+          `Updated ${member.firstName ?? member.emailAddress}'s role`
+        );
+      } else {
+        toast.error(result.error);
+      }
+    });
+  };
+
+  const handleRemoveConfirm = () => {
+    if (!removeTarget) {
+      return;
+    }
+    const target = removeTarget;
+    setRemoveTarget(null);
+    startRoleTransition(async () => {
+      const result = await removeMember({ userId: target.userId });
+      if (result.ok) {
+        toast.success(
+          `${target.firstName ?? target.emailAddress} removed from organisation`
+        );
+      } else {
+        toast.error(result.error);
+      }
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <SettingsSectionHeader
+        description="Manage who has access to your organisation and what they can do."
+        title="Members"
+      />
+
+      {/* Invite section */}
+      <Card className="rounded-2xl bg-muted/40">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Invite a member</CardTitle>
+          <CardDescription>
+            Send an email invitation to add someone to your organisation.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-3">
+            <div className="flex-1 space-y-2">
+              <Label className="sr-only" htmlFor="invite-email">
+                Email address
+              </Label>
+              <Input
+                id="invite-email"
+                onChange={(e) => setInviteEmail(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleInvite()}
+                placeholder="colleague@company.com"
+                type="email"
+                value={inviteEmail}
+              />
+            </div>
+            <Select
+              onValueChange={(v) => setInviteRole(v as OrgRole)}
+              value={inviteRole}
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ROLE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+                {isOwner && <SelectItem value="org:owner">Owner</SelectItem>}
+              </SelectContent>
+            </Select>
+            <Button
+              className="shrink-0 gap-2"
+              disabled={!inviteEmail || isPendingInvite}
+              onClick={handleInvite}
+            >
+              <UserPlusIcon className="h-4 w-4" strokeWidth={1.75} />
+              {isPendingInvite ? "Sending…" : "Invite"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Members table */}
+      <Card className="rounded-2xl bg-muted/40">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">
+            {members.length} {members.length === 1 ? "member" : "members"}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-border/40 border-b hover:bg-transparent">
+                <TableHead className="pl-6">Member</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead className="w-12" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {members.map((member) => {
+                const isSelf = member.userId === currentUserId;
+                const displayName =
+                  [member.firstName, member.lastName]
+                    .filter(Boolean)
+                    .join(" ") || member.emailAddress;
+
+                return (
+                  <TableRow
+                    className="border-border/40 border-b last:border-0"
+                    key={member.membershipId}
+                  >
+                    <TableCell className="pl-6">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage
+                            alt={displayName}
+                            src={member.imageUrl}
+                          />
+                          <AvatarFallback className="text-xs">
+                            {getInitials(
+                              member.firstName,
+                              member.lastName,
+                              member.emailAddress
+                            )}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-sm leading-none">
+                            {displayName}
+                            {isSelf && (
+                              <span className="ml-2 text-muted-foreground text-xs">
+                                (you)
+                              </span>
+                            )}
+                          </p>
+                          <p className="mt-0.5 text-muted-foreground text-xs">
+                            {member.emailAddress}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {isSelf || (!isOwner && member.role === "org:owner") ? (
+                        <RoleBadge role={member.role} />
+                      ) : (
+                        <Select
+                          disabled={isRoleUpdating}
+                          onValueChange={(v) =>
+                            handleRoleChange(member, v as OrgRole)
+                          }
+                          value={member.role}
+                        >
+                          <SelectTrigger className="h-7 w-32 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ROLE_OPTIONS.map((opt) => (
+                              <SelectItem
+                                className="text-xs"
+                                key={opt.value}
+                                value={opt.value}
+                              >
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                            {isOwner && (
+                              <SelectItem className="text-xs" value="org:owner">
+                                Owner
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </TableCell>
+                    <TableCell className="pr-4 text-right">
+                      {!isSelf && (
+                        <Button
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          onClick={() => setRemoveTarget(member)}
+                          size="icon"
+                          variant="ghost"
+                        >
+                          <UserMinusIcon
+                            className="h-4 w-4"
+                            strokeWidth={1.75}
+                          />
+                          <span className="sr-only">Remove {displayName}</span>
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Pending invitations */}
+      {pendingInvitations.length > 0 && (
+        <Card className="rounded-2xl bg-muted/40">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base">Pending invitations</CardTitle>
+            <CardDescription>
+              These people have been invited but haven't accepted yet.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border/40 border-b hover:bg-transparent">
+                  <TableHead className="pl-6">Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Sent</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pendingInvitations.map((inv) => (
+                  <TableRow
+                    className="border-border/40 border-b last:border-0"
+                    key={inv.id}
+                  >
+                    <TableCell className="pl-6">
+                      <div className="flex items-center gap-2">
+                        <MailIcon
+                          className="h-4 w-4 shrink-0 text-muted-foreground"
+                          strokeWidth={1.75}
+                        />
+                        <span className="text-sm">{inv.emailAddress}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <RoleBadge role={inv.role} />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {new Date(inv.createdAt).toLocaleDateString()}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
+      <ConfirmActionDialog
+        confirmLabel="Remove"
+        description={
+          removeTarget
+            ? `Remove ${[removeTarget.firstName, removeTarget.lastName].filter(Boolean).join(" ") || removeTarget.emailAddress} from this organisation? They will lose all access immediately.`
+            : ""
+        }
+        destructive
+        onConfirm={handleRemoveConfirm}
+        onOpenChange={(open) => !open && setRemoveTarget(null)}
+        open={removeTarget !== null}
+        title="Remove member"
+      />
+    </div>
+  );
+};

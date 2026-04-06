@@ -22,17 +22,15 @@ import {
   CalendarCheckIcon,
   CalendarDaysIcon,
   CalendarRangeIcon,
-  ClockIcon,
   LayoutDashboardIcon,
   LeafIcon,
   RssIcon,
   Settings2Icon,
-  UmbrellaIcon,
   UsersIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Suspense, type ReactNode } from "react";
+import { type ReactNode, Suspense } from "react";
 
 interface GlobalSidebarProperties {
   readonly children: ReactNode;
@@ -44,9 +42,11 @@ const navItems = [
   { title: "Calendar", href: "/calendar", icon: CalendarDaysIcon },
   { title: "Feed", href: "/feed", icon: RssIcon },
   { title: "People", href: "/people", icon: UsersIcon },
-  { title: "Public Holidays", href: "/public-holidays", icon: CalendarCheckIcon },
-  { title: "Leave", href: "/leave", icon: UmbrellaIcon },
-  { title: "Availability", href: "/availability", icon: ClockIcon },
+  {
+    title: "Public Holidays",
+    href: "/public-holidays",
+    icon: CalendarCheckIcon,
+  },
 ] as const;
 
 export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
@@ -55,14 +55,14 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
 
   return (
     <>
-      <Sidebar variant="floating" collapsible="icon">
+      <Sidebar collapsible="icon" variant="floating">
         <SidebarHeader className="pb-2">
           <SidebarMenu>
             <SidebarMenuItem>
               {/* Brand mark */}
               <div
                 className={cn(
-                  "flex items-center gap-2.5 px-1 py-1.5 mb-1",
+                  "mb-1 flex items-center gap-2.5 px-1 py-1.5",
                   !sidebar.open && "justify-center"
                 )}
               >
@@ -73,7 +73,7 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                   <LeafIcon className="h-4 w-4 text-white" strokeWidth={2} />
                 </div>
                 {sidebar.open && (
-                  <span className="text-[0.9375rem] font-semibold tracking-[-0.01em]">
+                  <span className="font-semibold text-[0.9375rem] tracking-[-0.01em]">
                     LeaveSync
                   </span>
                 )}
@@ -95,16 +95,16 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
+                        className="h-9 gap-3"
                         isActive={isActive}
                         tooltip={item.title}
-                        className="h-9 gap-3"
                       >
                         <Link href={item.href}>
                           <item.icon
                             className="h-4 w-4 shrink-0"
                             strokeWidth={1.75}
                           />
-                          <span className="text-[0.8125rem] font-medium">
+                          <span className="font-medium text-[0.8125rem]">
                             {item.title}
                           </span>
                         </Link>
@@ -123,13 +123,16 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
+                className="h-9 gap-3"
                 isActive={pathname.startsWith("/settings")}
                 tooltip="Settings"
-                className="h-9 gap-3"
               >
                 <Link href="/settings">
-                  <Settings2Icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-                  <span className="text-[0.8125rem] font-medium">Settings</span>
+                  <Settings2Icon
+                    className="h-4 w-4 shrink-0"
+                    strokeWidth={1.75}
+                  />
+                  <span className="font-medium text-[0.8125rem]">Settings</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -153,10 +156,7 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                   <UserButton
                     appearance={{
                       elements: {
-                        rootBox: cn(
-                          "flex",
-                          sidebar.open ? "flex-1" : "w-auto"
-                        ),
+                        rootBox: cn("flex", sidebar.open ? "flex-1" : "w-auto"),
                         userButtonBox: "flex-row-reverse",
                         userButtonOuterIdentifier:
                           "truncate pl-0 text-[0.8125rem]",
@@ -168,9 +168,9 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                 {sidebar.open && (
                   <div className="flex shrink-0 items-center gap-0.5">
                     <Button
+                      className="h-8 w-8 shrink-0"
                       size="icon"
                       variant="ghost"
-                      className="h-8 w-8 shrink-0"
                     >
                       <NotificationsTrigger />
                     </Button>

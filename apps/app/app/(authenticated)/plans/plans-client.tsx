@@ -29,10 +29,10 @@ type LeaveTypeId =
   | "custom";
 
 interface LeaveType {
+  color: string;
+  icon: React.ReactNode;
   id: LeaveTypeId;
   label: string;
-  icon: React.ReactNode;
-  color: string;
   textColor: string;
 }
 
@@ -42,17 +42,17 @@ interface CalendarOption {
 }
 
 interface PlanEntry {
-  id: string;
-  type: LeaveTypeId;
-  customLabel?: string;
-  startDate: string;
-  endDate: string;
   allDay: boolean;
-  startTime?: string;
-  endTime?: string;
   calendars: string[];
-  notes: string;
   createdAt: Date;
+  customLabel?: string;
+  endDate: string;
+  endTime?: string;
+  id: string;
+  notes: string;
+  startDate: string;
+  startTime?: string;
+  type: LeaveTypeId;
 }
 
 // ─── Static data ─────────────────────────────────────────────────────────────
@@ -131,17 +131,23 @@ const isSameDay = (a: string, b: string) => a === b;
 // ─── Empty state ──────────────────────────────────────────────────────────────
 
 const EmptyPlans = () => (
-  <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed py-16 text-center"
+  <div
+    className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed py-16 text-center"
     style={{ borderColor: "var(--border)" }}
   >
     <div
       className="flex size-10 items-center justify-center rounded-xl"
       style={{ background: "var(--muted)" }}
     >
-      <CalendarRangeIcon className="size-5 text-muted-foreground" strokeWidth={1.5} />
+      <CalendarRangeIcon
+        className="size-5 text-muted-foreground"
+        strokeWidth={1.5}
+      />
     </div>
     <div>
-      <p className="text-[0.875rem] font-medium text-foreground">No plans yet</p>
+      <p className="font-medium text-[0.875rem] text-foreground">
+        No plans yet
+      </p>
       <p className="mt-0.5 text-[0.8125rem] text-muted-foreground">
         Add your first entry using the form.
       </p>
@@ -160,7 +166,9 @@ const PlanCard = ({
 }) => {
   const type = getLeaveType(entry.type);
   const label =
-    entry.type === "custom" && entry.customLabel ? entry.customLabel : type.label;
+    entry.type === "custom" && entry.customLabel
+      ? entry.customLabel
+      : type.label;
   const calendarLabels = CALENDARS.filter((c) =>
     entry.calendars.includes(c.id)
   ).map((c) => c.label);
@@ -181,7 +189,7 @@ const PlanCard = ({
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <p className="text-[0.875rem] font-semibold leading-tight text-foreground">
+            <p className="font-semibold text-[0.875rem] text-foreground leading-tight">
               {label}
             </p>
             <p className="mt-0.5 text-[0.8125rem] text-muted-foreground">
@@ -196,17 +204,17 @@ const PlanCard = ({
             </p>
           </div>
           <button
-            type="button"
-            onClick={() => onDelete(entry.id)}
-            className="shrink-0 rounded-md p-1 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
             aria-label="Remove plan"
+            className="shrink-0 rounded-md p-1 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+            onClick={() => onDelete(entry.id)}
+            type="button"
           >
             <Trash2Icon className="size-3.5" strokeWidth={1.75} />
           </button>
         </div>
 
         {entry.notes && (
-          <p className="mt-1.5 text-[0.8125rem] text-muted-foreground line-clamp-2">
+          <p className="mt-1.5 line-clamp-2 text-[0.8125rem] text-muted-foreground">
             {entry.notes}
           </p>
         )}
@@ -215,8 +223,8 @@ const PlanCard = ({
           <div className="mt-2 flex flex-wrap gap-1.5">
             {calendarLabels.map((cal) => (
               <span
+                className="rounded-md px-2 py-0.5 font-medium text-[0.6875rem]"
                 key={cal}
-                className="rounded-md px-2 py-0.5 text-[0.6875rem] font-medium"
                 style={{
                   background: "var(--muted)",
                   color: "var(--muted-foreground)",
@@ -245,7 +253,9 @@ export const PlansClient = () => {
   const [allDay, setAllDay] = useState(true);
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
-  const [selectedCalendars, setSelectedCalendars] = useState<string[]>(["work"]);
+  const [selectedCalendars, setSelectedCalendars] = useState<string[]>([
+    "work",
+  ]);
   const [notes, setNotes] = useState("");
 
   const toggleCalendar = (id: string) => {
@@ -255,8 +265,12 @@ export const PlansClient = () => {
   };
 
   const handleAdd = () => {
-    if (!startDate || !endDate) return;
-    if (endDate < startDate) return;
+    if (!(startDate && endDate)) {
+      return;
+    }
+    if (endDate < startDate) {
+      return;
+    }
 
     const entry: PlanEntry = {
       id: crypto.randomUUID(),
@@ -288,7 +302,9 @@ export const PlansClient = () => {
   // Group plans by month
   const grouped = plans.reduce<Record<string, PlanEntry[]>>((acc, plan) => {
     const monthKey = plan.startDate.slice(0, 7); // YYYY-MM
-    if (!acc[monthKey]) acc[monthKey] = [];
+    if (!acc[monthKey]) {
+      acc[monthKey] = [];
+    }
     acc[monthKey].push(plan);
     return acc;
   }, {});
@@ -306,33 +322,31 @@ export const PlansClient = () => {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[400px_1fr]">
-
       {/* ── Add Entry Form ─────────────────────────────────────────── */}
       <div
         className="flex flex-col gap-5 rounded-2xl p-6"
         style={{ background: "var(--muted)" }}
       >
         <div>
-          <p className="text-[0.6875rem] font-medium tracking-widest uppercase text-muted-foreground">
+          <p className="font-medium text-[0.6875rem] text-muted-foreground uppercase tracking-widest">
             New Entry
           </p>
-          <h2 className="mt-0.5 text-[1.25rem] font-semibold tracking-tight text-foreground">
+          <h2 className="mt-0.5 font-semibold text-[1.25rem] text-foreground tracking-tight">
             Add to my plans
           </h2>
         </div>
 
         {/* Leave type picker */}
         <div className="flex flex-col gap-2">
-          <Label className="text-[0.8125rem] font-medium">Type</Label>
+          <Label className="font-medium text-[0.8125rem]">Type</Label>
           <div className="grid grid-cols-2 gap-2">
             {LEAVE_TYPES.map((lt) => {
               const active = selectedType === lt.id;
               return (
                 <button
+                  className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-left font-medium text-[0.8125rem] transition-all"
                   key={lt.id}
-                  type="button"
                   onClick={() => setSelectedType(lt.id)}
-                  className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-left text-[0.8125rem] font-medium transition-all"
                   style={
                     active
                       ? {
@@ -345,8 +359,13 @@ export const PlansClient = () => {
                           color: "var(--on-surface-variant)",
                         }
                   }
+                  type="button"
                 >
-                  <span style={{ color: active ? lt.textColor : "var(--muted-foreground)" }}>
+                  <span
+                    style={{
+                      color: active ? lt.textColor : "var(--muted-foreground)",
+                    }}
+                  >
                     {lt.icon}
                   </span>
                   {lt.label}
@@ -359,14 +378,17 @@ export const PlansClient = () => {
         {/* Custom label */}
         {selectedType === "custom" && (
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="custom-label" className="text-[0.8125rem] font-medium">
+            <Label
+              className="font-medium text-[0.8125rem]"
+              htmlFor="custom-label"
+            >
               Custom label
             </Label>
             <Input
               id="custom-label"
+              onChange={(e) => setCustomLabel(e.target.value)}
               placeholder="e.g. Conference, Volunteer day…"
               value={customLabel}
-              onChange={(e) => setCustomLabel(e.target.value)}
             />
           </div>
         )}
@@ -375,41 +397,52 @@ export const PlansClient = () => {
         <div className="flex flex-col gap-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="start-date" className="text-[0.8125rem] font-medium">
+              <Label
+                className="font-medium text-[0.8125rem]"
+                htmlFor="start-date"
+              >
                 Start date
               </Label>
               <Input
                 id="start-date"
-                type="date"
-                value={startDate}
                 min={today}
                 onChange={(e) => {
                   setStartDate(e.target.value);
-                  if (e.target.value > endDate) setEndDate(e.target.value);
+                  if (e.target.value > endDate) {
+                    setEndDate(e.target.value);
+                  }
                 }}
+                type="date"
+                value={startDate}
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="end-date" className="text-[0.8125rem] font-medium">
+              <Label
+                className="font-medium text-[0.8125rem]"
+                htmlFor="end-date"
+              >
                 End date
               </Label>
               <Input
                 id="end-date"
-                type="date"
-                value={endDate}
                 min={startDate || today}
                 onChange={(e) => setEndDate(e.target.value)}
+                type="date"
+                value={endDate}
               />
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <Checkbox
-              id="all-day"
               checked={allDay}
+              id="all-day"
               onCheckedChange={(v) => setAllDay(v === true)}
             />
-            <Label htmlFor="all-day" className="text-[0.8125rem] cursor-pointer">
+            <Label
+              className="cursor-pointer text-[0.8125rem]"
+              htmlFor="all-day"
+            >
               All day
             </Label>
           </div>
@@ -417,25 +450,31 @@ export const PlansClient = () => {
           {!allDay && (
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="start-time" className="text-[0.8125rem] font-medium">
+                <Label
+                  className="font-medium text-[0.8125rem]"
+                  htmlFor="start-time"
+                >
                   Start time
                 </Label>
                 <Input
                   id="start-time"
+                  onChange={(e) => setStartTime(e.target.value)}
                   type="time"
                   value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="end-time" className="text-[0.8125rem] font-medium">
+                <Label
+                  className="font-medium text-[0.8125rem]"
+                  htmlFor="end-time"
+                >
                   End time
                 </Label>
                 <Input
                   id="end-time"
+                  onChange={(e) => setEndTime(e.target.value)}
                   type="time"
                   value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
                 />
               </div>
             </div>
@@ -444,15 +483,17 @@ export const PlansClient = () => {
 
         {/* Calendar selection */}
         <div className="flex flex-col gap-2">
-          <Label className="text-[0.8125rem] font-medium">Add to calendars</Label>
+          <Label className="font-medium text-[0.8125rem]">
+            Add to calendars
+          </Label>
           <div
             className="flex flex-col gap-0.5 rounded-xl p-3"
             style={{ background: "var(--background)" }}
           >
             {CALENDARS.map((cal) => (
               <label
-                key={cal.id}
                 className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 transition-colors hover:bg-accent"
+                key={cal.id}
               >
                 <Checkbox
                   checked={selectedCalendars.includes(cal.id)}
@@ -471,24 +512,26 @@ export const PlansClient = () => {
 
         {/* Notes */}
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="notes" className="text-[0.8125rem] font-medium">
+          <Label className="font-medium text-[0.8125rem]" htmlFor="notes">
             Notes{" "}
-            <span className="font-normal text-muted-foreground">(optional)</span>
+            <span className="font-normal text-muted-foreground">
+              (optional)
+            </span>
           </Label>
           <Textarea
+            className="resize-none"
             id="notes"
+            onChange={(e) => setNotes(e.target.value)}
             placeholder="Any context, coverage arrangements, contact details…"
             rows={3}
             value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            className="resize-none"
           />
         </div>
 
         <Button
-          onClick={handleAdd}
-          disabled={!isFormValid}
           className="w-full gap-2"
+          disabled={!isFormValid}
+          onClick={handleAdd}
           style={
             isFormValid
               ? { background: "var(--primary)", color: "var(--on-primary)" }
@@ -503,10 +546,10 @@ export const PlansClient = () => {
       {/* ── Plan Timeline ──────────────────────────────────────────── */}
       <div className="flex flex-col gap-4">
         <div>
-          <p className="text-[0.6875rem] font-medium tracking-widest uppercase text-muted-foreground">
+          <p className="font-medium text-[0.6875rem] text-muted-foreground uppercase tracking-widest">
             Planned
           </p>
-          <h2 className="mt-0.5 text-[1.25rem] font-semibold tracking-tight text-foreground">
+          <h2 className="mt-0.5 font-semibold text-[1.25rem] text-foreground tracking-tight">
             My upcoming time
           </h2>
         </div>
@@ -516,16 +559,20 @@ export const PlansClient = () => {
         ) : (
           <div className="flex flex-col gap-6">
             {Object.entries(grouped).map(([monthKey, entries]) => (
-              <div key={monthKey} className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2" key={monthKey}>
                 <p
-                  className="text-[0.75rem] font-semibold tracking-widest uppercase"
+                  className="font-semibold text-[0.75rem] uppercase tracking-widest"
                   style={{ color: "var(--muted-foreground)" }}
                 >
                   {formatMonthHeading(monthKey)}
                 </p>
                 <div className="flex flex-col gap-2">
                   {entries.map((entry) => (
-                    <PlanCard key={entry.id} entry={entry} onDelete={handleDelete} />
+                    <PlanCard
+                      entry={entry}
+                      key={entry.id}
+                      onDelete={handleDelete}
+                    />
                   ))}
                 </div>
               </div>
@@ -533,7 +580,6 @@ export const PlansClient = () => {
           </div>
         )}
       </div>
-
     </div>
   );
 };
