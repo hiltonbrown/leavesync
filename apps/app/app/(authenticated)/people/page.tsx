@@ -4,7 +4,8 @@ import { PeopleClient } from "./people-client";
 
 export const metadata: Metadata = {
   title: "People — LeaveSync",
-  description: "Team directory with real-time availability and calendar status.",
+  description:
+    "Team directory with real-time availability and calendar status.",
 };
 
 const PeoplePage = () => (

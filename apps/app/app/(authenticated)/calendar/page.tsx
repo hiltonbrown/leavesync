@@ -4,7 +4,8 @@ import { CalendarClient } from "./calendar-client";
 
 export const metadata: Metadata = {
   title: "Calendar — LeaveSync",
-  description: "View team leave and availability as a calendar. Subscribe to keep it in sync with your calendar app.",
+  description:
+    "View team leave and availability as a calendar. Subscribe to keep it in sync with your calendar app.",
 };
 
 const CalendarPage = () => (

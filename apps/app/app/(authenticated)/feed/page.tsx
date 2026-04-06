@@ -4,7 +4,8 @@ import { FeedClient } from "./feed-client";
 
 export const metadata: Metadata = {
   title: "Feeds — LeaveSync",
-  description: "Create and manage iCal calendar feeds for your team's leave and availability.",
+  description:
+    "Create and manage iCal calendar feeds for your team's leave and availability.",
 };
 
 const FeedPage = () => (

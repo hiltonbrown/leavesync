@@ -2,7 +2,7 @@ import { OrganizationSwitcher } from "@repo/auth/client";
 import { ModeToggle } from "@repo/design-system/components/mode-toggle";
 import { Separator } from "@repo/design-system/components/ui/separator";
 import { SidebarTrigger } from "@repo/design-system/components/ui/sidebar";
-import { Suspense, type ReactNode } from "react";
+import { type ReactNode, Suspense } from "react";
 
 interface HeaderProps {
   children?: ReactNode;
@@ -25,8 +25,8 @@ export const Header = ({ page, children }: HeaderProps) => (
         className="-ml-0.5 size-7"
         style={{ color: "var(--muted-foreground)" }}
       />
-      <Separator orientation="vertical" className="h-4 opacity-40" />
-      <h1 className="text-[0.9375rem] font-semibold tracking-[-0.01em]">
+      <Separator className="h-4 opacity-40" orientation="vertical" />
+      <h1 className="font-semibold text-[0.9375rem] tracking-[-0.01em]">
         {page}
       </h1>
     </div>
@@ -39,10 +39,7 @@ export const Header = ({ page, children }: HeaderProps) => (
           <div className="h-7 w-32 animate-pulse rounded-md bg-[var(--sidebar-accent)]" />
         }
       >
-        <OrganizationSwitcher
-          afterSelectOrganizationUrl="/"
-          hidePersonal
-        />
+        <OrganizationSwitcher afterSelectOrganizationUrl="/" hidePersonal />
       </Suspense>
     </div>
   </header>

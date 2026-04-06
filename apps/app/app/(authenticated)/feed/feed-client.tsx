@@ -37,7 +37,6 @@ import {
   PlusIcon,
   RssIcon,
   Trash2Icon,
-  UserPlusIcon,
   UsersIcon,
   XIcon,
 } from "lucide-react";
@@ -80,15 +79,54 @@ type Feed = {
 // ─── Reference data ─────────────────────────────────────────────────────────
 
 const ALL_PEOPLE: Person[] = [
-  { id: "p1", name: "Priya Sharma", initials: "PS", role: "Senior Engineer", dept: "Engineering" },
-  { id: "p2", name: "Marcus Webb", initials: "MW", role: "Backend Engineer", dept: "Engineering" },
-  { id: "p3", name: "Yuki Tanaka", initials: "YT", role: "Product Manager", dept: "Product" },
-  { id: "p4", name: "Aisha Okonkwo", initials: "AO", role: "UI Designer", dept: "Design" },
-  { id: "p5", name: "Tom Eriksson", initials: "TE", role: "Frontend Engineer", dept: "Engineering" },
-  { id: "p6", name: "Sofia Reyes", initials: "SR", role: "Data Analyst", dept: "Product" },
+  {
+    id: "p1",
+    name: "Priya Sharma",
+    initials: "PS",
+    role: "Senior Engineer",
+    dept: "Engineering",
+  },
+  {
+    id: "p2",
+    name: "Marcus Webb",
+    initials: "MW",
+    role: "Backend Engineer",
+    dept: "Engineering",
+  },
+  {
+    id: "p3",
+    name: "Yuki Tanaka",
+    initials: "YT",
+    role: "Product Manager",
+    dept: "Product",
+  },
+  {
+    id: "p4",
+    name: "Aisha Okonkwo",
+    initials: "AO",
+    role: "UI Designer",
+    dept: "Design",
+  },
+  {
+    id: "p5",
+    name: "Tom Eriksson",
+    initials: "TE",
+    role: "Frontend Engineer",
+    dept: "Engineering",
+  },
+  {
+    id: "p6",
+    name: "Sofia Reyes",
+    initials: "SR",
+    role: "Data Analyst",
+    dept: "Product",
+  },
 ];
 
-type HolidayPreset = { label: string; holidays: Omit<SpecialDate, "id" | "recurring">[] };
+type HolidayPreset = {
+  label: string;
+  holidays: Omit<SpecialDate, "id" | "recurring">[];
+};
 
 const HOLIDAY_PRESETS: Record<string, HolidayPreset> = {
   gb: {
@@ -97,9 +135,21 @@ const HOLIDAY_PRESETS: Record<string, HolidayPreset> = {
       { label: "New Year's Day", date: "2026-01-01", type: "public-holiday" },
       { label: "Good Friday", date: "2026-04-03", type: "public-holiday" },
       { label: "Easter Monday", date: "2026-04-06", type: "public-holiday" },
-      { label: "Early May Bank Holiday", date: "2026-05-04", type: "public-holiday" },
-      { label: "Spring Bank Holiday", date: "2026-05-25", type: "public-holiday" },
-      { label: "Summer Bank Holiday", date: "2026-08-31", type: "public-holiday" },
+      {
+        label: "Early May Bank Holiday",
+        date: "2026-05-04",
+        type: "public-holiday",
+      },
+      {
+        label: "Spring Bank Holiday",
+        date: "2026-05-25",
+        type: "public-holiday",
+      },
+      {
+        label: "Summer Bank Holiday",
+        date: "2026-08-31",
+        type: "public-holiday",
+      },
       { label: "Christmas Day", date: "2026-12-25", type: "public-holiday" },
       { label: "Boxing Day", date: "2026-12-28", type: "public-holiday" },
     ],
@@ -152,9 +202,27 @@ const INITIAL_FEEDS: Feed[] = [
     token: "org_k8s92j_eng",
     personIds: ["p1", "p2", "p5"],
     dates: [
-      { id: "d1", label: "Good Friday", date: "2026-04-03", type: "public-holiday", recurring: true },
-      { id: "d2", label: "Easter Monday", date: "2026-04-06", type: "public-holiday", recurring: true },
-      { id: "d3", label: "Company Away Day", date: "2026-06-12", type: "custom", recurring: false },
+      {
+        id: "d1",
+        label: "Good Friday",
+        date: "2026-04-03",
+        type: "public-holiday",
+        recurring: true,
+      },
+      {
+        id: "d2",
+        label: "Easter Monday",
+        date: "2026-04-06",
+        type: "public-holiday",
+        recurring: true,
+      },
+      {
+        id: "d3",
+        label: "Company Away Day",
+        date: "2026-06-12",
+        type: "custom",
+        recurring: false,
+      },
     ],
     createdAt: "2026-01-15",
     lastSynced: "3 min ago",
@@ -168,8 +236,20 @@ const INITIAL_FEEDS: Feed[] = [
     token: "org_k8s92j_prd",
     personIds: ["p3", "p4", "p6"],
     dates: [
-      { id: "d4", label: "Good Friday", date: "2026-04-03", type: "public-holiday", recurring: true },
-      { id: "d5", label: "Design Sprint Week", date: "2026-09-14", type: "custom", recurring: false },
+      {
+        id: "d4",
+        label: "Good Friday",
+        date: "2026-04-03",
+        type: "public-holiday",
+        recurring: true,
+      },
+      {
+        id: "d5",
+        label: "Design Sprint Week",
+        date: "2026-09-14",
+        type: "custom",
+        recurring: false,
+      },
     ],
     createdAt: "2026-02-03",
     lastSynced: "12 min ago",
@@ -183,8 +263,20 @@ const INITIAL_FEEDS: Feed[] = [
     token: "org_k8s92j_all",
     personIds: ["p1", "p2", "p3", "p4", "p5", "p6"],
     dates: [
-      { id: "d6", label: "Christmas Day", date: "2026-12-25", type: "public-holiday", recurring: true },
-      { id: "d7", label: "Boxing Day", date: "2026-12-28", type: "public-holiday", recurring: true },
+      {
+        id: "d6",
+        label: "Christmas Day",
+        date: "2026-12-25",
+        type: "public-holiday",
+        recurring: true,
+      },
+      {
+        id: "d7",
+        label: "Boxing Day",
+        date: "2026-12-28",
+        type: "public-holiday",
+        recurring: true,
+      },
     ],
     createdAt: "2025-11-20",
     lastSynced: "2 days ago",
@@ -198,7 +290,11 @@ function feedUrl(token: string): string {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 function uid(): string {
@@ -207,23 +303,30 @@ function uid(): string {
 
 const DATE_TYPE_LABELS: Record<DateType, string> = {
   "public-holiday": "Public holiday",
-  "custom": "Custom date",
-  "closure": "Office closure",
+  custom: "Custom date",
+  closure: "Office closure",
 };
 
 // ─── PersonAvatar ─────────────────────────────────────────────────────────────
 
-function PersonAvatar({ person, size = "sm" }: { person: Person; size?: "sm" | "md" }) {
-  const sz = size === "sm" ? "h-7 w-7 text-[0.625rem]" : "h-9 w-9 text-[0.75rem]";
+function PersonAvatar({
+  person,
+  size = "sm",
+}: {
+  person: Person;
+  size?: "sm" | "md";
+}) {
+  const sz =
+    size === "sm" ? "h-7 w-7 text-[0.625rem]" : "h-9 w-9 text-[0.75rem]";
   return (
     <div
-      title={person.name}
       className={`flex shrink-0 items-center justify-center rounded-full font-semibold ${sz}`}
       style={{
         background: "color-mix(in srgb, var(--primary) 14%, transparent)",
         color: "var(--primary)",
         border: "2px solid var(--background)",
       }}
+      title={person.name}
     >
       {person.initials}
     </div>
@@ -241,7 +344,9 @@ type FeedCardProps = {
 
 function FeedCard({ feed, onManage, onToggleStatus, onDelete }: FeedCardProps) {
   const [copied, setCopied] = useState(false);
-  const people = feed.personIds.map((id) => ALL_PEOPLE.find((p) => p.id === id)!).filter(Boolean);
+  const people = feed.personIds
+    .map((id) => ALL_PEOPLE.find((p) => p.id === id)!)
+    .filter(Boolean);
   const url = feedUrl(feed.token);
   const isActive = feed.status === "active";
 
@@ -258,7 +363,7 @@ function FeedCard({ feed, onManage, onToggleStatus, onDelete }: FeedCardProps) {
     >
       {/* Header row */}
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3 min-w-0">
+        <div className="flex min-w-0 items-start gap-3">
           <div
             className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
             style={{
@@ -271,16 +376,17 @@ function FeedCard({ feed, onManage, onToggleStatus, onDelete }: FeedCardProps) {
             <RssIcon className="size-4" strokeWidth={1.75} />
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-[0.9375rem] font-semibold text-foreground leading-tight">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="font-semibold text-[0.9375rem] text-foreground leading-tight">
                 {feed.name}
               </h3>
               <span
-                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-widest"
+                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-semibold text-[0.625rem] uppercase tracking-widest"
                 style={
                   isActive
                     ? {
-                        background: "color-mix(in srgb, var(--primary) 12%, transparent)",
+                        background:
+                          "color-mix(in srgb, var(--primary) 12%, transparent)",
                         color: "var(--primary)",
                       }
                     : {
@@ -290,7 +396,10 @@ function FeedCard({ feed, onManage, onToggleStatus, onDelete }: FeedCardProps) {
                 }
               >
                 {isActive ? (
-                  <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: "var(--primary)" }} />
+                  <span
+                    className="inline-block h-1.5 w-1.5 rounded-full"
+                    style={{ background: "var(--primary)" }}
+                  />
                 ) : (
                   <span className="inline-block h-1.5 w-1.5 rounded-full bg-muted-foreground" />
                 )}
@@ -307,8 +416,8 @@ function FeedCard({ feed, onManage, onToggleStatus, onDelete }: FeedCardProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               aria-label="Feed options"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
               <MoreHorizontalIcon className="size-4" />
             </button>
@@ -332,7 +441,7 @@ function FeedCard({ feed, onManage, onToggleStatus, onDelete }: FeedCardProps) {
               )}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={onDelete}>
+            <DropdownMenuItem onClick={onDelete} variant="destructive">
               <Trash2Icon className="size-4" />
               Delete feed
             </DropdownMenuItem>
@@ -350,7 +459,9 @@ function FeedCard({ feed, onManage, onToggleStatus, onDelete }: FeedCardProps) {
             ))}
           </div>
           {people.length > 4 && (
-            <span className="text-[0.75rem] text-muted-foreground">+{people.length - 4}</span>
+            <span className="text-[0.75rem] text-muted-foreground">
+              +{people.length - 4}
+            </span>
           )}
           <span className="text-[0.75rem] text-muted-foreground">
             {people.length} {people.length === 1 ? "person" : "people"}
@@ -358,8 +469,8 @@ function FeedCard({ feed, onManage, onToggleStatus, onDelete }: FeedCardProps) {
         </div>
 
         <span
-          className="text-muted-foreground"
           aria-hidden
+          className="text-muted-foreground"
           style={{ fontSize: "0.5rem" }}
         >
           ●
@@ -371,9 +482,7 @@ function FeedCard({ feed, onManage, onToggleStatus, onDelete }: FeedCardProps) {
         </span>
 
         {/* Last synced */}
-        <span
-          className="ml-auto text-[0.75rem] text-muted-foreground"
-        >
+        <span className="ml-auto text-[0.75rem] text-muted-foreground">
           Synced {feed.lastSynced}
         </span>
       </div>
@@ -387,13 +496,16 @@ function FeedCard({ feed, onManage, onToggleStatus, onDelete }: FeedCardProps) {
           {url}
         </code>
         <button
+          className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 font-medium text-[0.6875rem] transition-colors hover:bg-accent"
           onClick={copy}
-          className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-[0.6875rem] font-medium transition-colors hover:bg-accent"
           style={{ color: "var(--muted-foreground)" }}
           title="Copy feed URL"
         >
           {copied ? (
-            <CheckIcon className="size-3.5" style={{ color: "var(--primary)" }} />
+            <CheckIcon
+              className="size-3.5"
+              style={{ color: "var(--primary)" }}
+            />
           ) : (
             <CopyIcon className="size-3.5" />
           )}
@@ -404,9 +516,12 @@ function FeedCard({ feed, onManage, onToggleStatus, onDelete }: FeedCardProps) {
       {/* Action buttons */}
       <div className="flex items-center gap-2">
         <button
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 font-medium text-[0.8125rem] transition-colors"
           onClick={onManage}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-[0.8125rem] font-medium transition-colors"
-          style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
+          style={{
+            background: "var(--primary)",
+            color: "var(--primary-foreground)",
+          }}
         >
           Manage feed
         </button>
@@ -423,7 +538,11 @@ type CreateFeedDialogProps = {
   onCreate: (feed: Feed) => void;
 };
 
-function CreateFeedDialog({ open, onOpenChange, onCreate }: CreateFeedDialogProps) {
+function CreateFeedDialog({
+  open,
+  onOpenChange,
+  onCreate,
+}: CreateFeedDialogProps) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   // Step 1
@@ -438,7 +557,9 @@ function CreateFeedDialog({ open, onOpenChange, onCreate }: CreateFeedDialogProp
   // Step 3
   const [holidayCountry, setHolidayCountry] = useState<string>("gb");
   const [selectedHolidays, setSelectedHolidays] = useState<string[]>([]);
-  const [customDates, setCustomDates] = useState<{ label: string; date: string; type: DateType; recurring: boolean }[]>([]);
+  const [customDates, setCustomDates] = useState<
+    { label: string; date: string; type: DateType; recurring: boolean }[]
+  >([]);
   const [newDateLabel, setNewDateLabel] = useState("");
   const [newDateValue, setNewDateValue] = useState("");
   const [newDateType, setNewDateType] = useState<DateType>("custom");
@@ -461,7 +582,9 @@ function CreateFeedDialog({ open, onOpenChange, onCreate }: CreateFeedDialogProp
   };
 
   const handleOpenChange = (v: boolean) => {
-    if (!v) reset();
+    if (!v) {
+      reset();
+    }
     onOpenChange(v);
   };
 
@@ -472,14 +595,23 @@ function CreateFeedDialog({ open, onOpenChange, onCreate }: CreateFeedDialogProp
 
   const toggleHoliday = (dateStr: string) =>
     setSelectedHolidays((prev) =>
-      prev.includes(dateStr) ? prev.filter((x) => x !== dateStr) : [...prev, dateStr]
+      prev.includes(dateStr)
+        ? prev.filter((x) => x !== dateStr)
+        : [...prev, dateStr]
     );
 
   const addCustomDate = () => {
-    if (!newDateLabel.trim() || !newDateValue) return;
+    if (!(newDateLabel.trim() && newDateValue)) {
+      return;
+    }
     setCustomDates((prev) => [
       ...prev,
-      { label: newDateLabel.trim(), date: newDateValue, type: newDateType, recurring: newDateRecurring },
+      {
+        label: newDateLabel.trim(),
+        date: newDateValue,
+        type: newDateType,
+        recurring: newDateRecurring,
+      },
     ]);
     setNewDateLabel("");
     setNewDateValue("");
@@ -495,9 +627,15 @@ function CreateFeedDialog({ open, onOpenChange, onCreate }: CreateFeedDialogProp
       .filter((h) => selectedHolidays.includes(h.date))
       .map((h) => ({ ...h, id: uid(), recurring: true }));
 
-    const customSpecialDates: SpecialDate[] = customDates.map((d) => ({ ...d, id: uid() }));
+    const customSpecialDates: SpecialDate[] = customDates.map((d) => ({
+      ...d,
+      id: uid(),
+    }));
 
-    const token = `org_k8s92j_${name.toLowerCase().replace(/[^a-z0-9]/g, "_").slice(0, 12)}_${uid().slice(0, 4)}`;
+    const token = `org_k8s92j_${name
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "_")
+      .slice(0, 12)}_${uid().slice(0, 4)}`;
 
     const newFeed: Feed = {
       id: uid(),
@@ -517,11 +655,7 @@ function CreateFeedDialog({ open, onOpenChange, onCreate }: CreateFeedDialogProp
   };
 
   const canNext =
-    step === 1
-      ? name.trim().length > 0
-      : step === 2
-        ? true
-        : true;
+    step === 1 ? name.trim().length > 0 : step === 2 ? true : true;
 
   const filteredPeople = ALL_PEOPLE.filter(
     (p) =>
@@ -534,37 +668,56 @@ function CreateFeedDialog({ open, onOpenChange, onCreate }: CreateFeedDialogProp
   const STEPS = ["Details", "People", "Dates"];
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-lg gap-0 p-0 overflow-hidden">
+    <Dialog onOpenChange={handleOpenChange} open={open}>
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-lg">
         {/* Step indicator */}
-        <div className="flex items-center gap-0 border-b" style={{ borderColor: "var(--border)" }}>
+        <div
+          className="flex items-center gap-0 border-b"
+          style={{ borderColor: "var(--border)" }}
+        >
           {STEPS.map((label, i) => {
             const n = i + 1;
             const done = step > n;
             const current = step === n;
             return (
               <div
-                key={label}
                 className="flex flex-1 flex-col items-center gap-1 py-4"
+                key={label}
                 style={{
-                  borderBottom: current ? `2px solid var(--primary)` : "2px solid transparent",
+                  borderBottom: current
+                    ? "2px solid var(--primary)"
+                    : "2px solid transparent",
                 }}
               >
                 <div
-                  className="flex h-6 w-6 items-center justify-center rounded-full text-[0.6875rem] font-semibold"
+                  className="flex h-6 w-6 items-center justify-center rounded-full font-semibold text-[0.6875rem]"
                   style={
                     done
-                      ? { background: "var(--primary)", color: "var(--primary-foreground)" }
+                      ? {
+                          background: "var(--primary)",
+                          color: "var(--primary-foreground)",
+                        }
                       : current
-                        ? { background: "color-mix(in srgb, var(--primary) 14%, transparent)", color: "var(--primary)" }
-                        : { background: "var(--accent)", color: "var(--muted-foreground)" }
+                        ? {
+                            background:
+                              "color-mix(in srgb, var(--primary) 14%, transparent)",
+                            color: "var(--primary)",
+                          }
+                        : {
+                            background: "var(--accent)",
+                            color: "var(--muted-foreground)",
+                          }
                   }
                 >
                   {done ? <CheckIcon className="size-3" strokeWidth={3} /> : n}
                 </div>
                 <span
-                  className="text-[0.6875rem] font-medium"
-                  style={{ color: current ? "var(--primary)" : "var(--muted-foreground)" }}
+                  className="font-medium text-[0.6875rem]"
+                  style={{
+                    color: current
+                      ? "var(--primary)"
+                      : "var(--muted-foreground)",
+                  }}
                 >
                   {label}
                 </span>
@@ -579,42 +732,49 @@ function CreateFeedDialog({ open, onOpenChange, onCreate }: CreateFeedDialogProp
           {step === 1 && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-[1.125rem]">Feed details</DialogTitle>
+                <DialogTitle className="text-[1.125rem]">
+                  Feed details
+                </DialogTitle>
                 <DialogDescription>
-                  Name your feed and set the timezone. You can change these later.
+                  Name your feed and set the timezone. You can change these
+                  later.
                 </DialogDescription>
               </DialogHeader>
 
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="feed-name" className="text-[0.8125rem]">
-                    Feed name <span style={{ color: "var(--destructive)" }}>*</span>
+                  <Label className="text-[0.8125rem]" htmlFor="feed-name">
+                    Feed name{" "}
+                    <span style={{ color: "var(--destructive)" }}>*</span>
                   </Label>
                   <Input
+                    autoFocus
                     id="feed-name"
+                    onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Engineering Team"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    autoFocus
                   />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="feed-description" className="text-[0.8125rem]">
+                  <Label
+                    className="text-[0.8125rem]"
+                    htmlFor="feed-description"
+                  >
                     Description
                   </Label>
                   <Textarea
+                    className="min-h-[72px] resize-none"
                     id="feed-description"
+                    onChange={(e) => setDescription(e.target.value)}
                     placeholder="Briefly describe who or what this feed covers"
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="min-h-[72px] resize-none"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
                   <Label className="text-[0.8125rem]">Timezone</Label>
-                  <Select value={timezone} onValueChange={setTimezone}>
+                  <Select onValueChange={setTimezone} value={timezone}>
                     <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
@@ -635,17 +795,20 @@ function CreateFeedDialog({ open, onOpenChange, onCreate }: CreateFeedDialogProp
           {step === 2 && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-[1.125rem]">Assign people</DialogTitle>
+                <DialogTitle className="text-[1.125rem]">
+                  Assign people
+                </DialogTitle>
                 <DialogDescription>
-                  Choose who appears in this feed. You can update this at any time.
+                  Choose who appears in this feed. You can update this at any
+                  time.
                 </DialogDescription>
               </DialogHeader>
 
               <div className="flex flex-col gap-3">
                 <Input
+                  onChange={(e) => setPeopleSearch(e.target.value)}
                   placeholder="Search by name or department..."
                   value={peopleSearch}
-                  onChange={(e) => setPeopleSearch(e.target.value)}
                 />
 
                 <div
@@ -665,18 +828,18 @@ function CreateFeedDialog({ open, onOpenChange, onCreate }: CreateFeedDialogProp
                     const checked = selectedPeople.includes(person.id);
                     return (
                       <label
-                        key={person.id}
                         className="flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-accent"
                         htmlFor={`person-${person.id}`}
+                        key={person.id}
                       >
                         <Checkbox
-                          id={`person-${person.id}`}
                           checked={checked}
+                          id={`person-${person.id}`}
                           onCheckedChange={() => togglePerson(person.id)}
                         />
                         <PersonAvatar person={person} size="md" />
                         <div className="min-w-0 flex-1">
-                          <p className="text-[0.875rem] font-medium text-foreground leading-tight">
+                          <p className="font-medium text-[0.875rem] text-foreground leading-tight">
                             {person.name}
                           </p>
                           <p className="text-[0.75rem] text-muted-foreground">
@@ -696,7 +859,8 @@ function CreateFeedDialog({ open, onOpenChange, onCreate }: CreateFeedDialogProp
 
                 {selectedPeople.length > 0 && (
                   <p className="text-[0.75rem] text-muted-foreground">
-                    {selectedPeople.length} {selectedPeople.length === 1 ? "person" : "people"} selected
+                    {selectedPeople.length}{" "}
+                    {selectedPeople.length === 1 ? "person" : "people"} selected
                   </p>
                 )}
               </div>
@@ -709,7 +873,8 @@ function CreateFeedDialog({ open, onOpenChange, onCreate }: CreateFeedDialogProp
               <DialogHeader>
                 <DialogTitle className="text-[1.125rem]">Add dates</DialogTitle>
                 <DialogDescription>
-                  Add public holidays and any custom dates to include in this feed.
+                  Add public holidays and any custom dates to include in this
+                  feed.
                 </DialogDescription>
               </DialogHeader>
 
@@ -717,8 +882,13 @@ function CreateFeedDialog({ open, onOpenChange, onCreate }: CreateFeedDialogProp
                 {/* Public holidays */}
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center justify-between">
-                    <p className="text-[0.8125rem] font-medium text-foreground">Public holidays</p>
-                    <Select value={holidayCountry} onValueChange={setHolidayCountry}>
+                    <p className="font-medium text-[0.8125rem] text-foreground">
+                      Public holidays
+                    </p>
+                    <Select
+                      onValueChange={setHolidayCountry}
+                      value={holidayCountry}
+                    >
                       <SelectTrigger className="h-8 w-auto text-[0.75rem]">
                         <SelectValue />
                       </SelectTrigger>
@@ -736,42 +906,50 @@ function CreateFeedDialog({ open, onOpenChange, onCreate }: CreateFeedDialogProp
                   >
                     {currentHolidays.map((h) => (
                       <label
-                        key={h.date}
                         className="flex cursor-pointer items-center gap-3 px-3 py-2.5 transition-colors hover:bg-accent"
                         htmlFor={`holiday-${h.date}`}
+                        key={h.date}
                       >
                         <Checkbox
-                          id={`holiday-${h.date}`}
                           checked={selectedHolidays.includes(h.date)}
+                          id={`holiday-${h.date}`}
                           onCheckedChange={() => toggleHoliday(h.date)}
                         />
-                        <span className="flex-1 text-[0.8125rem] text-foreground">{h.label}</span>
-                        <span className="text-[0.75rem] text-muted-foreground">{formatDate(h.date)}</span>
+                        <span className="flex-1 text-[0.8125rem] text-foreground">
+                          {h.label}
+                        </span>
+                        <span className="text-[0.75rem] text-muted-foreground">
+                          {formatDate(h.date)}
+                        </span>
                       </label>
                     ))}
                   </div>
 
                   {selectedHolidays.length > 0 && (
                     <p className="text-[0.75rem] text-muted-foreground">
-                      {selectedHolidays.length} {selectedHolidays.length === 1 ? "holiday" : "holidays"} selected
+                      {selectedHolidays.length}{" "}
+                      {selectedHolidays.length === 1 ? "holiday" : "holidays"}{" "}
+                      selected
                     </p>
                   )}
                 </div>
 
                 {/* Custom dates */}
                 <div className="flex flex-col gap-3">
-                  <p className="text-[0.8125rem] font-medium text-foreground">Custom dates</p>
+                  <p className="font-medium text-[0.8125rem] text-foreground">
+                    Custom dates
+                  </p>
 
                   {customDates.length > 0 && (
                     <div className="flex flex-col gap-1">
                       {customDates.map((d, i) => (
                         <div
-                          key={i}
                           className="flex items-center gap-2 rounded-lg px-3 py-2"
+                          key={i}
                           style={{ background: "var(--muted)" }}
                         >
                           <div className="min-w-0 flex-1">
-                            <p className="text-[0.8125rem] font-medium text-foreground leading-tight">
+                            <p className="font-medium text-[0.8125rem] text-foreground leading-tight">
                               {d.label}
                             </p>
                             <p className="text-[0.6875rem] text-muted-foreground">
@@ -780,8 +958,8 @@ function CreateFeedDialog({ open, onOpenChange, onCreate }: CreateFeedDialogProp
                             </p>
                           </div>
                           <button
-                            onClick={() => removeCustomDate(i)}
                             className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                            onClick={() => removeCustomDate(i)}
                           >
                             <XIcon className="size-3.5" />
                           </button>
@@ -797,30 +975,32 @@ function CreateFeedDialog({ open, onOpenChange, onCreate }: CreateFeedDialogProp
                   >
                     <div className="flex gap-2">
                       <Input
+                        className="flex-1"
+                        onChange={(e) => setNewDateLabel(e.target.value)}
                         placeholder="Date label (e.g. Company Retreat)"
                         value={newDateLabel}
-                        onChange={(e) => setNewDateLabel(e.target.value)}
-                        className="flex-1"
                       />
                       <Input
+                        className="w-[150px]"
+                        onChange={(e) => setNewDateValue(e.target.value)}
                         type="date"
                         value={newDateValue}
-                        onChange={(e) => setNewDateValue(e.target.value)}
-                        className="w-[150px]"
                       />
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Select
-                          value={newDateType}
                           onValueChange={(v) => setNewDateType(v as DateType)}
+                          value={newDateType}
                         >
                           <SelectTrigger className="h-8 w-auto text-[0.75rem]">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="custom">Custom date</SelectItem>
-                            <SelectItem value="closure">Office closure</SelectItem>
+                            <SelectItem value="closure">
+                              Office closure
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <label className="flex items-center gap-1.5 text-[0.75rem] text-muted-foreground">
@@ -832,11 +1012,12 @@ function CreateFeedDialog({ open, onOpenChange, onCreate }: CreateFeedDialogProp
                         </label>
                       </div>
                       <button
+                        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-medium text-[0.75rem] transition-colors disabled:opacity-40"
+                        disabled={!(newDateLabel.trim() && newDateValue)}
                         onClick={addCustomDate}
-                        disabled={!newDateLabel.trim() || !newDateValue}
-                        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[0.75rem] font-medium transition-colors disabled:opacity-40"
                         style={{
-                          background: "color-mix(in srgb, var(--primary) 12%, transparent)",
+                          background:
+                            "color-mix(in srgb, var(--primary) 12%, transparent)",
                           color: "var(--primary)",
                         }}
                       >
@@ -852,29 +1033,42 @@ function CreateFeedDialog({ open, onOpenChange, onCreate }: CreateFeedDialogProp
         </div>
 
         {/* Footer */}
-        <DialogFooter className="border-t px-6 py-4" style={{ borderColor: "var(--border)" }}>
+        <DialogFooter
+          className="border-t px-6 py-4"
+          style={{ borderColor: "var(--border)" }}
+        >
           <button
-            onClick={() => step > 1 ? setStep((s) => (s - 1) as 1 | 2 | 3) : handleOpenChange(false)}
-            className="rounded-xl px-4 py-2 text-[0.8125rem] font-medium text-muted-foreground transition-colors hover:bg-accent"
+            className="rounded-xl px-4 py-2 font-medium text-[0.8125rem] text-muted-foreground transition-colors hover:bg-accent"
+            onClick={() =>
+              step > 1
+                ? setStep((s) => (s - 1) as 1 | 2 | 3)
+                : handleOpenChange(false)
+            }
           >
             {step === 1 ? "Cancel" : "Back"}
           </button>
 
           {step < 3 ? (
             <button
-              onClick={() => setStep((s) => (s + 1) as 2 | 3)}
+              className="rounded-xl px-5 py-2 font-medium text-[0.8125rem] transition-colors disabled:opacity-40"
               disabled={!canNext}
-              className="rounded-xl px-5 py-2 text-[0.8125rem] font-medium transition-colors disabled:opacity-40"
-              style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
+              onClick={() => setStep((s) => (s + 1) as 2 | 3)}
+              style={{
+                background: "var(--primary)",
+                color: "var(--primary-foreground)",
+              }}
             >
               Next
             </button>
           ) : (
             <button
-              onClick={handleCreate}
+              className="rounded-xl px-5 py-2 font-medium text-[0.8125rem] transition-colors disabled:opacity-40"
               disabled={!name.trim()}
-              className="rounded-xl px-5 py-2 text-[0.8125rem] font-medium transition-colors disabled:opacity-40"
-              style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
+              onClick={handleCreate}
+              style={{
+                background: "var(--primary)",
+                color: "var(--primary-foreground)",
+              }}
             >
               Create feed
             </button>
@@ -895,7 +1089,11 @@ type ManageFeedDialogProps = {
 
 type ManageTab = "details" | "people" | "dates";
 
-function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProps) {
+function ManageFeedDialog({
+  feed,
+  onOpenChange,
+  onUpdate,
+}: ManageFeedDialogProps) {
   const [tab, setTab] = useState<ManageTab>("details");
 
   // Details state
@@ -919,7 +1117,9 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
   // Copy URL state
   const [copied, setCopied] = useState(false);
 
-  if (!feed) return null;
+  if (!feed) {
+    return null;
+  }
 
   const url = feedUrl(feed.token);
 
@@ -938,7 +1138,9 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
     setDates((prev) => prev.filter((d) => d.id !== id));
 
   const addCustomDate = () => {
-    if (!newDateLabel.trim() || !newDateValue) return;
+    if (!(newDateLabel.trim() && newDateValue)) {
+      return;
+    }
     setDates((prev) => [
       ...prev,
       {
@@ -955,7 +1157,9 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
   };
 
   const addHoliday = (h: Omit<SpecialDate, "id" | "recurring">) => {
-    if (dates.some((d) => d.date === h.date && d.type === "public-holiday")) return;
+    if (dates.some((d) => d.date === h.date && d.type === "public-holiday")) {
+      return;
+    }
     setDates((prev) => [...prev, { ...h, id: uid(), recurring: true }]);
   };
 
@@ -975,26 +1179,36 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
   const TAB_ITEMS: { id: ManageTab; label: string; icon: React.ReactNode }[] = [
     { id: "details", label: "Details", icon: <RssIcon className="size-3.5" /> },
     { id: "people", label: "People", icon: <UsersIcon className="size-3.5" /> },
-    { id: "dates", label: "Dates", icon: <CalendarPlusIcon className="size-3.5" /> },
+    {
+      id: "dates",
+      label: "Dates",
+      icon: <CalendarPlusIcon className="size-3.5" />,
+    },
   ];
 
   return (
-    <Dialog open={!!feed} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl gap-0 p-0 overflow-hidden">
+    <Dialog onOpenChange={onOpenChange} open={!!feed}>
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-2xl">
         {/* Dialog header */}
-        <DialogHeader className="border-b px-6 py-5" style={{ borderColor: "var(--border)" }}>
+        <DialogHeader
+          className="border-b px-6 py-5"
+          style={{ borderColor: "var(--border)" }}
+        >
           <div className="flex items-center gap-3">
             <div
               className="flex h-8 w-8 items-center justify-center rounded-lg"
               style={{
-                background: "color-mix(in srgb, var(--primary) 12%, transparent)",
+                background:
+                  "color-mix(in srgb, var(--primary) 12%, transparent)",
                 color: "var(--primary)",
               }}
             >
               <RssIcon className="size-4" strokeWidth={1.75} />
             </div>
             <div>
-              <DialogTitle className="text-[1rem] leading-tight">{feed.name}</DialogTitle>
+              <DialogTitle className="text-[1rem] leading-tight">
+                {feed.name}
+              </DialogTitle>
               <DialogDescription className="text-[0.75rem]">
                 Manage feed settings, people, and dates
               </DialogDescription>
@@ -1003,12 +1217,15 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
         </DialogHeader>
 
         {/* Tab bar */}
-        <div className="flex border-b" style={{ borderColor: "var(--border)", background: "var(--muted)" }}>
+        <div
+          className="flex border-b"
+          style={{ borderColor: "var(--border)", background: "var(--muted)" }}
+        >
           {TAB_ITEMS.map((t) => (
             <button
+              className="flex flex-1 items-center justify-center gap-1.5 py-3 font-medium text-[0.8125rem] transition-colors"
               key={t.id}
               onClick={() => setTab(t.id)}
-              className="flex flex-1 items-center justify-center gap-1.5 py-3 text-[0.8125rem] font-medium transition-colors"
               style={
                 tab === t.id
                   ? {
@@ -1029,34 +1246,40 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
         </div>
 
         {/* Tab content */}
-        <div className="flex flex-col gap-5 overflow-y-auto p-6" style={{ maxHeight: "420px" }}>
-
+        <div
+          className="flex flex-col gap-5 overflow-y-auto p-6"
+          style={{ maxHeight: "420px" }}
+        >
           {/* ── Details tab ─────────────────────────────────────────────── */}
           {tab === "details" && (
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="mg-name" className="text-[0.8125rem]">Feed name</Label>
+                <Label className="text-[0.8125rem]" htmlFor="mg-name">
+                  Feed name
+                </Label>
                 <Input
                   id="mg-name"
-                  value={name}
                   onChange={(e) => setName(e.target.value)}
+                  value={name}
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="mg-desc" className="text-[0.8125rem]">Description</Label>
+                <Label className="text-[0.8125rem]" htmlFor="mg-desc">
+                  Description
+                </Label>
                 <Textarea
-                  id="mg-desc"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
                   className="min-h-[68px] resize-none"
+                  id="mg-desc"
+                  onChange={(e) => setDescription(e.target.value)}
+                  value={description}
                 />
               </div>
 
               <div className="flex gap-4">
                 <div className="flex flex-1 flex-col gap-1.5">
                   <Label className="text-[0.8125rem]">Timezone</Label>
-                  <Select value={timezone} onValueChange={setTimezone}>
+                  <Select onValueChange={setTimezone} value={timezone}>
                     <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
@@ -1072,10 +1295,12 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
 
                 <div className="flex flex-col gap-1.5">
                   <Label className="text-[0.8125rem]">Status</Label>
-                  <div className="flex items-center gap-2 h-9">
+                  <div className="flex h-9 items-center gap-2">
                     <Switch
                       checked={status === "active"}
-                      onCheckedChange={(v) => setStatus(v ? "active" : "paused")}
+                      onCheckedChange={(v) =>
+                        setStatus(v ? "active" : "paused")
+                      }
                     />
                     <span className="text-[0.8125rem] text-foreground">
                       {status === "active" ? "Active" : "Paused"}
@@ -1095,12 +1320,15 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
                     {url}
                   </code>
                   <button
+                    className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 font-medium text-[0.6875rem] transition-colors hover:bg-accent"
                     onClick={copyUrl}
-                    className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-[0.6875rem] font-medium transition-colors hover:bg-accent"
                     style={{ color: "var(--muted-foreground)" }}
                   >
                     {copied ? (
-                      <CheckIcon className="size-3.5" style={{ color: "var(--primary)" }} />
+                      <CheckIcon
+                        className="size-3.5"
+                        style={{ color: "var(--primary)" }}
+                      />
                     ) : (
                       <CopyIcon className="size-3.5" />
                     )}
@@ -1126,18 +1354,18 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
                   const included = personIds.includes(person.id);
                   return (
                     <label
-                      key={person.id}
-                      htmlFor={`mg-person-${person.id}`}
                       className="flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-accent"
+                      htmlFor={`mg-person-${person.id}`}
+                      key={person.id}
                     >
                       <Checkbox
-                        id={`mg-person-${person.id}`}
                         checked={included}
+                        id={`mg-person-${person.id}`}
                         onCheckedChange={() => togglePerson(person.id)}
                       />
                       <PersonAvatar person={person} size="md" />
                       <div className="min-w-0 flex-1">
-                        <p className="text-[0.875rem] font-medium text-foreground leading-tight">
+                        <p className="font-medium text-[0.875rem] text-foreground leading-tight">
                           {person.name}
                         </p>
                         <p className="text-[0.75rem] text-muted-foreground">
@@ -1145,14 +1373,18 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
                         </p>
                       </div>
                       <span
-                        className="shrink-0 rounded-full px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-widest"
+                        className="shrink-0 rounded-full px-2 py-0.5 font-semibold text-[0.625rem] uppercase tracking-widest"
                         style={
                           included
                             ? {
-                                background: "color-mix(in srgb, var(--primary) 12%, transparent)",
+                                background:
+                                  "color-mix(in srgb, var(--primary) 12%, transparent)",
                                 color: "var(--primary)",
                               }
-                            : { background: "var(--accent)", color: "var(--muted-foreground)" }
+                            : {
+                                background: "var(--accent)",
+                                color: "var(--muted-foreground)",
+                              }
                         }
                       >
                         {included ? "Included" : "Excluded"}
@@ -1173,7 +1405,7 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
             <div className="flex flex-col gap-5">
               {/* Existing dates */}
               <div className="flex flex-col gap-2">
-                <p className="text-[0.8125rem] font-medium text-foreground">
+                <p className="font-medium text-[0.8125rem] text-foreground">
                   Dates in this feed ({dates.length})
                 </p>
 
@@ -1182,22 +1414,25 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
                     className="flex items-center justify-center rounded-xl py-8"
                     style={{ background: "var(--muted)" }}
                   >
-                    <p className="text-[0.875rem] text-muted-foreground">No dates added yet</p>
+                    <p className="text-[0.875rem] text-muted-foreground">
+                      No dates added yet
+                    </p>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-1.5">
                     {dates.map((d) => (
                       <div
-                        key={d.id}
                         className="flex items-center gap-3 rounded-xl px-4 py-3"
+                        key={d.id}
                         style={{ background: "var(--muted)" }}
                       >
                         <div
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[0.625rem] font-bold"
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-bold text-[0.625rem]"
                           style={
                             d.type === "public-holiday"
                               ? {
-                                  background: "color-mix(in srgb, var(--primary) 14%, transparent)",
+                                  background:
+                                    "color-mix(in srgb, var(--primary) 14%, transparent)",
                                   color: "var(--primary)",
                                 }
                               : d.type === "closure"
@@ -1205,13 +1440,16 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
                                     background: "var(--error-container)",
                                     color: "var(--destructive)",
                                   }
-                                : { background: "var(--secondary)", color: "var(--secondary-foreground)" }
+                                : {
+                                    background: "var(--secondary)",
+                                    color: "var(--secondary-foreground)",
+                                  }
                           }
                         >
                           {new Date(d.date).getDate()}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-[0.875rem] font-medium text-foreground leading-tight">
+                          <p className="font-medium text-[0.875rem] text-foreground leading-tight">
                             {d.label}
                           </p>
                           <p className="text-[0.75rem] text-muted-foreground">
@@ -1220,8 +1458,8 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
                           </p>
                         </div>
                         <button
-                          onClick={() => removeDate(d.id)}
                           className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                          onClick={() => removeDate(d.id)}
                           title="Remove date"
                         >
                           <XIcon className="size-3.5" />
@@ -1235,10 +1473,12 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
               {/* Add public holidays */}
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-[0.8125rem] font-medium text-foreground">Add public holidays</p>
+                  <p className="font-medium text-[0.8125rem] text-foreground">
+                    Add public holidays
+                  </p>
                   <button
+                    className="flex items-center gap-1 font-medium text-[0.75rem] transition-colors"
                     onClick={() => setShowAddHolidays((v) => !v)}
-                    className="flex items-center gap-1 text-[0.75rem] font-medium transition-colors"
                     style={{ color: "var(--primary)" }}
                   >
                     <PlusIcon className="size-3.5" />
@@ -1251,7 +1491,10 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
                     className="flex flex-col gap-2 rounded-xl p-3"
                     style={{ background: "var(--muted)" }}
                   >
-                    <Select value={holidayCountry} onValueChange={setHolidayCountry}>
+                    <Select
+                      onValueChange={setHolidayCountry}
+                      value={holidayCountry}
+                    >
                       <SelectTrigger className="h-8 w-auto text-[0.75rem]">
                         <SelectValue />
                       </SelectTrigger>
@@ -1264,30 +1507,38 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
 
                     <div className="flex flex-col gap-1">
                       {HOLIDAY_PRESETS[holidayCountry].holidays.map((h) => {
-                        const already = dates.some((d) => d.date === h.date && d.type === "public-holiday");
+                        const already = dates.some(
+                          (d) =>
+                            d.date === h.date && d.type === "public-holiday"
+                        );
                         return (
                           <div
-                            key={h.date}
                             className="flex items-center justify-between rounded-lg px-3 py-2"
+                            key={h.date}
                             style={{ background: "var(--background)" }}
                           >
                             <div>
-                              <p className="text-[0.8125rem] font-medium text-foreground">{h.label}</p>
-                              <p className="text-[0.6875rem] text-muted-foreground">{formatDate(h.date)}</p>
+                              <p className="font-medium text-[0.8125rem] text-foreground">
+                                {h.label}
+                              </p>
+                              <p className="text-[0.6875rem] text-muted-foreground">
+                                {formatDate(h.date)}
+                              </p>
                             </div>
                             {already ? (
                               <span
-                                className="text-[0.6875rem] font-medium"
+                                className="font-medium text-[0.6875rem]"
                                 style={{ color: "var(--primary)" }}
                               >
                                 Added
                               </span>
                             ) : (
                               <button
+                                className="flex items-center gap-1 rounded-lg px-2.5 py-1 font-medium text-[0.6875rem] transition-colors"
                                 onClick={() => addHoliday(h)}
-                                className="flex items-center gap-1 rounded-lg px-2.5 py-1 text-[0.6875rem] font-medium transition-colors"
                                 style={{
-                                  background: "color-mix(in srgb, var(--primary) 12%, transparent)",
+                                  background:
+                                    "color-mix(in srgb, var(--primary) 12%, transparent)",
                                   color: "var(--primary)",
                                 }}
                               >
@@ -1305,37 +1556,41 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
 
               {/* Add custom date */}
               <div className="flex flex-col gap-2">
-                <p className="text-[0.8125rem] font-medium text-foreground">Add custom date</p>
+                <p className="font-medium text-[0.8125rem] text-foreground">
+                  Add custom date
+                </p>
                 <div
                   className="flex flex-col gap-2 rounded-xl p-3"
                   style={{ background: "var(--muted)" }}
                 >
                   <div className="flex gap-2">
                     <Input
+                      className="flex-1"
+                      onChange={(e) => setNewDateLabel(e.target.value)}
                       placeholder="Label (e.g. Company Retreat)"
                       value={newDateLabel}
-                      onChange={(e) => setNewDateLabel(e.target.value)}
-                      className="flex-1"
                     />
                     <Input
+                      className="w-[150px]"
+                      onChange={(e) => setNewDateValue(e.target.value)}
                       type="date"
                       value={newDateValue}
-                      onChange={(e) => setNewDateValue(e.target.value)}
-                      className="w-[150px]"
                     />
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Select
-                        value={newDateType}
                         onValueChange={(v) => setNewDateType(v as DateType)}
+                        value={newDateType}
                       >
                         <SelectTrigger className="h-8 w-auto text-[0.75rem]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="custom">Custom date</SelectItem>
-                          <SelectItem value="closure">Office closure</SelectItem>
+                          <SelectItem value="closure">
+                            Office closure
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <label className="flex items-center gap-1.5 text-[0.75rem] text-muted-foreground">
@@ -1347,11 +1602,12 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
                       </label>
                     </div>
                     <button
+                      className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-medium text-[0.75rem] transition-colors disabled:opacity-40"
+                      disabled={!(newDateLabel.trim() && newDateValue)}
                       onClick={addCustomDate}
-                      disabled={!newDateLabel.trim() || !newDateValue}
-                      className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[0.75rem] font-medium transition-colors disabled:opacity-40"
                       style={{
-                        background: "color-mix(in srgb, var(--primary) 12%, transparent)",
+                        background:
+                          "color-mix(in srgb, var(--primary) 12%, transparent)",
                         color: "var(--primary)",
                       }}
                     >
@@ -1366,17 +1622,23 @@ function ManageFeedDialog({ feed, onOpenChange, onUpdate }: ManageFeedDialogProp
         </div>
 
         {/* Footer */}
-        <DialogFooter className="border-t px-6 py-4" style={{ borderColor: "var(--border)" }}>
+        <DialogFooter
+          className="border-t px-6 py-4"
+          style={{ borderColor: "var(--border)" }}
+        >
           <button
+            className="rounded-xl px-4 py-2 font-medium text-[0.8125rem] text-muted-foreground transition-colors hover:bg-accent"
             onClick={() => onOpenChange(false)}
-            className="rounded-xl px-4 py-2 text-[0.8125rem] font-medium text-muted-foreground transition-colors hover:bg-accent"
           >
             Cancel
           </button>
           <button
+            className="rounded-xl px-5 py-2 font-medium text-[0.8125rem] transition-colors"
             onClick={handleSave}
-            className="rounded-xl px-5 py-2 text-[0.8125rem] font-medium transition-colors"
-            style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
+            style={{
+              background: "var(--primary)",
+              color: "var(--primary-foreground)",
+            }}
           >
             Save changes
           </button>
@@ -1404,7 +1666,9 @@ export function FeedClient() {
   const handleToggleStatus = (id: string) =>
     setFeeds((prev) =>
       prev.map((f) =>
-        f.id === id ? { ...f, status: f.status === "active" ? "paused" : "active" } : f
+        f.id === id
+          ? { ...f, status: f.status === "active" ? "paused" : "active" }
+          : f
       )
     );
 
@@ -1413,25 +1677,28 @@ export function FeedClient() {
 
   return (
     <div className="flex flex-col gap-8">
-
       {/* ── Page header ───────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[0.6875rem] font-medium uppercase tracking-widest text-muted-foreground">
+          <p className="font-medium text-[0.6875rem] text-muted-foreground uppercase tracking-widest">
             Calendar feeds
           </p>
-          <h1 className="mt-0.5 text-[1.375rem] font-semibold tracking-tight text-foreground">
+          <h1 className="mt-0.5 font-semibold text-[1.375rem] text-foreground tracking-tight">
             Feeds
           </h1>
           <p className="mt-1 text-[0.875rem] text-muted-foreground">
-            Publish and manage iCal feeds for your team's leave and availability.
+            Publish and manage iCal feeds for your team's leave and
+            availability.
           </p>
         </div>
 
         <button
+          className="flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 font-medium text-[0.8125rem] transition-colors"
           onClick={() => setCreateOpen(true)}
-          className="flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-[0.8125rem] font-medium transition-colors"
-          style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
+          style={{
+            background: "var(--primary)",
+            color: "var(--primary-foreground)",
+          }}
         >
           <PlusIcon className="size-4" />
           New feed
@@ -1446,14 +1713,14 @@ export function FeedClient() {
           { label: "People subscribed", value: totalPeople },
         ].map((stat) => (
           <div
-            key={stat.label}
             className="flex flex-col gap-1 rounded-2xl px-5 py-4"
+            key={stat.label}
             style={{ background: "var(--muted)" }}
           >
-            <p className="text-[0.6875rem] font-medium uppercase tracking-widest text-muted-foreground">
+            <p className="font-medium text-[0.6875rem] text-muted-foreground uppercase tracking-widest">
               {stat.label}
             </p>
-            <p className="text-[2rem] font-semibold leading-none tracking-tight text-foreground">
+            <p className="font-semibold text-[2rem] text-foreground leading-none tracking-tight">
               {stat.value}
             </p>
           </div>
@@ -1476,15 +1743,20 @@ export function FeedClient() {
             <RssIcon className="size-6" strokeWidth={1.5} />
           </div>
           <div className="text-center">
-            <p className="text-[1rem] font-semibold text-foreground">No feeds yet</p>
+            <p className="font-semibold text-[1rem] text-foreground">
+              No feeds yet
+            </p>
             <p className="mt-1 text-[0.875rem] text-muted-foreground">
               Create your first feed to start publishing leave calendars.
             </p>
           </div>
           <button
+            className="flex items-center gap-2 rounded-xl px-5 py-2.5 font-medium text-[0.8125rem] transition-colors"
             onClick={() => setCreateOpen(true)}
-            className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-[0.8125rem] font-medium transition-colors"
-            style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
+            style={{
+              background: "var(--primary)",
+              color: "var(--primary-foreground)",
+            }}
           >
             <PlusIcon className="size-4" />
             Create your first feed
@@ -1494,11 +1766,11 @@ export function FeedClient() {
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {feeds.map((feed) => (
             <FeedCard
-              key={feed.id}
               feed={feed}
+              key={feed.id}
+              onDelete={() => handleDelete(feed.id)}
               onManage={() => setManagingFeed(feed)}
               onToggleStatus={() => handleToggleStatus(feed.id)}
-              onDelete={() => handleDelete(feed.id)}
             />
           ))}
         </div>
@@ -1506,9 +1778,9 @@ export function FeedClient() {
 
       {/* ── Dialogs ───────────────────────────────────────────────────────── */}
       <CreateFeedDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
         onCreate={handleCreate}
+        onOpenChange={setCreateOpen}
+        open={createOpen}
       />
 
       <ManageFeedDialog
