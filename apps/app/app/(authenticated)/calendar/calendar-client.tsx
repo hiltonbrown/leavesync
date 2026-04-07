@@ -36,24 +36,24 @@ type View = "day" | "week" | "month";
 type LeaveType = "Annual Leave" | "Sick Leave" | "Parental Leave";
 type FeedStatus = "active" | "paused";
 
-type LeaveEntry = {
-  id: number;
-  personId: string;
-  name: string;
-  initials: string;
-  type: LeaveType;
-  start: string; // YYYY-MM-DD
+interface LeaveEntry {
   end: string;
-};
+  id: number;
+  initials: string;
+  name: string;
+  personId: string;
+  start: string; // YYYY-MM-DD
+  type: LeaveType;
+}
 
-type CalendarFeed = {
+interface CalendarFeed {
+  description: string;
   id: string;
   name: string;
-  description: string;
+  personIds: string[];
   status: FeedStatus;
   token: string;
-  personIds: string[];
-};
+}
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -260,11 +260,11 @@ function feedWebcalUrl(token: string): string {
 
 // ─── FeedSelector ─────────────────────────────────────────────────────────────
 
-type FeedSelectorProps = {
+interface FeedSelectorProps {
   feeds: CalendarFeed[];
-  selectedId: string;
   onSelect: (id: string) => void;
-};
+  selectedId: string;
+}
 
 function FeedSelector({ feeds, selectedId, onSelect }: FeedSelectorProps) {
   const selected = feeds.find((f) => f.id === selectedId) ?? feeds[0];
@@ -279,7 +279,10 @@ function FeedSelector({ feeds, selectedId, onSelect }: FeedSelectorProps) {
       {/* Selector trigger */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="flex items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-accent focus-visible:outline-none">
+          <button
+            className="flex items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-accent focus-visible:outline-none"
+            type="button"
+          >
             <div
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
               style={{
@@ -312,7 +315,7 @@ function FeedSelector({ feeds, selectedId, onSelect }: FeedSelectorProps) {
           {feeds.map((feed, i) => {
             const isCurrent = feed.id === selectedId;
             const active = feed.status === "active";
-            const count = feed.personIds.length;
+            const _count = feed.personIds.length;
             return (
               <div key={feed.id}>
                 {i > 0 && feeds[i - 1].status !== feed.status && (
@@ -445,7 +448,7 @@ function MonthView({
             "color-mix(in srgb, var(--muted-foreground) 8%, transparent)",
         }}
       >
-        {days.map((day, i) => {
+        {days.map((day) => {
           const isCurrentMonth = isSameMonth(day, anchor);
           const isToday = isSameDay(day, TODAY);
           const isWeekend = day.getDay() === 0 || day.getDay() === 6;
@@ -454,7 +457,7 @@ function MonthView({
           return (
             <div
               className="flex min-h-[88px] flex-col gap-1 p-2"
-              key={i}
+              key={day.toISOString()}
               style={{
                 background: isWeekend
                   ? "color-mix(in srgb, var(--muted) 70%, var(--background))"
@@ -533,7 +536,7 @@ function WeekView({
           return (
             <div
               className="flex flex-col items-center gap-1.5 py-3"
-              key={i}
+              key={day.toISOString()}
               style={{
                 background: isWeekend
                   ? "color-mix(in srgb, var(--muted) 70%, var(--background))"
@@ -568,13 +571,13 @@ function WeekView({
             "color-mix(in srgb, var(--muted-foreground) 8%, transparent)",
         }}
       >
-        {week.map((day, i) => {
+        {week.map((day) => {
           const leaves = getLeaveForDate(day, leaveData);
           const isWeekend = day.getDay() === 0 || day.getDay() === 6;
           return (
             <div
               className="flex min-h-[140px] flex-col gap-1.5 p-2"
-              key={i}
+              key={day.toISOString()}
               style={{
                 background: isWeekend
                   ? "color-mix(in srgb, var(--muted) 70%, var(--background))"
@@ -812,6 +815,7 @@ function ICalSection({
           className="flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 font-medium text-[0.75rem] transition-colors"
           onClick={() => copy(httpsUrl, "url-bar")}
           style={{ background: "var(--accent)", color: "var(--foreground)" }}
+          type="button"
         >
           {copied === "url-bar" ? (
             <CheckIcon className="size-3.5" strokeWidth={2.5} />
@@ -872,6 +876,7 @@ function ICalSection({
                   color: "var(--muted-foreground)",
                 }}
                 title="Copy URL"
+                type="button"
               >
                 {copied === p.key ? (
                   <CheckIcon
@@ -893,14 +898,17 @@ function ICalSection({
 
 // ─── Setup instructions ───────────────────────────────────────────────────────
 
-type Step = { text: string; highlight?: boolean };
+interface Step {
+  highlight?: boolean;
+  text: string;
+}
 
-type Platform = {
+interface Platform {
+  icon: React.ReactNode;
   id: string;
   label: string;
-  icon: React.ReactNode;
   steps: Step[];
-};
+}
 
 const PLATFORMS: Platform[] = [
   {
@@ -1041,7 +1049,7 @@ function SetupInstructions() {
               <AccordionContent>
                 <ol className="flex flex-col gap-3 pb-2">
                   {platform.steps.map((step, si) => (
-                    <li className="flex items-start gap-3" key={si}>
+                    <li className="flex items-start gap-3" key={step.text}>
                       <span
                         className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-semibold text-[0.625rem]"
                         style={
@@ -1126,12 +1134,14 @@ export function CalendarClient() {
     return `${DAY_NAMES[dayIdx]}, ${anchor.getDate()} ${MONTH_NAMES[anchor.getMonth()]} ${anchor.getFullYear()}`;
   };
 
-  const isAtToday =
-    view === "day"
-      ? isSameDay(anchor, TODAY)
-      : view === "week"
-        ? isSameDay(getWeekDays(anchor)[0], getWeekDays(TODAY)[0])
-        : isSameMonth(anchor, TODAY);
+  let isAtToday: boolean;
+  if (view === "day") {
+    isAtToday = isSameDay(anchor, TODAY);
+  } else if (view === "week") {
+    isAtToday = isSameDay(getWeekDays(anchor)[0], getWeekDays(TODAY)[0]);
+  } else {
+    isAtToday = isSameMonth(anchor, TODAY);
+  }
 
   return (
     <div className="flex flex-col gap-10">
@@ -1151,6 +1161,7 @@ export function CalendarClient() {
               aria-label="Previous"
               className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               onClick={() => navigate(-1)}
+              type="button"
             >
               <ChevronLeftIcon className="size-4" />
             </button>
@@ -1161,6 +1172,7 @@ export function CalendarClient() {
               aria-label="Next"
               className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               onClick={() => navigate(1)}
+              type="button"
             >
               <ChevronRightIcon className="size-4" />
             </button>
@@ -1169,6 +1181,7 @@ export function CalendarClient() {
               <button
                 className="ml-2 rounded-lg px-3 py-1 font-medium text-[0.75rem] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                 onClick={() => setAnchor(new Date(TODAY))}
+                type="button"
               >
                 Today
               </button>
@@ -1197,6 +1210,7 @@ export function CalendarClient() {
                         }
                       : { color: "var(--muted-foreground)" }
                   }
+                  type="button"
                 >
                   {label}
                 </button>

@@ -16,7 +16,9 @@ const GeneralPage = async () => {
   }
 
   const clerk = await clerkClient();
-  const org = await clerk.organizations.getOrganization({ organizationId: orgId });
+  const org = await clerk.organizations.getOrganization({
+    organizationId: orgId,
+  });
 
   const meta = (org.publicMetadata ?? {}) as Record<string, unknown>;
 

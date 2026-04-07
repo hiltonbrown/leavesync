@@ -17,8 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
-import { useState, useTransition } from "react";
 import { toast } from "@repo/design-system/components/ui/sonner";
+import { useState, useTransition } from "react";
 import { updateOrg } from "@/app/actions/settings/update-org";
 import { SettingsComingSoon } from "../components/settings-coming-soon";
 import { SettingsSectionHeader } from "../components/settings-section-header";

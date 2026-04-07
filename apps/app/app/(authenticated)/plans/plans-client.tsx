@@ -172,6 +172,12 @@ const PlanCard = ({
   const calendarLabels = CALENDARS.filter((c) =>
     entry.calendars.includes(c.id)
   ).map((c) => c.label);
+  let timeLabel = "";
+  if (entry.allDay) {
+    timeLabel = " · All day";
+  } else if (entry.startTime && entry.endTime) {
+    timeLabel = ` · ${entry.startTime} – ${entry.endTime}`;
+  }
 
   return (
     <div
@@ -196,11 +202,7 @@ const PlanCard = ({
               {isSameDay(entry.startDate, entry.endDate)
                 ? formatDate(entry.startDate)
                 : `${formatDate(entry.startDate)} – ${formatDate(entry.endDate)}`}
-              {entry.allDay
-                ? " · All day"
-                : entry.startTime && entry.endTime
-                  ? ` · ${entry.startTime} – ${entry.endTime}`
-                  : ""}
+              {timeLabel}
             </p>
           </div>
           <button
@@ -491,16 +493,18 @@ export const PlansClient = () => {
             style={{ background: "var(--background)" }}
           >
             {CALENDARS.map((cal) => (
-              <label
-                className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 transition-colors hover:bg-accent"
+              <button
+                className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors hover:bg-accent"
                 key={cal.id}
+                onClick={() => toggleCalendar(cal.id)}
+                type="button"
               >
                 <Checkbox
                   checked={selectedCalendars.includes(cal.id)}
                   onCheckedChange={() => toggleCalendar(cal.id)}
                 />
                 <span className="text-[0.8125rem]">{cal.label}</span>
-              </label>
+              </button>
             ))}
           </div>
           {selectedCalendars.length === 0 && (

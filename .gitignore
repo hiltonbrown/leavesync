@@ -65,3 +65,6 @@ tmp/
 
 # React Email (generated, may contain local font files)
 apps/email/.react-email/
+
+# Misc
+docs/

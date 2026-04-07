@@ -9,17 +9,17 @@ import { useState } from "react";
 type Status = "in-office" | "remote" | "away" | "sick" | "travelling";
 type Department = "Engineering" | "Product" | "Design";
 
-type Person = {
-  id: string;
-  name: string;
-  initials: string;
-  title: string;
+interface Person {
+  avatarIdx: number;
   dept: Department;
+  id: string;
+  initials: string;
   location: string;
+  name: string;
   status: Status;
   statusNote: string | null;
-  avatarIdx: number;
-};
+  title: string;
+}
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -96,7 +96,12 @@ const DEPARTMENTS: Department[] = ["Engineering", "Product", "Design"];
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
-type StatusConfig = { label: string; dot: string; bg: string; text: string };
+interface StatusConfig {
+  bg: string;
+  dot: string;
+  label: string;
+  text: string;
+}
 
 const STATUS_CONFIG: Record<Status, StatusConfig> = {
   "in-office": {
@@ -229,12 +234,12 @@ function PersonCard({ person }: { person: Person }) {
 
 // ─── FilterChip ───────────────────────────────────────────────────────────────
 
-type FilterChipProps = {
+interface FilterChipProps {
   active: boolean;
-  onClick: () => void;
   children: React.ReactNode;
   dot?: string; // optional colored dot
-};
+  onClick: () => void;
+}
 
 function FilterChip({ active, onClick, children, dot }: FilterChipProps) {
   return (
@@ -246,6 +251,7 @@ function FilterChip({ active, onClick, children, dot }: FilterChipProps) {
           ? { background: "var(--primary)", color: "var(--primary-foreground)" }
           : { background: "var(--muted)", color: "var(--muted-foreground)" }
       }
+      type="button"
     >
       {dot && (
         <span
@@ -400,6 +406,7 @@ export function PeopleClient() {
               setStatusFilter("all");
             }}
             style={{ color: "var(--primary)" }}
+            type="button"
           >
             Clear all filters
           </button>

@@ -8,8 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
-import { LinkIcon, RefreshCwIcon, UnlinkIcon } from "lucide-react";
 import { toast } from "@repo/design-system/components/ui/sonner";
+import { LinkIcon, RefreshCwIcon, UnlinkIcon } from "lucide-react";
 import { ProviderStatusBadge } from "../components/provider-status-badge";
 import { SettingsSectionHeader } from "../components/settings-section-header";
 

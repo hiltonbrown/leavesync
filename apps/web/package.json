@@ -27,7 +27,7 @@
     "@sentry/nextjs": "^10.47.0",
     "@t3-oss/env-nextjs": "^0.13.11",
     "date-fns": "^4.1.0",
-    "fumadocs-core": "^16.7.7",
+    "fumadocs-core": "^16.7.10",
     "import-in-the-middle": "^3.0.0",
     "lucide-react": "^1.7.0",
     "mdx-bundler": "^10.1.1",
@@ -42,7 +42,7 @@
   "devDependencies": {
     "@repo/typescript-config": "*",
     "@tailwindcss/postcss": "^4.2.2",
-    "@types/node": "25.5.0",
+    "@types/node": "25.5.2",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "tailwindcss": "^4.2.2",

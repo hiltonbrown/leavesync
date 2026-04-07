@@ -16,16 +16,16 @@
     "@prisma/client-runtime-utils": "^7.6.0",
     "@t3-oss/env-nextjs": "^0.13.11",
     "server-only": "^0.0.1",
-    "undici": "^7.24.6",
+    "undici": "^8.0.2",
     "ws": "^8.20.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
-    "@types/node": "25.5.0",
+    "@types/node": "25.5.2",
     "@types/ws": "^8.18.1",
     "bufferutil": "^4.1.0",
-    "dotenv": "^17.3.1",
+    "dotenv": "^17.4.1",
     "prisma": "7.6.0",
     "typescript": "^6.0.2"
   }
