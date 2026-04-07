@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
+import { toast } from "@repo/design-system/components/ui/sonner";
 import {
   Table,
   TableBody,
@@ -32,7 +33,6 @@ import {
 } from "@repo/design-system/components/ui/table";
 import { MailIcon, UserMinusIcon, UserPlusIcon } from "lucide-react";
 import { useState, useTransition } from "react";
-import { toast } from "@repo/design-system/components/ui/sonner";
 import { inviteMember } from "@/app/actions/settings/invite-member";
 import { removeMember } from "@/app/actions/settings/remove-member";
 import { updateMemberRole } from "@/app/actions/settings/update-member-role";

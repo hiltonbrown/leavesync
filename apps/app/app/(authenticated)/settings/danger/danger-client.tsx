@@ -6,9 +6,9 @@ import {
   AlertTitle,
 } from "@repo/design-system/components/ui/alert";
 import { Button } from "@repo/design-system/components/ui/button";
+import { toast } from "@repo/design-system/components/ui/sonner";
 import { KeyRoundIcon, Trash2Icon, TriangleAlertIcon } from "lucide-react";
 import { useState, useTransition } from "react";
-import { toast } from "@repo/design-system/components/ui/sonner";
 import { revokeAllTokens } from "@/app/actions/settings/revoke-tokens";
 import { ConfirmActionDialog } from "../components/confirm-action-dialog";
 import { SettingsSectionHeader } from "../components/settings-section-header";

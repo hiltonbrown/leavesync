@@ -22,9 +22,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
+import { toast } from "@repo/design-system/components/ui/sonner";
 import { CalendarCheckIcon, PlusIcon, XIcon } from "lucide-react";
 import { useState } from "react";
-import { toast } from "@repo/design-system/components/ui/sonner";
 import type { AvailableCountry } from "@/app/actions/holidays/get-countries";
 import { SettingsComingSoon } from "../components/settings-coming-soon";
 import { SettingsSectionHeader } from "../components/settings-section-header";

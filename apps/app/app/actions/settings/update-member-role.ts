@@ -23,7 +23,7 @@ export const updateMemberRole = async (
   if (!parsed.success) {
     return {
       ok: false,
-      error: parsed.error.errors[0]?.message ?? "Invalid input",
+      error: parsed.error.issues[0]?.message ?? "Invalid input",
     };
   }
 

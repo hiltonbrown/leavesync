@@ -36,12 +36,12 @@
     "@auto-it/first-time-contributor": "^11.3.6",
     "@biomejs/biome": "2.4.10",
     "@repo/typescript-config": "*",
-    "@turbo/gen": "^2.9.3",
-    "@types/node": "^25.5.0",
+    "@turbo/gen": "^2.9.4",
+    "@types/node": "^25.5.2",
     "tsup": "^8.5.1",
-    "turbo": "^2.9.3",
+    "turbo": "^2.9.4",
     "typescript": "^6.0.2",
-    "ultracite": "7.4.2",
+    "ultracite": "7.4.3",
     "vitest": "^4.1.2"
   },
   "engines": {

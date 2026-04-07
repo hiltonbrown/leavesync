@@ -19,7 +19,7 @@
     "next": "16.2.2",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-hook-form": "^7.72.0",
+    "react-hook-form": "^7.72.1",
     "recharts": "^3.8.1",
     "sonner": "^2.0.7",
     "zod": "^4.3.6"
@@ -27,16 +27,16 @@
   "devDependencies": {
     "@chromatic-com/storybook": "^5.1.1",
     "@repo/typescript-config": "*",
-    "@storybook/addon-onboarding": "^10.3.3",
-    "@storybook/addon-themes": "^10.3.3",
-    "@storybook/nextjs": "^10.3.3",
-    "@storybook/react": "^10.3.3",
+    "@storybook/addon-onboarding": "^10.3.4",
+    "@storybook/addon-themes": "^10.3.4",
+    "@storybook/nextjs": "^10.3.4",
+    "@storybook/react": "^10.3.4",
     "@types/node": "^25",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
-    "chromatic": "^16.0.0",
+    "chromatic": "^16.1.0",
     "postcss": "^8",
-    "storybook": "^10.2.16",
+    "storybook": "^10.3.4",
     "tailwindcss": "^4.2.2",
     "typescript": "^6"
   }

@@ -224,14 +224,14 @@ export default Dashboard;
 
 // ─── Sub-components ─────────────────────────────────────────────────────────
 
-type StatCardProps = {
+interface StatCardProps {
   icon: React.ReactNode;
   label: string;
-  value: string;
   sub: string;
   trend?: string;
   trendUp?: boolean;
-};
+  value: string;
+}
 
 const StatCard = ({
   icon,

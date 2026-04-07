@@ -16,7 +16,9 @@ const DangerPage = async () => {
   }
 
   const clerk = await clerkClient();
-  const org = await clerk.organizations.getOrganization({ organizationId: orgId });
+  const org = await clerk.organizations.getOrganization({
+    organizationId: orgId,
+  });
 
   return <DangerClient orgName={org.name} />;
 };

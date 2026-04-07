@@ -10,6 +10,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@repo/design-system/components/ui/empty";
+import { toast } from "@repo/design-system/components/ui/sonner";
 import {
   BellIcon,
   CopyIcon,
@@ -19,7 +20,6 @@ import {
   RssIcon,
   Trash2Icon,
 } from "lucide-react";
-import { toast } from "@repo/design-system/components/ui/sonner";
 import { SettingsComingSoon } from "../components/settings-coming-soon";
 import { SettingsSectionHeader } from "../components/settings-section-header";
 
