@@ -1,30 +1,31 @@
 "use client";
 
 import { UserButton } from "@repo/auth/client";
-import { Button } from "@repo/design-system/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  SidebarSeparator,
   useSidebar,
 } from "@repo/design-system/components/ui/sidebar";
 import { cn } from "@repo/design-system/lib/utils";
-import { NotificationsTrigger } from "@repo/notifications/components/trigger";
 import {
-  CalendarCheckIcon,
+  BarChart2Icon,
+  BellIcon,
   CalendarDaysIcon,
-  CalendarRangeIcon,
+  ClipboardListIcon,
+  FlagIcon,
   LayoutDashboardIcon,
   LeafIcon,
-  RssIcon,
+  LifeBuoyIcon,
+  LinkIcon,
   Settings2Icon,
   UsersIcon,
 } from "lucide-react";
@@ -36,16 +37,51 @@ interface GlobalSidebarProperties {
   readonly children: ReactNode;
 }
 
-const navItems = [
-  { title: "Dashboard", href: "/", icon: LayoutDashboardIcon },
-  { title: "My Plans", href: "/plans", icon: CalendarRangeIcon },
-  { title: "Calendar", href: "/calendar", icon: CalendarDaysIcon },
-  { title: "Feed", href: "/feed", icon: RssIcon },
-  { title: "People", href: "/people", icon: UsersIcon },
+const navGroups = [
   {
-    title: "Public Holidays",
-    href: "/public-holidays",
-    icon: CalendarCheckIcon,
+    label: null,
+    items: [{ title: "Dashboard", href: "/", icon: LayoutDashboardIcon }],
+  },
+  {
+    label: "My Work",
+    items: [
+      { title: "My Plans", href: "/plans", icon: ClipboardListIcon },
+      { title: "Calendar", href: "/calendar", icon: CalendarDaysIcon },
+      { title: "Notifications", href: "/notifications", icon: BellIcon },
+    ],
+  },
+  {
+    label: "Team",
+    items: [
+      { title: "People", href: "/people", icon: UsersIcon },
+      { title: "Calendar Feeds", href: "/feed", icon: LinkIcon },
+    ],
+  },
+  {
+    label: "Admin",
+    items: [
+      {
+        title: "Leave Approvals",
+        href: "/leave-approvals",
+        icon: ClipboardListIcon,
+      },
+      { title: "Public Holidays", href: "/public-holidays", icon: FlagIcon },
+    ],
+  },
+  {
+    label: "Reports",
+    items: [
+      {
+        title: "Leave Reports",
+        href: "/analytics/leave-reports",
+        icon: BarChart2Icon,
+      },
+      {
+        title: "Out of Office",
+        href: "/analytics/out-of-office",
+        icon: BarChart2Icon,
+      },
+    ],
   },
 ] as const;
 
@@ -53,13 +89,15 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
   const sidebar = useSidebar();
   const pathname = usePathname();
 
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
+
   return (
     <>
-      <Sidebar collapsible="icon" variant="floating">
+      <Sidebar collapsible="icon" variant="inset">
         <SidebarHeader className="pb-2">
           <SidebarMenu>
             <SidebarMenuItem>
-              {/* Brand mark */}
               <div
                 className={cn(
                   "mb-1 flex items-center gap-2.5 px-1 py-1.5",
@@ -83,20 +121,19 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
         </SidebarHeader>
 
         <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {navItems.map((item) => {
-                  const isActive =
-                    item.href === "/"
-                      ? pathname === "/"
-                      : pathname.startsWith(item.href);
-                  return (
+          {navGroups.map((group) => (
+            <SidebarGroup key={group.label ?? "__home"}>
+              {group.label && (
+                <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+              )}
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {group.items.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
                         className="h-9 gap-3"
-                        isActive={isActive}
+                        isActive={isActive(item.href)}
                         tooltip={item.title}
                       >
                         <Link href={item.href}>
@@ -110,15 +147,14 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
         </SidebarContent>
 
         <SidebarFooter className="gap-0 pt-0">
-          <SidebarSeparator className="mb-2" />
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
@@ -136,11 +172,28 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                className="h-9 gap-3"
+                isActive={pathname.startsWith("/support")}
+                tooltip="Support & Feedback"
+              >
+                <Link href="/support">
+                  <LifeBuoyIcon
+                    className="h-4 w-4 shrink-0"
+                    strokeWidth={1.75}
+                  />
+                  <span className="font-medium text-[0.8125rem]">
+                    Support & Feedback
+                  </span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
 
-          <SidebarSeparator className="my-2" />
-
-          <SidebarMenu>
+          <SidebarMenu className="mt-2">
             <SidebarMenuItem>
               <div
                 className={cn(
@@ -165,17 +218,6 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                     showName={sidebar.open}
                   />
                 </Suspense>
-                {sidebar.open && (
-                  <div className="flex shrink-0 items-center gap-0.5">
-                    <Button
-                      className="h-8 w-8 shrink-0"
-                      size="icon"
-                      variant="ghost"
-                    >
-                      <NotificationsTrigger />
-                    </Button>
-                  </div>
-                )}
               </div>
             </SidebarMenuItem>
           </SidebarMenu>

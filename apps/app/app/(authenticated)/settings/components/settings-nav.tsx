@@ -7,6 +7,7 @@ import {
 } from "@repo/design-system/components/ui/sidebar";
 import {
   CalendarCheckIcon,
+  ClipboardListIcon,
   CreditCardIcon,
   PlugIcon,
   RssIcon,
@@ -20,6 +21,11 @@ import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
   { label: "General", href: "/settings/general", icon: Settings2Icon },
+  {
+    label: "Leave Approval",
+    href: "/settings/leave-approval",
+    icon: ClipboardListIcon,
+  },
   { label: "Members", href: "/settings/members", icon: UsersIcon },
   {
     label: "Integrations",

@@ -36,3 +36,34 @@
   content: attr(title);
   @apply inline-block text-muted-foreground text-right mb-6 text-sm;
 }
+
+/* Overdrive: Scroll-Reactive Glass Header */
+@keyframes header-scroll {
+  0% {
+    background-color: transparent;
+    border-bottom-color: transparent;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+  100% {
+    background-color: color-mix(in srgb, var(--background) 85%, transparent);
+    border-bottom-color: var(--border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+.header-reactive {
+  background-color: color-mix(in srgb, var(--background) 85%, transparent);
+  border-bottom: 1px solid var(--border);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+@supports (animation-timeline: scroll()) {
+  .header-reactive {
+    animation: header-scroll linear forwards;
+    animation-timeline: scroll();
+    animation-range: 0px 50px;
+  }
+}

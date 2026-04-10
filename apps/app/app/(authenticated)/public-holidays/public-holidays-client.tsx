@@ -63,14 +63,14 @@ const MOCK_FEEDS: MockFeed[] = [
     name: "Product & Design",
     description: "Leave calendar for product and design",
     status: "active",
-    personCount: 3,
+    personCount: 4,
   },
   {
     id: "feed_3",
     name: "All Staff",
     description: "Company-wide leave feed for all employees",
     status: "paused",
-    personCount: 6,
+    personCount: 7,
   },
 ];
 

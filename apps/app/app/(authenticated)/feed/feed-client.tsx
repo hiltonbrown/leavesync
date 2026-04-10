@@ -121,6 +121,13 @@ const ALL_PEOPLE: Person[] = [
     role: "Data Analyst",
     dept: "Product",
   },
+  {
+    id: "p7",
+    name: "Elena Rossi",
+    initials: "ER",
+    role: "Product Marketing",
+    dept: "Product",
+  },
 ];
 
 interface HolidayPreset {
@@ -234,7 +241,7 @@ const INITIAL_FEEDS: Feed[] = [
     timezone: "Europe/London",
     status: "active",
     token: "org_k8s92j_prd",
-    personIds: ["p3", "p4", "p6"],
+    personIds: ["p3", "p4", "p6", "p7"],
     dates: [
       {
         id: "d4",
@@ -246,7 +253,7 @@ const INITIAL_FEEDS: Feed[] = [
       {
         id: "d5",
         label: "Design Sprint Week",
-        date: "2026-09-14",
+        date: "2026-06-22",
         type: "custom",
         recurring: false,
       },
@@ -261,7 +268,7 @@ const INITIAL_FEEDS: Feed[] = [
     timezone: "Europe/London",
     status: "paused",
     token: "org_k8s92j_all",
-    personIds: ["p1", "p2", "p3", "p4", "p5", "p6"],
+    personIds: ["p1", "p2", "p3", "p4", "p5", "p6", "p7"],
     dates: [
       {
         id: "d6",
@@ -275,6 +282,13 @@ const INITIAL_FEEDS: Feed[] = [
         label: "Boxing Day",
         date: "2026-12-28",
         type: "public-holiday",
+        recurring: true,
+      },
+      {
+        id: "d8",
+        label: "Summer Solstice",
+        date: "2026-06-21",
+        type: "custom",
         recurring: true,
       },
     ],

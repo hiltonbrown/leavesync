@@ -96,7 +96,8 @@ export const MembersClient = ({
   const [inviteRole, setInviteRole] = useState<OrgRole>("org:viewer");
   const [isPendingInvite, startInviteTransition] = useTransition();
   const [removeTarget, setRemoveTarget] = useState<Member | null>(null);
-  const [isRoleUpdating, startRoleTransition] = useTransition();
+  const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
+  const [isActionPending, startActionTransition] = useTransition();
 
   const isOwner = currentUserRole === "org:owner";
 
@@ -119,11 +120,13 @@ export const MembersClient = ({
   };
 
   const handleRoleChange = (member: Member, role: OrgRole) => {
-    startRoleTransition(async () => {
+    setUpdatingMemberId(member.userId);
+    startActionTransition(async () => {
       const result = await updateMemberRole({
         membershipId: member.userId,
         role,
       });
+      setUpdatingMemberId(null);
       if (result.ok) {
         toast.success(
           `Updated ${member.firstName ?? member.emailAddress}'s role`
@@ -140,7 +143,7 @@ export const MembersClient = ({
     }
     const target = removeTarget;
     setRemoveTarget(null);
-    startRoleTransition(async () => {
+    startActionTransition(async () => {
       const result = await removeMember({ userId: target.userId });
       if (result.ok) {
         toast.success(
@@ -160,7 +163,7 @@ export const MembersClient = ({
       />
 
       {/* Invite section */}
-      <Card className="rounded-2xl bg-muted/40">
+      <Card className="rounded-2xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-base">Invite a member</CardTitle>
           <CardDescription>
@@ -211,7 +214,7 @@ export const MembersClient = ({
       </Card>
 
       {/* Members table */}
-      <Card className="rounded-2xl bg-muted/40">
+      <Card className="rounded-2xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-base">
             {members.length} {members.length === 1 ? "member" : "members"}
@@ -221,14 +224,15 @@ export const MembersClient = ({
           <Table>
             <TableHeader>
               <TableRow className="border-border/40 border-b hover:bg-transparent">
-                <TableHead className="pl-6">Member</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead className="w-12" />
+                <TableHead className="h-12 pl-6">Member</TableHead>
+                <TableHead className="h-12">Role</TableHead>
+                <TableHead className="h-12 w-12" />
               </TableRow>
             </TableHeader>
             <TableBody>
               {members.map((member) => {
                 const isSelf = member.userId === currentUserId;
+                const isUpdating = updatingMemberId === member.userId;
                 const displayName =
                   [member.firstName, member.lastName]
                     .filter(Boolean)
@@ -239,7 +243,7 @@ export const MembersClient = ({
                     className="border-border/40 border-b last:border-0"
                     key={member.membershipId}
                   >
-                    <TableCell className="pl-6">
+                    <TableCell className="py-4 pl-6">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
                           <AvatarImage
@@ -269,12 +273,12 @@ export const MembersClient = ({
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-4">
                       {isSelf || (!isOwner && member.role === "org:owner") ? (
                         <RoleBadge role={member.role} />
                       ) : (
                         <Select
-                          disabled={isRoleUpdating}
+                          disabled={isActionPending || isUpdating}
                           onValueChange={(v) =>
                             handleRoleChange(member, v as OrgRole)
                           }
@@ -302,10 +306,11 @@ export const MembersClient = ({
                         </Select>
                       )}
                     </TableCell>
-                    <TableCell className="pr-4 text-right">
+                    <TableCell className="py-4 pr-4 text-right">
                       {!isSelf && (
                         <Button
                           className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          disabled={isUpdating}
                           onClick={() => setRemoveTarget(member)}
                           size="icon"
                           variant="ghost"
@@ -328,7 +333,7 @@ export const MembersClient = ({
 
       {/* Pending invitations */}
       {pendingInvitations.length > 0 && (
-        <Card className="rounded-2xl bg-muted/40">
+        <Card className="rounded-2xl">
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Pending invitations</CardTitle>
             <CardDescription>
@@ -339,9 +344,9 @@ export const MembersClient = ({
             <Table>
               <TableHeader>
                 <TableRow className="border-border/40 border-b hover:bg-transparent">
-                  <TableHead className="pl-6">Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Sent</TableHead>
+                  <TableHead className="h-12 pl-6">Email</TableHead>
+                  <TableHead className="h-12">Role</TableHead>
+                  <TableHead className="h-12">Sent</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -350,7 +355,7 @@ export const MembersClient = ({
                     className="border-border/40 border-b last:border-0"
                     key={inv.id}
                   >
-                    <TableCell className="pl-6">
+                    <TableCell className="py-4 pl-6">
                       <div className="flex items-center gap-2">
                         <MailIcon
                           className="h-4 w-4 shrink-0 text-muted-foreground"
@@ -359,10 +364,10 @@ export const MembersClient = ({
                         <span className="text-sm">{inv.emailAddress}</span>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-4">
                       <RoleBadge role={inv.role} />
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
+                    <TableCell className="py-4 text-muted-foreground text-sm">
                       {new Date(inv.createdAt).toLocaleDateString()}
                     </TableCell>
                   </TableRow>

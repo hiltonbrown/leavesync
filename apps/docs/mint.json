@@ -6,6 +6,9 @@
     "light": "/logo/light.svg"
   },
   "favicon": "/favicon.svg",
+  "fonts": {
+    "family": "Plus Jakarta Sans"
+  },
   "colors": {
     "primary": "#0D9373",
     "light": "#07C983",

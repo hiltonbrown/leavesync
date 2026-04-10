@@ -97,7 +97,7 @@ export const FeedsClient = ({ feeds, channels }: FeedsClientProps) => {
         </div>
 
         {feeds.length === 0 ? (
-          <Card className="rounded-2xl bg-muted/40">
+          <Card className="rounded-2xl border-dashed bg-muted/40 opacity-70">
             <CardContent className="p-0">
               <Empty className="border-0 bg-transparent py-10">
                 <EmptyHeader>
@@ -127,7 +127,7 @@ export const FeedsClient = ({ feeds, channels }: FeedsClientProps) => {
         ) : (
           <div className="space-y-3">
             {feeds.map((feed) => (
-              <Card className="rounded-2xl bg-muted/40" key={feed.id}>
+              <Card className="rounded-2xl" key={feed.id}>
                 <CardContent className="flex items-center justify-between gap-4 p-4">
                   <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
@@ -217,7 +217,7 @@ export const FeedsClient = ({ feeds, channels }: FeedsClientProps) => {
         </div>
 
         {channels.length === 0 ? (
-          <Card className="rounded-2xl bg-muted/40">
+          <Card className="rounded-2xl border-dashed bg-muted/40 opacity-70">
             <CardContent className="p-0">
               <Empty className="border-0 bg-transparent py-10">
                 <EmptyHeader>
@@ -249,7 +249,7 @@ export const FeedsClient = ({ feeds, channels }: FeedsClientProps) => {
             {channels.map((ch) => {
               const meta = CHANNEL_TYPE_META[ch.type];
               return (
-                <Card className="rounded-2xl bg-muted/40" key={ch.id}>
+                <Card className="rounded-2xl" key={ch.id}>
                   <CardContent className="flex items-center justify-between gap-4 p-4">
                     <div className="flex items-center gap-3">
                       <Badge
