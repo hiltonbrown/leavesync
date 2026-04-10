@@ -90,6 +90,17 @@ const PEOPLE: Person[] = [
     statusNote: null,
     avatarIdx: 5,
   },
+  {
+    id: "p7",
+    name: "Elena Rossi",
+    initials: "ER",
+    title: "Product Marketing",
+    dept: "Product",
+    location: "Milan, Italy",
+    status: "in-office",
+    statusNote: null,
+    avatarIdx: 0,
+  },
 ];
 
 const DEPARTMENTS: Department[] = ["Engineering", "Product", "Design"];

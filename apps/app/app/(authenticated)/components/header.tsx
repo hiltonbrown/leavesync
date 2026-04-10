@@ -11,15 +11,7 @@ interface HeaderProps {
 }
 
 export const Header = ({ page, children }: HeaderProps) => (
-  <header
-    className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-4 px-4"
-    style={{
-      background: "color-mix(in srgb, var(--sidebar) 85%, transparent)",
-      backdropFilter: "blur(12px)",
-      WebkitBackdropFilter: "blur(12px)",
-      borderBottom: "1px solid var(--sidebar-border)",
-    }}
-  >
+  <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-4 border-border border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
     <div className="flex items-center gap-3">
       <SidebarTrigger
         className="-ml-0.5 size-7"

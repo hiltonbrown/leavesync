@@ -84,7 +84,7 @@ export const HolidaysClient = ({
       />
 
       {/* Add jurisdiction */}
-      <Card className="rounded-2xl bg-muted/40">
+      <Card className="rounded-2xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-base">Add jurisdiction</CardTitle>
           <CardDescription>
@@ -121,7 +121,7 @@ export const HolidaysClient = ({
       </Card>
 
       {/* Enabled jurisdictions */}
-      <Card className="rounded-2xl bg-muted/40">
+      <Card className="rounded-2xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-base">
             Enabled jurisdictions
@@ -154,7 +154,7 @@ export const HolidaysClient = ({
             <ul className="divide-y divide-border/40">
               {jurisdictions.map((j) => (
                 <li
-                  className="flex items-center justify-between px-6 py-3"
+                  className="flex items-center justify-between px-6 py-4"
                   key={j.countryCode}
                 >
                   <div className="flex items-center gap-3">

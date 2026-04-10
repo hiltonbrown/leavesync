@@ -120,7 +120,7 @@ export const BillingClient = ({
       />
 
       {/* Plan card */}
-      <Card className="rounded-2xl bg-muted/40">
+      <Card className="rounded-2xl">
         <CardHeader className="pb-4">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -188,7 +188,7 @@ export const BillingClient = ({
 
       {/* Usage meters */}
       {usage.length > 0 && (
-        <Card className="rounded-2xl bg-muted/40">
+        <Card className="rounded-2xl">
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Usage</CardTitle>
             <CardDescription>
@@ -204,10 +204,7 @@ export const BillingClient = ({
                 const isNearLimit = pct >= 80;
 
                 return (
-                  <div
-                    className="rounded-xl bg-background/60 p-4"
-                    key={meter.label}
-                  >
+                  <div className="rounded-xl bg-muted/40 p-4" key={meter.label}>
                     <p className="font-medium text-muted-foreground text-xs uppercase tracking-wider">
                       {meter.label}
                     </p>
@@ -236,7 +233,7 @@ export const BillingClient = ({
       )}
 
       {/* Invoice history */}
-      <Card className="rounded-2xl bg-muted/40">
+      <Card className="rounded-2xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-base">Invoice history</CardTitle>
         </CardHeader>
@@ -259,10 +256,10 @@ export const BillingClient = ({
             <Table>
               <TableHeader>
                 <TableRow className="border-border/40 border-b hover:bg-transparent">
-                  <TableHead className="pl-6">Date</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-12" />
+                  <TableHead className="h-12 pl-6">Date</TableHead>
+                  <TableHead className="h-12">Amount</TableHead>
+                  <TableHead className="h-12">Status</TableHead>
+                  <TableHead className="h-12 w-12" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -274,11 +271,13 @@ export const BillingClient = ({
                       className="border-border/40 border-b last:border-0"
                       key={inv.id}
                     >
-                      <TableCell className="pl-6 text-sm">{inv.date}</TableCell>
-                      <TableCell className="font-medium text-sm">
+                      <TableCell className="py-4 pl-6 text-sm">
+                        {inv.date}
+                      </TableCell>
+                      <TableCell className="py-4 font-medium text-sm">
                         {inv.amount}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-4">
                         <Badge
                           className={`text-xs ${statusConfig.className}`}
                           variant="outline"
@@ -286,7 +285,7 @@ export const BillingClient = ({
                           {statusConfig.label}
                         </Badge>
                       </TableCell>
-                      <TableCell className="pr-4 text-right">
+                      <TableCell className="py-4 pr-4 text-right">
                         {inv.url && (
                           <Button
                             asChild

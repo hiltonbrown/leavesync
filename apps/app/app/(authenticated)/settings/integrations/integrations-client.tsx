@@ -119,9 +119,17 @@ export const IntegrationsClient = ({
       <div className="grid gap-4">
         {allProviders.map((conn) => {
           const meta = PROVIDER_META[conn.provider];
+          const isConnected = conn.status === "connected";
 
           return (
-            <Card className="rounded-2xl bg-muted/40" key={conn.provider}>
+            <Card
+              className={
+                isConnected
+                  ? "rounded-2xl"
+                  : "rounded-2xl border-dashed bg-muted/40 opacity-80"
+              }
+              key={conn.provider}
+            >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-4">

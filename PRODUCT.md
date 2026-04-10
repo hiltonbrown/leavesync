@@ -8,11 +8,10 @@ LeaveSync is a visibility-first leave and availability publishing platform. It c
 
 LeaveSync is not:
 - a full HRIS
-- a native leave request and approval engine
 - a complex accrual engine
 - a fake parity layer that pretends all connectors support the same features
 
-These are standing product boundaries, not deferred features.
+LeaveSync *is* a native leave request and approval engine, allowing managers to manually add and approve leave events alongside synced provider data.
 
 ---
 
@@ -466,7 +465,6 @@ Home, Features, Integrations (Xero, MYOB, Zoho People, QuickBooks), Pricing, Sec
 - No fake provider parity.
 - No claim that Zoho Books is a leave source.
 - No claim that Wave is a supported connector.
-- No native leave request or approval workflow. LeaveSync publishes visibility, not workflow.
 - No complex accrual engine. Display balances from source systems only.
 - No low-quality mock integrations disguised as real support.
 

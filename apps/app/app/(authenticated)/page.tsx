@@ -1,13 +1,8 @@
-import {
-  CalendarX2Icon,
-  CheckCircle2Icon,
-  ClockIcon,
-  RssIcon,
-  TrendingUpIcon,
-  UserIcon,
-} from "lucide-react";
+import { ClipboardListIcon, LinkIcon, UserIcon } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Header } from "./components/header";
+import { LivingTimelineModule } from "./components/living-timeline-module";
 
 export const metadata: Metadata = {
   title: "Dashboard — LeaveSync",
@@ -15,6 +10,14 @@ export const metadata: Metadata = {
 };
 
 // ─── Placeholder data ──────────────────────────────────────────────────────
+
+const todayAbsences = [
+  { name: "Priya Sharma" },
+  { name: "Marcus Webb" },
+  { name: "Aisha Okonkwo" },
+  { name: "Tom Eriksson" },
+];
+
 const recentLeave = [
   {
     name: "Priya Sharma",
@@ -45,25 +48,39 @@ const recentLeave = [
     status: "approved",
   },
   {
-    name: "Tom Eriksson",
+    name: "Elena Rossi",
     type: "Annual Leave",
-    from: "Apr 28",
-    to: "May 2",
+    from: "May 2",
+    to: "May 10",
+    status: "approved",
+  },
+  {
+    name: "Sofia Reyes",
+    type: "Annual Leave",
+    from: "May 15",
+    to: "May 22",
     status: "pending",
   },
-];
-
-const upcoming = [
-  { name: "Yuki Tanaka", days: "Mon 14 – Fri 18 Apr", type: "Annual Leave" },
   {
-    name: "Aisha Okonkwo",
-    days: "Tue 22 Apr – Mon 30 Jun",
-    type: "Parental Leave",
+    name: "Marcus Webb",
+    type: "Annual Leave",
+    from: "Jun 1",
+    to: "Jun 5",
+    status: "approved",
   },
   {
     name: "Tom Eriksson",
-    days: "Mon 28 Apr – Fri 2 May",
+    type: "Sick Leave",
+    from: "Jun 10",
+    to: "Jun 11",
+    status: "approved",
+  },
+  {
+    name: "Priya Sharma",
     type: "Annual Leave",
+    from: "Jun 15",
+    to: "Jun 20",
+    status: "pending",
   },
 ];
 
@@ -72,150 +89,34 @@ const upcoming = [
 const Dashboard = () => (
   <>
     <Header page="Dashboard" />
-    <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
-      {/* Row 1 — 3 stat cards */}
+    <div className="flex flex-1 flex-col gap-6 p-6">
+      {/* Row 1 — asymmetric hero + secondary stack */}
       <div className="grid gap-5 md:grid-cols-3">
-        <StatCard
-          icon={<CalendarX2Icon className="size-4" strokeWidth={1.75} />}
-          label="Out today"
-          sub="of 38 employees"
-          trend="+1 from yesterday"
-          trendUp
-          value="4"
-        />
-        <StatCard
-          icon={<CheckCircle2Icon className="size-4" strokeWidth={1.75} />}
-          label="Pending approvals"
-          sub="awaiting review"
-          value="2"
-        />
-        <StatCard
-          icon={<RssIcon className="size-4" strokeWidth={1.75} />}
-          label="Active feeds"
-          sub="syncing now"
-          trend="Last sync 3 min ago"
-          trendUp
-          value="6"
-        />
-      </div>
-
-      {/* Row 2 — 2 larger cards */}
-      <div className="grid gap-5 md:grid-cols-2">
-        {/* Recent leave */}
-        <div className="flex flex-col gap-5 rounded-2xl bg-muted p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-[0.6875rem] text-muted-foreground uppercase tracking-widest">
-                Recent Leave
-              </p>
-              <h2 className="mt-0.5 font-semibold text-[1.375rem] text-foreground tracking-tight">
-                Latest requests
-              </h2>
-            </div>
-            <ClockIcon
-              className="size-4 text-muted-foreground"
-              strokeWidth={1.75}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            {recentLeave.map((entry) => (
-              <div
-                className="flex items-center justify-between rounded-xl px-3 py-2.5 transition-colors hover:bg-accent"
-                key={`${entry.name}-${entry.from}`}
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <div
-                    className="flex size-7 shrink-0 items-center justify-center rounded-full"
-                    style={{ background: "var(--secondary)" }}
-                  >
-                    <UserIcon
-                      className="size-3.5"
-                      strokeWidth={2}
-                      style={{ color: "var(--secondary-foreground)" }}
-                    />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-[0.875rem] text-foreground leading-tight">
-                      {entry.name}
-                    </p>
-                    <p className="text-[0.75rem] text-muted-foreground">
-                      {entry.type} · {entry.from} – {entry.to}
-                    </p>
-                  </div>
-                </div>
-                <StatusBadge status={entry.status} />
-              </div>
-            ))}
-          </div>
+        <div className="relative z-30 md:col-span-2">
+          <LivingTimelineModule todayAbsences={todayAbsences} total={38} />
         </div>
-
-        {/* Upcoming absences */}
-        <div className="flex flex-col gap-5 rounded-2xl bg-muted p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-[0.6875rem] text-muted-foreground uppercase tracking-widest">
-                Coming up
-              </p>
-              <h2 className="mt-0.5 font-semibold text-[1.375rem] text-foreground tracking-tight">
-                Upcoming absences
-              </h2>
-            </div>
-            <TrendingUpIcon
-              className="size-4 text-muted-foreground"
-              strokeWidth={1.75}
-            />
-          </div>
-
-          <div className="flex flex-col gap-3">
-            {upcoming.map((entry, i) => (
-              <div
-                className="flex items-start gap-4 rounded-xl p-3 transition-colors hover:bg-accent"
-                key={entry.name}
-              >
-                <div
-                  className="flex size-8 shrink-0 items-center justify-center rounded-lg font-semibold text-[0.75rem]"
-                  style={{
-                    background: "var(--primary-container)",
-                    color: "var(--on-primary-container)",
-                  }}
-                >
-                  {i + 1}
-                </div>
-                <div className="min-w-0">
-                  <p className="font-medium text-[0.875rem] text-foreground leading-tight">
-                    {entry.name}
-                  </p>
-                  <p className="mt-0.5 text-[0.75rem] text-muted-foreground">
-                    {entry.days}
-                  </p>
-                  <p
-                    className="mt-1 inline-block rounded-md px-2 py-0.5 font-medium text-[0.6875rem]"
-                    style={{
-                      background: "var(--secondary)",
-                      color: "var(--secondary-foreground)",
-                    }}
-                  >
-                    {entry.type}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div
-            className="mt-auto rounded-xl px-4 py-3"
-            style={{ background: "var(--accent)" }}
-          >
-            <p className="font-medium text-[0.75rem] text-foreground">
-              3 employees absent next week
-            </p>
-            <p className="text-[0.6875rem] text-muted-foreground">
-              Week of 14 Apr · highest absence period this month
-            </p>
-          </div>
+        <div className="flex flex-col gap-4">
+          <ActionModule
+            ctaHref="/plans"
+            ctaLabel="Review"
+            icon={<ClipboardListIcon className="size-3.5" strokeWidth={1.75} />}
+            label="Pending approvals"
+            sub="awaiting review"
+            value="2"
+          />
+          <ActionModule
+            ctaHref="/feed"
+            ctaLabel="Manage"
+            icon={<LinkIcon className="size-3.5" strokeWidth={1.75} />}
+            label="Active Calendar Feeds"
+            sub="Last sync 3 min ago"
+            value="6"
+          />
         </div>
       </div>
+
+      {/* Row 2 — full-width recent requests */}
+      <RecentRequestsCard entries={recentLeave} />
     </div>
   </>
 );
@@ -224,44 +125,108 @@ export default Dashboard;
 
 // ─── Sub-components ─────────────────────────────────────────────────────────
 
-interface StatCardProps {
+interface ActionModuleProps {
+  ctaHref: string;
+  ctaLabel: string;
   icon: React.ReactNode;
   label: string;
   sub: string;
-  trend?: string;
-  trendUp?: boolean;
   value: string;
 }
 
-const StatCard = ({
+const ActionModule = ({
+  ctaHref,
+  ctaLabel,
   icon,
   label,
-  value,
   sub,
-  trend,
-  trendUp,
-}: StatCardProps) => (
-  <div className="flex flex-col gap-4 rounded-2xl bg-muted p-6">
-    <div className="flex items-center justify-between">
-      <p className="font-medium text-[0.6875rem] text-muted-foreground uppercase tracking-widest">
+  value,
+}: ActionModuleProps) => (
+  <div className="flex flex-1 flex-col gap-3 rounded-2xl bg-muted p-5">
+    <div className="flex items-center gap-1.5 text-muted-foreground">
+      {icon}
+      <p className="font-medium text-label-sm uppercase tracking-widest">
         {label}
       </p>
-      <span className="text-muted-foreground">{icon}</span>
     </div>
     <div>
-      <p className="font-semibold text-[2.75rem] text-foreground leading-none tracking-tight">
+      <p className="font-semibold text-foreground text-headline-md leading-none tracking-tight">
         {value}
       </p>
-      <p className="mt-1.5 text-[0.8125rem] text-muted-foreground">{sub}</p>
+      <p className="mt-1 text-label-md text-muted-foreground">{sub}</p>
     </div>
-    {trend && (
-      <p
-        className="font-medium text-[0.75rem]"
-        style={{ color: trendUp ? "var(--primary)" : "var(--destructive)" }}
+    <div className="mt-auto flex justify-end">
+      <Link
+        className="font-medium text-[0.8125rem] transition-opacity hover:opacity-70"
+        href={ctaHref}
+        style={{ color: "var(--primary)" }}
       >
-        {trend}
-      </p>
-    )}
+        {ctaLabel} &rarr;
+      </Link>
+    </div>
+  </div>
+);
+
+interface RecentRequestsCardProps {
+  entries: {
+    from: string;
+    name: string;
+    status: string;
+    to: string;
+    type: string;
+  }[];
+}
+
+const RecentRequestsCard = ({ entries }: RecentRequestsCardProps) => (
+  <div className="flex flex-col gap-5 rounded-2xl bg-muted p-6">
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="font-medium text-label-sm text-muted-foreground uppercase tracking-widest">
+          Leave requests
+        </p>
+        <h2 className="mt-0.5 font-semibold text-foreground text-title-lg tracking-tight">
+          Recent activity
+        </h2>
+      </div>
+      <Link
+        className="font-medium text-[0.8125rem] transition-opacity hover:opacity-70"
+        href="/people"
+        style={{ color: "var(--primary)" }}
+      >
+        View all &rarr;
+      </Link>
+    </div>
+
+    <div className="flex flex-col gap-1">
+      {entries.map((entry) => (
+        <div
+          className="flex items-center justify-between rounded-xl px-3 py-2.5 transition-colors hover:bg-accent"
+          key={`${entry.name}-${entry.from}`}
+        >
+          <div className="flex min-w-0 items-center gap-3">
+            <div
+              className="flex size-7 shrink-0 items-center justify-center rounded-full"
+              style={{ background: "var(--secondary-container)" }}
+            >
+              <UserIcon
+                className="size-3.5"
+                strokeWidth={2}
+                style={{ color: "var(--on-secondary-container)" }}
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate font-medium text-[0.875rem] text-foreground leading-tight">
+                {entry.name}
+              </p>
+              <p className="text-label-md text-muted-foreground">
+                {entry.type} &middot; {entry.from} &ndash; {entry.to}
+              </p>
+            </div>
+          </div>
+          <StatusBadge status={entry.status} />
+        </div>
+      ))}
+    </div>
   </div>
 );
 
@@ -269,7 +234,7 @@ const StatusBadge = ({ status }: { status: string }) => {
   const isApproved = status === "approved";
   return (
     <span
-      className="shrink-0 rounded-md px-2 py-0.5 font-medium text-[0.6875rem]"
+      className="shrink-0 rounded-xl px-2 py-0.5 font-medium text-label-sm"
       style={
         isApproved
           ? {

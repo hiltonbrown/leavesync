@@ -55,7 +55,7 @@ export const Header = ({ dictionary }: HeaderProps) => {
 
   const [isOpen, setOpen] = useState(false);
   return (
-    <header className="sticky top-0 left-0 z-40 w-full border-b bg-background">
+    <header className="header-reactive sticky top-0 left-0 z-40 w-full transition-colors duration-300">
       <div className="container relative mx-auto flex min-h-20 flex-row items-center gap-4 lg:grid lg:grid-cols-3">
         <div className="hidden flex-row items-center justify-start gap-4 lg:flex">
           <NavigationMenu className="flex items-start justify-start">

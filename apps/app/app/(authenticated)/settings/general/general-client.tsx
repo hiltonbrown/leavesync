@@ -115,7 +115,7 @@ export const GeneralClient = ({
         title="General"
       />
 
-      <Card className="rounded-2xl bg-muted/40">
+      <Card className="rounded-2xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-base">Organisation details</CardTitle>
           <CardDescription>

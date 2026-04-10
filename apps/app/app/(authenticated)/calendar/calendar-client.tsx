@@ -13,26 +13,30 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@repo/design-system/components/ui/dropdown-menu";
+import { cn } from "@repo/design-system/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   CalendarDaysIcon,
   CalendarIcon,
+  CalendarPlusIcon,
   CheckIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   CopyIcon,
   ExternalLinkIcon,
+  GlobeIcon,
   LaptopIcon,
   Link2Icon,
-  MailIcon,
   RssIcon,
   SmartphoneIcon,
+  XIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-type View = "day" | "week" | "month";
+type View = "day" | "week" | "month" | "timeline";
 type LeaveType = "Annual Leave" | "Sick Leave" | "Parental Leave";
 type FeedStatus = "active" | "paused";
 
@@ -105,6 +109,93 @@ const ALL_LEAVE_DATA: LeaveEntry[] = [
     start: "2026-04-28",
     end: "2026-05-02",
   },
+  {
+    id: 6,
+    personId: "p6",
+    name: "Sofia Reyes",
+    initials: "SR",
+    type: "Annual Leave",
+    start: "2026-05-15",
+    end: "2026-05-22",
+  },
+  {
+    id: 7,
+    personId: "p1",
+    name: "Priya Sharma",
+    initials: "PS",
+    type: "Sick Leave",
+    start: "2026-04-20",
+    end: "2026-04-21",
+  },
+  {
+    id: 8,
+    personId: "p2",
+    name: "Marcus Webb",
+    initials: "MW",
+    type: "Annual Leave",
+    start: "2026-05-05",
+    end: "2026-05-15",
+  },
+  {
+    id: 9,
+    personId: "p7",
+    name: "Elena Rossi",
+    initials: "ER",
+    type: "Annual Leave",
+    start: "2026-05-02",
+    end: "2026-05-10",
+  },
+  {
+    id: 10,
+    personId: "p2",
+    name: "Marcus Webb",
+    initials: "MW",
+    type: "Annual Leave",
+    start: "2026-06-01",
+    end: "2026-06-05",
+  },
+  {
+    id: 11,
+    personId: "p5",
+    name: "Tom Eriksson",
+    initials: "TE",
+    type: "Sick Leave",
+    start: "2026-06-10",
+    end: "2026-06-11",
+  },
+  {
+    id: 12,
+    personId: "p1",
+    name: "Priya Sharma",
+    initials: "PS",
+    type: "Annual Leave",
+    start: "2026-06-15",
+    end: "2026-06-20",
+  },
+];
+
+const PEOPLE = [
+  { id: "p1", name: "Priya Sharma", initials: "PS", role: "Engineering" },
+  { id: "p2", name: "Marcus Webb", initials: "MW", role: "Engineering" },
+  { id: "p3", name: "Yuki Tanaka", initials: "YT", role: "Product" },
+  { id: "p4", name: "Aisha Okonkwo", initials: "AO", role: "Design" },
+  { id: "p5", name: "Tom Eriksson", initials: "TE", role: "Engineering" },
+  { id: "p6", name: "Sofia Reyes", initials: "SR", role: "Product" },
+  { id: "p7", name: "Elena Rossi", initials: "ER", role: "Product" },
+  ...Array.from({ length: 10 }).map((_, i) => {
+    let role = "Engineering";
+    if (i % 3 === 1) {
+      role = "Product";
+    } else if (i % 3 === 2) {
+      role = "Design";
+    }
+    return {
+      id: `pg${i}`,
+      name: `Generated Person ${i + 1}`,
+      initials: `G${i + 1}`,
+      role,
+    };
+  }),
 ];
 
 const CALENDAR_FEEDS: CalendarFeed[] = [
@@ -114,7 +205,16 @@ const CALENDAR_FEEDS: CalendarFeed[] = [
     description: "Company-wide leave feed for all employees",
     status: "active",
     token: "org_k8s92j_all",
-    personIds: ["p1", "p2", "p3", "p4", "p5", "p6"],
+    personIds: [
+      "p1",
+      "p2",
+      "p3",
+      "p4",
+      "p5",
+      "p6",
+      "p7",
+      ...Array.from({ length: 10 }).map((_, i) => `pg${i}`),
+    ],
   },
   {
     id: "feed_eng",
@@ -130,7 +230,7 @@ const CALENDAR_FEEDS: CalendarFeed[] = [
     description: "Leave calendar for product and design",
     status: "active",
     token: "org_k8s92j_prd",
-    personIds: ["p3", "p4", "p6"],
+    personIds: ["p3", "p4", "p6", "p7"],
   },
   {
     id: "feed_mgmt",
@@ -174,9 +274,12 @@ const LEAVE_STYLES: Record<LeaveType, { bg: string; text: string }> = {
     bg: "color-mix(in srgb, var(--primary) 14%, transparent)",
     text: "var(--primary)",
   },
-  "Sick Leave": { bg: "var(--error-container)", text: "var(--destructive)" },
+  "Sick Leave": {
+    bg: "color-mix(in srgb, var(--destructive) 14%, transparent)",
+    text: "var(--destructive)",
+  },
   "Parental Leave": {
-    bg: "var(--secondary)",
+    bg: "color-mix(in srgb, var(--secondary-foreground) 10%, var(--secondary))",
     text: "var(--secondary-foreground)",
   },
 };
@@ -240,6 +343,14 @@ function getWeekDays(anchor: Date): Date[] {
     { length: 7 },
     (_, i) =>
       new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i)
+  );
+}
+
+function getTimelineDays(anchor: Date, days: number): Date[] {
+  return Array.from(
+    { length: days },
+    (_, i) =>
+      new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + i)
   );
 }
 
@@ -417,6 +528,421 @@ function FeedSelector({ feeds, selectedId, onSelect }: FeedSelectorProps) {
   );
 }
 
+// ─── Timeline view ────────────────────────────────────────────────────────────
+
+function TimelineView({
+  anchor,
+  leaveData,
+  personIds,
+  groupByRole,
+}: {
+  anchor: Date;
+  leaveData: LeaveEntry[];
+  personIds: string[];
+  groupByRole?: boolean;
+}) {
+  const days = getTimelineDays(anchor, 31);
+  const dayWidth = 64;
+  const sidebarWidth = 200;
+  const gridWidth = days.length * dayWidth;
+
+  const allPeople = [...PEOPLE]
+    .filter((p) => personIds.includes(p.id))
+    .sort((a, b) => {
+      if (groupByRole) {
+        return a.role.localeCompare(b.role) || a.name.localeCompare(b.name);
+      }
+      return 0;
+    });
+  const [visibleCount, setVisibleCount] = useState(15);
+  const people = allPeople.slice(0, visibleCount);
+
+  const mainScrollRef = useRef<HTMLDivElement>(null);
+  const stickyScrollRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  const [selectedLeaveId, setSelectedLeaveId] = useState<number | null>(null);
+
+  // Sync scroll positions
+  const onMainScroll = useCallback(() => {
+    if (mainScrollRef.current && stickyScrollRef.current) {
+      stickyScrollRef.current.scrollLeft = mainScrollRef.current.scrollLeft;
+    }
+  }, []);
+
+  const onStickyScroll = useCallback(() => {
+    if (mainScrollRef.current && stickyScrollRef.current) {
+      mainScrollRef.current.scrollLeft = stickyScrollRef.current.scrollLeft;
+    }
+  }, []);
+
+  // Infinite Scroll Intersection Observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && visibleCount < allPeople.length) {
+          setVisibleCount((prev) => Math.min(prev + 15, allPeople.length));
+        }
+      },
+      { rootMargin: "400px" }
+    );
+
+    const currentLoadMore = loadMoreRef.current;
+    if (currentLoadMore) {
+      observer.observe(currentLoadMore);
+    }
+
+    return () => {
+      if (currentLoadMore) {
+        observer.unobserve(currentLoadMore);
+      }
+    };
+  }, [allPeople.length, visibleCount]);
+
+  return (
+    <div className="relative overflow-visible rounded-2xl border border-border/50 bg-background">
+      {/* Scrollable grid area */}
+      <div
+        className="overflow-x-auto overflow-y-visible [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        onScroll={onMainScroll}
+        ref={mainScrollRef}
+      >
+        <div className="flex w-max min-w-full">
+          {/* Sidebar - Sticky */}
+          <div
+            className="sticky left-0 z-20 flex shrink-0 flex-col border-border border-r bg-background/80 backdrop-blur-md"
+            style={{ width: `${sidebarWidth}px` }}
+          >
+            <div className="sticky top-0 z-30 flex h-12 shrink-0 items-center border-border border-b bg-background/95 px-4 font-semibold text-[0.6875rem] text-muted-foreground uppercase tracking-widest backdrop-blur-md">
+              Team Member
+            </div>
+            {people.map((person, i) => {
+              const showGroupHeader =
+                groupByRole && (i === 0 || person.role !== people[i - 1].role);
+              return (
+                <Fragment key={person.id + anchor.toISOString()}>
+                  {showGroupHeader && (
+                    <div className="flex h-10 shrink-0 items-center border-border/50 border-b bg-muted/30 px-4 font-semibold text-[0.6875rem] text-muted-foreground uppercase tracking-widest">
+                      {person.role}
+                    </div>
+                  )}
+                  <motion.div
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex h-16 shrink-0 items-center gap-3 border-border/50 border-b px-4 transition-colors hover:bg-accent/30"
+                    initial={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.3, delay: i * 0.02 }}
+                  >
+                    <div
+                      className="flex size-8 shrink-0 items-center justify-center rounded-full font-bold text-[0.75rem]"
+                      style={{
+                        background: "var(--accent)",
+                        color: "var(--muted-foreground)",
+                      }}
+                    >
+                      {person.initials}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-[0.8125rem] text-foreground">
+                        {person.name}
+                      </p>
+                      <p className="truncate text-[0.625rem] text-muted-foreground uppercase tracking-wider">
+                        {person.role}
+                      </p>
+                    </div>
+                  </motion.div>
+                </Fragment>
+              );
+            })}
+          </div>
+
+          {/* Main Timeline Scrollable Area */}
+          <div className="flex-1">
+            <div style={{ width: `${days.length * dayWidth}px` }}>
+              {/* Header */}
+              <div className="sticky top-0 z-10 flex h-12 border-border border-b bg-muted/95 backdrop-blur-md">
+                {days.map((day) => {
+                  const isToday = isSameDay(day, TODAY);
+                  const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+
+                  let background = "transparent";
+                  if (isToday) {
+                    background =
+                      "color-mix(in srgb, var(--primary) 8%, transparent)";
+                  } else if (isWeekend) {
+                    background = "var(--muted)";
+                  }
+
+                  return (
+                    <div
+                      className="flex flex-col items-center justify-center border-border/30 border-r"
+                      key={day.toISOString()}
+                      style={{
+                        width: `${dayWidth}px`,
+                        background,
+                      }}
+                    >
+                      <span className="font-medium text-[0.625rem] text-muted-foreground uppercase">
+                        {DAY_NAMES[(day.getDay() + 6) % 7]}
+                      </span>
+                      <span
+                        className={cn(
+                          "font-bold text-[0.875rem] tabular-nums",
+                          isToday ? "text-primary" : "text-foreground"
+                        )}
+                      >
+                        {day.getDate()}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Rows */}
+              <div className="relative">
+                {/* Grid Lines */}
+                <div className="pointer-events-none absolute inset-0 flex">
+                  {days.map((day) => (
+                    <div
+                      className="h-full border-border/20 border-r"
+                      key={`line-${day.toISOString()}`}
+                      style={{ width: `${dayWidth}px` }}
+                    />
+                  ))}
+                </div>
+
+                {people.map((person, personIndex) => {
+                  const showGroupHeader =
+                    groupByRole &&
+                    (personIndex === 0 ||
+                      person.role !== people[personIndex - 1].role);
+                  const personLeaves = leaveData.filter(
+                    (l) => l.personId === person.id
+                  );
+                  return (
+                    <Fragment key={person.id + anchor.toISOString()}>
+                      {showGroupHeader && (
+                        <div className="h-10 w-full border-border/50 border-b bg-muted/10" />
+                      )}
+                      <div className="relative h-16 border-border/50 border-b">
+                        {personLeaves.map((leave, leaveIndex) => {
+                          const start = new Date(leave.start);
+                          const end = new Date(leave.end);
+
+                          // Calculate position relative to anchor
+                          const diffStart = Math.ceil(
+                            (start.getTime() - anchor.getTime()) /
+                              (1000 * 60 * 60 * 24)
+                          );
+                          const diffEnd = Math.ceil(
+                            (end.getTime() - anchor.getTime()) /
+                              (1000 * 60 * 60 * 24)
+                          );
+
+                          // Clamp to visible range
+                          const visibleStart = Math.max(0, diffStart);
+                          const visibleEnd = Math.min(days.length - 1, diffEnd);
+
+                          if (visibleStart > visibleEnd) {
+                            return null;
+                          }
+
+                          const style = LEAVE_STYLES[leave.type];
+                          const left = visibleStart * dayWidth;
+                          const width =
+                            (visibleEnd - visibleStart + 1) * dayWidth;
+
+                          const isSelected = selectedLeaveId === leave.id;
+
+                          return (
+                            <motion.div
+                              animate={{ opacity: 1, scaleX: 1 }}
+                              className={cn(
+                                "absolute top-1/2 flex h-10 -translate-y-1/2 cursor-pointer items-center rounded-xl border border-white/10 px-3 shadow-sm transition-colors",
+                                isSelected ? "z-40 opacity-0" : "z-0"
+                              )}
+                              initial={{ opacity: 0, scaleX: 0.9, originX: 0 }}
+                              key={leave.id}
+                              layoutId={`leave-${leave.id}`}
+                              onClick={() => setSelectedLeaveId(leave.id)}
+                              style={{
+                                left: `${left + 4}px`,
+                                width: `${width - 8}px`,
+                                background: `linear-gradient(135deg, ${style.bg}, color-mix(in srgb, ${style.bg} 80%, white))`,
+                                backdropFilter: "blur(4px)",
+                              }}
+                              transition={{
+                                duration: 0.4,
+                                delay: personIndex * 0.02 + leaveIndex * 0.05,
+                                type: "spring",
+                                stiffness: 100,
+                                damping: 20,
+                              }}
+                              whileHover={{
+                                scaleY: 1.1,
+                                zIndex: 10,
+                                boxShadow: "0 8px 24px rgba(53,51,64,0.12)",
+                              }}
+                            >
+                              <span
+                                className="truncate font-bold text-[0.6875rem] uppercase tracking-wider"
+                                style={{ color: style.text }}
+                              >
+                                {leave.type}
+                              </span>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </Fragment>
+                  );
+                })}
+
+                {/* Today line */}
+                <div
+                  className="pointer-events-none absolute top-0 bottom-0 z-10 w-0.5 bg-primary"
+                  style={{
+                    left: `${Math.floor((TODAY.getTime() - anchor.getTime()) / (1000 * 60 * 60 * 24)) * dayWidth + dayWidth / 2}px`,
+                  }}
+                >
+                  <div className="absolute top-0 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-primary" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Load more trigger */}
+        <div className="h-4 w-full" ref={loadMoreRef} />
+      </div>
+
+      {/* Sticky Scrollbar for horizontal scrolling */}
+      <div
+        className="sticky bottom-3 z-50 mx-4 h-3 overflow-x-auto overflow-y-hidden rounded-full border border-border/50 bg-background/80 shadow-sm backdrop-blur-sm"
+        onScroll={onStickyScroll}
+        ref={stickyScrollRef}
+      >
+        <div
+          style={{ width: `${sidebarWidth + gridWidth}px`, height: "1px" }}
+        />
+      </div>
+
+      {/* Morphing Detail Overlay */}
+      <AnimatePresence>
+        {selectedLeaveId && (
+          <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              animate={{ opacity: 1 }}
+              className="pointer-events-auto absolute inset-0 bg-background/40 backdrop-blur-sm"
+              exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }}
+              onClick={() => setSelectedLeaveId(null)}
+            />
+
+            {/* Morphed Card */}
+            {(() => {
+              const selectedLeave = leaveData.find(
+                (l) => l.id === selectedLeaveId
+              );
+              if (!selectedLeave) {
+                return null;
+              }
+              const style = LEAVE_STYLES[selectedLeave.type];
+              return (
+                <motion.div
+                  className="pointer-events-auto relative w-full max-w-md overflow-hidden rounded-3xl border border-border bg-popover shadow-2xl"
+                  layoutId={`leave-${selectedLeave.id}`}
+                  style={{
+                    background: style.bg,
+                  }}
+                >
+                  <div className="flex items-center justify-between border-black/5 border-b bg-white/40 p-5 backdrop-blur-md">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-bold text-[0.875rem]"
+                        style={{
+                          background: "white",
+                          color: style.text,
+                        }}
+                      >
+                        {selectedLeave.initials}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-[1.0625rem] text-foreground leading-tight">
+                          {selectedLeave.name}
+                        </h3>
+                        <p className="text-[0.8125rem] text-muted-foreground uppercase tracking-widest">
+                          {selectedLeave.type}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-black/5 text-foreground transition-colors hover:bg-black/10"
+                      onClick={() => setSelectedLeaveId(null)}
+                      type="button"
+                    >
+                      <XIcon className="size-4" />
+                    </button>
+                  </div>
+
+                  <div className="bg-white/60 p-6 backdrop-blur-md">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <p className="font-medium text-[0.6875rem] text-muted-foreground uppercase tracking-widest">
+                          Starts
+                        </p>
+                        <p className="mt-1 font-semibold text-[1rem] text-foreground">
+                          {new Date(selectedLeave.start).toLocaleDateString(
+                            "en-US",
+                            {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            }
+                          )}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-[0.6875rem] text-muted-foreground uppercase tracking-widest">
+                          Ends
+                        </p>
+                        <p className="mt-1 font-semibold text-[1rem] text-foreground">
+                          {new Date(selectedLeave.end).toLocaleDateString(
+                            "en-US",
+                            {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            }
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 flex items-center justify-between rounded-xl bg-white/50 p-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="relative flex h-5 w-5 items-center justify-center">
+                          <div className="absolute inset-0 animate-ping rounded-full bg-primary/20" />
+                          <div className="relative h-2 w-2 rounded-full bg-primary" />
+                        </div>
+                        <span className="font-semibold text-[0.875rem] text-primary">
+                          Approved & Validated
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })()}
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ─── Month view ───────────────────────────────────────────────────────────────
 
 function MonthView({
@@ -486,8 +1012,10 @@ function MonthView({
                     className="flex items-center gap-1 truncate rounded px-1.5 py-0.5"
                     key={entry.id}
                     style={{ background: s.bg }}
+                    title={entry.name}
                   >
                     <span
+                      aria-hidden
                       className="truncate font-semibold text-[0.625rem]"
                       style={{ color: s.text }}
                     >
@@ -591,12 +1119,13 @@ function WeekView({
                     className="rounded-lg px-2 py-1.5"
                     key={entry.id}
                     style={{ background: s.bg }}
+                    title={entry.name}
                   >
                     <p
                       className="font-semibold text-[0.6875rem] leading-tight"
                       style={{ color: s.text }}
                     >
-                      {entry.initials}
+                      {entry.name.split(" ")[0]}
                     </p>
                     <p
                       className="mt-0.5 truncate text-[0.5625rem] leading-tight"
@@ -754,7 +1283,7 @@ function ICalSection({
       key: "gmail",
       label: "Google Calendar",
       description: "Subscribe from URL",
-      icon: <MailIcon className="size-5" strokeWidth={1.75} />,
+      icon: <GlobeIcon className="size-5" strokeWidth={1.75} />,
       href: `https://calendar.google.com/calendar/r/settings/addbyurl?url=${encodeURIComponent(httpsUrl)}`,
       copyUrl: httpsUrl,
       actionLabel: "Open",
@@ -869,12 +1398,8 @@ function ICalSection({
                 {p.actionLabel}
               </a>
               <button
-                className="flex items-center justify-center rounded-xl px-3 transition-colors"
+                className="flex items-center justify-center rounded-xl px-3 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                 onClick={() => copy(p.copyUrl, p.key)}
-                style={{
-                  background: "var(--accent)",
-                  color: "var(--muted-foreground)",
-                }}
                 title="Copy URL"
                 type="button"
               >
@@ -914,7 +1439,7 @@ const PLATFORMS: Platform[] = [
   {
     id: "google",
     label: "Google Calendar",
-    icon: <MailIcon className="size-4" strokeWidth={1.75} />,
+    icon: <GlobeIcon className="size-4" strokeWidth={1.75} />,
     steps: [
       {
         text: "Open Google Calendar — on desktop go to calendar.google.com, or open the mobile app.",
@@ -1090,6 +1615,7 @@ export function CalendarClient() {
   );
   const [view, setView] = useState<View>("month");
   const [anchor, setAnchor] = useState<Date>(new Date(TODAY));
+  const [setupOpen, setSetupOpen] = useState(false);
 
   const selectedFeed =
     CALENDAR_FEEDS.find((f) => f.id === selectedFeedId) ?? CALENDAR_FEEDS[0];
@@ -1099,7 +1625,7 @@ export function CalendarClient() {
 
   const navigate = (dir: -1 | 1) => {
     setAnchor((prev) => {
-      if (view === "month") {
+      if (view === "month" || view === "timeline") {
         return new Date(prev.getFullYear(), prev.getMonth() + dir, 1);
       }
       if (view === "week") {
@@ -1118,7 +1644,7 @@ export function CalendarClient() {
   };
 
   const periodLabel = (): string => {
-    if (view === "month") {
+    if (view === "month" || view === "timeline") {
       return `${MONTH_NAMES[anchor.getMonth()]} ${anchor.getFullYear()}`;
     }
     if (view === "week") {
@@ -1193,7 +1719,7 @@ export function CalendarClient() {
             className="flex gap-1 rounded-xl p-1"
             style={{ background: "var(--muted)" }}
           >
-            {(["Day", "Week", "Month"] as const).map((label) => {
+            {(["Day", "Week", "Month", "Timeline"] as const).map((label) => {
               const val = label.toLowerCase() as View;
               const active = view === val;
               return (
@@ -1221,7 +1747,10 @@ export function CalendarClient() {
 
         {/* Calendar body */}
         <div
-          className="overflow-hidden rounded-2xl"
+          className={cn(
+            "rounded-2xl",
+            view === "timeline" ? "overflow-visible" : "overflow-hidden"
+          )}
           style={{ background: "var(--muted)" }}
         >
           {view === "month" && (
@@ -1234,6 +1763,14 @@ export function CalendarClient() {
             <div className="p-5">
               <DayView anchor={anchor} leaveData={leaveData} />
             </div>
+          )}
+          {view === "timeline" && (
+            <TimelineView
+              anchor={anchor}
+              groupByRole={selectedFeedId === "feed_all"}
+              leaveData={leaveData}
+              personIds={selectedFeed.personIds}
+            />
           )}
         </div>
 
@@ -1258,14 +1795,38 @@ export function CalendarClient() {
         </div>
       </div>
 
-      {/* ── iCal links ───────────────────────────────────────────────────── */}
-      <ICalSection
-        feedName={selectedFeed.name}
-        feedToken={selectedFeed.token}
-      />
+      {/* ── Add to calendar (collapsed by default) ──────────────────────── */}
+      <div className="flex flex-col">
+        <button
+          className="flex items-center justify-between rounded-2xl px-5 py-4 font-medium text-[0.875rem] text-foreground transition-colors hover:bg-accent"
+          onClick={() => setSetupOpen((v) => !v)}
+          style={{ background: "var(--muted)" }}
+          type="button"
+        >
+          <div className="flex items-center gap-2.5">
+            <CalendarPlusIcon
+              className="size-4 text-muted-foreground"
+              strokeWidth={1.75}
+            />
+            <span>Add to your calendar</span>
+          </div>
+          <ChevronDownIcon
+            className="size-4 text-muted-foreground transition-transform duration-200"
+            strokeWidth={1.75}
+            style={{ transform: setupOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+          />
+        </button>
 
-      {/* ── Setup instructions ───────────────────────────────────────────── */}
-      <SetupInstructions />
+        {setupOpen && (
+          <div className="flex flex-col gap-10 pt-6">
+            <ICalSection
+              feedName={selectedFeed.name}
+              feedToken={selectedFeed.token}
+            />
+            <SetupInstructions />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

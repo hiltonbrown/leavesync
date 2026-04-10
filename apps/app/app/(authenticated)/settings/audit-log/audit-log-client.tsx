@@ -74,7 +74,7 @@ export const AuditLogClient = ({ entries }: AuditLogClientProps) => {
       />
 
       {/* Filter row */}
-      <Card className="rounded-2xl bg-muted/40">
+      <Card className="rounded-2xl">
         <CardContent className="flex flex-wrap items-end gap-4 p-4">
           <div className="space-y-1.5">
             <Label className="text-muted-foreground text-xs">From</Label>
@@ -116,7 +116,7 @@ export const AuditLogClient = ({ entries }: AuditLogClientProps) => {
       </Card>
 
       {/* Log table */}
-      <Card className="rounded-2xl bg-muted/40">
+      <Card className="rounded-2xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-base">
             {isEmpty ? "Events" : `${entries.length} events`}
@@ -144,12 +144,12 @@ export const AuditLogClient = ({ entries }: AuditLogClientProps) => {
             <Table>
               <TableHeader>
                 <TableRow className="border-border/40 border-b hover:bg-transparent">
-                  <TableHead className="pl-6">Timestamp</TableHead>
-                  <TableHead>Actor</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Resource</TableHead>
-                  <TableHead>IP</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="h-12 pl-6">Timestamp</TableHead>
+                  <TableHead className="h-12">Actor</TableHead>
+                  <TableHead className="h-12">Action</TableHead>
+                  <TableHead className="h-12">Resource</TableHead>
+                  <TableHead className="h-12">IP</TableHead>
+                  <TableHead className="h-12">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -158,25 +158,27 @@ export const AuditLogClient = ({ entries }: AuditLogClientProps) => {
                     className="border-border/40 border-b last:border-0"
                     key={entry.id}
                   >
-                    <TableCell className="pl-6 font-mono text-muted-foreground text-xs">
+                    <TableCell className="py-4 pl-6 font-mono text-muted-foreground text-xs">
                       {entry.timestamp}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-4">
                       <p className="font-medium text-sm">{entry.actorName}</p>
                       <p className="text-muted-foreground text-xs">
                         {entry.actorEmail}
                       </p>
                     </TableCell>
-                    <TableCell className="text-sm">{entry.action}</TableCell>
-                    <TableCell>
+                    <TableCell className="py-4 text-sm">
+                      {entry.action}
+                    </TableCell>
+                    <TableCell className="py-4">
                       <span className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-xs">
                         {entry.resourceType}
                       </span>
                     </TableCell>
-                    <TableCell className="font-mono text-muted-foreground text-xs">
+                    <TableCell className="py-4 font-mono text-muted-foreground text-xs">
                       {entry.ipAddress ?? "—"}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-4">
                       <Badge
                         className={
                           entry.status === "success"
