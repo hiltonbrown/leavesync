@@ -59,7 +59,7 @@ import {
   SunIcon,
   XIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { RecurrenceFields } from "../components/recurrence-fields";
 import {
   createDefaultRecurrenceRule,
@@ -84,9 +84,11 @@ type LeaveTypeId =
 interface LeaveRequest {
   allDay?: boolean;
   avatarUrl?: string;
+  balanceHours: number;
   days: number;
   endDate: string;
   endTime?: string;
+  hours: number;
   id: string;
   notes?: string;
   occurrenceCount?: number;
@@ -120,6 +122,8 @@ const MOCK_REQUESTS: LeaveRequest[] = [
     startDate: "2026-04-14",
     endDate: "2026-04-18",
     days: 5,
+    hours: 38,
+    balanceHours: 124.5,
     status: "pending",
     notes: "Spring break trip to Kyoto.",
   },
@@ -131,6 +135,8 @@ const MOCK_REQUESTS: LeaveRequest[] = [
     startDate: "2026-05-15",
     endDate: "2026-05-22",
     days: 8,
+    hours: 60.8,
+    balanceHours: 85.0,
     status: "pending",
     notes: "Visiting family in Madrid.",
   },
@@ -142,6 +148,8 @@ const MOCK_REQUESTS: LeaveRequest[] = [
     startDate: "2026-06-15",
     endDate: "2026-06-20",
     days: 6,
+    hours: 45.6,
+    balanceHours: 210.2,
     status: "pending",
   },
   {
@@ -152,6 +160,8 @@ const MOCK_REQUESTS: LeaveRequest[] = [
     startDate: "2026-04-20",
     endDate: "2026-04-20",
     days: 1,
+    hours: 7.6,
+    balanceHours: 12.0,
     status: "pending",
     notes: "Doctor appointment.",
   },
@@ -221,9 +231,24 @@ const rangesOverlap = (
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export const LeaveApprovalsClient = () => {
+const TRAILING_ZERO_REGEX = /\.0$/;
+
+export const LeaveApprovalsClient = ({
+  reportingUnit = "hours",
+  workingHoursPerDay = 7.6,
+}: {
+  reportingUnit?: string;
+  workingHoursPerDay?: number;
+}) => {
   const [requests, setRequests] = useState<LeaveRequest[]>(MOCK_REQUESTS);
   const [modalOpen, setModalOpen] = useState(false);
+
+  const formatVal = useMemo(
+    () => (val: number) => {
+      return `${val.toFixed(1).replace(TRAILING_ZERO_REGEX, "")}h`;
+    },
+    []
+  );
 
   // Form state
   const [selectedUser, setSelectedUser] = useState("");
@@ -300,24 +325,29 @@ export const LeaveApprovalsClient = () => {
     const seriesId = isRecurring ? `series_${Date.now()}` : undefined;
     const occurrenceCount = generated.occurrences.length;
     const newRequests: LeaveRequest[] = generated.occurrences.map(
-      (occurrence, index) => ({
-        id: `req_${Date.now()}_${index}`,
-        userName: selectedUser,
-        userEmail: `${selectedUser.toLowerCase().replace(" ", ".")}@example.com`,
-        type: selectedType,
-        startDate: occurrence.startDate,
-        endDate: occurrence.endDate,
-        days: countInclusiveDays(occurrence.startDate, occurrence.endDate),
-        status: "approved",
-        notes: notes || undefined,
-        allDay,
-        startTime: allDay ? undefined : startTime,
-        endTime: allDay ? undefined : endTime,
-        seriesId,
-        recurrenceRule: isRecurring ? recurrenceRule : undefined,
-        occurrenceIndex: isRecurring ? index + 1 : undefined,
-        occurrenceCount: isRecurring ? occurrenceCount : undefined,
-      })
+      (occurrence, index) => {
+        const d = countInclusiveDays(occurrence.startDate, occurrence.endDate);
+        return {
+          id: `req_${Date.now()}_${index}`,
+          userName: selectedUser,
+          userEmail: `${selectedUser.toLowerCase().replace(" ", ".")}@example.com`,
+          type: selectedType,
+          startDate: occurrence.startDate,
+          endDate: occurrence.endDate,
+          days: d,
+          hours: d * workingHoursPerDay,
+          balanceHours: 120, // Mock current balance
+          status: "approved",
+          notes: notes || undefined,
+          allDay,
+          startTime: allDay ? undefined : startTime,
+          endTime: allDay ? undefined : endTime,
+          seriesId,
+          recurrenceRule: isRecurring ? recurrenceRule : undefined,
+          occurrenceIndex: isRecurring ? index + 1 : undefined,
+          occurrenceCount: isRecurring ? occurrenceCount : undefined,
+        };
+      }
     );
 
     setRequests((prev) => [...newRequests, ...prev]);
@@ -410,6 +440,7 @@ export const LeaveApprovalsClient = () => {
                   <TableHead>Type</TableHead>
                   <TableHead>Dates</TableHead>
                   <TableHead className="text-right">Duration</TableHead>
+                  <TableHead className="text-right">Balance</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -418,7 +449,7 @@ export const LeaveApprovalsClient = () => {
                   <TableRow>
                     <TableCell
                       className="h-24 text-center text-muted-foreground"
-                      colSpan={5}
+                      colSpan={6}
                     >
                       No pending requests.
                     </TableCell>
@@ -487,8 +518,30 @@ export const LeaveApprovalsClient = () => {
                         </TableCell>
                         <TableCell className="text-right">
                           <span className="font-medium">
-                            {request.days} days
+                            {formatVal(request.hours)}
                           </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex flex-col items-end gap-1">
+                            <div className="flex items-center gap-1.5 leading-none">
+                              <span className="text-muted-foreground text-[10px] uppercase tracking-tighter opacity-60">
+                                Current
+                              </span>
+                              <span className="font-medium text-body-sm">
+                                {formatVal(request.balanceHours)}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 leading-none">
+                              <span className="text-muted-foreground text-[10px] uppercase tracking-tighter opacity-60">
+                                Projected
+                              </span>
+                              <span className="font-bold text-primary text-sm">
+                                {formatVal(
+                                  request.balanceHours - request.hours
+                                )}
+                              </span>
+                            </div>
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">

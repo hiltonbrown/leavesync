@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "@repo/design-system/styles/globals.css";
 
+
 /* ─── Sidebar: active state ─────────────────────────────────────────────── */
 /* Override the shadcn default (sidebar-accent / lavender) with primary green */
 [data-sidebar="menu-button"][data-active="true"] {

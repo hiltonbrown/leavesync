@@ -1,4 +1,4 @@
-import { auth } from "@repo/auth/server";
+import { auth, clerkClient } from "@repo/auth/server";
 import { redirect } from "next/navigation";
 import { Header } from "../components/header";
 import { LeaveApprovalsClient } from "./leave-approvals-client";
@@ -17,15 +17,26 @@ const LeaveApprovalsPage = async () => {
 
   const isAdminOrOwner = orgRole === "org:owner" || orgRole === "org:admin";
 
-  if (!isAdminOrOwner) {
-    redirect("/");
-  }
+  const clerk = await clerkClient();
+  const org = await clerk.organizations.getOrganization({
+    organizationId: orgId,
+  });
+
+  const meta = (org.publicMetadata ?? {}) as Record<string, unknown>;
+
+  const reportingUnit =
+    typeof meta.reportingUnit === "string" ? meta.reportingUnit : "hours";
+  const workingHoursPerDay =
+    typeof meta.workingHoursPerDay === "number" ? meta.workingHoursPerDay : 7.6;
 
   return (
     <>
       <Header page="Leave Approvals" />
       <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
-        <LeaveApprovalsClient />
+        <LeaveApprovalsClient
+          reportingUnit={reportingUnit}
+          workingHoursPerDay={workingHoursPerDay}
+        />
       </div>
     </>
   );

@@ -29,9 +29,9 @@ const AppLayout = async ({ children }: AppLayoutProperties) => {
 
   return (
     <NotificationsProvider userId={user.id}>
-      <SidebarProvider>
+      <SidebarProvider className="h-svh">
         <GlobalSidebar>
-          <SidebarInset className="h-svh overflow-y-auto">
+          <SidebarInset className="overflow-y-auto">
             {betaFeature && (
               <div className="m-4 rounded-full bg-blue-500 p-1.5 text-center text-sm text-white">
                 Beta feature now available
