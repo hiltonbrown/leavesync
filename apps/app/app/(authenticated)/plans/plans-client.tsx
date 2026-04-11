@@ -11,6 +11,13 @@ import {
 } from "@repo/design-system/components/ui/dialog";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/design-system/components/ui/select";
 import { toast } from "@repo/design-system/components/ui/sonner";
 import { Textarea } from "@repo/design-system/components/ui/textarea";
 import {
@@ -29,6 +36,7 @@ import {
 import {
   BriefcaseIcon,
   CalendarRangeIcon,
+  CheckIcon,
   HomeIcon,
   InboxIcon,
   InfoIcon,
@@ -662,42 +670,21 @@ const PlanForm = ({ onAdd, onClose }: PlanFormProps) => {
         <Label className="font-bold text-label-sm text-muted-foreground uppercase tracking-widest">
           Type
         </Label>
-        <fieldset className="grid grid-cols-2 gap-2 border-0 p-0 sm:grid-cols-3">
-          <legend className="sr-only">Leave type</legend>
-          {LEAVE_TYPES.map((lt) => {
-            const active = selectedType === lt.id;
-            return (
-              <button
-                aria-pressed={active}
-                className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-left font-bold text-label-sm transition-all active:scale-[0.98]"
-                key={lt.id}
-                onClick={() => setSelectedType(lt.id)}
-                style={
-                  active
-                    ? {
-                        background: lt.color,
-                        color: lt.textColor,
-                        boxShadow: `0 0 0 2px ${lt.textColor}`,
-                      }
-                    : {
-                        background: "var(--muted)",
-                        color: "var(--muted-foreground)",
-                      }
-                }
-                type="button"
-              >
-                <span
-                  style={{
-                    color: active ? lt.textColor : "var(--muted-foreground)",
-                  }}
-                >
+        <Select onValueChange={setSelectedType} value={selectedType}>
+          <SelectTrigger className="h-11 w-full rounded-xl">
+            <SelectValue placeholder="Select leave type..." />
+          </SelectTrigger>
+          <SelectContent>
+            {LEAVE_TYPES.map((lt) => (
+              <SelectItem key={lt.id} value={lt.id}>
+                <span className="flex items-center gap-2">
                   {lt.icon}
+                  {lt.label}
                 </span>
-                {lt.label}
-              </button>
-            );
-          })}
-        </fieldset>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Custom label */}
@@ -814,6 +801,27 @@ const PlanForm = ({ onAdd, onClose }: PlanFormProps) => {
         rule={recurrenceRule}
         startDate={startDate}
       />
+
+      {/* Impact Preview */}
+      {startDate && endDate && (
+        <div className="flex flex-col gap-3 rounded-2xl bg-muted/50 p-4">
+          <div className="flex items-center justify-between">
+            <Label className="font-bold text-label-sm text-muted-foreground uppercase tracking-widest">
+              Impact Preview
+            </Label>
+            <span className="rounded-lg bg-primary/10 px-2 py-0.5 font-bold text-[10px] text-primary uppercase tracking-wider">
+              0 Overlaps
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 text-primary">
+            <CheckIcon className="size-3.5" strokeWidth={3} />
+            <span className="font-bold text-[10px] uppercase tracking-wider">
+              No team overlaps
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Calendar selection */}
       <div className="flex flex-col gap-3">

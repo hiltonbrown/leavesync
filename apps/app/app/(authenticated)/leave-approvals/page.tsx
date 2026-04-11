@@ -15,7 +15,7 @@ const LeaveApprovalsPage = async () => {
     redirect("/");
   }
 
-  const isAdminOrOwner = orgRole === "org:owner" || orgRole === "org:admin";
+  const _isAdminOrOwner = orgRole === "org:owner" || orgRole === "org:admin";
 
   const clerk = await clerkClient();
   const org = await clerk.organizations.getOrganization({

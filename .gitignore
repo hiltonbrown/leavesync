@@ -58,6 +58,8 @@ Thumbs.db
 .agents/
 .vscode/
 .idea/
+.kilo/
+.kilocode/
 
 # Temp
 .tmp/
