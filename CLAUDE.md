@@ -1,133 +1,150 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working in the LeaveSync repository.
 
 ## Project overview
 
-**LeaveSync** is a multi-tenant leave and availability publishing platform. It connects upstream payroll/HR systems, syncs approved leave data, normalises it into a canonical model, and publishes through calendar feeds, HTML views, Slack, and Teams.
+**LeaveSync** is a multi-tenant availability publishing platform. It connects to Xero Payroll (AU, NZ, UK), syncs approved leave data, normalises it into a canonical availability model, and publishes through secure ICS calendar feeds.
 
-Built as a production-grade Next.js SaaS monorepo on the [next-forge](https://next-forge.com) template. Uses Turborepo to orchestrate deployable apps and shared packages.
+The architecture is: **Xero sync layer > canonical availability model > feed projection layer > ICS publishing layer**.
 
-**Reference docs:**
-- `PRODUCT.md`: full domain model, connector truth, capability flags, sync model, publishing model, billing entities.
-- `DESIGN.md`: colour tokens, typography, spacing, and design system reference.
-- `.impeccable.md`: brand personality, user context, and design principles.
-- Read PRODUCT.md before implementing any domain entity, provider adapter, or sync logic.
+LeaveSync does not manage payroll, accruals, or leave approvals. Xero is the source of truth for approved leave. LeaveSync adds manual availability entries (WFH, travelling, training, client site) and publishes everything as stable ICS feeds.
+
+**Reference docs (read before implementing domain logic):**
+
+- `PRODUCT.md`: domain model, database schema, Xero sync model, feed rendering, UID strategy, build order, stack decisions.
+- `DESIGN.md`: colour tokens, typography, spacing, elevation rules, component specifications.
+- `.impeccable.md`: brand personality, user context, design principles.
+
+---
+
+## Stack
+
+| Concern | Choice |
+|---|---|
+| Framework | Next.js on next-forge (Turborepo) |
+| Runtime | Bun |
+| Database | PostgreSQL (Neon serverless) |
+| ORM | Prisma 7 with `@prisma/adapter-neon` |
+| Auth | Clerk |
+| Job queue | Inngest |
+| Email | Resend + React Email |
+| Monitoring | Sentry |
+| Feed caching | Vercel KV (Redis-compatible) |
+| ICS generation | ical-generator |
+| Deployment | Vercel (all apps) |
+| Testing | Vitest |
+| Linting | Biome 2 + Ultracite |
+
+---
 
 ## Commands
 
-All commands run from the repo root unless otherwise noted.
+All commands run from the repo root.
 
 ```bash
 # Development
-npm run dev              # Start all apps in dev mode (Turbo)
+bun run dev                # Start all apps (Turbo)
 
 # Building
-npm run build            # Build all apps and packages
+bun run build              # Build all apps and packages
 
-# Linting / Formatting
-npm run check            # Run Ultracite/Biome lint checks
-npm run fix              # Auto-fix lint issues
+# Linting and formatting
+bun run check              # Biome/Ultracite lint checks
+bun run fix                # Auto-fix lint issues
 
 # Testing
-npm run test             # Run Vitest across the monorepo
+bun run test               # Vitest across the monorepo
+bunx vitest run <path>     # Single test file
 
 # Database
-npm run migrate          # Run Prisma migrations (dev)
-npm run migrate:deploy   # Deploy migrations to production
-npm run db:push          # Push schema changes without migration
+bun run migrate            # Prisma format + generate + migrate dev
+bun run migrate:deploy     # Generate + migrate deploy (production)
+bun run db:push            # Push schema without migration (dev only)
 
 # Utilities
-npm run analyze          # Bundle analysis
-npm run translate        # Run i18n tooling
-npm run boundaries       # Check architectural boundaries
-npm run clean            # Remove all git-ignored files (node_modules, build artifacts, .env files)
-
-# Dependency management
-npm run bump-deps        # Update all dependencies (runs npm-check-updates --deep)
-npm run bump-ui          # Regenerate all shadcn/ui components
+bun run analyze            # Bundle analysis
+bun run clean              # Remove git-ignored files
 ```
 
-To run a single test file: `npx vitest run <path/to/test>`
+---
 
-## Architecture
+## Monorepo layout
 
-### Apps (`apps/`)
+### Apps
 
 | App | Port | Purpose |
-|-----|------|---------|
-| `app` | 3000 | Main authenticated SaaS application |
-| `web` | 3001 | Public marketing website |
-| `api` | 3002 | REST API, OAuth callbacks, sync orchestration, feed endpoints, webhook handlers |
-| `docs` | 3004 | Mintlify documentation site |
+|---|---|---|
+| `app` | 3000 | Authenticated product UI |
+| `api` | 3002 | Xero OAuth, sync orchestration, feed endpoints, Inngest handlers |
+| `web` | 3001 | Public marketing site |
+| `docs` | 3004 | Mintlify documentation |
 | `email` | 3003 | React Email template development |
-| `storybook` | 6006 | Component library showcase |
-| `studio` | 3005 | Prisma Studio (database UI) |
 
-### Packages (`packages/`)
+### Domain packages
 
-**Core:**
-- `auth` — Clerk authentication (session management, protected routes, tenant and organisation access guards)
-- `database` — Prisma ORM + PostgreSQL (Neon serverless)
-- `design-system` — Shared React components, Tailwind CSS, shadcn/ui
+| Package | Purpose |
+|---|---|
+| `packages/xero` | Xero OAuth, tenant sync, region-specific API handling, rate limiting |
+| `packages/availability` | Canonical person model, availability records, privacy rules, feed eligibility |
+| `packages/feeds` | ICS generation via ical-generator, UID strategy, feed token validation, caching |
+| `packages/jobs` | Inngest job definitions: sync scheduling, feed rebuilds, reconciliation |
+| `packages/core` | Result type, branded IDs, shared enums, date/timezone utilities, error types |
 
-**LeaveSync domain *(planned — not yet created)*:**
-- `integrations` — Provider adapters, OAuth clients, mappers, sync services
-- `calendar` — ICS generation, feed signing, filtering, HTML calendar helpers
-- `types` — Shared domain types and branded IDs
-- `billing` — Plan logic, entitlement checks, usage metering
-- `queue` — Retry, backoff, rate-limit, job orchestration helpers
+### Infrastructure packages
 
-**Next Forge integrations:**
-- `payments` — Stripe billing
-- `email` — React Email + Resend
-- `notifications` — Knock in-app notifications
-- `analytics` — Google Analytics + PostHog
-- `observability` — Sentry error tracking + Logtail logging
-- `cms` — BaseHub headless CMS
-- `ai` — OpenAI + Vercel AI SDK
-- `collaboration` — Liveblocks real-time features
-- `webhooks` — Svix webhook handling
-- `storage` — Vercel Blob
-- `rate-limit` — Upstash Redis rate limiting
-- `security` — Arcjet (bot/DDoS protection) + NoseCone (security headers)
-- `feature-flags` — Vercel Toolbar flags
+| Package | Purpose |
+|---|---|
+| `packages/database` | Prisma schema, migrations, generated client, query helpers |
+| `packages/auth` | Clerk session management, RBAC, workspace and organisation guards |
+| `packages/design-system` | Shared React components, Tailwind CSS, shadcn/ui |
+| `packages/email` | React Email templates + Resend transport |
+| `packages/observability` | Sentry error tracking, structured logging |
+| `packages/next-config` | Shared Next.js configuration |
+| `packages/seo` | SEO metadata helpers |
+| `packages/typescript-config` | Shared tsconfig base |
 
-**Config:**
-- `next-config` — Shared Next.js configuration (composes Sentry, logging, toolbar wrappers)
-- `typescript-config` — Shared `tsconfig.json` base
-- `seo` — SEO metadata helpers
-- `internationalization` — i18n support
+### Not in use
 
-### Data flow
+These stock next-forge packages are not required for the current build: `ai`, `cms`, `collaboration`, `feature-flags`, `internationalization`, `payments`, `rate-limit`, `security`, `storage`, `webhooks`. Do not add dependencies on them.
 
-- **Authentication**: Clerk handles identity; middleware in `apps/app` protects routes
-- **Database**: All DB access goes through `packages/database`; never import the ORM client directly in apps
-- **API**: `apps/api` handles webhooks, OAuth callbacks, sync orchestration, and feed serving; `apps/app` handles user-facing routes
-- **Shared UI**: Components live in `packages/design-system`; apps consume them, never redefine base components
-- **Provider logic**: All provider-specific code lives in `packages/integrations/providers/{provider}/`; canonical domain logic never depends on provider internals
+---
 
-## Tenancy model
+## Architecture rules
 
-Tenant > Organisation > ProviderConnection / Feed / Employee.
-Users belong to tenants via memberships.
-Memberships may be scoped to one or more organisations.
-Billing enforced at tenant level.
-**All data queries must be scoped by organisation.**
+### Tenancy
+
+- Model: Workspace > Organisation > People / XeroConnection / Feed / AvailabilityRecord.
+- Users belong to workspaces via memberships.
+- Billing enforced at workspace level.
+- **All data queries must be scoped by organisation.**
+
+### Data access
+
+- All database access goes through `packages/database`. Never import Prisma client directly in apps.
+- All Xero-specific logic lives in `packages/xero`. Canonical domain logic in `packages/availability` never depends on Xero payload shapes.
+- All ICS generation logic lives in `packages/feeds`.
+- Shared UI components live in `packages/design-system`. Do not redefine base components in apps.
+
+### Core entity
+
+The primary domain object is `AvailabilityRecord`, not a leave application. This table holds both Xero-synced leave and manual availability entries. See PRODUCT.md for the full schema.
+
+---
 
 ## Coding rules
 
-- **TypeScript strict mode.** No `any`. No `as` casts unless justified with a comment.
-- **Named exports only.** No default exports.
-- **Zod validation** on all external input (API params, webhook payloads, OAuth responses, provider API responses).
-- **Branded types** for all domain IDs and cursors. Defined in `packages/types`.
-- **Result pattern** for service-layer errors. Do not throw for expected failures. Use a `Result<T, E>` type (see below). Thrown exceptions only for truly unexpected or unrecoverable errors.
-- **No barrel files** (`index.ts` re-exports) except at package root.
-- **Import aliases**: `@repo/database`, `@repo/types`, `@repo/integrations`, etc.
-- **Comments** only where the intent is non-obvious. Never restate what the code does.
-- **No `console.log`** in production code. Use the observability package logger.
-- **App Router only**: All Next.js apps use the App Router; no `pages/` directory.
-- **Server Components by default**: Use `"use client"` only when browser APIs or interactivity is needed.
+### TypeScript
+
+- Strict mode. No `any`. No `as` casts unless justified with a comment.
+- Named exports only. No default exports.
+- No barrel files (`index.ts` re-exports) except at package root.
+- Import aliases: `@repo/database`, `@repo/core`, `@repo/xero`, `@repo/availability`, `@repo/feeds`, etc.
+
+### Validation
+
+- Zod on all external input: API params, Xero responses, webhook payloads, form submissions.
+- Branded types for domain IDs (WorkspaceId, OrganisationId, PersonId, etc.), defined in `packages/core`.
 
 ### Error handling
 
@@ -135,60 +152,146 @@ Billing enforced at tenant level.
 type Result<T, E = AppError> = { ok: true; value: T } | { ok: false; error: E };
 ```
 
-Service functions return `Result`. Route handlers map errors to HTTP responses. Provider adapters return `Result` with provider-specific error context.
+Service functions return `Result`. Route handlers map errors to HTTP responses. Do not throw for expected failures. Thrown exceptions are for truly unexpected or unrecoverable errors only.
+
+### Next.js
+
+- App Router only. No `pages/` directory.
+- Server Components by default. Add `"use client"` only when browser APIs or interactivity require it.
+- Route protection and security headers composed in `apps/app/proxy.ts`, not `middleware.ts`.
+
+### Style
+
+- No `console.log` in production code. Use the observability package logger.
+- Comments only where intent is non-obvious. Do not restate what the code does.
+- Australian English in all UI copy, documentation, and comments.
+- No em dashes anywhere (UI copy, comments, docs, generated text).
+
+---
 
 ## Database conventions
 
-The repo currently uses Prisma (Next Forge default). The ORM decision between Prisma and Drizzle is pending; see `PRODUCT.md` for the preferred stack note.
-
-Regardless of ORM:
-- Table names: snake_case, plural (e.g. `tenants`, `provider_connections`).
-- Column names: snake_case.
-- All tables include `id` (UUID, primary key), `created_at`, `updated_at`.
-- Soft deletes where specified: `deleted_at` column, nullable.
+- Table names: `snake_case`, plural (e.g. `availability_records`, `xero_tenants`).
+- Column names: `snake_case`.
+- Every table includes `id` (UUID, PK), `created_at`, `updated_at`.
+- Soft deletes where specified: `archived_at` column, nullable.
 - Foreign keys explicit.
 - Enums defined at database level.
 - JSON columns typed with Zod schemas and documented.
 - One migration per schema change. Never hand-edit generated migrations.
+- Full schema specification in PRODUCT.md.
+
+---
 
 ## Testing rules
 
-- Co-located test files: `foo.ts` has `foo.test.ts` in the same directory.
-- Vitest as the test runner.
-- Unit tests from the first slice. No deferring tests.
-- Fixture-based tests for all provider mappers and response parsers.
-- Test ICS serialisation, feed UID generation, and Zod validators explicitly.
-- Use factories or builders for test data, not raw object literals repeated across tests.
+- Co-located: `foo.ts` has `foo.test.ts` in the same directory.
+- Vitest as runner.
+- Tests from the first slice. No deferring tests.
+- Factories or builders for test data, not repeated raw object literals.
+- Fixture-based tests for Xero response mappers and region-specific parsers.
+- Explicitly test: ICS serialisation, UID generation, SEQUENCE incrementing, privacy transforms, Zod validators, feed token validation.
 
-## Provider adapter rules
+---
 
-- Each adapter lives in `packages/integrations/providers/{provider}/`.
-- Adapter implements `AvailabilitySourceAdapter` (see PRODUCT.md for contract).
-- Optional methods omitted when the provider lacks the capability.
-- Raw provider responses stored for audit. Never discard source payloads.
-- Provider-specific logic never leaks into domain or publishing layers.
-- Capability flags persisted per connection, never hardcoded at call sites.
+## Xero adapter rules
+
+- All Xero code lives in `packages/xero`.
+- Region-specific logic (AU, NZ, UK) isolated in subdirectories (`packages/xero/src/au/`, etc.).
+- Raw Xero responses stored in `source_payload_json` on `availability_records` for audit.
+- Xero-specific logic never leaks into `packages/availability` or `packages/feeds`.
+- Rate limiting (60/min per org, 5,000/day per org, five concurrent per org) handled inside `packages/xero`.
+- Token refresh handled proactively before sync runs.
+
+---
+
+## Feed rules
+
+- Feed endpoint: `GET /ical/:token.ics` in `apps/api`.
+- UID generation uses the deterministic formula in PRODUCT.md. Never use Xero's LeaveApplicationID as the sole UID.
+- SEQUENCE incremented when the published representation changes materially.
+- Privacy transforms applied during publication projection, not at render time.
+- Feed body cached in Vercel KV by `feed_id + etag`.
+- Cache invalidated only when a relevant `availability_record` changes.
+
+---
+
+## Inngest job rules
+
+- Job definitions live in `packages/jobs`.
+- Inngest handlers registered in `apps/api`.
+- Jobs: `sync-xero-people`, `sync-xero-leave-records`, `reconcile-feed-publications`, `rebuild-feed-cache`.
+- Inngest handles retries with exponential backoff.
+- Record-level failures do not fail the entire sync run unless a configurable threshold is breached.
+- All upserts must be idempotent.
+
+---
 
 ## Security baseline
 
-- Tenant isolation on every query.
-- Clerk auth on all authenticated routes.
+- Workspace isolation on every query.
 - Organisation scoping on all data access.
-- Provider tokens encrypted at rest.
+- Clerk auth on all authenticated routes.
+- Xero tokens encrypted at rest.
 - Feed tokens signed and revocable.
 - Audit logs for admin actions.
 - No tokens or raw payloads exposed to client.
+- No secrets in client bundles.
 
-## Key conventions (Next Forge inherited)
+---
 
-- **Linting**: Biome 2 + Ultracite enforce style; `biome.jsonc` at root configures exceptions.
-- **Environment variables**: Defined in `.env.example` at root; server vars are unprefixed, client vars are `NEXT_PUBLIC_`. Optional vars with format constraints (email, `startsWith`, url) must be absent (commented out) rather than `""` — empty strings fail Zod format validation even for `.optional()` fields.
-- **Turborepo caching**: Build outputs (`.next/`, `dist/`, `storybook-static/`) are cached; don't bypass Turbo for builds.
-- **Auth middleware**: `apps/app/proxy.ts` (not `middleware.ts`) composes Clerk auth + NoseCone security headers.
-- **Prisma 7 + Turbopack**: Prisma 7 uses a WASM query compiler. `serverExternalPackages: ["@prisma/client", "@prisma/adapter-neon"]` in `packages/next-config/index.ts` is required — without it Turbopack bundles `@prisma/client` and the WASM runtime fails, throwing `PrismaClientInitializationError` on every request.
+## Environment variables
+
+Defined in `.env.example` per app and package. Server variables are unprefixed; client variables use `NEXT_PUBLIC_`.
+
+**Critical:** optional variables with format constraints (email, URL, `startsWith`) must be absent (commented out) rather than set to `""`. Empty strings fail Zod format validation even for `.optional()` fields.
+
+### Required variables
+
+| Variable | Used by | Purpose |
+|---|---|---|
+| `DATABASE_URL` | `packages/database` | Neon Postgres connection string |
+| `CLERK_SECRET_KEY` | `packages/auth` | Clerk server-side auth |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | `packages/auth` | Clerk client-side auth |
+| `RESEND_TOKEN` | `packages/email` | Resend API key |
+| `RESEND_FROM` | `packages/email` | Sender address |
+| `SENTRY_DSN` | `packages/observability` | Sentry error tracking |
+| `XERO_CLIENT_ID` | `packages/xero` | Xero OAuth app ID |
+| `XERO_CLIENT_SECRET` | `packages/xero` | Xero OAuth app secret |
+| `INNGEST_EVENT_KEY` | `packages/jobs` | Inngest event key |
+| `INNGEST_SIGNING_KEY` | `packages/jobs` | Inngest signing key |
+| `KV_REST_API_URL` | `packages/feeds` | Vercel KV endpoint |
+| `KV_REST_API_TOKEN` | `packages/feeds` | Vercel KV auth token |
+
+---
+
+## Platform notes
+
+- Prisma 7 uses a WASM query compiler. `serverExternalPackages: ["@prisma/client", "@prisma/adapter-neon"]` in `packages/next-config/index.ts` is required. Without it, Turbopack bundles Prisma incorrectly and throws `PrismaClientInitializationError` at runtime.
+- Turborepo caches build outputs (`.next/`, `dist/`). Do not bypass Turbo for builds.
+- Biome 2 + Ultracite enforce repo style. Configuration in `biome.jsonc` at root.
+
+---
 
 ## Git conventions
 
 - Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`.
 - One logical change per commit.
 - Branch per feature slice.
+
+---
+
+## Build order
+
+Implement in this order. Each step should produce a deployable, testable vertical slice.
+
+1. Workspace, organisation, people, team, location schema and seed data
+2. Xero OAuth and tenant persistence
+3. Xero employee sync (AU, NZ, UK)
+4. Xero leave normalisation into `availability_records`
+5. Manual availability CRUD
+6. Feed model and token model
+7. ICS renderer with stable UID and privacy modes
+8. Feed preview and feed detail UI
+9. Team calendar and person profile UI
+10. Reconciliation jobs, sync health UI, and audit reporting

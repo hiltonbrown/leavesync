@@ -234,7 +234,7 @@ const rangesOverlap = (
 const TRAILING_ZERO_REGEX = /\.0$/;
 
 export const LeaveApprovalsClient = ({
-  reportingUnit = "hours",
+  reportingUnit: _reportingUnit = "hours",
   workingHoursPerDay = 7.6,
 }: {
   reportingUnit?: string;
@@ -420,7 +420,7 @@ export const LeaveApprovalsClient = ({
             className="mr-2 size-4 transition-transform group-hover:rotate-90"
             strokeWidth={2.5}
           />
-          Add Leave
+          New Entry
         </Button>
       </div>
 
@@ -524,7 +524,7 @@ export const LeaveApprovalsClient = ({
                         <TableCell className="text-right">
                           <div className="flex flex-col items-end gap-1">
                             <div className="flex items-center gap-1.5 leading-none">
-                              <span className="text-muted-foreground text-[10px] uppercase tracking-tighter opacity-60">
+                              <span className="text-[10px] text-muted-foreground uppercase tracking-tighter opacity-60">
                                 Current
                               </span>
                               <span className="font-medium text-body-sm">
@@ -532,7 +532,7 @@ export const LeaveApprovalsClient = ({
                               </span>
                             </div>
                             <div className="flex items-center gap-1.5 leading-none">
-                              <span className="text-muted-foreground text-[10px] uppercase tracking-tighter opacity-60">
+                              <span className="text-[10px] text-muted-foreground uppercase tracking-tighter opacity-60">
                                 Projected
                               </span>
                               <span className="font-bold text-primary text-sm">
@@ -582,7 +582,7 @@ export const LeaveApprovalsClient = ({
       <Dialog onOpenChange={setModalOpen} open={modalOpen}>
         <DialogContent className="max-h-[92dvh] w-full overflow-y-auto sm:max-w-[640px]">
           <DialogHeader className="mb-6">
-            <DialogTitle className="text-xl">Add Leave</DialogTitle>
+            <DialogTitle className="text-xl">New Entry</DialogTitle>
             <DialogDescription>
               Record a leave entry for a team member.
             </DialogDescription>
@@ -613,44 +613,21 @@ export const LeaveApprovalsClient = ({
               <Label className="font-bold text-label-sm text-muted-foreground uppercase tracking-widest">
                 Type
               </Label>
-              <fieldset className="grid grid-cols-2 gap-2 border-0 p-0 sm:grid-cols-3">
-                <legend className="sr-only">Leave type</legend>
-                {LEAVE_TYPES.map((lt) => {
-                  const active = selectedType === lt.id;
-                  return (
-                    <button
-                      aria-pressed={active}
-                      className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-left font-bold text-label-sm transition-all active:scale-[0.98]"
-                      key={lt.id}
-                      onClick={() => setSelectedType(lt.id)}
-                      style={
-                        active
-                          ? {
-                              background: lt.color,
-                              color: lt.textColor,
-                              boxShadow: `0 0 0 2px ${lt.textColor}`,
-                            }
-                          : {
-                              background: "var(--muted)",
-                              color: "var(--muted-foreground)",
-                            }
-                      }
-                      type="button"
-                    >
-                      <span
-                        style={{
-                          color: active
-                            ? lt.textColor
-                            : "var(--muted-foreground)",
-                        }}
-                      >
+              <Select onValueChange={setSelectedType} value={selectedType}>
+                <SelectTrigger className="h-11 w-full rounded-xl">
+                  <SelectValue placeholder="Select leave type..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {LEAVE_TYPES.map((lt) => (
+                    <SelectItem key={lt.id} value={lt.id}>
+                      <span className="flex items-center gap-2">
                         {lt.icon}
+                        {lt.label}
                       </span>
-                      {lt.label.split(" ")[0]}
-                    </button>
-                  );
-                })}
-              </fieldset>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Custom label */}
@@ -855,7 +832,7 @@ export const LeaveApprovalsClient = ({
                       type="button"
                     >
                       <PlusIcon className="size-4" strokeWidth={3} />
-                      Add Leave
+                      New Entry
                     </Button>
                   </span>
                 </TooltipTrigger>

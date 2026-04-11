@@ -2,16 +2,53 @@
 
 ## Product truth
 
-LeaveSync is a visibility-first leave and availability publishing platform. It connects upstream payroll or HR systems, syncs approved leave and availability data, normalises it into a canonical model, and publishes through calendar feeds, HTML views, Slack, and Teams.
+LeaveSync is a visibility-first availability publishing platform. It connects to Xero Payroll (AU, NZ, UK), syncs approved leave data, normalises it into a canonical availability model, and publishes through secure ICS calendar feeds.
+
+The clean architecture is:
+
+**Xero sync layer > canonical availability model > feed projection layer > ICS publishing layer**
+
+LeaveSync stays out of payroll decision-making. Xero remains the source of truth for approved leave. LeaveSync standardises both Xero leave and manual availability entries into one publishable calendar domain.
 
 ### Product boundaries
 
 LeaveSync is not:
-- a full HRIS
-- a complex accrual engine
-- a fake parity layer that pretends all connectors support the same features
 
-LeaveSync *is* a native leave request and approval engine, allowing managers to manually add and approve leave events alongside synced provider data.
+- a full HRIS
+- a full payroll engine
+- a leave approval workflow system (Xero handles approvals)
+- a multi-connector abstraction layer (Xero only at this stage)
+
+LeaveSync is:
+
+- a canonical availability publisher
+- a Xero leave visibility layer
+- a manual availability entry surface for non-leave events (WFH, travelling, training, client site)
+- a secure ICS feed generator for Outlook, Google Calendar, and Apple Calendar
+
+### Product boundaries (future)
+
+Slack notifications, Teams integration, HTML calendar views, and additional provider connectors (MYOB, QuickBooks) are out of scope for the initial build. The architecture accommodates these without requiring structural changes.
+
+---
+
+## Stack decisions
+
+| Concern | Choice | Notes |
+|---|---|---|
+| Framework | Next.js on next-forge | Turborepo monorepo |
+| Runtime | Bun | Package manager and script runner |
+| Database | PostgreSQL (Neon serverless) | |
+| ORM | Prisma 7 | With `@prisma/adapter-neon` |
+| Auth | Clerk | Session management, RBAC, workspace guards |
+| Job queue | Inngest | Durable execution, scheduling, retries; no infrastructure to manage on Vercel |
+| Email | Resend + React Email | Transactional email only |
+| Monitoring | Sentry | Error tracking and performance |
+| Feed caching | Vercel KV | Redis-compatible; feed body and ETag caching |
+| ICS generation | ical-generator | Mature Node.js library; supports VEVENT, UID, SEQUENCE, all-day events |
+| Deployment | Vercel | All apps |
+| Testing | Vitest | Co-located test files |
+| Linting | Biome 2 + Ultracite | |
 
 ---
 
@@ -19,457 +56,921 @@ LeaveSync *is* a native leave request and approval engine, allowing managers to 
 
 | Concept | Role |
 |---|---|
-| Tenant | Billing boundary, top-level workspace |
-| Organisation | Business entity within a tenant; owns provider connections, feeds, and employees |
-| Membership | User-to-tenant relationship, optionally scoped to one or more organisations |
-
-A tenant may have multiple organisations. Billing, plan limits, and usage are enforced at tenant level.
-
----
-
-## Core domain model
-
-### Entities
-
-| Entity | Purpose |
-|---|---|
-| Tenant | Billing and workspace boundary |
-| Organisation | Business entity, owns connections and data |
-| Membership | User access to tenant, optionally scoped to organisations |
-| ProviderConnection | OAuth connection to a source system, scoped to an organisation |
-| ProviderEntity | Upstream entity discovered during connection (e.g. Xero organisation) |
-| Employee | Canonical employee record |
-| EmployeeExternalRef | Links an employee to a provider-specific external ID |
-| Team | Grouping of employees |
-| Location | Work location for filtering and feeds |
-| AbsenceType | Canonical leave/absence category |
-| AbsenceEvent | Canonical absence record (see required fields below) |
-| BalanceSnapshot | Point-in-time leave balance per employee per type |
-| CalendarFeed | Published ICS or HTML feed, scoped to an organisation |
-| CalendarFeedScope | Filter rules for a feed (team, location, absence type, custom) |
-| NotificationChannel | Slack channel, Teams channel, or webhook target |
-| NotificationRule | Matching rule that routes events to notification channels |
-| PublicHoliday | Jurisdiction-level public holiday record |
-| OrganisationHolidaySetting | Organisation-level public holiday configuration |
-| SyncRun | Record of a sync execution |
-| SyncCursor | Checkpoint for incremental sync per connection per entity type |
-| FailedRecord | Dead-letter record for individual sync failures |
-| WebhookEvent | Inbound webhook receipt record |
-| AuditLog | Admin and system action log |
-| Plan | Billing plan definition |
-| PlanLimit | Per-plan limit definitions |
-| TenantSubscription | Active subscription linking tenant to plan |
-| UsageCounter | Metered usage per tenant |
-
-### AbsenceEvent required fields
-
-Every absence event must store:
-
-- `id` (internal UUID)
-- `organisation_id`
-- `employee_id`
-- `absence_type_id`
-- `source_provider` (enum)
-- `source_connection_id`
-- `source_external_id`
-- `status` (enum: confirmed, cancelled, tentative, unknown)
-- `start_date`
-- `end_date`
-- `all_day` (boolean)
-- `raw_source_payload` (JSONB)
-- `canonical_event_uid` (deterministic, used in ICS; see UID strategy below)
-- `event_sequence` (integer, incremented on change)
-- `source_updated_at`
-- `stale_source` (boolean, default false)
-- `is_manual` (boolean, default false)
-- `created_at`
-- `updated_at`
-
----
-
-## Canonical event UID strategy
-
-ICS feeds require a stable, deterministic UID per event. Provider source IDs are not always stable across lifecycle transitions (Xero's LeaveApplicationID is an example).
-
-**Canonical UID composition:**
-
-```
-{organisation_id}:{employee_id}:{canonical_absence_category}:{start_date}:{end_date}
-```
-
-Hash or encode this composite key to produce a valid ICS UID.
-
-Store the provider's own ID (e.g. LeaveApplicationID) as `source_external_id` for reference only. Never derive the published UID from it alone.
-
----
-
-## Connector truth
-
-### Connector readiness
-
-| Priority | Connector | Status |
-|---|---|---|
-| 1 | Xero Payroll AU | Primary. Fully scoped, ready to implement. |
-| 2 | MYOB Payroll | Primary. Scoped with known constraints (see below). |
-| 3 | Zoho People | Secondary. Scoped, implementation deferred until primary connectors are stable. |
-| 4 | QuickBooks | Secondary. Capability-gated, implementation deferred. |
-
-### Excluded sources
-
-- **Zoho Books**: not a leave source. Zoho People is the correct Zoho product for leave data.
-- **Wave**: no leave or absence API. Not a viable connector.
-
----
-
-### Xero Payroll AU
-
-| Capability | Supported |
-|---|---|
-| Employees | Yes |
-| Absence types (via pay items) | Yes |
-| Approved leave events | Yes |
-| Leave balances | Yes |
-| Teams | No (not native) |
-| Locations | No (not native) |
-| Webhooks (for LeaveSync scope) | No, polling only |
-| Incremental sync | Polling with updated-since or If-Modified-Since |
-
-**Identity:** LeaveApplicationID is not stable across all leave lifecycle transitions. Use composite canonical UID strategy.
-
-**Rate limits:**
-- 60 API calls per minute per organisation
-- 5,000 API calls per day per organisation
-- Maximum 5 concurrent requests per connected organisation
-- App-wide: 10,000 calls per minute across all tenancies
-
-**Commercial:** Xero developer pricing charges by connected-organisation count and API usage. Polling frequency and organisation count have direct cost implications. Scheduler design must optimise for correctness, rate limits, and cost, not just freshness.
-
----
-
-### MYOB Payroll
-
-| Capability | Supported |
-|---|---|
-| Employees | Yes |
-| Entitlement categories | Yes |
-| Balance-style entitlement snapshots | Yes |
-| Approved leave events (verified parity with Xero) | No, do not claim |
-| Teams | No |
-| Locations | No |
-| Webhooks | No, polling only |
-| Incremental sync | Polling |
-
-**Identity:** Map entitlement categories to canonical absence types for balance display only.
-
-**Auth:** Access tokens expire after approximately 20 minutes. Proactive token refresh is required before every sync.
-
-**Rate limits:** Assume large result sets for EmployeePayrollDetails. Design for safe paging and batching.
-
----
-
-### Zoho People
-
-| Capability | Supported |
-|---|---|
-| Employees | Yes |
-| Leave types | Yes |
-| Leave records | Yes |
-| Leave balances | Yes |
-| Teams | Verify at implementation |
-| Locations | Verify at implementation |
-| Webhooks | Customer-configured only (workflow rules), not provisioned by LeaveSync |
-| Incremental sync | Polling default; webhook acceleration optional |
-
-**Rate limits:**
-- Maximum 200 records per request
-- 30 requests per minute threshold
-- 5-minute lock period when threshold is exceeded
-
-**Webhook policy:** Zoho People may support admin-configured outbound webhooks through customer workflow rules. These are not provisioned programmatically by LeaveSync. Webhook acceleration is optional. Polling remains the default sync path.
-
----
-
-### QuickBooks
-
-| Capability | Supported |
-|---|---|
-| Employees | Yes |
-| Time activity | Depends on product and scopes |
-| Approved leave / PTO | Not verified, default false |
-| Balances | Not verified, default false |
-| Teams | No |
-| Locations | No |
-| Webhooks | Not verified, polling first |
-| Incremental sync | Polling |
-
-**Policy:** Capability-gated. Do not claim approved leave or PTO balance sync unless explicitly verified. Do not assume high-frequency sync is justified.
-
----
-
-## Provider adapter contract
-
-```typescript
-export interface AvailabilitySourceAdapter {
-  connect(input: OAuthCallbackInput): Promise<Result<ConnectionResult>>;
-  listEntities(connectionId: ProviderConnectionId): Promise<Result<ProviderEntityRecord[]>>;
-  listEmployees(
-    connectionId: ProviderConnectionId,
-    cursor?: SyncCursorValue
-  ): Promise<Result<Page<EmployeeRecord>>>;
-  listAbsenceTypes?(
-    connectionId: ProviderConnectionId
-  ): Promise<Result<AbsenceTypeRecord[]>>;
-  listApprovedAbsences?(
-    connectionId: ProviderConnectionId,
-    range: DateRange,
-    cursor?: SyncCursorValue
-  ): Promise<Result<Page<AbsenceRecord>>>;
-  listBalances?(
-    connectionId: ProviderConnectionId
-  ): Promise<Result<BalanceRecord[]>>;
-  verifyWebhook?(input: WebhookVerificationInput): Promise<Result<WebhookVerificationResult>>;
-  handleWebhook?(
-    connectionId: ProviderConnectionId,
-    payload: unknown
-  ): Promise<Result<SourceDelta[]>>;
-  detectCapabilities?(
-    connectionId: ProviderConnectionId
-  ): Promise<Result<ProviderCapabilities>>;
-}
-```
-
-Optional methods are omitted when the provider lacks the capability. Each adapter lives in `packages/integrations/providers/{provider}/`.
-
----
-
-## Provider capabilities
-
-Persisted per connection. Never hardcoded at call sites.
-
-```typescript
-export interface ProviderCapabilities {
-  supportsEmployees: boolean;
-  supportsAbsenceTypes: boolean;
-  supportsApprovedAbsences: boolean;
-  supportsBalances: boolean;
-  supportsTeams: boolean;
-  supportsLocations: boolean;
-  supportsWebhooks: boolean;
-  supportsIncrementalSync: boolean;
-}
-```
-
-If a provider only partially supports a feature: persist that honestly, surface it in UI, document it in docs, disable unsupported actions server-side.
-
----
-
-## Sync model
-
-### Initial sync
-
-1. Fetch provider entities
-2. Fetch employees
-3. Fetch absence types (where supported)
-4. Fetch relevant absence history (where genuinely supported)
-5. Fetch balances (where supported)
-
-### Incremental sync
-
-- Polling by default.
-- Webhooks only where explicitly verified.
-- Store cursor or updated-since checkpoints per connection per entity type.
-- Nightly reconciliation run.
-- Manual re-sync available.
-
-### SyncRun record
-
-| Field | Type |
-|---|---|
-| id | UUID |
-| run_type | enum (initial, incremental, reconciliation, manual) |
-| provider_connection_id | FK |
-| status | enum (queued, running, partial, succeeded, failed, dead_lettered) |
-| started_at | timestamp |
-| finished_at | timestamp (nullable) |
-| records_in | integer |
-| records_changed | integer |
-| records_failed | integer |
-| error_summary | text (nullable) |
-| retry_count | integer |
-
-### Retry and failure rules
-
-- Transient failures: exponential backoff with jitter.
-- Retries capped per provider and job type.
-- Record-level failures do not fail the entire run unless a configurable threshold is breached.
-- Failed records captured in FailedRecord table with full context.
-- Partial syncs are first-class outcomes, visible in Sync Health.
-- All upserts must be retry-safe (idempotent).
-
----
-
-## Webhook handling
-
-Where a provider supports webhooks:
-
-- Verify signatures or HMAC.
-- Support intent-to-receive flows if the provider requires it.
-- Enforce replay protection.
-- Store webhook receipt records.
-- Process idempotently.
-- Never assume ordering.
-- Avoid heavy inline processing; queue for async handling where practical.
-
-**Current provider status:** All four connectors use polling. Zoho People webhook acceleration is optional, customer-configured, and not a core dependency. This section defines the contract for when webhook support is added for any provider.
-
----
-
-## Rate limiting and throttling
-
-Provider-aware throttling is required.
-
-- Queue or scheduler per provider.
-- Tenant-safe concurrency controls.
-- Chunked initial syncs.
-- Incremental syncs prioritised over full re-syncs.
-- Rate-limit responses must update connection health and retry timing.
-- Large-tenant syncs must batch employees and absences safely.
-- Never allow uncontrolled parallel sync storms.
-
----
-
-## Disconnection and data retention
-
-**Default disconnect:**
-- Mark connection as disconnected.
-- Stop future syncs.
-- Retain previously synced canonical records as historical.
-- Set `stale_source = true` on source-backed records.
-- Preserve audit history.
-
-**Destructive disconnect (optional, explicit flow):**
-- Soft delete source-backed records.
-- Document retention and purge semantics.
-
----
-
-## Publishing model
-
-### Output channels
-
-| Channel | Model |
-|---|---|
-| ICS feeds | Signed, revocable token-based feeds for Outlook, Google Calendar, Apple Calendar |
-| HTML calendar | Embeddable web view |
-| Slack | Bot-token app, alerts and digests |
-| Teams | Embeddable web tabs, alert summaries |
-
-### Feed scopes
-
-All staff, team, manager, location, absence type, custom.
-
-### Feed privacy modes
-
-Named, masked, private.
-
-### ICS requirements
-
-- Deterministic UID generation (see canonical UID strategy).
-- SEQUENCE incrementing on change.
-- Correct DTSTAMP handling.
-- Correct all-day event encoding.
-- Cancellation-safe updates (STATUS:CANCELLED + incremented SEQUENCE).
-- ETag and Last-Modified response headers.
-- Signed and revocable feed tokens.
-- Stable updates to avoid duplicate events in subscribed calendars.
-
-### Slack rules
-
-- Bot-token app integration as default model.
-- Do not model Slack as a raw ICS consumer.
-- Support alert and digest delivery.
-- Support notification channels and rule targeting.
-
-### Teams rules
-
-- Embeddable web calendar tabs.
-- Alert summaries.
-- Keep native Teams calendar integration simple; focus on the embedded web view model.
-
----
-
-## Billing and entitlements
-
-Billing schema must exist from the first foundation pass. Live checkout may be deferred, but plan enforcement must not.
-
-### Entities
-
-- **Plan**: tier definition (e.g. free, starter, pro, enterprise)
-- **PlanLimit**: per-plan limits (active employees, connections, feeds, etc.)
-- **TenantSubscription**: active subscription linking tenant to plan
-- **UsageCounter**: metered usage per tenant per counter type
-
-### Enforced limits
-
-- Active employees
-- Provider connections
-- Feeds
-- Organisations (if relevant)
-- Slack/Teams features
-- Analytics access
-
-### Connector cost-awareness
-
-Usage counters should support connector-cost-aware pricing decisions. Xero sync frequency and connected-organisation count have direct external commercial implications.
-
----
-
-## Security
-
-- Tenant isolation on every query.
-- Clerk auth on all authenticated routes.
-- Organisation scoping on all data access.
-- Provider tokens encrypted at rest.
-- Feed tokens signed and revocable.
-- Audit logs for admin actions.
-- Privacy controls for sensitive leave categories.
-- Manager-only balance access where configured.
-- No tokens or raw payloads exposed to client.
+| Workspace | Top-level tenant boundary; billing anchor |
+| Organisation | Legal or payroll entity within a workspace; owns Xero connections, feeds, people, and availability data |
+| User | Authenticated identity via Clerk |
+| Membership | User-to-workspace relationship |
+| Team | Grouping of people within an organisation |
+| Location | Work location within an organisation; used for feed scoping and timezone handling |
+
+A workspace may contain multiple organisations. Billing, plan limits, and usage are enforced at workspace level. **All data queries must be scoped by organisation.**
 
 ### Roles
 
 | Role | Scope |
 |---|---|
-| owner | Full tenant access |
+| owner | Full workspace access |
 | admin | Full organisation access |
 | manager | Team and direct-report access |
 | viewer | Read-only filtered access |
 
 ---
 
-## UX: authenticated app pages
+## Monorepo structure
 
-Dashboard, Connections, Connection Detail, Employees, Absences, Feeds, Calendar Preview, Notifications, Balances, Public Holidays, Manual Events, Sync Health, Audit Log, Settings, Billing.
+```text
+leavesync/
+├─ apps/
+│  ├─ app/                    # authenticated product UI (port 3000)
+│  ├─ api/                    # sync, webhooks, feed endpoints, admin APIs (port 3002)
+│  ├─ web/                    # marketing site (port 3001)
+│  ├─ docs/                   # product and implementation docs (port 3004)
+│  └─ email/                  # notification templates (port 3003)
+├─ packages/
+│  ├─ database/               # Prisma schema, migrations, queries
+│  ├─ auth/                   # Clerk auth, RBAC, workspace guards
+│  ├─ design-system/          # shared UI components (shadcn/ui, Tailwind)
+│  ├─ core/                   # shared types, enums, Result pattern, utilities
+│  ├─ xero/                   # Xero OAuth, tenant sync, region mapping
+│  ├─ availability/           # canonical domain logic
+│  ├─ feeds/                  # ICS generation, UID rules, feed filtering
+│  ├─ notifications/          # in-app and email notifications
+│  ├─ jobs/                   # Inngest job definitions, scheduling
+│  ├─ observability/          # Sentry, logging, sync metrics
+│  ├─ email/                  # React Email + Resend
+│  ├─ next-config/            # shared Next.js configuration
+│  ├─ seo/                    # SEO metadata helpers
+│  └─ typescript-config/      # shared tsconfig base
+└─ tooling/
+   ├─ seed/
+   ├─ import/
+   └─ scripts/
+```
 
-## UX: public website pages
+### Packages to remove from stock next-forge
 
-Home, Features, Integrations (Xero, MYOB, Zoho People, QuickBooks), Pricing, Security, Compare vs LeaveCal, Compare vs Timetastic, Compare vs absence.io, Docs.
+The following stock next-forge packages are not required and should be removed or left dormant:
+
+- `packages/ai` (no AI features)
+- `packages/cms` (no CMS)
+- `packages/collaboration` (no Liveblocks)
+- `packages/feature-flags` (defer until needed)
+- `packages/internationalization` (defer until needed)
+- `packages/payments` (Stripe integration deferred; billing schema exists but checkout is manual initially)
+- `packages/rate-limit` (Xero rate limiting handled in `packages/xero`)
+- `packages/security` (Arcjet/NoseCone deferred)
+- `packages/storage` (no blob storage needed initially)
+- `packages/webhooks` (Svix not required; Xero uses polling)
+- `apps/storybook` (defer until design system stabilises)
+- `apps/studio` (Prisma Studio available via CLI when needed)
+
+---
+
+## App responsibilities
+
+### `apps/app`
+
+Authenticated UI for:
+
+- team calendar view
+- person profiles and detail
+- manual availability entry (WFH, travelling, training, client site, etc.)
+- Xero leave visibility (read-only display of synced leave)
+- feed management (create, configure, preview, rotate tokens)
+- privacy rule configuration
+- publishing health dashboard
+- admin settings (organisations, teams, locations, Xero connections)
+- sync health and audit log
+
+### `apps/api`
+
+System boundary for:
+
+- Xero OAuth flow and token refresh
+- Xero employee and leave sync endpoints
+- manual availability CRUD
+- feed rendering endpoint: `GET /ical/:token.ics`
+- feed preview APIs
+- Inngest job handlers (sync scheduling, feed rebuilds, reconciliation)
+- publish invalidation
+- audit event writes
+
+### `apps/web`
+
+Public site:
+
+- marketing pages
+- feature pages
+- Xero integration detail
+- pricing
+- security and privacy
+- blog and changelog
+- help centre
+
+### `apps/docs`
+
+Internal and external documentation:
+
+- Xero setup guide
+- ICS subscription instructions (Outlook, Google Calendar, Apple Calendar)
+- admin handbook
+- API integration notes
+
+### `apps/email`
+
+Operational messaging only:
+
+- sync failure alerts
+- feed token rotated alerts
+- privacy conflict notifications
+- missing alternative contact reminders
+
+---
+
+## Package design
+
+### `packages/xero`
+
+Isolates all Xero-specific logic.
+
+```text
+packages/xero/src/
+├─ oauth/
+├─ tenants/
+├─ au/
+├─ nz/
+├─ uk/
+├─ mappings/
+├─ sync/
+├─ webhooks/
+├─ types/
+└─ errors/
+```
+
+Responsibilities:
+
+- Xero OAuth token management (acquire, refresh, encrypt at rest)
+- tenant discovery and connection state
+- employee sync (all three payroll regions)
+- leave record sync (all three payroll regions)
+- leave-type mapping to canonical types
+- source fingerprinting and change detection
+- normalisation into canonical `AvailabilityRecord` shape
+- region-specific API differences handled internally
+
+Xero's AU, NZ, and UK payroll APIs expose similar concepts but not identical resources. This package absorbs all region variance so downstream code never sees Xero-specific payload shapes.
+
+#### Xero rate limits
+
+- 60 API calls per minute per connected organisation
+- 5,000 API calls per day per connected organisation
+- maximum five concurrent requests per connected organisation
+- app-wide: 10,000 calls per minute across all tenancies
+
+Rate limiting, backoff, and retry logic live inside this package. The job scheduler in `packages/jobs` respects these constraints when scheduling sync runs.
+
+#### Xero commercial considerations
+
+Xero developer pricing charges by connected-organisation count and API usage. Polling frequency and organisation count have direct cost implications. The scheduler must optimise for correctness, rate limits, and cost, not just freshness.
+
+### `packages/availability`
+
+Canonical business domain.
+
+```text
+packages/availability/src/
+├─ people/
+├─ records/
+├─ privacy/
+├─ contactability/
+├─ policies/
+├─ scopes/
+├─ projections/
+├─ validators/
+└─ types/
+```
+
+Responsibilities:
+
+- canonical person model
+- manual availability model
+- Xero leave normalisation target
+- visibility and privacy rules
+- contactability handling (contactable, limited, not contactable, use alternative contact)
+- feed eligibility rules
+- scope filtering (team, location, event type, person)
+
+### `packages/feeds`
+
+Turns canonical availability into stable ICS output.
+
+```text
+packages/feeds/src/
+├─ ical/
+├─ uid/
+├─ templates/
+├─ filters/
+├─ scopes/
+├─ renderers/
+├─ signatures/
+└─ tests/
+```
+
+Responsibilities:
+
+- VEVENT rendering via `ical-generator`
+- stable UID generation (see UID strategy below)
+- DTSTART/DTEND handling
+- all-day vs timed event handling
+- privacy masking (named, masked, private)
+- DESCRIPTION generation
+- secure feed token validation
+- feed caching and ETag strategy (via Vercel KV)
+
+### `packages/jobs`
+
+Inngest job definitions and scheduling.
+
+Responsibilities:
+
+- tenant sync scheduling (per-organisation polling intervals)
+- feed rebuild scheduling (triggered by availability record changes)
+- backfill jobs (initial sync)
+- nightly reconciliation jobs
+- dead-letter handling for failed records
+
+### `packages/core`
+
+Shared types, utilities, and patterns.
+
+- `Result<T, E>` type
+- branded ID types (WorkspaceId, OrganisationId, PersonId, etc.)
+- shared enums
+- date and timezone utilities
+- error types
+
+---
+
+## Core domain model
+
+The primary object is an **AvailabilityRecord**, not a "leave application". This keeps the model provider-agnostic and accommodates both Xero leave and manual availability entries.
+
+### Entities
+
+```text
+Workspace
+Organisation
+Team
+Location
+User
+RoleAssignment
+Person
+PersonAssignment
+XeroConnection
+XeroTenant
+XeroSyncCursor
+AvailabilityRecord
+AvailabilityPublication
+Feed
+FeedScope
+FeedSubscriptionToken
+AuditEvent
+AlternativeContact
+SyncRun
+FailedRecord
+Plan
+PlanLimit
+WorkspaceSubscription
+UsageCounter
+```
+
+---
+
+## Database schema
+
+### `workspaces`
+
+Top-level tenant boundary.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `name` | text | |
+| `slug` | text | unique |
+| `timezone_default` | text | IANA timezone |
+| `created_at` | timestamp | |
+| `updated_at` | timestamp | |
+
+### `organisations`
+
+Legal/payroll entities inside a workspace.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `workspace_id` | UUID | FK |
+| `name` | text | |
+| `country_code` | enum | `AU`, `NZ`, `UK` |
+| `xero_tenant_id` | text | nullable |
+| `timezone` | text | IANA timezone |
+| `is_active` | boolean | |
+| `created_at` | timestamp | |
+| `updated_at` | timestamp | |
+
+### `teams`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `organisation_id` | UUID | FK |
+| `name` | text | |
+| `manager_person_id` | UUID | nullable FK |
+| `created_at` | timestamp | |
+| `updated_at` | timestamp | |
+
+### `locations`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `organisation_id` | UUID | FK |
+| `name` | text | |
+| `country_code` | text | |
+| `region_code` | text | |
+| `timezone` | text | IANA timezone |
+| `created_at` | timestamp | |
+| `updated_at` | timestamp | |
+
+### `people`
+
+Covers employees, contractors, directors, and offshore staff.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `workspace_id` | UUID | FK |
+| `organisation_id` | UUID | FK |
+| `team_id` | UUID | nullable FK |
+| `manager_person_id` | UUID | nullable FK |
+| `person_type` | enum | `employee`, `contractor`, `director`, `offshore_staff` |
+| `source_system` | enum | `xero`, `manual` |
+| `source_person_key` | text | nullable; Xero employee ID |
+| `display_name` | text | |
+| `first_name` | text | |
+| `last_name` | text | |
+| `email` | text | |
+| `phone` | text | nullable |
+| `job_title` | text | nullable |
+| `is_active` | boolean | |
+| `default_contactability` | enum | `contactable`, `limited`, `not_contactable`, `use_alternative_contact` |
+| `default_contact_method` | text | nullable |
+| `default_privacy_mode` | enum | `named`, `masked`, `private` |
+| `include_in_feeds_by_default` | boolean | |
+| `created_at` | timestamp | |
+| `updated_at` | timestamp | |
+
+### `alternative_contacts`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `person_id` | UUID | FK |
+| `name` | text | |
+| `contact_method` | text | |
+| `contact_value` | text | |
+| `priority` | integer | |
+| `is_default` | boolean | |
+| `created_at` | timestamp | |
+| `updated_at` | timestamp | |
+
+### `xero_connections`
+
+One per workspace/credential set.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `workspace_id` | UUID | FK |
+| `provider` | text | fixed to `xero` |
+| `status` | enum | `active`, `expired`, `revoked`, `error` |
+| `access_token_encrypted` | text | |
+| `refresh_token_encrypted` | text | |
+| `expires_at` | timestamp | |
+| `created_at` | timestamp | |
+| `updated_at` | timestamp | |
+
+### `xero_tenants`
+
+One row per connected Xero organisation.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `xero_connection_id` | UUID | FK |
+| `xero_tenant_id` | text | Xero's tenant identifier |
+| `tenant_name` | text | |
+| `payroll_region` | enum | `AU`, `NZ`, `UK` |
+| `organisation_id` | UUID | FK |
+| `status` | enum | `active`, `paused`, `disconnected` |
+| `last_employee_sync_at` | timestamp | nullable |
+| `last_leave_sync_at` | timestamp | nullable |
+| `last_successful_sync_at` | timestamp | nullable |
+| `created_at` | timestamp | |
+| `updated_at` | timestamp | |
+
+### `xero_sync_cursors`
+
+Track incremental sync and reconciliation.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `xero_tenant_id` | UUID | FK |
+| `entity_type` | enum | `employees`, `leave_records`, `leave_balances`, `leave_periods` |
+| `cursor_value` | text | nullable |
+| `last_seen_remote_updated_at` | timestamp | nullable |
+| `last_full_sync_at` | timestamp | nullable |
+| `last_incremental_sync_at` | timestamp | nullable |
+| `sync_status` | enum | `idle`, `running`, `failed` |
+| `error_message` | text | nullable |
+| `created_at` | timestamp | |
+| `updated_at` | timestamp | |
+
+### `availability_records`
+
+Core table.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `workspace_id` | UUID | FK |
+| `organisation_id` | UUID | FK |
+| `person_id` | UUID | FK |
+| `source_type` | enum | `xero_leave`, `manual` |
+| `record_type` | enum | see record types below |
+| `title` | text | |
+| `starts_at` | timestamp | |
+| `ends_at` | timestamp | |
+| `all_day` | boolean | |
+| `working_location` | text | nullable |
+| `contactability_status` | enum | `contactable`, `limited`, `not_contactable`, `use_alternative_contact` |
+| `preferred_contact_method` | text | nullable |
+| `alternative_contact_id` | UUID | nullable FK |
+| `notes_internal` | text | nullable |
+| `include_in_feed` | boolean | |
+| `privacy_mode` | enum | `named`, `masked`, `private` |
+| `publish_status` | enum | `eligible`, `suppressed`, `archived` |
+| `source_remote_id` | text | nullable; Xero leave application ID |
+| `source_remote_hash` | text | fingerprint for change detection |
+| `source_remote_version` | text | nullable |
+| `source_last_modified_at` | timestamp | nullable |
+| `source_payload_json` | jsonb | nullable; raw provider payload for audit |
+| `derived_uid_key` | text | stable UID for ICS |
+| `created_by_user_id` | text | nullable; Clerk user ID |
+| `updated_by_user_id` | text | nullable; Clerk user ID |
+| `created_at` | timestamp | |
+| `updated_at` | timestamp | |
+| `archived_at` | timestamp | nullable |
+
+#### Record types
+
+`annual_leave`, `personal_leave`, `holiday`, `sick_leave`, `long_service_leave`, `unpaid_leave`, `public_holiday`, `wfh`, `travelling`, `client_site`, `another_office`, `training`, `offsite_meeting`, `contractor_unavailable`, `limited_availability`, `alternative_contact`, `other`
+
+### `availability_publications`
+
+Materialised publishing state per record. Decouples raw data from what was actually emitted in a feed.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `availability_record_id` | UUID | FK (unique) |
+| `published_title` | text | |
+| `published_description` | text | nullable |
+| `published_location` | text | nullable |
+| `published_status` | text | |
+| `published_uid` | text | stable ICS UID |
+| `published_sequence` | integer | incrementing version |
+| `published_dtstamp` | timestamp | |
+| `last_published_at` | timestamp | |
+| `last_feed_hash` | text | |
+| `created_at` | timestamp | |
+| `updated_at` | timestamp | |
+
+### `feeds`
+
+One row per ICS feed.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `workspace_id` | UUID | FK |
+| `organisation_id` | UUID | nullable FK |
+| `name` | text | |
+| `slug` | text | |
+| `scope_type` | enum | `all_staff`, `team`, `manager`, `location`, `event_type`, `custom` |
+| `privacy_default` | enum | `named`, `masked`, `private` |
+| `include_contractors` | boolean | |
+| `include_directors` | boolean | |
+| `include_offshore_staff` | boolean | |
+| `status` | enum | `active`, `paused`, `archived` |
+| `token_id` | UUID | FK |
+| `last_rendered_at` | timestamp | nullable |
+| `last_etag` | text | nullable |
+| `created_at` | timestamp | |
+| `updated_at` | timestamp | |
+
+### `feed_scopes`
+
+Normalised scope rules for feeds.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `feed_id` | UUID | FK |
+| `rule_type` | enum | `organisation`, `team`, `manager`, `location`, `event_type`, `person` |
+| `rule_value` | text | |
+| `created_at` | timestamp | |
+
+### `feed_tokens`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `feed_id` | UUID | FK |
+| `token_hash` | text | |
+| `token_hint` | text | last four characters for display |
+| `status` | enum | `active`, `revoked`, `expired` |
+| `rotated_from_token_id` | UUID | nullable FK |
+| `expires_at` | timestamp | nullable |
+| `last_accessed_at` | timestamp | nullable |
+| `created_at` | timestamp | |
+
+### `sync_runs`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `workspace_id` | UUID | FK |
+| `xero_tenant_id` | UUID | FK |
+| `run_type` | enum | `initial`, `incremental`, `reconciliation`, `manual` |
+| `status` | enum | `queued`, `running`, `partial`, `succeeded`, `failed`, `dead_lettered` |
+| `started_at` | timestamp | |
+| `finished_at` | timestamp | nullable |
+| `records_in` | integer | |
+| `records_changed` | integer | |
+| `records_failed` | integer | |
+| `error_summary` | text | nullable |
+| `retry_count` | integer | |
+| `created_at` | timestamp | |
+
+### `failed_records`
+
+Dead-letter table for individual sync failures.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `sync_run_id` | UUID | FK |
+| `entity_type` | text | |
+| `source_remote_id` | text | nullable |
+| `error_message` | text | |
+| `source_payload_json` | jsonb | nullable |
+| `created_at` | timestamp | |
+
+### `audit_events`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `workspace_id` | UUID | FK |
+| `actor_user_id` | text | nullable; Clerk user ID |
+| `actor_type` | enum | `user`, `system`, `sync` |
+| `entity_type` | text | |
+| `entity_id` | text | |
+| `action` | text | |
+| `old_values_json` | jsonb | nullable |
+| `new_values_json` | jsonb | nullable |
+| `reason` | text | nullable |
+| `created_at` | timestamp | |
+
+### Billing entities (schema only, no checkout)
+
+#### `plans`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `name` | text | e.g. free, starter, pro, enterprise |
+| `is_active` | boolean | |
+| `created_at` | timestamp | |
+
+#### `plan_limits`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `plan_id` | UUID | FK |
+| `limit_type` | enum | `active_people`, `connections`, `feeds`, `organisations` |
+| `limit_value` | integer | |
+
+#### `workspace_subscriptions`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `workspace_id` | UUID | FK |
+| `plan_id` | UUID | FK |
+| `status` | enum | `active`, `cancelled`, `past_due` |
+| `started_at` | timestamp | |
+| `expires_at` | timestamp | nullable |
+| `created_at` | timestamp | |
+
+#### `usage_counters`
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `workspace_id` | UUID | FK |
+| `counter_type` | enum | `active_people`, `connections`, `feeds`, `sync_runs` |
+| `counter_value` | integer | |
+| `updated_at` | timestamp | |
+
+---
+
+## Indexes and constraints
+
+### Unique constraints
+
+- `organisations(workspace_id, xero_tenant_id)` where `xero_tenant_id` is not null
+- `people(workspace_id, organisation_id, source_system, source_person_key)` where `source_person_key` is not null
+- `availability_records(organisation_id, source_type, source_remote_id)` where `source_remote_id` is not null
+- `availability_publications(availability_record_id)`
+- `feeds(workspace_id, slug)`
+
+### Indexes
+
+- `availability_records(person_id, starts_at, ends_at)`
+- `availability_records(organisation_id, publish_status, include_in_feed)`
+- `availability_records(source_type, source_last_modified_at)`
+- `feed_scopes(feed_id, rule_type, rule_value)`
+- `audit_events(entity_type, entity_id, created_at)`
+- `xero_sync_cursors(xero_tenant_id, entity_type)`
+
+---
+
+## Canonical event UID strategy
+
+Do not use Xero's LeaveApplicationID alone. RFC 5545 requires a persistent globally unique UID for calendar objects.
+
+### UID formula
+
+```text
+uid = sha256(
+  workspace_id + "|" +
+  organisation_id + "|" +
+  person_id + "|" +
+  source_type + "|" +
+  stable_source_key + "|" +
+  starts_at_utc + "|" +
+  ends_at_utc + "|" +
+  record_type
+) + "@ical.leavesync.app"
+```
+
+Where `stable_source_key` is:
+
+- for Xero records: `tenant_id + employee_id + leave_type + start + end + units`
+- for manual records: the `availability_records.id`
+
+This gives:
+
+- stable identity across feed rebuilds
+- resistance to duplicate subscriber events
+- provider independence
+- consistent UID even if Xero's remote ID behaviour changes
+
+### SEQUENCE handling
+
+Store a `published_sequence` integer on `availability_publications`. Increment it when the published representation changes materially. This is the correct way to signal event updates to calendar subscribers, rather than creating a new UID.
+
+---
+
+## Xero sync model
+
+Use a pull-first (polling) sync model.
+
+### Why polling
+
+- LeaveSync's job is visibility and publishing, not transactional payroll write-back
+- Xero's leave resources differ by payroll region
+- feed freshness matters more than low-latency bidirectional mutation
+- Xero does not provide webhooks for leave data relevant to LeaveSync's scope
+
+### Sync jobs (Inngest)
+
+| Job | Purpose |
+|---|---|
+| `sync-xero-people` | Fetch and upsert employees from Xero |
+| `sync-xero-leave-records` | Fetch leave records, map to `availability_records` |
+| `reconcile-feed-publications` | Ensure `availability_publications` match current records |
+| `rebuild-feed-cache` | Regenerate cached ICS feed bodies in Vercel KV |
+
+### Sync flow
+
+1. Load active Xero tenant
+2. Fetch employees for the tenant's payroll region
+3. Upsert `people` records
+4. Fetch leave records and supporting leave metadata
+5. Map to canonical `availability_records`
+6. Compute `source_remote_hash` for change detection
+7. Archive or suppress stale records no longer present in Xero
+8. Enqueue feed rebuilds for affected feeds only
+
+### Mapping rule
+
+Keep raw provider payloads in `source_payload_json` for auditability.
+
+### Retry and failure rules
+
+- Transient failures: exponential backoff with jitter (handled by Inngest)
+- Retries capped per job type
+- Record-level failures do not fail the entire run unless a configurable threshold is breached
+- Failed records captured in `failed_records` table with full context
+- Partial syncs are first-class outcomes, visible in sync health UI
+- All upserts must be idempotent
+
+### Sync scheduling
+
+- incremental syncs: configurable interval per organisation (default: every 15 minutes during business hours, every 60 minutes outside)
+- nightly reconciliation: full re-sync and stale record detection
+- manual re-sync: available from the UI for admin users
+
+---
+
+## Feed rendering model
+
+The feed endpoint is stateless at request time except for token validation.
+
+### Pattern
+
+- precompute publication rows when availability records change
+- render ICS from `availability_publications`
+- cache feed body by `feed_id + etag` in Vercel KV
+- invalidate only when a relevant record changes
+
+### Feed endpoint
+
+```text
+GET /ical/:token.ics
+```
+
+### VEVENT output rules
+
+For each VEVENT:
+
+| Property | Value |
+|---|---|
+| `UID` | stable derived UID |
+| `DTSTAMP` | publication timestamp |
+| `SEQUENCE` | incrementing version |
+| `SUMMARY` | title per privacy mode |
+| `DESCRIPTION` | allowed metadata only |
+| `LOCATION` | only if privacy permits |
+| `CLASS` | `PUBLIC` or `PRIVATE` depending on privacy policy |
+| `TRANSP` | `OPAQUE` for away/unavailable states |
+
+### Privacy transforms
+
+| Mode | SUMMARY example |
+|---|---|
+| `named` | Jane Smith, Working from home |
+| `masked` | Out of office |
+| `private` | Busy |
+
+### ICS requirements
+
+- deterministic UID generation (see UID strategy)
+- SEQUENCE incrementing on change
+- correct DTSTAMP handling
+- correct all-day event encoding (DATE not DATE-TIME)
+- cancellation-safe updates (STATUS:CANCELLED + incremented SEQUENCE)
+- ETag and Last-Modified response headers
+- signed and revocable feed tokens
+- stable updates to avoid duplicate events in subscribed calendars
+
+---
+
+## Route structure (`apps/app`)
+
+```text
+apps/app/app/
+├─ (dashboard)/
+│  └─ page.tsx
+├─ people/
+│  └─ [personId]/
+├─ availability/
+│  ├─ page.tsx
+│  ├─ new/
+│  └─ [recordId]/
+├─ calendar/
+│  └─ page.tsx
+├─ feeds/
+│  ├─ page.tsx
+│  └─ [feedId]/
+├─ sync/
+│  └─ page.tsx
+├─ settings/
+│  ├─ organisations/
+│  ├─ teams/
+│  ├─ privacy/
+│  ├─ feeds/
+│  └─ xero/
+```
+
+## API surface (`apps/api`)
+
+```text
+apps/api/src/routes/
+├─ auth/xero/
+├─ xero/
+│  ├─ tenants
+│  ├─ employees
+│  ├─ leave
+│  └─ sync
+├─ availability/
+│  ├─ records
+│  ├─ people
+│  └─ publications
+├─ feeds/
+│  ├─ list
+│  ├─ preview
+│  ├─ rotate-token
+│  └─ ical/[token]
+├─ admin/
+│  ├─ reindex
+│  ├─ rebuild-feed
+│  └─ audit
+```
+
+---
+
+## Security
+
+- Workspace isolation on every query
+- Organisation scoping on all data access
+- Clerk auth on all authenticated routes
+- Xero tokens encrypted at rest
+- Feed tokens signed and revocable
+- Audit logs for admin actions
+- Privacy controls for sensitive leave categories
+- Manager-only balance access where configured
+- No tokens or raw payloads exposed to client
+- No secrets in client bundles
+
+---
+
+## Build order
+
+1. Workspace, organisation, people, team, location schema and seed data
+2. Xero OAuth and tenant persistence (`packages/xero/oauth`, `packages/xero/tenants`)
+3. Xero employee sync (`packages/xero/sync`, `packages/xero/au`, `packages/xero/nz`, `packages/xero/uk`)
+4. Xero leave normalisation into `availability_records`
+5. Manual availability CRUD
+6. Feed model and token model
+7. ICS renderer with stable UID and privacy modes (`packages/feeds`)
+8. Feed preview and feed detail UI
+9. Team calendar and person profile UI
+10. Reconciliation jobs, sync health UI, and audit reporting
+
+Each step should produce a deployable, testable vertical slice.
+
+---
+
+## Disconnection and data retention
+
+### Default disconnect
+
+- Mark Xero connection as disconnected
+- Stop future syncs
+- Retain previously synced canonical records as historical
+- Set `publish_status = 'archived'` on source-backed records
+- Mark `source_payload_json` for retention per policy
+- Preserve audit history
+
+### Destructive disconnect (explicit, optional)
+
+- Soft delete source-backed records (`archived_at` timestamp)
+- Document retention and purge semantics
 
 ---
 
 ## Non-negotiables
 
-- TypeScript throughout.
-- Zod validation for all external input.
-- Clean separation between provider-specific logic and canonical domain logic.
-- No fake provider parity.
-- No claim that Zoho Books is a leave source.
-- No claim that Wave is a supported connector.
-- No complex accrual engine. Display balances from source systems only.
-- No low-quality mock integrations disguised as real support.
-
----
-
-## Delivery approach
-
-Work in small, production-ready vertical slices. Each slice should be deployable and testable. Avoid broad shallow scaffolding. Surface assumptions clearly. Keep naming consistent.
+- TypeScript strict mode throughout
+- Zod validation on all external input
+- Clean separation between Xero-specific logic (`packages/xero`) and canonical domain logic (`packages/availability`)
+- No complex accrual engine; display leave data from Xero only
+- Stable ICS UIDs derived from business identity, not provider IDs alone
+- Result pattern for service-layer errors
+- Co-located tests from the first slice
+- Australian English in all UI copy and documentation
