@@ -70,7 +70,9 @@ interface GeneralClientProps {
   fiscalYearStart: number;
   locale: string;
   orgName: string;
+  reportingUnit: string;
   timezone: string;
+  workingHoursPerDay: number;
 }
 
 export const GeneralClient = ({
@@ -78,18 +80,24 @@ export const GeneralClient = ({
   timezone,
   locale,
   fiscalYearStart,
+  reportingUnit,
+  workingHoursPerDay,
 }: GeneralClientProps) => {
   const [name, setName] = useState(orgName);
   const [tz, setTz] = useState(timezone);
   const [loc, setLoc] = useState(locale);
   const [fiscal, setFiscal] = useState(fiscalYearStart);
+  const [unit, setUnit] = useState(reportingUnit);
+  const [hoursPerDay, setHoursPerDay] = useState(workingHoursPerDay);
   const [isPending, startTransition] = useTransition();
 
   const isDirty =
     name !== orgName ||
     tz !== timezone ||
     loc !== locale ||
-    fiscal !== fiscalYearStart;
+    fiscal !== fiscalYearStart ||
+    unit !== reportingUnit ||
+    hoursPerDay !== workingHoursPerDay;
 
   const handleSave = () => {
     startTransition(async () => {
@@ -98,6 +106,8 @@ export const GeneralClient = ({
         timezone: tz,
         locale: loc,
         fiscalYearStart: fiscal,
+        reportingUnit: unit as "days" | "hours",
+        workingHoursPerDay: hoursPerDay,
       });
 
       if (result.ok) {
@@ -191,6 +201,40 @@ export const GeneralClient = ({
             </Select>
             <p className="text-muted-foreground text-xs">
               Used for leave balance reporting and accrual calculations.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="reporting-unit">Analytics reporting unit</Label>
+            <Select onValueChange={setUnit} value={unit}>
+              <SelectTrigger className="max-w-sm" id="reporting-unit">
+                <SelectValue placeholder="Select reporting unit" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="days">Days</SelectItem>
+                <SelectItem value="hours">Hours</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-muted-foreground text-xs">
+              Preferred unit for displaying durations in analytics reports.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="working-hours">Working hours per day</Label>
+            <Input
+              className="max-w-[200px]"
+              id="working-hours"
+              max={24}
+              min={1}
+              onChange={(e) => setHoursPerDay(Number(e.target.value))}
+              placeholder="7.6"
+              step={0.1}
+              type="number"
+              value={hoursPerDay || ""}
+            />
+            <p className="text-muted-foreground text-xs">
+              Used to convert daily values into hours when needed.
             </p>
           </div>
         </CardContent>

@@ -8,6 +8,8 @@ const UpdateOrgSchema = z.object({
   timezone: z.string().min(1),
   locale: z.string().min(1),
   fiscalYearStart: z.number().int().min(1).max(12),
+  reportingUnit: z.enum(["days", "hours"]).default("hours"),
+  workingHoursPerDay: z.number().min(1).max(24).default(7.6),
 });
 
 type UpdateOrgInput = z.infer<typeof UpdateOrgSchema>;
@@ -31,13 +33,26 @@ export const updateOrg = async (
     };
   }
 
-  const { name, timezone, locale, fiscalYearStart } = parsed.data;
+  const {
+    name,
+    timezone,
+    locale,
+    fiscalYearStart,
+    reportingUnit,
+    workingHoursPerDay,
+  } = parsed.data;
 
   try {
     const clerk = await clerkClient();
     await clerk.organizations.updateOrganization(orgId, {
       name,
-      publicMetadata: { timezone, locale, fiscalYearStart },
+      publicMetadata: {
+        timezone,
+        locale,
+        fiscalYearStart,
+        reportingUnit,
+        workingHoursPerDay,
+      },
     });
     return { ok: true, value: undefined };
   } catch {

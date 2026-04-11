@@ -40,6 +40,15 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import { type MouseEvent, useEffect, useRef, useState } from "react";
+import { RecurrenceFields } from "../components/recurrence-fields";
+import {
+  createDefaultRecurrenceRule,
+  describeRecurrenceRule,
+  generateRecurrenceOccurrences,
+  getSingleOccurrence,
+  type RecurrenceFrequency,
+  type RecurrenceRule,
+} from "../recurrence";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -88,6 +97,10 @@ interface PlanEntry {
   id: string;
   isNew?: boolean;
   notes: string;
+  occurrenceCount?: number;
+  occurrenceIndex?: number;
+  recurrenceRule?: RecurrenceRule;
+  seriesId?: string;
   startDate: string;
   startTime?: string;
   type: LeaveTypeId;
@@ -254,6 +267,10 @@ const PlanCard = ({
     entry.type === "custom" && entry.customLabel
       ? entry.customLabel
       : type.label;
+  const recurrenceLabel =
+    entry.seriesId && entry.recurrenceRule && entry.occurrenceCount
+      ? `${describeRecurrenceRule(entry.recurrenceRule)} ${entry.occurrenceIndex ?? 1}/${entry.occurrenceCount}`
+      : null;
   const calendarLabels = CALENDARS.filter((c) =>
     entry.calendars.includes(c.id)
   ).map((c) => c.label);
@@ -468,9 +485,19 @@ const PlanCard = ({
 
         <div className="flex items-center gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
           <button
-            aria-label="Edit plan"
+            aria-label={
+              entry.seriesId
+                ? "Recurring plans can only be deleted as a series"
+                : "Edit plan"
+            }
             className="rounded-md p-1.5 text-muted-foreground shadow-sm transition-colors hover:bg-background hover:text-foreground"
+            disabled={!!entry.seriesId}
             onClick={onEdit}
+            title={
+              entry.seriesId
+                ? "Recurring plans can only be deleted as a series"
+                : "Edit plan"
+            }
             type="button"
           >
             <PencilIcon className="size-3.5" strokeWidth={2} />
@@ -512,6 +539,12 @@ const PlanCard = ({
             ))}
           </div>
         )}
+
+        {recurrenceLabel && (
+          <p className="mt-3 font-bold text-[10px] text-muted-foreground uppercase tracking-widest">
+            {recurrenceLabel}
+          </p>
+        )}
       </div>
     </motion.div>
   );
@@ -520,7 +553,7 @@ const PlanCard = ({
 // ─── Plan entry form ──────────────────────────────────────────────────────────
 
 interface PlanFormProps {
-  onAdd: (entry: PlanEntry) => void;
+  onAdd: (entries: PlanEntry[]) => void;
   onClose?: () => void;
 }
 
@@ -536,6 +569,11 @@ const PlanForm = ({ onAdd, onClose }: PlanFormProps) => {
     "work",
   ]);
   const [notes, setNotes] = useState("");
+  const [recurrenceFrequency, setRecurrenceFrequency] =
+    useState<RecurrenceFrequency>("none");
+  const [recurrenceRule, setRecurrenceRule] = useState<RecurrenceRule>(
+    createDefaultRecurrenceRule("weekly", today)
+  );
 
   const toggleCalendar = (id: string) => {
     setSelectedCalendars((prev) =>
@@ -556,6 +594,16 @@ const PlanForm = ({ onAdd, onClose }: PlanFormProps) => {
     if (selectedType === "custom" && !customLabel.trim()) {
       return "Enter a label for your custom entry";
     }
+    if (recurrenceFrequency !== "none") {
+      const generated = generateRecurrenceOccurrences(
+        startDate,
+        endDate,
+        recurrenceRule
+      );
+      if (!generated.ok) {
+        return generated.error;
+      }
+    }
     return null;
   };
   const disabledReason = getDisabledReason();
@@ -565,24 +613,45 @@ const PlanForm = ({ onAdd, onClose }: PlanFormProps) => {
       return;
     }
 
-    const entry: PlanEntry = {
-      id: crypto.randomUUID(),
-      type: selectedType,
-      customLabel: selectedType === "custom" ? customLabel : undefined,
-      startDate,
-      endDate,
-      allDay,
-      startTime: allDay ? undefined : startTime,
-      endTime: allDay ? undefined : endTime,
-      calendars: selectedCalendars,
-      notes,
-      createdAt: new Date(),
-      isNew: true,
-    };
+    const generated: ReturnType<typeof generateRecurrenceOccurrences> =
+      recurrenceFrequency === "none"
+        ? { occurrences: getSingleOccurrence(startDate, endDate), ok: true }
+        : generateRecurrenceOccurrences(startDate, endDate, recurrenceRule);
 
-    onAdd(entry);
+    if (!generated.ok) {
+      toast.error(generated.error);
+      return;
+    }
+
+    const isRecurring = recurrenceFrequency !== "none";
+    const seriesId = isRecurring ? crypto.randomUUID() : undefined;
+    const occurrenceCount = generated.occurrences.length;
+    const entries: PlanEntry[] = generated.occurrences.map(
+      (occurrence, index) => ({
+        id: crypto.randomUUID(),
+        type: selectedType,
+        customLabel: selectedType === "custom" ? customLabel : undefined,
+        startDate: occurrence.startDate,
+        endDate: occurrence.endDate,
+        allDay,
+        startTime: allDay ? undefined : startTime,
+        endTime: allDay ? undefined : endTime,
+        calendars: selectedCalendars,
+        notes,
+        createdAt: new Date(),
+        isNew: true,
+        seriesId,
+        recurrenceRule: isRecurring ? recurrenceRule : undefined,
+        occurrenceIndex: isRecurring ? index + 1 : undefined,
+        occurrenceCount: isRecurring ? occurrenceCount : undefined,
+      })
+    );
+
+    onAdd(entries);
     setNotes("");
     setCustomLabel("");
+    setRecurrenceFrequency("none");
+    setRecurrenceRule(createDefaultRecurrenceRule("weekly", startDate));
     onClose?.();
   };
 
@@ -737,6 +806,15 @@ const PlanForm = ({ onAdd, onClose }: PlanFormProps) => {
         )}
       </div>
 
+      <RecurrenceFields
+        endDate={endDate}
+        frequency={recurrenceFrequency}
+        onFrequencyChange={setRecurrenceFrequency}
+        onRuleChange={setRecurrenceRule}
+        rule={recurrenceRule}
+        startDate={startDate}
+      />
+
       {/* Calendar selection */}
       <div className="flex flex-col gap-3">
         <Label className="font-bold text-label-sm text-muted-foreground uppercase tracking-widest">
@@ -859,9 +937,13 @@ export const PlansClient = () => {
     }
   }, [plans, isLoaded]);
 
-  const handleAdd = (entry: PlanEntry) => {
-    setPlans((prev) => [...prev, entry].sort(sortByDate));
-    toast.success("Entry added to your plans");
+  const handleAdd = (entries: PlanEntry[]) => {
+    setPlans((prev) => [...prev, ...entries].sort(sortByDate));
+    toast.success(
+      entries.length === 1
+        ? "Entry added to your plans"
+        : `${entries.length} entries added to your plans`
+    );
   };
 
   const handleDelete = (id: string) => {
@@ -869,11 +951,19 @@ export const PlansClient = () => {
     if (!entry) {
       return;
     }
-    setPlans((prev) => prev.filter((p) => p.id !== id));
-    toast("Entry removed", {
+    const removedEntries = entry.seriesId
+      ? plans.filter((p) => p.seriesId === entry.seriesId)
+      : [entry];
+    setPlans((prev) =>
+      prev.filter((p) =>
+        entry.seriesId ? p.seriesId !== entry.seriesId : p.id !== id
+      )
+    );
+    toast(entry.seriesId ? "Recurring series removed" : "Entry removed", {
       action: {
         label: "Undo",
-        onClick: () => setPlans((prev) => [...prev, entry].sort(sortByDate)),
+        onClick: () =>
+          setPlans((prev) => [...prev, ...removedEntries].sort(sortByDate)),
       },
     });
   };
@@ -1035,7 +1125,7 @@ export const PlansClient = () => {
         open={sheetOpen}
       >
         <DialogContent
-          className="max-h-[92dvh] w-full overflow-y-auto sm:max-w-[480px]"
+          className="max-h-[92dvh] w-full overflow-y-auto sm:max-w-[640px]"
           style={{ viewTransitionName: "add-plan-trigger" }}
         >
           <DialogHeader className="mb-6">

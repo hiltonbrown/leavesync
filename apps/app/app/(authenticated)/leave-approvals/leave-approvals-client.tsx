@@ -60,6 +60,16 @@ import {
   XIcon,
 } from "lucide-react";
 import { useState } from "react";
+import { RecurrenceFields } from "../components/recurrence-fields";
+import {
+  createDefaultRecurrenceRule,
+  type DateRangeOccurrence,
+  describeRecurrenceRule,
+  generateRecurrenceOccurrences,
+  getSingleOccurrence,
+  type RecurrenceFrequency,
+  type RecurrenceRule,
+} from "../recurrence";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -72,12 +82,19 @@ type LeaveTypeId =
   | "custom";
 
 interface LeaveRequest {
+  allDay?: boolean;
   avatarUrl?: string;
   days: number;
   endDate: string;
+  endTime?: string;
   id: string;
   notes?: string;
+  occurrenceCount?: number;
+  occurrenceIndex?: number;
+  recurrenceRule?: RecurrenceRule;
+  seriesId?: string;
   startDate: string;
+  startTime?: string;
   status: "pending" | "approved" | "rejected";
   type: LeaveTypeId;
   userEmail: string;
@@ -187,6 +204,21 @@ const LEAVE_TYPES: LeaveType[] = [
 
 const today = format(new Date(), "yyyy-MM-dd");
 
+const countInclusiveDays = (startDate: string, endDate: string) => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const diffTime = Math.abs(end.getTime() - start.getTime());
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+};
+
+const rangesOverlap = (
+  first: DateRangeOccurrence,
+  second: DateRangeOccurrence
+) =>
+  (first.startDate >= second.startDate && first.startDate <= second.endDate) ||
+  (first.endDate >= second.startDate && first.endDate <= second.endDate) ||
+  (second.startDate >= first.startDate && second.startDate <= first.endDate);
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export const LeaveApprovalsClient = () => {
@@ -203,6 +235,11 @@ export const LeaveApprovalsClient = () => {
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
   const [notes, setNotes] = useState("");
+  const [recurrenceFrequency, setRecurrenceFrequency] =
+    useState<RecurrenceFrequency>("none");
+  const [recurrenceRule, setRecurrenceRule] = useState<RecurrenceRule>(
+    createDefaultRecurrenceRule("weekly", today)
+  );
 
   const handleAction = (id: string, action: "approved" | "rejected") => {
     setRequests((prev) =>
@@ -228,6 +265,16 @@ export const LeaveApprovalsClient = () => {
     if (selectedType === "custom" && !customLabel.trim()) {
       return "Enter a label for your custom entry";
     }
+    if (recurrenceFrequency !== "none") {
+      const generated = generateRecurrenceOccurrences(
+        startDate,
+        endDate,
+        recurrenceRule
+      );
+      if (!generated.ok) {
+        return generated.error;
+      }
+    }
     return null;
   };
 
@@ -239,25 +286,46 @@ export const LeaveApprovalsClient = () => {
       return;
     }
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    const generated: ReturnType<typeof generateRecurrenceOccurrences> =
+      recurrenceFrequency === "none"
+        ? { occurrences: getSingleOccurrence(startDate, endDate), ok: true }
+        : generateRecurrenceOccurrences(startDate, endDate, recurrenceRule);
 
-    const newUser: LeaveRequest = {
-      id: `req_${Date.now()}`,
-      userName: selectedUser,
-      userEmail: `${selectedUser.toLowerCase().replace(" ", ".")}@example.com`,
-      type: selectedType,
-      startDate,
-      endDate,
-      days: diffDays,
-      status: "approved",
-      notes: notes || undefined,
-    };
+    if (!generated.ok) {
+      toast.error(generated.error);
+      return;
+    }
 
-    setRequests((prev) => [newUser, ...prev]);
-    toast.success(`Leave added for ${selectedUser}.`);
+    const isRecurring = recurrenceFrequency !== "none";
+    const seriesId = isRecurring ? `series_${Date.now()}` : undefined;
+    const occurrenceCount = generated.occurrences.length;
+    const newRequests: LeaveRequest[] = generated.occurrences.map(
+      (occurrence, index) => ({
+        id: `req_${Date.now()}_${index}`,
+        userName: selectedUser,
+        userEmail: `${selectedUser.toLowerCase().replace(" ", ".")}@example.com`,
+        type: selectedType,
+        startDate: occurrence.startDate,
+        endDate: occurrence.endDate,
+        days: countInclusiveDays(occurrence.startDate, occurrence.endDate),
+        status: "approved",
+        notes: notes || undefined,
+        allDay,
+        startTime: allDay ? undefined : startTime,
+        endTime: allDay ? undefined : endTime,
+        seriesId,
+        recurrenceRule: isRecurring ? recurrenceRule : undefined,
+        occurrenceIndex: isRecurring ? index + 1 : undefined,
+        occurrenceCount: isRecurring ? occurrenceCount : undefined,
+      })
+    );
+
+    setRequests((prev) => [...newRequests, ...prev]);
+    toast.success(
+      newRequests.length === 1
+        ? `Leave added for ${selectedUser}.`
+        : `${newRequests.length} leave entries added for ${selectedUser}.`
+    );
     setModalOpen(false);
 
     // Reset form
@@ -268,24 +336,37 @@ export const LeaveApprovalsClient = () => {
     setEndDate(today);
     setAllDay(true);
     setNotes("");
+    setRecurrenceFrequency("none");
+    setRecurrenceRule(createDefaultRecurrenceRule("weekly", today));
   };
 
   const pendingRequests = requests.filter((r) => r.status === "pending");
 
   // Calculate impact preview (conflicts)
+  const previewOccurrences =
+    recurrenceFrequency === "none"
+      ? getSingleOccurrence(startDate, endDate)
+      : (() => {
+          const generated = generateRecurrenceOccurrences(
+            startDate,
+            endDate,
+            recurrenceRule
+          );
+          return generated.ok ? generated.occurrences : [];
+        })();
   const conflicts =
     startDate && endDate
-      ? requests.filter((r) => {
-          if (r.status !== "approved") {
+      ? requests.filter((request) => {
+          if (request.status !== "approved") {
             return false;
           }
-          const start = r.startDate;
-          const end = r.endDate;
+          const requestRange = {
+            startDate: request.startDate,
+            endDate: request.endDate,
+          };
 
-          return (
-            (startDate >= start && startDate <= end) ||
-            (endDate >= start && endDate <= end) ||
-            (start >= startDate && start <= endDate)
+          return previewOccurrences.some((occurrence) =>
+            rangesOverlap(occurrence, requestRange)
           );
         })
       : [];
@@ -395,6 +476,13 @@ export const LeaveApprovalsClient = () => {
                                 &ldquo;{request.notes}&rdquo;
                               </span>
                             )}
+                            {request.seriesId && request.recurrenceRule && (
+                              <span className="text-[0.7rem] text-muted-foreground">
+                                {describeRecurrenceRule(request.recurrenceRule)}{" "}
+                                {request.occurrenceIndex ?? 1}/
+                                {request.occurrenceCount ?? 1}
+                              </span>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
@@ -439,7 +527,7 @@ export const LeaveApprovalsClient = () => {
 
       {/* Add Leave Modal (Dialog) */}
       <Dialog onOpenChange={setModalOpen} open={modalOpen}>
-        <DialogContent className="max-h-[92dvh] w-full overflow-y-auto sm:max-w-[480px]">
+        <DialogContent className="max-h-[92dvh] w-full overflow-y-auto sm:max-w-[640px]">
           <DialogHeader className="mb-6">
             <DialogTitle className="text-xl">Add Leave</DialogTitle>
             <DialogDescription>
@@ -616,6 +704,15 @@ export const LeaveApprovalsClient = () => {
                 </div>
               )}
             </div>
+
+            <RecurrenceFields
+              endDate={endDate}
+              frequency={recurrenceFrequency}
+              onFrequencyChange={setRecurrenceFrequency}
+              onRuleChange={setRecurrenceRule}
+              rule={recurrenceRule}
+              startDate={startDate}
+            />
 
             {/* Impact Preview */}
             {startDate && endDate && (
