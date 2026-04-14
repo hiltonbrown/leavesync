@@ -28,12 +28,14 @@ export async function loadPersonProfileData(
       email: string;
       employmentType: string;
       isActive: boolean;
+      sourceSystem: string;
       team: { id: string; name: string } | null;
       location: { id: string; name: string } | null;
     };
     availability: Array<{
       id: string;
       recordType: string;
+      sourceType: string;
       startsAt: Date;
       endsAt: Date;
       approvalStatus: string;
@@ -99,12 +101,14 @@ export async function loadPersonProfileData(
           email: profileResult.value.email,
           employmentType: profileResult.value.employmentType,
           isActive: profileResult.value.isActive,
+          sourceSystem: profileResult.value.sourceSystem,
           team: profileResult.value.team,
           location: profileResult.value.location,
         },
         availability: availabilityResult.value.map((record) => ({
           id: record.id,
           recordType: record.recordType,
+          sourceType: record.sourceType,
           startsAt: record.startsAt,
           endsAt: record.endsAt,
           approvalStatus: record.approvalStatus,
