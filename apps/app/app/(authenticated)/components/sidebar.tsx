@@ -1,6 +1,5 @@
 "use client";
 
-import { UserButton } from "@repo/auth/client";
 import {
   Sidebar,
   SidebarContent,
@@ -17,6 +16,7 @@ import {
 } from "@repo/design-system/components/ui/sidebar";
 import { cn } from "@repo/design-system/lib/utils";
 import {
+  ActivityIcon,
   BarChart2Icon,
   BellIcon,
   CalendarDaysIcon,
@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type ReactNode, Suspense } from "react";
+import type { ReactNode } from "react";
 
 interface GlobalSidebarProperties {
   readonly children: ReactNode;
@@ -66,6 +66,7 @@ const navGroups = [
         icon: ClipboardListIcon,
       },
       { title: "Public Holidays", href: "/public-holidays", icon: FlagIcon },
+      { title: "Sync Health", href: "/sync", icon: ActivityIcon },
     ],
   },
   {
@@ -190,35 +191,6 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                   </span>
                 </Link>
               </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-
-          <SidebarMenu className="mt-2">
-            <SidebarMenuItem>
-              <div
-                className={cn(
-                  "flex items-center gap-2 px-1 py-0.5",
-                  !sidebar.open && "justify-center"
-                )}
-              >
-                <Suspense
-                  fallback={
-                    <div className="h-7 w-7 animate-pulse rounded-full bg-[var(--sidebar-accent)]" />
-                  }
-                >
-                  <UserButton
-                    appearance={{
-                      elements: {
-                        rootBox: cn("flex", sidebar.open ? "flex-1" : "w-auto"),
-                        userButtonBox: "flex-row-reverse",
-                        userButtonOuterIdentifier:
-                          "truncate pl-0 text-[0.8125rem]",
-                      },
-                    }}
-                    showName={sidebar.open}
-                  />
-                </Suspense>
-              </div>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>

@@ -2,33 +2,34 @@
 
 ## Product truth
 
-LeaveSync is a visibility-first availability publishing platform. It connects to Xero Payroll (AU, NZ, UK), syncs approved leave data, normalises it into a canonical availability model, and publishes through secure ICS calendar feeds.
+LeaveSync is a multi-tenant availability publishing and leave management platform. It connects to Xero Payroll (AU, NZ, UK) bidirectionally: syncing approved leave data into LeaveSync, and writing leave submissions and approvals back to Xero via the Xero API.
 
-The clean architecture is:
+The architecture is:
 
-**Xero sync layer > canonical availability model > feed projection layer > ICS publishing layer**
+**Leave submission layer > bidirectional Xero sync layer > canonical availability model > feed projection layer > ICS publishing layer**
 
-LeaveSync stays out of payroll decision-making. Xero remains the source of truth for approved leave. LeaveSync standardises both Xero leave and manual availability entries into one publishable calendar domain.
+Xero remains the payroll source of truth. LeaveSync is the employee-facing interface for submitting and managing leave requests, with all approved state written back to Xero synchronously. LeaveSync also manages manual availability entries (WFH, travelling, training, client site) that are not submitted to Xero.
 
 ### Product boundaries
 
 LeaveSync is not:
 
 - a full HRIS
-- a full payroll engine
-- a leave approval workflow system (Xero handles approvals)
+- a payroll engine or accrual calculator
 - a multi-connector abstraction layer (Xero only at this stage)
 
 LeaveSync is:
 
 - a canonical availability publisher
-- a Xero leave visibility layer
+- a leave submission and approval workflow system (bidirectionally synced with Xero Payroll)
+- a Xero leave visibility and management layer
 - a manual availability entry surface for non-leave events (WFH, travelling, training, client site)
 - a secure ICS feed generator for Outlook, Google Calendar, and Apple Calendar
+- a real-time notification platform (SSE-delivered in-app notifications, plus transactional email)
 
 ### Product boundaries (future)
 
-Slack notifications, Teams integration, HTML calendar views, and additional provider connectors (MYOB, QuickBooks) are out of scope for the initial build. The architecture accommodates these without requiring structural changes.
+Slack notifications, Teams integration, HTML calendar views, and additional provider connectors (MYOB, Zoho People, QuickBooks) are out of scope for the initial build. The architecture accommodates these without requiring structural changes.
 
 ---
 
@@ -49,6 +50,8 @@ Slack notifications, Teams integration, HTML calendar views, and additional prov
 | Deployment | Vercel | All apps |
 | Testing | Vitest | Co-located test files |
 | Linting | Biome 2 + Ultracite | |
+| Real-time notifications | Server-sent events (SSE) via Vercel streaming | In-app notification delivery; no WebSocket infrastructure required |
+| Public holiday data | Nager.Date API (or equivalent) | Auto-sourced per country and region; manual overrides stored in database |
 
 ---
 
@@ -134,8 +137,11 @@ Authenticated UI for:
 
 - team calendar view
 - person profiles and detail
+- leave submission (draft, submit, withdraw)
+- leave approval (manager approve/decline view)
+- leave balance display
 - manual availability entry (WFH, travelling, training, client site, etc.)
-- Xero leave visibility (read-only display of synced leave)
+- Xero leave visibility (display of synced leave)
 - feed management (create, configure, preview, rotate tokens)
 - privacy rule configuration
 - publishing health dashboard
@@ -148,6 +154,8 @@ System boundary for:
 
 - Xero OAuth flow and token refresh
 - Xero employee and leave sync endpoints
+- leave submission, approval, decline, and withdrawal endpoints (outbound Xero writes)
+- SSE notification stream: `GET /notifications/stream`
 - manual availability CRUD
 - feed rendering endpoint: `GET /ical/:token.ics`
 - feed preview APIs
@@ -219,6 +227,18 @@ Responsibilities:
 - region-specific API differences handled internally
 
 Xero's AU, NZ, and UK payroll APIs expose similar concepts but not identical resources. This package absorbs all region variance so downstream code never sees Xero-specific payload shapes.
+
+#### Write operations
+
+- Submit a leave application to Xero Payroll (AU/NZ/UK).
+- Approve a leave application in Xero Payroll.
+- Decline a leave application in Xero Payroll.
+- Withdraw a leave application from Xero Payroll.
+- Translate Xero API validation errors into plain-language messages suitable for display to employees and managers.
+
+All write operations return `Result<T, XeroWriteError>`. `XeroWriteError` includes: `validation_error` (Xero rejected the payload), `conflict_error` (overlapping leave or insufficient balance), `auth_error` (token expired or revoked), `rate_limit_error`, `unknown_error`. Route handlers in `apps/api` map these to appropriate HTTP responses and trigger notifications.
+
+Region-specific write logic is isolated in `packages/xero/src/au/write.ts`, `packages/xero/src/nz/write.ts`, and `packages/xero/src/uk/write.ts`.
 
 #### Xero rate limits
 
@@ -299,6 +319,17 @@ Responsibilities:
 - nightly reconciliation jobs
 - dead-letter handling for failed records
 
+### `packages/notifications`
+
+In-app notification creation, SSE delivery, notification preferences, and email dispatch.
+
+Responsibilities:
+
+- Create notification records in the `notifications` table.
+- Deliver in-app notifications via SSE. The SSE endpoint lives in `apps/api` at `GET /notifications/stream` (authenticated, per-user, long-lived connection).
+- Dispatch email notifications via Resend where `email_enabled = true` in preferences.
+- Respect `notification_preferences` for every notification event.
+
 ### `packages/core`
 
 Shared types, utilities, and patterns.
@@ -342,6 +373,10 @@ Plan
 PlanLimit
 WorkspaceSubscription
 UsageCounter
+LeaveBalance
+PublicHoliday
+Notification
+NotificationPreference
 ```
 
 ---
@@ -506,7 +541,7 @@ Core table.
 | `workspace_id` | UUID | FK |
 | `organisation_id` | UUID | FK |
 | `person_id` | UUID | FK |
-| `source_type` | enum | `xero_leave`, `manual` |
+| `source_type` | enum | `xero_leave`, `leavesync_leave`, `manual` |
 | `record_type` | enum | see record types below |
 | `title` | text | |
 | `starts_at` | timestamp | |
@@ -531,10 +566,18 @@ Core table.
 | `created_at` | timestamp | |
 | `updated_at` | timestamp | |
 | `archived_at` | timestamp | nullable |
+| `approval_status` | enum | `draft`, `submitted`, `approved`, `declined`, `withdrawn`, `xero_sync_failed` |
+| `approval_note` | text | nullable; manager note on approval or decline |
+| `approved_by_person_id` | UUID | nullable FK to `people`; the person who approved or declined |
+| `approved_at` | timestamp | nullable |
+| `xero_write_error` | text | nullable; plain-language Xero error message for display |
+| `xero_write_error_raw` | jsonb | nullable; raw Xero API error payload for admin audit |
+| `submitted_at` | timestamp | nullable |
+| `withdrawn_at` | timestamp | nullable |
 
 #### Record types
 
-`annual_leave`, `personal_leave`, `holiday`, `sick_leave`, `long_service_leave`, `unpaid_leave`, `public_holiday`, `wfh`, `travelling`, `client_site`, `another_office`, `training`, `offsite_meeting`, `contractor_unavailable`, `limited_availability`, `alternative_contact`, `other`
+`annual_leave`, `personal_leave`, `holiday`, `sick_leave`, `long_service_leave`, `unpaid_leave`, `public_holiday`, `wfh`, `travelling`, `client_site`, `another_office`, `training`, `offsite_meeting`, `contractor_unavailable`, `limited_availability`, `alternative_contact`, `other`, `leave_request`
 
 ### `availability_publications`
 
@@ -555,6 +598,90 @@ Materialised publishing state per record. Decouples raw data from what was actua
 | `last_feed_hash` | text | |
 | `created_at` | timestamp | |
 | `updated_at` | timestamp | |
+
+### `leave_balances`
+
+Stores leave balances fetched from Xero per person per leave type. Used to display remaining entitlement during leave submission.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `workspace_id` | UUID | FK |
+| `organisation_id` | UUID | FK |
+| `person_id` | UUID | FK |
+| `xero_tenant_id` | UUID | FK |
+| `leave_type_xero_id` | text | Xero's leave type identifier |
+| `leave_type_name` | text | Display name from Xero |
+| `record_type` | enum | Canonical record type mapping |
+| `balance_value` | decimal | Remaining balance in hours or days (per Xero region convention) |
+| `balance_unit` | enum | `hours`, `days` |
+| `as_at` | timestamp | When the balance was fetched |
+| `created_at` | timestamp | |
+| `updated_at` | timestamp | |
+
+**Unique constraint:** `(person_id, xero_tenant_id, leave_type_xero_id)`
+
+### `public_holidays`
+
+Stores public holidays per location, sourced from API or entered manually.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `workspace_id` | UUID | FK |
+| `organisation_id` | UUID | FK |
+| `location_id` | UUID | nullable FK; null means applies to all locations in the org |
+| `name` | text | Display name of the holiday |
+| `date` | date | Actual calendar date |
+| `observed_date` | date | nullable; substitute date when actual falls on a weekend |
+| `country_code` | enum | `AU`, `NZ`, `UK` |
+| `region_code` | text | nullable; state/territory/nation (e.g. `QLD`, `Auckland`, `Scotland`) |
+| `holiday_type` | enum | `national`, `regional`, `custom` |
+| `source` | enum | `api`, `manual` |
+| `is_suppressed` | boolean | Admin-suppressed from display and calculations |
+| `recurs_annually` | boolean | For custom holidays only |
+| `created_at` | timestamp | |
+| `updated_at` | timestamp | |
+
+**Unique constraint:** `(organisation_id, location_id, date, source)` where source = `api`. Custom holidays do not enforce this constraint.
+
+### `notifications`
+
+Stores in-app notification records per user.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `workspace_id` | UUID | FK |
+| `recipient_user_id` | text | Clerk user ID |
+| `notification_type` | enum | See types below |
+| `title` | text | Short notification title |
+| `body` | text | Full notification message |
+| `entity_type` | text | nullable; related entity type (e.g. `availability_record`) |
+| `entity_id` | text | nullable; related entity ID |
+| `action_url` | text | nullable; deep-link URL within the app |
+| `is_read` | boolean | |
+| `read_at` | timestamp | nullable |
+| `created_at` | timestamp | |
+
+**Notification types:** `sync_completed`, `sync_failed`, `sync_partial`, `feed_token_rotated`, `privacy_conflict`, `missing_alternative_contact`, `leave_submitted`, `leave_approved`, `leave_declined`, `leave_withdrawn`, `leave_xero_sync_failed`, `leave_peak_warning`, `plan_confirmed`
+
+### `notification_preferences`
+
+Stores per-user notification opt-in settings.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | PK |
+| `user_id` | text | Clerk user ID |
+| `workspace_id` | UUID | FK |
+| `notification_type` | enum | FK to notification types |
+| `in_app_enabled` | boolean | |
+| `email_enabled` | boolean | |
+| `created_at` | timestamp | |
+| `updated_at` | timestamp | |
+
+**Unique constraint:** `(user_id, workspace_id, notification_type)`
 
 ### `feeds`
 
@@ -757,53 +884,89 @@ Store a `published_sequence` integer on `availability_publications`. Increment i
 
 ## Xero sync model
 
-Use a pull-first (polling) sync model.
+LeaveSync uses a bidirectional sync model with Xero Payroll. Inbound sync (Xero to LeaveSync) uses pull-first polling. Outbound sync (LeaveSync to Xero) uses synchronous API writes triggered by user actions (leave submission, approval, or withdrawal).
 
-### Why polling
+### Inbound sync (Xero to LeaveSync)
 
-- LeaveSync's job is visibility and publishing, not transactional payroll write-back
-- Xero's leave resources differ by payroll region
-- feed freshness matters more than low-latency bidirectional mutation
-- Xero does not provide webhooks for leave data relevant to LeaveSync's scope
+Pull-first polling. Xero does not provide webhooks for leave data.
+
+**Why polling for inbound:**
+- Xero's leave resources differ by payroll region.
+- Feed freshness matters more than low-latency for read-only visibility.
+- Polling catches any changes made directly in Xero Payroll by a payroll administrator.
+
+### Outbound sync (LeaveSync to Xero)
+
+Synchronous API write triggered by user action. If Xero rejects the write (validation error, overlapping leave, insufficient balance, API error), the action fails immediately and the record remains in its pre-action state. No background queue for outbound writes.
+
+**Failure handling for outbound writes:**
+- The error is surfaced inline to the user who triggered the action.
+- The employee and their manager receive an in-app notification.
+- The record remains in a `xero_sync_failed` state, visible in the plans and leave approvals screens.
+- Admin can review failed records and retry or resolve manually.
+- Xero API error messages are translated into plain-language explanations before display. Raw Xero error payloads are stored in `source_payload_json` for admin audit only.
+
+**Region-specific Xero write APIs:**
+- AU: Xero Payroll AU Leave Applications API
+- NZ: Xero Payroll NZ Leave Applications API
+- UK: Xero Payroll UK Leave (Timesheets and Leave) API
+
+All three APIs expose create, update, and approval endpoints but differ in payload shape, leave type identifiers, and validation rules. Region-specific write logic is isolated in `packages/xero/src/au/write.ts`, `packages/xero/src/nz/write.ts`, and `packages/xero/src/uk/write.ts`.
 
 ### Sync jobs (Inngest)
 
-| Job | Purpose |
-|---|---|
-| `sync-xero-people` | Fetch and upsert employees from Xero |
-| `sync-xero-leave-records` | Fetch leave records, map to `availability_records` |
-| `reconcile-feed-publications` | Ensure `availability_publications` match current records |
-| `rebuild-feed-cache` | Regenerate cached ICS feed bodies in Vercel KV |
+| Job | Direction | Purpose |
+|---|---|---|
+| `sync-xero-people` | Inbound | Fetch and upsert employees from Xero |
+| `sync-xero-leave-records` | Inbound | Fetch leave records, map to `availability_records` |
+| `sync-xero-leave-balances` | Inbound | Fetch leave balances per person per leave type |
+| `reconcile-feed-publications` | Internal | Ensure `availability_publications` match current records |
+| `rebuild-feed-cache` | Internal | Regenerate cached ICS feed bodies in Vercel KV |
+| `reconcile-xero-approval-state` | Bidirectional | Detect approval state drift between LeaveSync and Xero; resolve conflicts |
 
-### Sync flow
+Outbound writes (submit, approve, decline, withdraw) are synchronous API calls in `apps/api` route handlers, not Inngest jobs.
 
-1. Load active Xero tenant
-2. Fetch employees for the tenant's payroll region
-3. Upsert `people` records
-4. Fetch leave records and supporting leave metadata
-5. Map to canonical `availability_records`
-6. Compute `source_remote_hash` for change detection
-7. Archive or suppress stale records no longer present in Xero
-8. Enqueue feed rebuilds for affected feeds only
+### Inbound sync flow
 
-### Mapping rule
+1. Load active Xero tenant.
+2. Fetch employees for the tenant's payroll region.
+3. Upsert `people` records.
+4. Fetch leave records and supporting leave metadata.
+5. Fetch leave balances per employee per leave type.
+6. Map to canonical `availability_records`, updating `approval_status` from Xero state.
+7. Compute `source_remote_hash` for change detection.
+8. Archive or suppress stale records no longer present in Xero.
+9. Enqueue feed rebuilds for affected feeds only.
 
-Keep raw provider payloads in `source_payload_json` for auditability.
+### Conflict resolution
+
+If a record's approval state in Xero differs from LeaveSync (e.g. a payroll admin approved or declined directly in Xero), the inbound sync wins. LeaveSync always reflects Xero's state on the next poll. The `reconcile-xero-approval-state` job runs every 15 minutes during business hours to minimise the window between a Xero-side change and LeaveSync reflecting it.
 
 ### Retry and failure rules
 
-- Transient failures: exponential backoff with jitter (handled by Inngest)
-- Retries capped per job type
-- Record-level failures do not fail the entire run unless a configurable threshold is breached
-- Failed records captured in `failed_records` table with full context
-- Partial syncs are first-class outcomes, visible in sync health UI
-- All upserts must be idempotent
+- Inbound transient failures: exponential backoff via Inngest.
+- Outbound write failures: surfaced synchronously to the user; no automatic retry.
+- Record-level inbound failures do not fail the entire sync run.
+- Failed records captured in `failed_records` table with full context.
+- All inbound upserts must be idempotent.
 
 ### Sync scheduling
 
-- incremental syncs: configurable interval per organisation (default: every 15 minutes during business hours, every 60 minutes outside)
-- nightly reconciliation: full re-sync and stale record detection
-- manual re-sync: available from the UI for admin users
+- Incremental inbound syncs: every 15 minutes during business hours, every 60 minutes outside.
+- Leave balance sync: every 60 minutes.
+- Nightly reconciliation: full re-sync and stale record detection.
+- Manual re-sync: available from the UI for admin users.
+
+---
+
+## Xero write adapter rules
+
+- Write operations are synchronous in the request path. They do not use Inngest.
+- Write payloads are validated with Zod before being sent to Xero. A Zod validation failure must not result in a Xero API call.
+- Raw Xero write request and response payloads are logged to `source_payload_json` on the `availability_record` for audit.
+- Region-specific write logic is isolated: AU writes use the Xero Payroll AU API; NZ writes use Xero Payroll NZ; UK writes use the Xero Payroll UK API. Payload shapes differ between regions and are handled in `packages/xero/src/au/write.ts`, `packages/xero/src/nz/write.ts`, and `packages/xero/src/uk/write.ts`.
+- Leave type identifiers are mapped from LeaveSync canonical types to Xero region-specific leave type IDs using the existing `mappings/` module.
+- Xero API rate limits apply to write operations: they count against the 60 calls/min per org and 5,000/day per org limits. High-volume approval actions in large organisations should be considered in rate limit planning.
 
 ---
 
@@ -932,17 +1095,23 @@ apps/api/src/routes/
 ## Build order
 
 1. Workspace, organisation, people, team, location schema and seed data
-2. Xero OAuth and tenant persistence (`packages/xero/oauth`, `packages/xero/tenants`)
-3. Xero employee sync (`packages/xero/sync`, `packages/xero/au`, `packages/xero/nz`, `packages/xero/uk`)
-4. Xero leave normalisation into `availability_records`
-5. Manual availability CRUD
-6. Feed model and token model
-7. ICS renderer with stable UID and privacy modes (`packages/feeds`)
-8. Feed preview and feed detail UI
-9. Team calendar and person profile UI
-10. Reconciliation jobs, sync health UI, and audit reporting
+2. Xero OAuth and tenant persistence
+3. Xero employee sync (AU, NZ, UK) — inbound only
+4. Xero leave inbound normalisation into `availability_records`
+5. Leave balance sync from Xero
+6. Leave submission workflow: draft, submit, Xero write-back, approval state machine
+7. Leave approval workflow: manager approve/decline, Xero write-back
+8. Manual availability CRUD (WFH, travel, etc.)
+9. Public holiday data: API sourcing, manual overrides, per-location configuration
+10. SSE notification infrastructure and in-app notification delivery
+11. Feed model and token model
+12. ICS renderer with stable UID and privacy modes
+13. Feed preview and feed detail UI
+14. Team calendar and person profile UI
+15. Analytics: leave reports and out-of-office reports
+16. Reconciliation jobs, sync health UI, and audit reporting
 
-Each step should produce a deployable, testable vertical slice.
+Each step produces a deployable, testable vertical slice.
 
 ---
 
@@ -974,3 +1143,8 @@ Each step should produce a deployable, testable vertical slice.
 - Result pattern for service-layer errors
 - Co-located tests from the first slice
 - Australian English in all UI copy and documentation
+- Outbound Xero writes are synchronous. No background queuing of approval state.
+- Xero write errors are surfaced to the user in plain language. Raw error payloads are stored for admin audit only, never displayed to employees.
+- Leave balances displayed in the UI are always sourced from the `leave_balances` table (last fetched from Xero). They are never calculated by LeaveSync.
+- SSE connections are per-user and per-workspace. They must not leak notifications across workspace boundaries.
+- Notification preferences default to in-app enabled, email enabled for all types. Users may opt out per type.
