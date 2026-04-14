@@ -21,6 +21,8 @@ export async function loadTeamCalendarData(
   filters?: {
     teamId?: string;
     locationId?: string;
+    recordType?: string;
+    approvalStatus?: string;
   }
 ): Promise<
   Result<{
@@ -38,6 +40,7 @@ export async function loadTeamCalendarData(
       recordType: string;
       startsAt: Date;
       endsAt: Date;
+      approvalStatus: string;
       privacyMode: string;
       contactability: string;
     }>;
@@ -58,14 +61,30 @@ export async function loadTeamCalendarData(
       };
     }
 
+    // Build query filters
+    const calendarFilters: Parameters<typeof listAvailabilityForCalendar>[3] = {};
+
+    // Add person IDs filter if team or location filter applied
+    if (filters?.teamId || filters?.locationId) {
+      calendarFilters.personIds = peopleResult.value.map((p) => p.id);
+    }
+
+    // Add record type filter
+    if (filters?.recordType) {
+      calendarFilters.recordTypes = [filters.recordType];
+    }
+
+    // Add approval status filter
+    if (filters?.approvalStatus) {
+      calendarFilters.approvalStatus = filters.approvalStatus;
+    }
+
     // Load availability for the date range
     const availabilityResult = await listAvailabilityForCalendar(
       clerkOrgId,
       organisationId,
       dateRange,
-      filters?.teamId
-        ? { personIds: peopleResult.value.map((p) => p.id as PersonId) }
-        : undefined
+      Object.keys(calendarFilters).length > 0 ? calendarFilters : undefined
     );
 
     if (!availabilityResult.ok) {
@@ -92,6 +111,7 @@ export async function loadTeamCalendarData(
           recordType: record.recordType,
           startsAt: record.startsAt,
           endsAt: record.endsAt,
+          approvalStatus: record.approvalStatus,
           privacyMode: record.privacyMode,
           contactability: record.contactability,
         })),
