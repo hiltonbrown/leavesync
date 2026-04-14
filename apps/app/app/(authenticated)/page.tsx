@@ -1,127 +1,98 @@
 import { ClipboardListIcon, LinkIcon, UserIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Header } from "./components/header";
 import { LivingTimelineModule } from "./components/living-timeline-module";
+import { getActiveOrgContext } from "@/lib/server/get-active-org-context";
+import { loadDashboardData } from "@/lib/server/load-dashboard-data";
+import { toDateOnly } from "@repo/core";
 
 export const metadata: Metadata = {
   title: "Dashboard — LeaveSync",
   description: "Overview of leave, availability, and sync status.",
 };
 
-// ─── Placeholder data ──────────────────────────────────────────────────────
+interface DashboardPageProps {
+  searchParams: Promise<{
+    org?: string;
+  }>;
+}
 
-const todayAbsences = [
-  { name: "Priya Sharma" },
-  { name: "Marcus Webb" },
-  { name: "Aisha Okonkwo" },
-  { name: "Tom Eriksson" },
-];
+const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
+  const { org } = await searchParams;
 
-const recentLeave = [
-  {
-    name: "Priya Sharma",
-    type: "Annual Leave",
-    from: "Apr 7",
-    to: "Apr 11",
-    status: "approved",
-  },
-  {
-    name: "Marcus Webb",
-    type: "Sick Leave",
-    from: "Apr 5",
-    to: "Apr 6",
-    status: "approved",
-  },
-  {
-    name: "Yuki Tanaka",
-    type: "Annual Leave",
-    from: "Apr 14",
-    to: "Apr 18",
-    status: "pending",
-  },
-  {
-    name: "Aisha Okonkwo",
-    type: "Parental Leave",
-    from: "Apr 22",
-    to: "Jun 30",
-    status: "approved",
-  },
-  {
-    name: "Elena Rossi",
-    type: "Annual Leave",
-    from: "May 2",
-    to: "May 10",
-    status: "approved",
-  },
-  {
-    name: "Sofia Reyes",
-    type: "Annual Leave",
-    from: "May 15",
-    to: "May 22",
-    status: "pending",
-  },
-  {
-    name: "Marcus Webb",
-    type: "Annual Leave",
-    from: "Jun 1",
-    to: "Jun 5",
-    status: "approved",
-  },
-  {
-    name: "Tom Eriksson",
-    type: "Sick Leave",
-    from: "Jun 10",
-    to: "Jun 11",
-    status: "approved",
-  },
-  {
-    name: "Priya Sharma",
-    type: "Annual Leave",
-    from: "Jun 15",
-    to: "Jun 20",
-    status: "pending",
-  },
-];
+  // Step 1: Validate organisation context
+  const contextResult = await getActiveOrgContext(org || "");
 
-// ─── Component ─────────────────────────────────────────────────────────────
+  if (!contextResult.ok) {
+    return notFound();
+  }
 
-const Dashboard = () => (
-  <>
-    <Header page="Dashboard" />
-    <div className="flex flex-1 flex-col gap-6 p-6">
-      {/* Row 1 — asymmetric hero + secondary stack */}
-      <div className="grid gap-5 md:grid-cols-3">
-        <div className="relative z-30 md:col-span-2">
-          <LivingTimelineModule todayAbsences={todayAbsences} total={38} />
+  const { clerkOrgId, organisationId } = contextResult.value;
+
+  // Step 2: Load dashboard data
+  const dataResult = await loadDashboardData(clerkOrgId, organisationId);
+
+  if (!dataResult.ok) {
+    throw new Error(dataResult.error.message);
+  }
+
+  const { stats, recentActivity } = dataResult.value;
+
+  // Step 3: Transform recent activity for display
+  const displayActivity = recentActivity.map((record) => ({
+    from: toDateOnly(record.startsAt),
+    name: record.personName || "Unknown",
+    status: record.approvalStatus,
+    to: toDateOnly(record.endsAt),
+    type: record.recordType,
+  }));
+
+  const todayAbsences = recentActivity
+    .filter((r) => ["leave", "wfh"].includes(r.recordType))
+    .slice(0, 5);
+
+  return (
+    <>
+      <Header page="Dashboard" />
+      <div className="flex flex-1 flex-col gap-6 p-6">
+        {/* Row 1 — asymmetric hero + secondary stack */}
+        <div className="grid gap-5 md:grid-cols-3">
+          <div className="relative z-30 md:col-span-2">
+            <LivingTimelineModule
+              todayAbsences={todayAbsences}
+              total={stats.peopleUnavailableToday}
+            />
+          </div>
+          <div className="flex flex-col gap-4">
+            <ActionModule
+              ctaHref="/plans"
+              ctaLabel="Review"
+              icon={<ClipboardListIcon className="size-3.5" strokeWidth={1.75} />}
+              label="Pending approvals"
+              sub=""
+              value={String(stats.pendingApprovals)}
+            />
+            <ActionModule
+              ctaHref="/feed"
+              ctaLabel="Manage"
+              icon={<LinkIcon className="size-3.5" strokeWidth={1.75} />}
+              label="Active Calendar Feeds"
+              sub=""
+              value={String(stats.activeFeeds)}
+            />
+          </div>
         </div>
-        <div className="flex flex-col gap-4">
-          <ActionModule
-            ctaHref="/plans"
-            ctaLabel="Review"
-            icon={<ClipboardListIcon className="size-3.5" strokeWidth={1.75} />}
-            label="Pending approvals"
-            sub="awaiting review"
-            value="2"
-          />
-          <ActionModule
-            ctaHref="/feed"
-            ctaLabel="Manage"
-            icon={<LinkIcon className="size-3.5" strokeWidth={1.75} />}
-            label="Active Calendar Feeds"
-            sub="Last sync 3 min ago"
-            value="6"
-          />
-        </div>
+
+        {/* Row 2 — full-width recent requests */}
+        <RecentRequestsCard entries={displayActivity} />
       </div>
+    </>
+  );
+};
 
-      {/* Row 2 — full-width recent requests */}
-      <RecentRequestsCard entries={recentLeave} />
-    </div>
-  </>
-);
-
-export default Dashboard;
+export default DashboardPage;
 
 // ─── Sub-components ─────────────────────────────────────────────────────────
 
@@ -197,36 +168,42 @@ const RecentRequestsCard = ({ entries }: RecentRequestsCardProps) => (
       </Link>
     </div>
 
-    <div className="flex flex-col gap-1">
-      {entries.map((entry) => (
-        <div
-          className="flex items-center justify-between rounded-xl px-3 py-2.5 transition-colors hover:bg-accent"
-          key={`${entry.name}-${entry.from}`}
-        >
-          <div className="flex min-w-0 items-center gap-3">
-            <div
-              className="flex size-7 shrink-0 items-center justify-center rounded-full"
-              style={{ background: "var(--secondary-container)" }}
-            >
-              <UserIcon
-                className="size-3.5"
-                strokeWidth={2}
-                style={{ color: "var(--on-secondary-container)" }}
-              />
+    {entries.length === 0 ? (
+      <div className="flex items-center justify-center py-8 text-muted-foreground">
+        <p className="text-sm">No recent activity</p>
+      </div>
+    ) : (
+      <div className="flex flex-col gap-1">
+        {entries.map((entry) => (
+          <div
+            className="flex items-center justify-between rounded-xl px-3 py-2.5 transition-colors hover:bg-accent"
+            key={`${entry.name}-${entry.from}`}
+          >
+            <div className="flex min-w-0 items-center gap-3">
+              <div
+                className="flex size-7 shrink-0 items-center justify-center rounded-full"
+                style={{ background: "var(--secondary-container)" }}
+              >
+                <UserIcon
+                  className="size-3.5"
+                  strokeWidth={2}
+                  style={{ color: "var(--on-secondary-container)" }}
+                />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate font-medium text-[0.875rem] text-foreground leading-tight">
+                  {entry.name}
+                </p>
+                <p className="text-label-md text-muted-foreground">
+                  {entry.type} &middot; {entry.from} &ndash; {entry.to}
+                </p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="truncate font-medium text-[0.875rem] text-foreground leading-tight">
-                {entry.name}
-              </p>
-              <p className="text-label-md text-muted-foreground">
-                {entry.type} &middot; {entry.from} &ndash; {entry.to}
-              </p>
-            </div>
+            <StatusBadge status={entry.status} />
           </div>
-          <StatusBadge status={entry.status} />
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    )}
   </div>
 );
 
