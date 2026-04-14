@@ -1,8 +1,8 @@
-import { OrganizationSwitcher } from "@repo/auth/client";
 import { ModeToggle } from "@repo/design-system/components/mode-toggle";
 import { Separator } from "@repo/design-system/components/ui/separator";
 import { SidebarTrigger } from "@repo/design-system/components/ui/sidebar";
 import { type ReactNode, Suspense } from "react";
+import { CustomUserButton } from "./custom-user-button";
 
 interface HeaderProps {
   children?: ReactNode;
@@ -28,10 +28,10 @@ export const Header = ({ page, children }: HeaderProps) => (
       <ModeToggle />
       <Suspense
         fallback={
-          <div className="h-7 w-32 animate-pulse rounded-md bg-[var(--sidebar-accent)]" />
+          <div className="h-7 w-7 animate-pulse rounded-full bg-[var(--sidebar-accent)]" />
         }
       >
-        <OrganizationSwitcher afterSelectOrganizationUrl="/" hidePersonal />
+        <CustomUserButton />
       </Suspense>
     </div>
   </header>
