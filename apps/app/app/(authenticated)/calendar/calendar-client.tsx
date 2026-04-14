@@ -63,184 +63,11 @@ interface CalendarFeed {
 
 const TODAY = new Date(2026, 3, 5); // April 5, 2026
 
-const ALL_LEAVE_DATA: LeaveEntry[] = [
-  {
-    id: 1,
-    personId: "p1",
-    name: "Priya Sharma",
-    initials: "PS",
-    type: "Annual Leave",
-    start: "2026-04-07",
-    end: "2026-04-11",
-  },
-  {
-    id: 2,
-    personId: "p2",
-    name: "Marcus Webb",
-    initials: "MW",
-    type: "Sick Leave",
-    start: "2026-04-05",
-    end: "2026-04-06",
-  },
-  {
-    id: 3,
-    personId: "p3",
-    name: "Yuki Tanaka",
-    initials: "YT",
-    type: "Annual Leave",
-    start: "2026-04-14",
-    end: "2026-04-18",
-  },
-  {
-    id: 4,
-    personId: "p4",
-    name: "Aisha Okonkwo",
-    initials: "AO",
-    type: "Parental Leave",
-    start: "2026-04-22",
-    end: "2026-06-30",
-  },
-  {
-    id: 5,
-    personId: "p5",
-    name: "Tom Eriksson",
-    initials: "TE",
-    type: "Annual Leave",
-    start: "2026-04-28",
-    end: "2026-05-02",
-  },
-  {
-    id: 6,
-    personId: "p6",
-    name: "Sofia Reyes",
-    initials: "SR",
-    type: "Annual Leave",
-    start: "2026-05-15",
-    end: "2026-05-22",
-  },
-  {
-    id: 7,
-    personId: "p1",
-    name: "Priya Sharma",
-    initials: "PS",
-    type: "Sick Leave",
-    start: "2026-04-20",
-    end: "2026-04-21",
-  },
-  {
-    id: 8,
-    personId: "p2",
-    name: "Marcus Webb",
-    initials: "MW",
-    type: "Annual Leave",
-    start: "2026-05-05",
-    end: "2026-05-15",
-  },
-  {
-    id: 9,
-    personId: "p7",
-    name: "Elena Rossi",
-    initials: "ER",
-    type: "Annual Leave",
-    start: "2026-05-02",
-    end: "2026-05-10",
-  },
-  {
-    id: 10,
-    personId: "p2",
-    name: "Marcus Webb",
-    initials: "MW",
-    type: "Annual Leave",
-    start: "2026-06-01",
-    end: "2026-06-05",
-  },
-  {
-    id: 11,
-    personId: "p5",
-    name: "Tom Eriksson",
-    initials: "TE",
-    type: "Sick Leave",
-    start: "2026-06-10",
-    end: "2026-06-11",
-  },
-  {
-    id: 12,
-    personId: "p1",
-    name: "Priya Sharma",
-    initials: "PS",
-    type: "Annual Leave",
-    start: "2026-06-15",
-    end: "2026-06-20",
-  },
-];
+const ALL_LEAVE_DATA: LeaveEntry[] = [];
 
-const PEOPLE = [
-  { id: "p1", name: "Priya Sharma", initials: "PS", role: "Engineering" },
-  { id: "p2", name: "Marcus Webb", initials: "MW", role: "Engineering" },
-  { id: "p3", name: "Yuki Tanaka", initials: "YT", role: "Product" },
-  { id: "p4", name: "Aisha Okonkwo", initials: "AO", role: "Design" },
-  { id: "p5", name: "Tom Eriksson", initials: "TE", role: "Engineering" },
-  { id: "p6", name: "Sofia Reyes", initials: "SR", role: "Product" },
-  { id: "p7", name: "Elena Rossi", initials: "ER", role: "Product" },
-  ...Array.from({ length: 10 }).map((_, i) => {
-    let role = "Engineering";
-    if (i % 3 === 1) {
-      role = "Product";
-    } else if (i % 3 === 2) {
-      role = "Design";
-    }
-    return {
-      id: `pg${i}`,
-      name: `Generated Person ${i + 1}`,
-      initials: `G${i + 1}`,
-      role,
-    };
-  }),
-];
+const PEOPLE = [];
 
-const CALENDAR_FEEDS: CalendarFeed[] = [
-  {
-    id: "feed_all",
-    name: "All Staff",
-    description: "Company-wide leave feed for all employees",
-    status: "active",
-    token: "org_k8s92j_all",
-    personIds: [
-      "p1",
-      "p2",
-      "p3",
-      "p4",
-      "p5",
-      "p6",
-      "p7",
-      ...Array.from({ length: 10 }).map((_, i) => `pg${i}`),
-    ],
-  },
-  {
-    id: "feed_eng",
-    name: "Engineering Team",
-    description: "All leave for the engineering department",
-    status: "active",
-    token: "org_k8s92j_eng",
-    personIds: ["p1", "p2", "p5"],
-  },
-  {
-    id: "feed_prd",
-    name: "Product & Design",
-    description: "Leave calendar for product and design",
-    status: "active",
-    token: "org_k8s92j_prd",
-    personIds: ["p3", "p4", "p6", "p7"],
-  },
-  {
-    id: "feed_mgmt",
-    name: "Leadership",
-    description: "Senior leadership and management leave",
-    status: "paused",
-    token: "org_k8s92j_mgmt",
-    personIds: ["p3"],
-  },
-];
+const CALENDAR_FEEDS: CalendarFeed[] = [];
 
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
@@ -379,6 +206,11 @@ interface FeedSelectorProps {
 
 function FeedSelector({ feeds, selectedId, onSelect }: FeedSelectorProps) {
   const selected = feeds.find((f) => f.id === selectedId) ?? feeds[0];
+
+  if (!selected) {
+    return <div className="text-muted-foreground">No feeds available</div>;
+  }
+
   const isActive = selected.status === "active";
   const peopleCount = selected.personIds.length;
 
@@ -1609,19 +1441,27 @@ function SetupInstructions() {
 
 // ─── Main exported component ──────────────────────────────────────────────────
 
-export function CalendarClient() {
-  const [selectedFeedId, setSelectedFeedId] = useState<string>(
-    CALENDAR_FEEDS[0].id
-  );
+export interface CalendarClientProps {
+  initialEntries?: LeaveEntry[];
+  people?: Array<{ id: string; firstName: string; lastName: string; email: string; teamId: string | null; locationId: string | null }>;
+  weekStart?: Date;
+  filters?: {
+    team?: string;
+    location?: string;
+    recordType?: string;
+    approvalStatus?: string;
+  };
+}
+
+export function CalendarClient(props: CalendarClientProps = {}) {
+  const [selectedFeedId, setSelectedFeedId] = useState<string>("");
   const [view, setView] = useState<View>("month");
-  const [anchor, setAnchor] = useState<Date>(new Date(TODAY));
+  const [anchor, setAnchor] = useState<Date>(props.weekStart ? new Date(props.weekStart) : new Date(TODAY));
   const [setupOpen, setSetupOpen] = useState(false);
 
   const selectedFeed =
     CALENDAR_FEEDS.find((f) => f.id === selectedFeedId) ?? CALENDAR_FEEDS[0];
-  const leaveData = ALL_LEAVE_DATA.filter((e) =>
-    selectedFeed.personIds.includes(e.personId)
-  );
+  const leaveData = props.initialEntries || [];
 
   const navigate = (dir: -1 | 1) => {
     setAnchor((prev) => {
@@ -1764,7 +1604,7 @@ export function CalendarClient() {
               <DayView anchor={anchor} leaveData={leaveData} />
             </div>
           )}
-          {view === "timeline" && (
+          {view === "timeline" && selectedFeed && (
             <TimelineView
               anchor={anchor}
               groupByRole={selectedFeedId === "feed_all"}
@@ -1817,7 +1657,7 @@ export function CalendarClient() {
           />
         </button>
 
-        {setupOpen && (
+        {setupOpen && selectedFeed && (
           <div className="flex flex-col gap-10 pt-6">
             <ICalSection
               feedName={selectedFeed.name}
