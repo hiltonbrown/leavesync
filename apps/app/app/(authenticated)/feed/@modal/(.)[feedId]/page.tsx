@@ -56,6 +56,7 @@ const FeedDetailModalPage = async ({
             `${person.firstName[0] ?? ""}${person.lastName[0] ?? ""}`.toUpperCase(),
           name: `${person.firstName} ${person.lastName}`,
         }))}
+        organisationId={organisationId}
         previewEvents={feedResult.value.recentPublications.map(
           (publication) => ({
             date: publication.publishedAt.toISOString(),

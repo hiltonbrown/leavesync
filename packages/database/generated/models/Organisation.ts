@@ -41,6 +41,7 @@ export type OrganisationMinAggregateOutputType = {
   clerk_org_id: string | null
   name: string | null
   country_code: string | null
+  is_active: boolean | null
   timezone: string | null
   locale: string | null
   fiscal_year_start: number | null
@@ -56,6 +57,7 @@ export type OrganisationMaxAggregateOutputType = {
   clerk_org_id: string | null
   name: string | null
   country_code: string | null
+  is_active: boolean | null
   timezone: string | null
   locale: string | null
   fiscal_year_start: number | null
@@ -71,6 +73,7 @@ export type OrganisationCountAggregateOutputType = {
   clerk_org_id: number
   name: number
   country_code: number
+  is_active: number
   timezone: number
   locale: number
   fiscal_year_start: number
@@ -98,6 +101,7 @@ export type OrganisationMinAggregateInputType = {
   clerk_org_id?: true
   name?: true
   country_code?: true
+  is_active?: true
   timezone?: true
   locale?: true
   fiscal_year_start?: true
@@ -113,6 +117,7 @@ export type OrganisationMaxAggregateInputType = {
   clerk_org_id?: true
   name?: true
   country_code?: true
+  is_active?: true
   timezone?: true
   locale?: true
   fiscal_year_start?: true
@@ -128,6 +133,7 @@ export type OrganisationCountAggregateInputType = {
   clerk_org_id?: true
   name?: true
   country_code?: true
+  is_active?: true
   timezone?: true
   locale?: true
   fiscal_year_start?: true
@@ -230,6 +236,7 @@ export type OrganisationGroupByOutputType = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active: boolean
   timezone: string | null
   locale: string | null
   fiscal_year_start: number | null
@@ -268,6 +275,7 @@ export type OrganisationWhereInput = {
   clerk_org_id?: Prisma.StringFilter<"Organisation"> | string
   name?: Prisma.StringFilter<"Organisation"> | string
   country_code?: Prisma.StringFilter<"Organisation"> | string
+  is_active?: Prisma.BoolFilter<"Organisation"> | boolean
   timezone?: Prisma.StringNullableFilter<"Organisation"> | string | null
   locale?: Prisma.StringNullableFilter<"Organisation"> | string | null
   fiscal_year_start?: Prisma.IntNullableFilter<"Organisation"> | number | null
@@ -283,6 +291,9 @@ export type OrganisationWhereInput = {
   availability_records?: Prisma.AvailabilityRecordListRelationFilter
   availability_publications?: Prisma.AvailabilityPublicationListRelationFilter
   feeds?: Prisma.FeedListRelationFilter
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionListRelationFilter
+  public_holidays?: Prisma.PublicHolidayListRelationFilter
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentListRelationFilter
   xero_connection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
   xero_tenants?: Prisma.XeroTenantListRelationFilter
   xero_sync_cursors?: Prisma.XeroSyncCursorListRelationFilter
@@ -296,6 +307,7 @@ export type OrganisationOrderByWithRelationInput = {
   clerk_org_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   country_code?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
   timezone?: Prisma.SortOrderInput | Prisma.SortOrder
   locale?: Prisma.SortOrderInput | Prisma.SortOrder
   fiscal_year_start?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -311,6 +323,9 @@ export type OrganisationOrderByWithRelationInput = {
   availability_records?: Prisma.AvailabilityRecordOrderByRelationAggregateInput
   availability_publications?: Prisma.AvailabilityPublicationOrderByRelationAggregateInput
   feeds?: Prisma.FeedOrderByRelationAggregateInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionOrderByRelationAggregateInput
+  public_holidays?: Prisma.PublicHolidayOrderByRelationAggregateInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentOrderByRelationAggregateInput
   xero_connection?: Prisma.XeroConnectionOrderByWithRelationInput
   xero_tenants?: Prisma.XeroTenantOrderByRelationAggregateInput
   xero_sync_cursors?: Prisma.XeroSyncCursorOrderByRelationAggregateInput
@@ -327,6 +342,7 @@ export type OrganisationWhereUniqueInput = Prisma.AtLeast<{
   clerk_org_id?: Prisma.StringFilter<"Organisation"> | string
   name?: Prisma.StringFilter<"Organisation"> | string
   country_code?: Prisma.StringFilter<"Organisation"> | string
+  is_active?: Prisma.BoolFilter<"Organisation"> | boolean
   timezone?: Prisma.StringNullableFilter<"Organisation"> | string | null
   locale?: Prisma.StringNullableFilter<"Organisation"> | string | null
   fiscal_year_start?: Prisma.IntNullableFilter<"Organisation"> | number | null
@@ -342,6 +358,9 @@ export type OrganisationWhereUniqueInput = Prisma.AtLeast<{
   availability_records?: Prisma.AvailabilityRecordListRelationFilter
   availability_publications?: Prisma.AvailabilityPublicationListRelationFilter
   feeds?: Prisma.FeedListRelationFilter
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionListRelationFilter
+  public_holidays?: Prisma.PublicHolidayListRelationFilter
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentListRelationFilter
   xero_connection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
   xero_tenants?: Prisma.XeroTenantListRelationFilter
   xero_sync_cursors?: Prisma.XeroSyncCursorListRelationFilter
@@ -355,6 +374,7 @@ export type OrganisationOrderByWithAggregationInput = {
   clerk_org_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   country_code?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
   timezone?: Prisma.SortOrderInput | Prisma.SortOrder
   locale?: Prisma.SortOrderInput | Prisma.SortOrder
   fiscal_year_start?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -378,6 +398,7 @@ export type OrganisationScalarWhereWithAggregatesInput = {
   clerk_org_id?: Prisma.StringWithAggregatesFilter<"Organisation"> | string
   name?: Prisma.StringWithAggregatesFilter<"Organisation"> | string
   country_code?: Prisma.StringWithAggregatesFilter<"Organisation"> | string
+  is_active?: Prisma.BoolWithAggregatesFilter<"Organisation"> | boolean
   timezone?: Prisma.StringNullableWithAggregatesFilter<"Organisation"> | string | null
   locale?: Prisma.StringNullableWithAggregatesFilter<"Organisation"> | string | null
   fiscal_year_start?: Prisma.IntNullableWithAggregatesFilter<"Organisation"> | number | null
@@ -393,6 +414,7 @@ export type OrganisationCreateInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -408,6 +430,9 @@ export type OrganisationCreateInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutOrganisationInput
@@ -421,6 +446,7 @@ export type OrganisationUncheckedCreateInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -436,6 +462,9 @@ export type OrganisationUncheckedCreateInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantUncheckedCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutOrganisationInput
@@ -449,6 +478,7 @@ export type OrganisationUpdateInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -464,6 +494,9 @@ export type OrganisationUpdateInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutOrganisationNestedInput
@@ -477,6 +510,7 @@ export type OrganisationUncheckedUpdateInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -492,6 +526,9 @@ export type OrganisationUncheckedUpdateInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -505,6 +542,7 @@ export type OrganisationCreateManyInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -520,6 +558,7 @@ export type OrganisationUpdateManyMutationInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -535,6 +574,7 @@ export type OrganisationUncheckedUpdateManyInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -550,6 +590,7 @@ export type OrganisationCountOrderByAggregateInput = {
   clerk_org_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   country_code?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   locale?: Prisma.SortOrder
   fiscal_year_start?: Prisma.SortOrder
@@ -570,6 +611,7 @@ export type OrganisationMaxOrderByAggregateInput = {
   clerk_org_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   country_code?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   locale?: Prisma.SortOrder
   fiscal_year_start?: Prisma.SortOrder
@@ -585,6 +627,7 @@ export type OrganisationMinOrderByAggregateInput = {
   clerk_org_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   country_code?: Prisma.SortOrder
+  is_active?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   locale?: Prisma.SortOrder
   fiscal_year_start?: Prisma.SortOrder
@@ -612,6 +655,10 @@ export type OrganisationNullableScalarRelationFilter = {
 
 export type StringFieldUpdateOperationsInput = {
   set?: string
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
 }
 
 export type NullableStringFieldUpdateOperationsInput = {
@@ -768,6 +815,48 @@ export type OrganisationUpdateOneRequiredWithoutLeave_balancesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganisationUpdateToOneWithWhereWithoutLeave_balancesInput, Prisma.OrganisationUpdateWithoutLeave_balancesInput>, Prisma.OrganisationUncheckedUpdateWithoutLeave_balancesInput>
 }
 
+export type OrganisationCreateNestedOneWithoutPublic_holiday_jurisdictionsInput = {
+  create?: Prisma.XOR<Prisma.OrganisationCreateWithoutPublic_holiday_jurisdictionsInput, Prisma.OrganisationUncheckedCreateWithoutPublic_holiday_jurisdictionsInput>
+  connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutPublic_holiday_jurisdictionsInput
+  connect?: Prisma.OrganisationWhereUniqueInput
+}
+
+export type OrganisationUpdateOneRequiredWithoutPublic_holiday_jurisdictionsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganisationCreateWithoutPublic_holiday_jurisdictionsInput, Prisma.OrganisationUncheckedCreateWithoutPublic_holiday_jurisdictionsInput>
+  connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutPublic_holiday_jurisdictionsInput
+  upsert?: Prisma.OrganisationUpsertWithoutPublic_holiday_jurisdictionsInput
+  connect?: Prisma.OrganisationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganisationUpdateToOneWithWhereWithoutPublic_holiday_jurisdictionsInput, Prisma.OrganisationUpdateWithoutPublic_holiday_jurisdictionsInput>, Prisma.OrganisationUncheckedUpdateWithoutPublic_holiday_jurisdictionsInput>
+}
+
+export type OrganisationCreateNestedOneWithoutPublic_holidaysInput = {
+  create?: Prisma.XOR<Prisma.OrganisationCreateWithoutPublic_holidaysInput, Prisma.OrganisationUncheckedCreateWithoutPublic_holidaysInput>
+  connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutPublic_holidaysInput
+  connect?: Prisma.OrganisationWhereUniqueInput
+}
+
+export type OrganisationUpdateOneRequiredWithoutPublic_holidaysNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganisationCreateWithoutPublic_holidaysInput, Prisma.OrganisationUncheckedCreateWithoutPublic_holidaysInput>
+  connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutPublic_holidaysInput
+  upsert?: Prisma.OrganisationUpsertWithoutPublic_holidaysInput
+  connect?: Prisma.OrganisationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganisationUpdateToOneWithWhereWithoutPublic_holidaysInput, Prisma.OrganisationUpdateWithoutPublic_holidaysInput>, Prisma.OrganisationUncheckedUpdateWithoutPublic_holidaysInput>
+}
+
+export type OrganisationCreateNestedOneWithoutPublic_holiday_assignmentsInput = {
+  create?: Prisma.XOR<Prisma.OrganisationCreateWithoutPublic_holiday_assignmentsInput, Prisma.OrganisationUncheckedCreateWithoutPublic_holiday_assignmentsInput>
+  connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutPublic_holiday_assignmentsInput
+  connect?: Prisma.OrganisationWhereUniqueInput
+}
+
+export type OrganisationUpdateOneRequiredWithoutPublic_holiday_assignmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganisationCreateWithoutPublic_holiday_assignmentsInput, Prisma.OrganisationUncheckedCreateWithoutPublic_holiday_assignmentsInput>
+  connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutPublic_holiday_assignmentsInput
+  upsert?: Prisma.OrganisationUpsertWithoutPublic_holiday_assignmentsInput
+  connect?: Prisma.OrganisationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganisationUpdateToOneWithWhereWithoutPublic_holiday_assignmentsInput, Prisma.OrganisationUpdateWithoutPublic_holiday_assignmentsInput>, Prisma.OrganisationUncheckedUpdateWithoutPublic_holiday_assignmentsInput>
+}
+
 export type OrganisationCreateNestedOneWithoutFeedsInput = {
   create?: Prisma.XOR<Prisma.OrganisationCreateWithoutFeedsInput, Prisma.OrganisationUncheckedCreateWithoutFeedsInput>
   connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutFeedsInput
@@ -831,6 +920,7 @@ export type OrganisationCreateWithoutTeamsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -845,6 +935,9 @@ export type OrganisationCreateWithoutTeamsInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutOrganisationInput
@@ -858,6 +951,7 @@ export type OrganisationUncheckedCreateWithoutTeamsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -872,6 +966,9 @@ export type OrganisationUncheckedCreateWithoutTeamsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantUncheckedCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutOrganisationInput
@@ -901,6 +998,7 @@ export type OrganisationUpdateWithoutTeamsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -915,6 +1013,9 @@ export type OrganisationUpdateWithoutTeamsInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutOrganisationNestedInput
@@ -928,6 +1029,7 @@ export type OrganisationUncheckedUpdateWithoutTeamsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -942,6 +1044,9 @@ export type OrganisationUncheckedUpdateWithoutTeamsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -955,6 +1060,7 @@ export type OrganisationCreateWithoutLocationsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -969,6 +1075,9 @@ export type OrganisationCreateWithoutLocationsInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutOrganisationInput
@@ -982,6 +1091,7 @@ export type OrganisationUncheckedCreateWithoutLocationsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -996,6 +1106,9 @@ export type OrganisationUncheckedCreateWithoutLocationsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantUncheckedCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutOrganisationInput
@@ -1025,6 +1138,7 @@ export type OrganisationUpdateWithoutLocationsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1039,6 +1153,9 @@ export type OrganisationUpdateWithoutLocationsInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutOrganisationNestedInput
@@ -1052,6 +1169,7 @@ export type OrganisationUncheckedUpdateWithoutLocationsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1066,6 +1184,9 @@ export type OrganisationUncheckedUpdateWithoutLocationsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -1079,6 +1200,7 @@ export type OrganisationCreateWithoutPeopleInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -1093,6 +1215,9 @@ export type OrganisationCreateWithoutPeopleInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutOrganisationInput
@@ -1106,6 +1231,7 @@ export type OrganisationUncheckedCreateWithoutPeopleInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -1120,6 +1246,9 @@ export type OrganisationUncheckedCreateWithoutPeopleInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantUncheckedCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutOrganisationInput
@@ -1149,6 +1278,7 @@ export type OrganisationUpdateWithoutPeopleInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1163,6 +1293,9 @@ export type OrganisationUpdateWithoutPeopleInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutOrganisationNestedInput
@@ -1176,6 +1309,7 @@ export type OrganisationUncheckedUpdateWithoutPeopleInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1190,6 +1324,9 @@ export type OrganisationUncheckedUpdateWithoutPeopleInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -1203,6 +1340,7 @@ export type OrganisationCreateWithoutXero_connectionInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -1218,6 +1356,9 @@ export type OrganisationCreateWithoutXero_connectionInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutOrganisationInput
   sync_runs?: Prisma.SyncRunCreateNestedManyWithoutOrganisationInput
@@ -1230,6 +1371,7 @@ export type OrganisationUncheckedCreateWithoutXero_connectionInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -1245,6 +1387,9 @@ export type OrganisationUncheckedCreateWithoutXero_connectionInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantUncheckedCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutOrganisationInput
   sync_runs?: Prisma.SyncRunUncheckedCreateNestedManyWithoutOrganisationInput
@@ -1273,6 +1418,7 @@ export type OrganisationUpdateWithoutXero_connectionInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1288,6 +1434,9 @@ export type OrganisationUpdateWithoutXero_connectionInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutOrganisationNestedInput
   sync_runs?: Prisma.SyncRunUpdateManyWithoutOrganisationNestedInput
@@ -1300,6 +1449,7 @@ export type OrganisationUncheckedUpdateWithoutXero_connectionInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1315,6 +1465,9 @@ export type OrganisationUncheckedUpdateWithoutXero_connectionInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutOrganisationNestedInput
   sync_runs?: Prisma.SyncRunUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -1327,6 +1480,7 @@ export type OrganisationCreateWithoutXero_tenantsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -1342,6 +1496,9 @@ export type OrganisationCreateWithoutXero_tenantsInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutOrganisationInput
   sync_runs?: Prisma.SyncRunCreateNestedManyWithoutOrganisationInput
@@ -1354,6 +1511,7 @@ export type OrganisationUncheckedCreateWithoutXero_tenantsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -1369,6 +1527,9 @@ export type OrganisationUncheckedCreateWithoutXero_tenantsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutOrganisationInput
   sync_runs?: Prisma.SyncRunUncheckedCreateNestedManyWithoutOrganisationInput
@@ -1397,6 +1558,7 @@ export type OrganisationUpdateWithoutXero_tenantsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1412,6 +1574,9 @@ export type OrganisationUpdateWithoutXero_tenantsInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutOrganisationNestedInput
   sync_runs?: Prisma.SyncRunUpdateManyWithoutOrganisationNestedInput
@@ -1424,6 +1589,7 @@ export type OrganisationUncheckedUpdateWithoutXero_tenantsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1439,6 +1605,9 @@ export type OrganisationUncheckedUpdateWithoutXero_tenantsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutOrganisationNestedInput
   sync_runs?: Prisma.SyncRunUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -1451,6 +1620,7 @@ export type OrganisationCreateWithoutXero_sync_cursorsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -1466,6 +1636,9 @@ export type OrganisationCreateWithoutXero_sync_cursorsInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantCreateNestedManyWithoutOrganisationInput
   sync_runs?: Prisma.SyncRunCreateNestedManyWithoutOrganisationInput
@@ -1478,6 +1651,7 @@ export type OrganisationUncheckedCreateWithoutXero_sync_cursorsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -1493,6 +1667,9 @@ export type OrganisationUncheckedCreateWithoutXero_sync_cursorsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantUncheckedCreateNestedManyWithoutOrganisationInput
   sync_runs?: Prisma.SyncRunUncheckedCreateNestedManyWithoutOrganisationInput
@@ -1521,6 +1698,7 @@ export type OrganisationUpdateWithoutXero_sync_cursorsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1536,6 +1714,9 @@ export type OrganisationUpdateWithoutXero_sync_cursorsInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUpdateManyWithoutOrganisationNestedInput
   sync_runs?: Prisma.SyncRunUpdateManyWithoutOrganisationNestedInput
@@ -1548,6 +1729,7 @@ export type OrganisationUncheckedUpdateWithoutXero_sync_cursorsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1563,6 +1745,9 @@ export type OrganisationUncheckedUpdateWithoutXero_sync_cursorsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUncheckedUpdateManyWithoutOrganisationNestedInput
   sync_runs?: Prisma.SyncRunUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -1575,6 +1760,7 @@ export type OrganisationCreateWithoutAvailability_recordsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -1589,6 +1775,9 @@ export type OrganisationCreateWithoutAvailability_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutOrganisationInput
@@ -1602,6 +1791,7 @@ export type OrganisationUncheckedCreateWithoutAvailability_recordsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -1616,6 +1806,9 @@ export type OrganisationUncheckedCreateWithoutAvailability_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantUncheckedCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutOrganisationInput
@@ -1645,6 +1838,7 @@ export type OrganisationUpdateWithoutAvailability_recordsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1659,6 +1853,9 @@ export type OrganisationUpdateWithoutAvailability_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutOrganisationNestedInput
@@ -1672,6 +1869,7 @@ export type OrganisationUncheckedUpdateWithoutAvailability_recordsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1686,6 +1884,9 @@ export type OrganisationUncheckedUpdateWithoutAvailability_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -1699,6 +1900,7 @@ export type OrganisationCreateWithoutAvailability_publicationsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -1713,6 +1915,9 @@ export type OrganisationCreateWithoutAvailability_publicationsInput = {
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutOrganisationInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutOrganisationInput
@@ -1726,6 +1931,7 @@ export type OrganisationUncheckedCreateWithoutAvailability_publicationsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -1740,6 +1946,9 @@ export type OrganisationUncheckedCreateWithoutAvailability_publicationsInput = {
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutOrganisationInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantUncheckedCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutOrganisationInput
@@ -1769,6 +1978,7 @@ export type OrganisationUpdateWithoutAvailability_publicationsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1783,6 +1993,9 @@ export type OrganisationUpdateWithoutAvailability_publicationsInput = {
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutOrganisationNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutOrganisationNestedInput
@@ -1796,6 +2009,7 @@ export type OrganisationUncheckedUpdateWithoutAvailability_publicationsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1810,6 +2024,9 @@ export type OrganisationUncheckedUpdateWithoutAvailability_publicationsInput = {
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -1823,6 +2040,7 @@ export type OrganisationCreateWithoutLeave_balancesInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -1837,6 +2055,9 @@ export type OrganisationCreateWithoutLeave_balancesInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutOrganisationInput
@@ -1850,6 +2071,7 @@ export type OrganisationUncheckedCreateWithoutLeave_balancesInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -1864,6 +2086,9 @@ export type OrganisationUncheckedCreateWithoutLeave_balancesInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantUncheckedCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutOrganisationInput
@@ -1893,6 +2118,7 @@ export type OrganisationUpdateWithoutLeave_balancesInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1907,6 +2133,9 @@ export type OrganisationUpdateWithoutLeave_balancesInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutOrganisationNestedInput
@@ -1920,6 +2149,7 @@ export type OrganisationUncheckedUpdateWithoutLeave_balancesInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1934,6 +2164,9 @@ export type OrganisationUncheckedUpdateWithoutLeave_balancesInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -1942,11 +2175,12 @@ export type OrganisationUncheckedUpdateWithoutLeave_balancesInput = {
   audit_events?: Prisma.AuditEventUncheckedUpdateManyWithoutOrganisationNestedInput
 }
 
-export type OrganisationCreateWithoutFeedsInput = {
+export type OrganisationCreateWithoutPublic_holiday_jurisdictionsInput = {
   id?: string
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -1961,6 +2195,9 @@ export type OrganisationCreateWithoutFeedsInput = {
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutOrganisationInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
+  feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutOrganisationInput
@@ -1969,11 +2206,12 @@ export type OrganisationCreateWithoutFeedsInput = {
   audit_events?: Prisma.AuditEventCreateNestedManyWithoutOrganisationInput
 }
 
-export type OrganisationUncheckedCreateWithoutFeedsInput = {
+export type OrganisationUncheckedCreateWithoutPublic_holiday_jurisdictionsInput = {
   id?: string
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -1988,6 +2226,429 @@ export type OrganisationUncheckedCreateWithoutFeedsInput = {
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutOrganisationInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
+  feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
+  xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
+  xero_tenants?: Prisma.XeroTenantUncheckedCreateNestedManyWithoutOrganisationInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutOrganisationInput
+  sync_runs?: Prisma.SyncRunUncheckedCreateNestedManyWithoutOrganisationInput
+  failed_records?: Prisma.FailedRecordUncheckedCreateNestedManyWithoutOrganisationInput
+  audit_events?: Prisma.AuditEventUncheckedCreateNestedManyWithoutOrganisationInput
+}
+
+export type OrganisationCreateOrConnectWithoutPublic_holiday_jurisdictionsInput = {
+  where: Prisma.OrganisationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganisationCreateWithoutPublic_holiday_jurisdictionsInput, Prisma.OrganisationUncheckedCreateWithoutPublic_holiday_jurisdictionsInput>
+}
+
+export type OrganisationUpsertWithoutPublic_holiday_jurisdictionsInput = {
+  update: Prisma.XOR<Prisma.OrganisationUpdateWithoutPublic_holiday_jurisdictionsInput, Prisma.OrganisationUncheckedUpdateWithoutPublic_holiday_jurisdictionsInput>
+  create: Prisma.XOR<Prisma.OrganisationCreateWithoutPublic_holiday_jurisdictionsInput, Prisma.OrganisationUncheckedCreateWithoutPublic_holiday_jurisdictionsInput>
+  where?: Prisma.OrganisationWhereInput
+}
+
+export type OrganisationUpdateToOneWithWhereWithoutPublic_holiday_jurisdictionsInput = {
+  where?: Prisma.OrganisationWhereInput
+  data: Prisma.XOR<Prisma.OrganisationUpdateWithoutPublic_holiday_jurisdictionsInput, Prisma.OrganisationUncheckedUpdateWithoutPublic_holiday_jurisdictionsInput>
+}
+
+export type OrganisationUpdateWithoutPublic_holiday_jurisdictionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  working_hours_per_day?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teams?: Prisma.TeamUpdateManyWithoutOrganisationNestedInput
+  locations?: Prisma.LocationUpdateManyWithoutOrganisationNestedInput
+  people?: Prisma.PersonUpdateManyWithoutOrganisationNestedInput
+  leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutOrganisationNestedInput
+  availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
+  availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
+  feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
+  xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
+  xero_tenants?: Prisma.XeroTenantUpdateManyWithoutOrganisationNestedInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutOrganisationNestedInput
+  sync_runs?: Prisma.SyncRunUpdateManyWithoutOrganisationNestedInput
+  failed_records?: Prisma.FailedRecordUpdateManyWithoutOrganisationNestedInput
+  audit_events?: Prisma.AuditEventUpdateManyWithoutOrganisationNestedInput
+}
+
+export type OrganisationUncheckedUpdateWithoutPublic_holiday_jurisdictionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  working_hours_per_day?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teams?: Prisma.TeamUncheckedUpdateManyWithoutOrganisationNestedInput
+  locations?: Prisma.LocationUncheckedUpdateManyWithoutOrganisationNestedInput
+  people?: Prisma.PersonUncheckedUpdateManyWithoutOrganisationNestedInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutOrganisationNestedInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
+  availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
+  feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
+  xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
+  xero_tenants?: Prisma.XeroTenantUncheckedUpdateManyWithoutOrganisationNestedInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutOrganisationNestedInput
+  sync_runs?: Prisma.SyncRunUncheckedUpdateManyWithoutOrganisationNestedInput
+  failed_records?: Prisma.FailedRecordUncheckedUpdateManyWithoutOrganisationNestedInput
+  audit_events?: Prisma.AuditEventUncheckedUpdateManyWithoutOrganisationNestedInput
+}
+
+export type OrganisationCreateWithoutPublic_holidaysInput = {
+  id?: string
+  clerk_org_id: string
+  name: string
+  country_code: string
+  is_active?: boolean
+  timezone?: string | null
+  locale?: string | null
+  fiscal_year_start?: number | null
+  working_hours_per_day?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: string | null
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  teams?: Prisma.TeamCreateNestedManyWithoutOrganisationInput
+  locations?: Prisma.LocationCreateNestedManyWithoutOrganisationInput
+  people?: Prisma.PersonCreateNestedManyWithoutOrganisationInput
+  leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutOrganisationInput
+  availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
+  availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
+  feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
+  xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
+  xero_tenants?: Prisma.XeroTenantCreateNestedManyWithoutOrganisationInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutOrganisationInput
+  sync_runs?: Prisma.SyncRunCreateNestedManyWithoutOrganisationInput
+  failed_records?: Prisma.FailedRecordCreateNestedManyWithoutOrganisationInput
+  audit_events?: Prisma.AuditEventCreateNestedManyWithoutOrganisationInput
+}
+
+export type OrganisationUncheckedCreateWithoutPublic_holidaysInput = {
+  id?: string
+  clerk_org_id: string
+  name: string
+  country_code: string
+  is_active?: boolean
+  timezone?: string | null
+  locale?: string | null
+  fiscal_year_start?: number | null
+  working_hours_per_day?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: string | null
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  teams?: Prisma.TeamUncheckedCreateNestedManyWithoutOrganisationInput
+  locations?: Prisma.LocationUncheckedCreateNestedManyWithoutOrganisationInput
+  people?: Prisma.PersonUncheckedCreateNestedManyWithoutOrganisationInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutOrganisationInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
+  availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
+  feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
+  xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
+  xero_tenants?: Prisma.XeroTenantUncheckedCreateNestedManyWithoutOrganisationInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutOrganisationInput
+  sync_runs?: Prisma.SyncRunUncheckedCreateNestedManyWithoutOrganisationInput
+  failed_records?: Prisma.FailedRecordUncheckedCreateNestedManyWithoutOrganisationInput
+  audit_events?: Prisma.AuditEventUncheckedCreateNestedManyWithoutOrganisationInput
+}
+
+export type OrganisationCreateOrConnectWithoutPublic_holidaysInput = {
+  where: Prisma.OrganisationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganisationCreateWithoutPublic_holidaysInput, Prisma.OrganisationUncheckedCreateWithoutPublic_holidaysInput>
+}
+
+export type OrganisationUpsertWithoutPublic_holidaysInput = {
+  update: Prisma.XOR<Prisma.OrganisationUpdateWithoutPublic_holidaysInput, Prisma.OrganisationUncheckedUpdateWithoutPublic_holidaysInput>
+  create: Prisma.XOR<Prisma.OrganisationCreateWithoutPublic_holidaysInput, Prisma.OrganisationUncheckedCreateWithoutPublic_holidaysInput>
+  where?: Prisma.OrganisationWhereInput
+}
+
+export type OrganisationUpdateToOneWithWhereWithoutPublic_holidaysInput = {
+  where?: Prisma.OrganisationWhereInput
+  data: Prisma.XOR<Prisma.OrganisationUpdateWithoutPublic_holidaysInput, Prisma.OrganisationUncheckedUpdateWithoutPublic_holidaysInput>
+}
+
+export type OrganisationUpdateWithoutPublic_holidaysInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  working_hours_per_day?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teams?: Prisma.TeamUpdateManyWithoutOrganisationNestedInput
+  locations?: Prisma.LocationUpdateManyWithoutOrganisationNestedInput
+  people?: Prisma.PersonUpdateManyWithoutOrganisationNestedInput
+  leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutOrganisationNestedInput
+  availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
+  availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
+  feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
+  xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
+  xero_tenants?: Prisma.XeroTenantUpdateManyWithoutOrganisationNestedInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutOrganisationNestedInput
+  sync_runs?: Prisma.SyncRunUpdateManyWithoutOrganisationNestedInput
+  failed_records?: Prisma.FailedRecordUpdateManyWithoutOrganisationNestedInput
+  audit_events?: Prisma.AuditEventUpdateManyWithoutOrganisationNestedInput
+}
+
+export type OrganisationUncheckedUpdateWithoutPublic_holidaysInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  working_hours_per_day?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teams?: Prisma.TeamUncheckedUpdateManyWithoutOrganisationNestedInput
+  locations?: Prisma.LocationUncheckedUpdateManyWithoutOrganisationNestedInput
+  people?: Prisma.PersonUncheckedUpdateManyWithoutOrganisationNestedInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutOrganisationNestedInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
+  availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
+  feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
+  xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
+  xero_tenants?: Prisma.XeroTenantUncheckedUpdateManyWithoutOrganisationNestedInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutOrganisationNestedInput
+  sync_runs?: Prisma.SyncRunUncheckedUpdateManyWithoutOrganisationNestedInput
+  failed_records?: Prisma.FailedRecordUncheckedUpdateManyWithoutOrganisationNestedInput
+  audit_events?: Prisma.AuditEventUncheckedUpdateManyWithoutOrganisationNestedInput
+}
+
+export type OrganisationCreateWithoutPublic_holiday_assignmentsInput = {
+  id?: string
+  clerk_org_id: string
+  name: string
+  country_code: string
+  is_active?: boolean
+  timezone?: string | null
+  locale?: string | null
+  fiscal_year_start?: number | null
+  working_hours_per_day?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: string | null
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  teams?: Prisma.TeamCreateNestedManyWithoutOrganisationInput
+  locations?: Prisma.LocationCreateNestedManyWithoutOrganisationInput
+  people?: Prisma.PersonCreateNestedManyWithoutOrganisationInput
+  leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutOrganisationInput
+  availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
+  availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
+  feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
+  xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
+  xero_tenants?: Prisma.XeroTenantCreateNestedManyWithoutOrganisationInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutOrganisationInput
+  sync_runs?: Prisma.SyncRunCreateNestedManyWithoutOrganisationInput
+  failed_records?: Prisma.FailedRecordCreateNestedManyWithoutOrganisationInput
+  audit_events?: Prisma.AuditEventCreateNestedManyWithoutOrganisationInput
+}
+
+export type OrganisationUncheckedCreateWithoutPublic_holiday_assignmentsInput = {
+  id?: string
+  clerk_org_id: string
+  name: string
+  country_code: string
+  is_active?: boolean
+  timezone?: string | null
+  locale?: string | null
+  fiscal_year_start?: number | null
+  working_hours_per_day?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: string | null
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  teams?: Prisma.TeamUncheckedCreateNestedManyWithoutOrganisationInput
+  locations?: Prisma.LocationUncheckedCreateNestedManyWithoutOrganisationInput
+  people?: Prisma.PersonUncheckedCreateNestedManyWithoutOrganisationInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutOrganisationInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
+  availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
+  feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
+  xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
+  xero_tenants?: Prisma.XeroTenantUncheckedCreateNestedManyWithoutOrganisationInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutOrganisationInput
+  sync_runs?: Prisma.SyncRunUncheckedCreateNestedManyWithoutOrganisationInput
+  failed_records?: Prisma.FailedRecordUncheckedCreateNestedManyWithoutOrganisationInput
+  audit_events?: Prisma.AuditEventUncheckedCreateNestedManyWithoutOrganisationInput
+}
+
+export type OrganisationCreateOrConnectWithoutPublic_holiday_assignmentsInput = {
+  where: Prisma.OrganisationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganisationCreateWithoutPublic_holiday_assignmentsInput, Prisma.OrganisationUncheckedCreateWithoutPublic_holiday_assignmentsInput>
+}
+
+export type OrganisationUpsertWithoutPublic_holiday_assignmentsInput = {
+  update: Prisma.XOR<Prisma.OrganisationUpdateWithoutPublic_holiday_assignmentsInput, Prisma.OrganisationUncheckedUpdateWithoutPublic_holiday_assignmentsInput>
+  create: Prisma.XOR<Prisma.OrganisationCreateWithoutPublic_holiday_assignmentsInput, Prisma.OrganisationUncheckedCreateWithoutPublic_holiday_assignmentsInput>
+  where?: Prisma.OrganisationWhereInput
+}
+
+export type OrganisationUpdateToOneWithWhereWithoutPublic_holiday_assignmentsInput = {
+  where?: Prisma.OrganisationWhereInput
+  data: Prisma.XOR<Prisma.OrganisationUpdateWithoutPublic_holiday_assignmentsInput, Prisma.OrganisationUncheckedUpdateWithoutPublic_holiday_assignmentsInput>
+}
+
+export type OrganisationUpdateWithoutPublic_holiday_assignmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  working_hours_per_day?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teams?: Prisma.TeamUpdateManyWithoutOrganisationNestedInput
+  locations?: Prisma.LocationUpdateManyWithoutOrganisationNestedInput
+  people?: Prisma.PersonUpdateManyWithoutOrganisationNestedInput
+  leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutOrganisationNestedInput
+  availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
+  availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
+  feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
+  xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
+  xero_tenants?: Prisma.XeroTenantUpdateManyWithoutOrganisationNestedInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutOrganisationNestedInput
+  sync_runs?: Prisma.SyncRunUpdateManyWithoutOrganisationNestedInput
+  failed_records?: Prisma.FailedRecordUpdateManyWithoutOrganisationNestedInput
+  audit_events?: Prisma.AuditEventUpdateManyWithoutOrganisationNestedInput
+}
+
+export type OrganisationUncheckedUpdateWithoutPublic_holiday_assignmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  working_hours_per_day?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teams?: Prisma.TeamUncheckedUpdateManyWithoutOrganisationNestedInput
+  locations?: Prisma.LocationUncheckedUpdateManyWithoutOrganisationNestedInput
+  people?: Prisma.PersonUncheckedUpdateManyWithoutOrganisationNestedInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutOrganisationNestedInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
+  availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
+  feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
+  xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
+  xero_tenants?: Prisma.XeroTenantUncheckedUpdateManyWithoutOrganisationNestedInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutOrganisationNestedInput
+  sync_runs?: Prisma.SyncRunUncheckedUpdateManyWithoutOrganisationNestedInput
+  failed_records?: Prisma.FailedRecordUncheckedUpdateManyWithoutOrganisationNestedInput
+  audit_events?: Prisma.AuditEventUncheckedUpdateManyWithoutOrganisationNestedInput
+}
+
+export type OrganisationCreateWithoutFeedsInput = {
+  id?: string
+  clerk_org_id: string
+  name: string
+  country_code: string
+  is_active?: boolean
+  timezone?: string | null
+  locale?: string | null
+  fiscal_year_start?: number | null
+  working_hours_per_day?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: string | null
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  teams?: Prisma.TeamCreateNestedManyWithoutOrganisationInput
+  locations?: Prisma.LocationCreateNestedManyWithoutOrganisationInput
+  people?: Prisma.PersonCreateNestedManyWithoutOrganisationInput
+  leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutOrganisationInput
+  availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
+  availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
+  xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
+  xero_tenants?: Prisma.XeroTenantCreateNestedManyWithoutOrganisationInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutOrganisationInput
+  sync_runs?: Prisma.SyncRunCreateNestedManyWithoutOrganisationInput
+  failed_records?: Prisma.FailedRecordCreateNestedManyWithoutOrganisationInput
+  audit_events?: Prisma.AuditEventCreateNestedManyWithoutOrganisationInput
+}
+
+export type OrganisationUncheckedCreateWithoutFeedsInput = {
+  id?: string
+  clerk_org_id: string
+  name: string
+  country_code: string
+  is_active?: boolean
+  timezone?: string | null
+  locale?: string | null
+  fiscal_year_start?: number | null
+  working_hours_per_day?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: string | null
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  teams?: Prisma.TeamUncheckedCreateNestedManyWithoutOrganisationInput
+  locations?: Prisma.LocationUncheckedCreateNestedManyWithoutOrganisationInput
+  people?: Prisma.PersonUncheckedCreateNestedManyWithoutOrganisationInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutOrganisationInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
+  availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantUncheckedCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutOrganisationInput
@@ -2017,6 +2678,7 @@ export type OrganisationUpdateWithoutFeedsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2031,6 +2693,9 @@ export type OrganisationUpdateWithoutFeedsInput = {
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutOrganisationNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutOrganisationNestedInput
@@ -2044,6 +2709,7 @@ export type OrganisationUncheckedUpdateWithoutFeedsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2058,6 +2724,9 @@ export type OrganisationUncheckedUpdateWithoutFeedsInput = {
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -2071,6 +2740,7 @@ export type OrganisationCreateWithoutSync_runsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -2086,6 +2756,9 @@ export type OrganisationCreateWithoutSync_runsInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutOrganisationInput
@@ -2098,6 +2771,7 @@ export type OrganisationUncheckedCreateWithoutSync_runsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -2113,6 +2787,9 @@ export type OrganisationUncheckedCreateWithoutSync_runsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantUncheckedCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutOrganisationInput
@@ -2141,6 +2818,7 @@ export type OrganisationUpdateWithoutSync_runsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2156,6 +2834,9 @@ export type OrganisationUpdateWithoutSync_runsInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutOrganisationNestedInput
@@ -2168,6 +2849,7 @@ export type OrganisationUncheckedUpdateWithoutSync_runsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2183,6 +2865,9 @@ export type OrganisationUncheckedUpdateWithoutSync_runsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -2195,6 +2880,7 @@ export type OrganisationCreateWithoutFailed_recordsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -2210,6 +2896,9 @@ export type OrganisationCreateWithoutFailed_recordsInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutOrganisationInput
@@ -2222,6 +2911,7 @@ export type OrganisationUncheckedCreateWithoutFailed_recordsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -2237,6 +2927,9 @@ export type OrganisationUncheckedCreateWithoutFailed_recordsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantUncheckedCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutOrganisationInput
@@ -2265,6 +2958,7 @@ export type OrganisationUpdateWithoutFailed_recordsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2280,6 +2974,9 @@ export type OrganisationUpdateWithoutFailed_recordsInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutOrganisationNestedInput
@@ -2292,6 +2989,7 @@ export type OrganisationUncheckedUpdateWithoutFailed_recordsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2307,6 +3005,9 @@ export type OrganisationUncheckedUpdateWithoutFailed_recordsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -2319,6 +3020,7 @@ export type OrganisationCreateWithoutAudit_eventsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -2334,6 +3036,9 @@ export type OrganisationCreateWithoutAudit_eventsInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutOrganisationInput
@@ -2346,6 +3051,7 @@ export type OrganisationUncheckedCreateWithoutAudit_eventsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  is_active?: boolean
   timezone?: string | null
   locale?: string | null
   fiscal_year_start?: number | null
@@ -2361,6 +3067,9 @@ export type OrganisationUncheckedCreateWithoutAudit_eventsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
   xero_tenants?: Prisma.XeroTenantUncheckedCreateNestedManyWithoutOrganisationInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutOrganisationInput
@@ -2389,6 +3098,7 @@ export type OrganisationUpdateWithoutAudit_eventsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2404,6 +3114,9 @@ export type OrganisationUpdateWithoutAudit_eventsInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutOrganisationNestedInput
@@ -2416,6 +3129,7 @@ export type OrganisationUncheckedUpdateWithoutAudit_eventsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -2431,6 +3145,9 @@ export type OrganisationUncheckedUpdateWithoutAudit_eventsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
   xero_tenants?: Prisma.XeroTenantUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -2451,6 +3168,9 @@ export type OrganisationCountOutputType = {
   availability_records: number
   availability_publications: number
   feeds: number
+  public_holiday_jurisdictions: number
+  public_holidays: number
+  public_holiday_assignments: number
   xero_tenants: number
   xero_sync_cursors: number
   sync_runs: number
@@ -2466,6 +3186,9 @@ export type OrganisationCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   availability_records?: boolean | OrganisationCountOutputTypeCountAvailability_recordsArgs
   availability_publications?: boolean | OrganisationCountOutputTypeCountAvailability_publicationsArgs
   feeds?: boolean | OrganisationCountOutputTypeCountFeedsArgs
+  public_holiday_jurisdictions?: boolean | OrganisationCountOutputTypeCountPublic_holiday_jurisdictionsArgs
+  public_holidays?: boolean | OrganisationCountOutputTypeCountPublic_holidaysArgs
+  public_holiday_assignments?: boolean | OrganisationCountOutputTypeCountPublic_holiday_assignmentsArgs
   xero_tenants?: boolean | OrganisationCountOutputTypeCountXero_tenantsArgs
   xero_sync_cursors?: boolean | OrganisationCountOutputTypeCountXero_sync_cursorsArgs
   sync_runs?: boolean | OrganisationCountOutputTypeCountSync_runsArgs
@@ -2535,6 +3258,27 @@ export type OrganisationCountOutputTypeCountFeedsArgs<ExtArgs extends runtime.Ty
 /**
  * OrganisationCountOutputType without action
  */
+export type OrganisationCountOutputTypeCountPublic_holiday_jurisdictionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PublicHolidayJurisdictionWhereInput
+}
+
+/**
+ * OrganisationCountOutputType without action
+ */
+export type OrganisationCountOutputTypeCountPublic_holidaysArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PublicHolidayWhereInput
+}
+
+/**
+ * OrganisationCountOutputType without action
+ */
+export type OrganisationCountOutputTypeCountPublic_holiday_assignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PublicHolidayAssignmentWhereInput
+}
+
+/**
+ * OrganisationCountOutputType without action
+ */
 export type OrganisationCountOutputTypeCountXero_tenantsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.XeroTenantWhereInput
 }
@@ -2573,6 +3317,7 @@ export type OrganisationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   clerk_org_id?: boolean
   name?: boolean
   country_code?: boolean
+  is_active?: boolean
   timezone?: boolean
   locale?: boolean
   fiscal_year_start?: boolean
@@ -2588,6 +3333,9 @@ export type OrganisationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   availability_records?: boolean | Prisma.Organisation$availability_recordsArgs<ExtArgs>
   availability_publications?: boolean | Prisma.Organisation$availability_publicationsArgs<ExtArgs>
   feeds?: boolean | Prisma.Organisation$feedsArgs<ExtArgs>
+  public_holiday_jurisdictions?: boolean | Prisma.Organisation$public_holiday_jurisdictionsArgs<ExtArgs>
+  public_holidays?: boolean | Prisma.Organisation$public_holidaysArgs<ExtArgs>
+  public_holiday_assignments?: boolean | Prisma.Organisation$public_holiday_assignmentsArgs<ExtArgs>
   xero_connection?: boolean | Prisma.Organisation$xero_connectionArgs<ExtArgs>
   xero_tenants?: boolean | Prisma.Organisation$xero_tenantsArgs<ExtArgs>
   xero_sync_cursors?: boolean | Prisma.Organisation$xero_sync_cursorsArgs<ExtArgs>
@@ -2602,6 +3350,7 @@ export type OrganisationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   clerk_org_id?: boolean
   name?: boolean
   country_code?: boolean
+  is_active?: boolean
   timezone?: boolean
   locale?: boolean
   fiscal_year_start?: boolean
@@ -2617,6 +3366,7 @@ export type OrganisationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   clerk_org_id?: boolean
   name?: boolean
   country_code?: boolean
+  is_active?: boolean
   timezone?: boolean
   locale?: boolean
   fiscal_year_start?: boolean
@@ -2632,6 +3382,7 @@ export type OrganisationSelectScalar = {
   clerk_org_id?: boolean
   name?: boolean
   country_code?: boolean
+  is_active?: boolean
   timezone?: boolean
   locale?: boolean
   fiscal_year_start?: boolean
@@ -2642,7 +3393,7 @@ export type OrganisationSelectScalar = {
   updated_at?: boolean
 }
 
-export type OrganisationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "name" | "country_code" | "timezone" | "locale" | "fiscal_year_start" | "working_hours_per_day" | "reporting_unit" | "archived_at" | "created_at" | "updated_at", ExtArgs["result"]["organisation"]>
+export type OrganisationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "name" | "country_code" | "is_active" | "timezone" | "locale" | "fiscal_year_start" | "working_hours_per_day" | "reporting_unit" | "archived_at" | "created_at" | "updated_at", ExtArgs["result"]["organisation"]>
 export type OrganisationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   teams?: boolean | Prisma.Organisation$teamsArgs<ExtArgs>
   locations?: boolean | Prisma.Organisation$locationsArgs<ExtArgs>
@@ -2651,6 +3402,9 @@ export type OrganisationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   availability_records?: boolean | Prisma.Organisation$availability_recordsArgs<ExtArgs>
   availability_publications?: boolean | Prisma.Organisation$availability_publicationsArgs<ExtArgs>
   feeds?: boolean | Prisma.Organisation$feedsArgs<ExtArgs>
+  public_holiday_jurisdictions?: boolean | Prisma.Organisation$public_holiday_jurisdictionsArgs<ExtArgs>
+  public_holidays?: boolean | Prisma.Organisation$public_holidaysArgs<ExtArgs>
+  public_holiday_assignments?: boolean | Prisma.Organisation$public_holiday_assignmentsArgs<ExtArgs>
   xero_connection?: boolean | Prisma.Organisation$xero_connectionArgs<ExtArgs>
   xero_tenants?: boolean | Prisma.Organisation$xero_tenantsArgs<ExtArgs>
   xero_sync_cursors?: boolean | Prisma.Organisation$xero_sync_cursorsArgs<ExtArgs>
@@ -2672,6 +3426,9 @@ export type $OrganisationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     availability_records: Prisma.$AvailabilityRecordPayload<ExtArgs>[]
     availability_publications: Prisma.$AvailabilityPublicationPayload<ExtArgs>[]
     feeds: Prisma.$FeedPayload<ExtArgs>[]
+    public_holiday_jurisdictions: Prisma.$PublicHolidayJurisdictionPayload<ExtArgs>[]
+    public_holidays: Prisma.$PublicHolidayPayload<ExtArgs>[]
+    public_holiday_assignments: Prisma.$PublicHolidayAssignmentPayload<ExtArgs>[]
     xero_connection: Prisma.$XeroConnectionPayload<ExtArgs> | null
     xero_tenants: Prisma.$XeroTenantPayload<ExtArgs>[]
     xero_sync_cursors: Prisma.$XeroSyncCursorPayload<ExtArgs>[]
@@ -2684,6 +3441,7 @@ export type $OrganisationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     clerk_org_id: string
     name: string
     country_code: string
+    is_active: boolean
     timezone: string | null
     locale: string | null
     fiscal_year_start: number | null
@@ -3093,6 +3851,9 @@ export interface Prisma__OrganisationClient<T, Null = never, ExtArgs extends run
   availability_records<T extends Prisma.Organisation$availability_recordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$availability_recordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AvailabilityRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   availability_publications<T extends Prisma.Organisation$availability_publicationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$availability_publicationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AvailabilityPublicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   feeds<T extends Prisma.Organisation$feedsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$feedsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FeedPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  public_holiday_jurisdictions<T extends Prisma.Organisation$public_holiday_jurisdictionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$public_holiday_jurisdictionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PublicHolidayJurisdictionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  public_holidays<T extends Prisma.Organisation$public_holidaysArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$public_holidaysArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PublicHolidayPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  public_holiday_assignments<T extends Prisma.Organisation$public_holiday_assignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$public_holiday_assignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PublicHolidayAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   xero_connection<T extends Prisma.Organisation$xero_connectionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$xero_connectionArgs<ExtArgs>>): Prisma.Prisma__XeroConnectionClient<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   xero_tenants<T extends Prisma.Organisation$xero_tenantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$xero_tenantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroTenantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   xero_sync_cursors<T extends Prisma.Organisation$xero_sync_cursorsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$xero_sync_cursorsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroSyncCursorPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3132,6 +3893,7 @@ export interface OrganisationFieldRefs {
   readonly clerk_org_id: Prisma.FieldRef<"Organisation", 'String'>
   readonly name: Prisma.FieldRef<"Organisation", 'String'>
   readonly country_code: Prisma.FieldRef<"Organisation", 'String'>
+  readonly is_active: Prisma.FieldRef<"Organisation", 'Boolean'>
   readonly timezone: Prisma.FieldRef<"Organisation", 'String'>
   readonly locale: Prisma.FieldRef<"Organisation", 'String'>
   readonly fiscal_year_start: Prisma.FieldRef<"Organisation", 'Int'>
@@ -3698,6 +4460,78 @@ export type Organisation$feedsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.FeedScalarFieldEnum | Prisma.FeedScalarFieldEnum[]
+}
+
+/**
+ * Organisation.public_holiday_jurisdictions
+ */
+export type Organisation$public_holiday_jurisdictionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PublicHolidayJurisdiction
+   */
+  select?: Prisma.PublicHolidayJurisdictionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PublicHolidayJurisdiction
+   */
+  omit?: Prisma.PublicHolidayJurisdictionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PublicHolidayJurisdictionInclude<ExtArgs> | null
+  where?: Prisma.PublicHolidayJurisdictionWhereInput
+  orderBy?: Prisma.PublicHolidayJurisdictionOrderByWithRelationInput | Prisma.PublicHolidayJurisdictionOrderByWithRelationInput[]
+  cursor?: Prisma.PublicHolidayJurisdictionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PublicHolidayJurisdictionScalarFieldEnum | Prisma.PublicHolidayJurisdictionScalarFieldEnum[]
+}
+
+/**
+ * Organisation.public_holidays
+ */
+export type Organisation$public_holidaysArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PublicHoliday
+   */
+  select?: Prisma.PublicHolidaySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PublicHoliday
+   */
+  omit?: Prisma.PublicHolidayOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PublicHolidayInclude<ExtArgs> | null
+  where?: Prisma.PublicHolidayWhereInput
+  orderBy?: Prisma.PublicHolidayOrderByWithRelationInput | Prisma.PublicHolidayOrderByWithRelationInput[]
+  cursor?: Prisma.PublicHolidayWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PublicHolidayScalarFieldEnum | Prisma.PublicHolidayScalarFieldEnum[]
+}
+
+/**
+ * Organisation.public_holiday_assignments
+ */
+export type Organisation$public_holiday_assignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PublicHolidayAssignment
+   */
+  select?: Prisma.PublicHolidayAssignmentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PublicHolidayAssignment
+   */
+  omit?: Prisma.PublicHolidayAssignmentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PublicHolidayAssignmentInclude<ExtArgs> | null
+  where?: Prisma.PublicHolidayAssignmentWhereInput
+  orderBy?: Prisma.PublicHolidayAssignmentOrderByWithRelationInput | Prisma.PublicHolidayAssignmentOrderByWithRelationInput[]
+  cursor?: Prisma.PublicHolidayAssignmentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PublicHolidayAssignmentScalarFieldEnum | Prisma.PublicHolidayAssignmentScalarFieldEnum[]
 }
 
 /**

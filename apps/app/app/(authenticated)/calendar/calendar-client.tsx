@@ -201,11 +201,11 @@ function formatEndDate(isoStr: string): string {
 }
 
 function feedHttpsUrl(token: string): string {
-  return `https://app.leavesync.com/api/feeds/${token}/calendar.ics`;
+  return `https://app.leavesync.com/ical/${token}.ics`;
 }
 
 function feedWebcalUrl(token: string): string {
-  return `webcal://app.leavesync.com/api/feeds/${token}/calendar.ics`;
+  return `webcal://app.leavesync.com/ical/${token}.ics`;
 }
 
 // ─── FeedSelector ─────────────────────────────────────────────────────────────

@@ -41,6 +41,11 @@ export type StringFilter<$PrismaModel = never> = {
   not?: Prisma.NestedStringFilter<$PrismaModel> | string
 }
 
+export type BoolFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
+}
+
 export type StringNullableFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
@@ -138,6 +143,14 @@ export type StringWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedStringFilter<$PrismaModel>
 }
 
+export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedBoolFilter<$PrismaModel>
+  _max?: Prisma.NestedBoolFilter<$PrismaModel>
+}
+
 export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
@@ -228,6 +241,13 @@ export type UuidNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedUuidNullableFilter<$PrismaModel> | string | null
 }
 
+export type Enumperson_typeNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.person_type | Prisma.Enumperson_typeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.person_type[] | Prisma.ListEnumperson_typeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.person_type[] | Prisma.ListEnumperson_typeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumperson_typeNullableFilter<$PrismaModel> | $Enums.person_type | null
+}
+
 export type Enumsource_systemFilter<$PrismaModel = never> = {
   equals?: $Enums.source_system | Prisma.Enumsource_systemFieldRefInput<$PrismaModel>
   in?: $Enums.source_system[] | Prisma.ListEnumsource_systemFieldRefInput<$PrismaModel>
@@ -242,9 +262,18 @@ export type Enumemployment_typeFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumemployment_typeFilter<$PrismaModel> | $Enums.employment_type
 }
 
-export type BoolFilter<$PrismaModel = never> = {
-  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
+export type Enumavailability_contactabilityFilter<$PrismaModel = never> = {
+  equals?: $Enums.availability_contactability | Prisma.Enumavailability_contactabilityFieldRefInput<$PrismaModel>
+  in?: $Enums.availability_contactability[] | Prisma.ListEnumavailability_contactabilityFieldRefInput<$PrismaModel>
+  notIn?: $Enums.availability_contactability[] | Prisma.ListEnumavailability_contactabilityFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumavailability_contactabilityFilter<$PrismaModel> | $Enums.availability_contactability
+}
+
+export type Enumavailability_privacy_modeFilter<$PrismaModel = never> = {
+  equals?: $Enums.availability_privacy_mode | Prisma.Enumavailability_privacy_modeFieldRefInput<$PrismaModel>
+  in?: $Enums.availability_privacy_mode[] | Prisma.ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.availability_privacy_mode[] | Prisma.ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumavailability_privacy_modeFilter<$PrismaModel> | $Enums.availability_privacy_mode
 }
 
 export type UuidNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -260,6 +289,16 @@ export type UuidNullableWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedStringNullableFilter<$PrismaModel>
   _max?: Prisma.NestedStringNullableFilter<$PrismaModel>
+}
+
+export type Enumperson_typeNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.person_type | Prisma.Enumperson_typeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.person_type[] | Prisma.ListEnumperson_typeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.person_type[] | Prisma.ListEnumperson_typeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumperson_typeNullableWithAggregatesFilter<$PrismaModel> | $Enums.person_type | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumperson_typeNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumperson_typeNullableFilter<$PrismaModel>
 }
 
 export type Enumsource_systemWithAggregatesFilter<$PrismaModel = never> = {
@@ -282,12 +321,24 @@ export type Enumemployment_typeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumemployment_typeFilter<$PrismaModel>
 }
 
-export type BoolWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+export type Enumavailability_contactabilityWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.availability_contactability | Prisma.Enumavailability_contactabilityFieldRefInput<$PrismaModel>
+  in?: $Enums.availability_contactability[] | Prisma.ListEnumavailability_contactabilityFieldRefInput<$PrismaModel>
+  notIn?: $Enums.availability_contactability[] | Prisma.ListEnumavailability_contactabilityFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumavailability_contactabilityWithAggregatesFilter<$PrismaModel> | $Enums.availability_contactability
   _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedBoolFilter<$PrismaModel>
-  _max?: Prisma.NestedBoolFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumavailability_contactabilityFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumavailability_contactabilityFilter<$PrismaModel>
+}
+
+export type Enumavailability_privacy_modeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.availability_privacy_mode | Prisma.Enumavailability_privacy_modeFieldRefInput<$PrismaModel>
+  in?: $Enums.availability_privacy_mode[] | Prisma.ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.availability_privacy_mode[] | Prisma.ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumavailability_privacy_modeWithAggregatesFilter<$PrismaModel> | $Enums.availability_privacy_mode
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumavailability_privacy_modeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumavailability_privacy_modeFilter<$PrismaModel>
 }
 
 export type Enumpayroll_regionFilter<$PrismaModel = never> = {
@@ -343,20 +394,6 @@ export type Enumavailability_approval_statusFilter<$PrismaModel = never> = {
   in?: $Enums.availability_approval_status[] | Prisma.ListEnumavailability_approval_statusFieldRefInput<$PrismaModel>
   notIn?: $Enums.availability_approval_status[] | Prisma.ListEnumavailability_approval_statusFieldRefInput<$PrismaModel>
   not?: Prisma.NestedEnumavailability_approval_statusFilter<$PrismaModel> | $Enums.availability_approval_status
-}
-
-export type Enumavailability_privacy_modeFilter<$PrismaModel = never> = {
-  equals?: $Enums.availability_privacy_mode | Prisma.Enumavailability_privacy_modeFieldRefInput<$PrismaModel>
-  in?: $Enums.availability_privacy_mode[] | Prisma.ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel>
-  notIn?: $Enums.availability_privacy_mode[] | Prisma.ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumavailability_privacy_modeFilter<$PrismaModel> | $Enums.availability_privacy_mode
-}
-
-export type Enumavailability_contactabilityFilter<$PrismaModel = never> = {
-  equals?: $Enums.availability_contactability | Prisma.Enumavailability_contactabilityFieldRefInput<$PrismaModel>
-  in?: $Enums.availability_contactability[] | Prisma.ListEnumavailability_contactabilityFieldRefInput<$PrismaModel>
-  notIn?: $Enums.availability_contactability[] | Prisma.ListEnumavailability_contactabilityFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumavailability_contactabilityFilter<$PrismaModel> | $Enums.availability_contactability
 }
 
 export type Enumavailability_publish_statusFilter<$PrismaModel = never> = {
@@ -418,26 +455,6 @@ export type Enumavailability_approval_statusWithAggregatesFilter<$PrismaModel = 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumavailability_approval_statusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumavailability_approval_statusFilter<$PrismaModel>
-}
-
-export type Enumavailability_privacy_modeWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.availability_privacy_mode | Prisma.Enumavailability_privacy_modeFieldRefInput<$PrismaModel>
-  in?: $Enums.availability_privacy_mode[] | Prisma.ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel>
-  notIn?: $Enums.availability_privacy_mode[] | Prisma.ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumavailability_privacy_modeWithAggregatesFilter<$PrismaModel> | $Enums.availability_privacy_mode
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumavailability_privacy_modeFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumavailability_privacy_modeFilter<$PrismaModel>
-}
-
-export type Enumavailability_contactabilityWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.availability_contactability | Prisma.Enumavailability_contactabilityFieldRefInput<$PrismaModel>
-  in?: $Enums.availability_contactability[] | Prisma.ListEnumavailability_contactabilityFieldRefInput<$PrismaModel>
-  notIn?: $Enums.availability_contactability[] | Prisma.ListEnumavailability_contactabilityFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumavailability_contactabilityWithAggregatesFilter<$PrismaModel> | $Enums.availability_contactability
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumavailability_contactabilityFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumavailability_contactabilityFilter<$PrismaModel>
 }
 
 export type Enumavailability_publish_statusWithAggregatesFilter<$PrismaModel = never> = {
@@ -504,6 +521,13 @@ export type IntWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedIntFilter<$PrismaModel>
 }
 
+export type Enumavailability_record_typeNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.availability_record_type | Prisma.Enumavailability_record_typeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.availability_record_type[] | Prisma.ListEnumavailability_record_typeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.availability_record_type[] | Prisma.ListEnumavailability_record_typeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumavailability_record_typeNullableFilter<$PrismaModel> | $Enums.availability_record_type | null
+}
+
 export type DecimalFilter<$PrismaModel = never> = {
   equals?: runtime.Decimal | runtime.DecimalJsLike | number | string | Prisma.DecimalFieldRefInput<$PrismaModel>
   in?: runtime.Decimal[] | runtime.DecimalJsLike[] | number[] | string[] | Prisma.ListDecimalFieldRefInput<$PrismaModel>
@@ -513,6 +537,23 @@ export type DecimalFilter<$PrismaModel = never> = {
   gt?: runtime.Decimal | runtime.DecimalJsLike | number | string | Prisma.DecimalFieldRefInput<$PrismaModel>
   gte?: runtime.Decimal | runtime.DecimalJsLike | number | string | Prisma.DecimalFieldRefInput<$PrismaModel>
   not?: Prisma.NestedDecimalFilter<$PrismaModel> | runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type Enumleave_balance_unitNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.leave_balance_unit | Prisma.Enumleave_balance_unitFieldRefInput<$PrismaModel> | null
+  in?: $Enums.leave_balance_unit[] | Prisma.ListEnumleave_balance_unitFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.leave_balance_unit[] | Prisma.ListEnumleave_balance_unitFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumleave_balance_unitNullableFilter<$PrismaModel> | $Enums.leave_balance_unit | null
+}
+
+export type Enumavailability_record_typeNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.availability_record_type | Prisma.Enumavailability_record_typeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.availability_record_type[] | Prisma.ListEnumavailability_record_typeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.availability_record_type[] | Prisma.ListEnumavailability_record_typeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumavailability_record_typeNullableWithAggregatesFilter<$PrismaModel> | $Enums.availability_record_type | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumavailability_record_typeNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumavailability_record_typeNullableFilter<$PrismaModel>
 }
 
 export type DecimalWithAggregatesFilter<$PrismaModel = never> = {
@@ -529,6 +570,84 @@ export type DecimalWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedDecimalFilter<$PrismaModel>
   _min?: Prisma.NestedDecimalFilter<$PrismaModel>
   _max?: Prisma.NestedDecimalFilter<$PrismaModel>
+}
+
+export type Enumleave_balance_unitNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.leave_balance_unit | Prisma.Enumleave_balance_unitFieldRefInput<$PrismaModel> | null
+  in?: $Enums.leave_balance_unit[] | Prisma.ListEnumleave_balance_unitFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.leave_balance_unit[] | Prisma.ListEnumleave_balance_unitFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumleave_balance_unitNullableWithAggregatesFilter<$PrismaModel> | $Enums.leave_balance_unit | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumleave_balance_unitNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumleave_balance_unitNullableFilter<$PrismaModel>
+}
+
+export type Enumpublic_holiday_sourceFilter<$PrismaModel = never> = {
+  equals?: $Enums.public_holiday_source | Prisma.Enumpublic_holiday_sourceFieldRefInput<$PrismaModel>
+  in?: $Enums.public_holiday_source[] | Prisma.ListEnumpublic_holiday_sourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.public_holiday_source[] | Prisma.ListEnumpublic_holiday_sourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumpublic_holiday_sourceFilter<$PrismaModel> | $Enums.public_holiday_source
+}
+
+export type Enumpublic_holiday_sourceWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.public_holiday_source | Prisma.Enumpublic_holiday_sourceFieldRefInput<$PrismaModel>
+  in?: $Enums.public_holiday_source[] | Prisma.ListEnumpublic_holiday_sourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.public_holiday_source[] | Prisma.ListEnumpublic_holiday_sourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumpublic_holiday_sourceWithAggregatesFilter<$PrismaModel> | $Enums.public_holiday_source
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumpublic_holiday_sourceFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumpublic_holiday_sourceFilter<$PrismaModel>
+}
+
+export type Enumpublic_holiday_typeFilter<$PrismaModel = never> = {
+  equals?: $Enums.public_holiday_type | Prisma.Enumpublic_holiday_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.public_holiday_type[] | Prisma.ListEnumpublic_holiday_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.public_holiday_type[] | Prisma.ListEnumpublic_holiday_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumpublic_holiday_typeFilter<$PrismaModel> | $Enums.public_holiday_type
+}
+
+export type Enumpublic_holiday_day_classificationFilter<$PrismaModel = never> = {
+  equals?: $Enums.public_holiday_day_classification | Prisma.Enumpublic_holiday_day_classificationFieldRefInput<$PrismaModel>
+  in?: $Enums.public_holiday_day_classification[] | Prisma.ListEnumpublic_holiday_day_classificationFieldRefInput<$PrismaModel>
+  notIn?: $Enums.public_holiday_day_classification[] | Prisma.ListEnumpublic_holiday_day_classificationFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumpublic_holiday_day_classificationFilter<$PrismaModel> | $Enums.public_holiday_day_classification
+}
+
+export type Enumpublic_holiday_typeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.public_holiday_type | Prisma.Enumpublic_holiday_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.public_holiday_type[] | Prisma.ListEnumpublic_holiday_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.public_holiday_type[] | Prisma.ListEnumpublic_holiday_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumpublic_holiday_typeWithAggregatesFilter<$PrismaModel> | $Enums.public_holiday_type
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumpublic_holiday_typeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumpublic_holiday_typeFilter<$PrismaModel>
+}
+
+export type Enumpublic_holiday_day_classificationWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.public_holiday_day_classification | Prisma.Enumpublic_holiday_day_classificationFieldRefInput<$PrismaModel>
+  in?: $Enums.public_holiday_day_classification[] | Prisma.ListEnumpublic_holiday_day_classificationFieldRefInput<$PrismaModel>
+  notIn?: $Enums.public_holiday_day_classification[] | Prisma.ListEnumpublic_holiday_day_classificationFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumpublic_holiday_day_classificationWithAggregatesFilter<$PrismaModel> | $Enums.public_holiday_day_classification
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumpublic_holiday_day_classificationFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumpublic_holiday_day_classificationFilter<$PrismaModel>
+}
+
+export type Enumpublic_holiday_assignment_scope_typeFilter<$PrismaModel = never> = {
+  equals?: $Enums.public_holiday_assignment_scope_type | Prisma.Enumpublic_holiday_assignment_scope_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.public_holiday_assignment_scope_type[] | Prisma.ListEnumpublic_holiday_assignment_scope_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.public_holiday_assignment_scope_type[] | Prisma.ListEnumpublic_holiday_assignment_scope_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumpublic_holiday_assignment_scope_typeFilter<$PrismaModel> | $Enums.public_holiday_assignment_scope_type
+}
+
+export type Enumpublic_holiday_assignment_scope_typeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.public_holiday_assignment_scope_type | Prisma.Enumpublic_holiday_assignment_scope_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.public_holiday_assignment_scope_type[] | Prisma.ListEnumpublic_holiday_assignment_scope_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.public_holiday_assignment_scope_type[] | Prisma.ListEnumpublic_holiday_assignment_scope_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumpublic_holiday_assignment_scope_typeWithAggregatesFilter<$PrismaModel> | $Enums.public_holiday_assignment_scope_type
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumpublic_holiday_assignment_scope_typeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumpublic_holiday_assignment_scope_typeFilter<$PrismaModel>
 }
 
 export type Enumfeed_statusFilter<$PrismaModel = never> = {
@@ -692,6 +811,11 @@ export type NestedStringFilter<$PrismaModel = never> = {
   not?: Prisma.NestedStringFilter<$PrismaModel> | string
 }
 
+export type NestedBoolFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
+}
+
 export type NestedStringNullableFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
@@ -790,6 +914,14 @@ export type NestedStringWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedStringFilter<$PrismaModel>
   _max?: Prisma.NestedStringFilter<$PrismaModel>
+}
+
+export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedBoolFilter<$PrismaModel>
+  _max?: Prisma.NestedBoolFilter<$PrismaModel>
 }
 
 export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -891,6 +1023,13 @@ export type NestedUuidNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedUuidNullableFilter<$PrismaModel> | string | null
 }
 
+export type NestedEnumperson_typeNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.person_type | Prisma.Enumperson_typeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.person_type[] | Prisma.ListEnumperson_typeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.person_type[] | Prisma.ListEnumperson_typeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumperson_typeNullableFilter<$PrismaModel> | $Enums.person_type | null
+}
+
 export type NestedEnumsource_systemFilter<$PrismaModel = never> = {
   equals?: $Enums.source_system | Prisma.Enumsource_systemFieldRefInput<$PrismaModel>
   in?: $Enums.source_system[] | Prisma.ListEnumsource_systemFieldRefInput<$PrismaModel>
@@ -905,9 +1044,18 @@ export type NestedEnumemployment_typeFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumemployment_typeFilter<$PrismaModel> | $Enums.employment_type
 }
 
-export type NestedBoolFilter<$PrismaModel = never> = {
-  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
+export type NestedEnumavailability_contactabilityFilter<$PrismaModel = never> = {
+  equals?: $Enums.availability_contactability | Prisma.Enumavailability_contactabilityFieldRefInput<$PrismaModel>
+  in?: $Enums.availability_contactability[] | Prisma.ListEnumavailability_contactabilityFieldRefInput<$PrismaModel>
+  notIn?: $Enums.availability_contactability[] | Prisma.ListEnumavailability_contactabilityFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumavailability_contactabilityFilter<$PrismaModel> | $Enums.availability_contactability
+}
+
+export type NestedEnumavailability_privacy_modeFilter<$PrismaModel = never> = {
+  equals?: $Enums.availability_privacy_mode | Prisma.Enumavailability_privacy_modeFieldRefInput<$PrismaModel>
+  in?: $Enums.availability_privacy_mode[] | Prisma.ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.availability_privacy_mode[] | Prisma.ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumavailability_privacy_modeFilter<$PrismaModel> | $Enums.availability_privacy_mode
 }
 
 export type NestedUuidNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -922,6 +1070,16 @@ export type NestedUuidNullableWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedStringNullableFilter<$PrismaModel>
   _max?: Prisma.NestedStringNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumperson_typeNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.person_type | Prisma.Enumperson_typeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.person_type[] | Prisma.ListEnumperson_typeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.person_type[] | Prisma.ListEnumperson_typeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumperson_typeNullableWithAggregatesFilter<$PrismaModel> | $Enums.person_type | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumperson_typeNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumperson_typeNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumsource_systemWithAggregatesFilter<$PrismaModel = never> = {
@@ -944,12 +1102,24 @@ export type NestedEnumemployment_typeWithAggregatesFilter<$PrismaModel = never> 
   _max?: Prisma.NestedEnumemployment_typeFilter<$PrismaModel>
 }
 
-export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+export type NestedEnumavailability_contactabilityWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.availability_contactability | Prisma.Enumavailability_contactabilityFieldRefInput<$PrismaModel>
+  in?: $Enums.availability_contactability[] | Prisma.ListEnumavailability_contactabilityFieldRefInput<$PrismaModel>
+  notIn?: $Enums.availability_contactability[] | Prisma.ListEnumavailability_contactabilityFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumavailability_contactabilityWithAggregatesFilter<$PrismaModel> | $Enums.availability_contactability
   _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedBoolFilter<$PrismaModel>
-  _max?: Prisma.NestedBoolFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumavailability_contactabilityFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumavailability_contactabilityFilter<$PrismaModel>
+}
+
+export type NestedEnumavailability_privacy_modeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.availability_privacy_mode | Prisma.Enumavailability_privacy_modeFieldRefInput<$PrismaModel>
+  in?: $Enums.availability_privacy_mode[] | Prisma.ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.availability_privacy_mode[] | Prisma.ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumavailability_privacy_modeWithAggregatesFilter<$PrismaModel> | $Enums.availability_privacy_mode
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumavailability_privacy_modeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumavailability_privacy_modeFilter<$PrismaModel>
 }
 
 export type NestedEnumpayroll_regionFilter<$PrismaModel = never> = {
@@ -1007,20 +1177,6 @@ export type NestedEnumavailability_approval_statusFilter<$PrismaModel = never> =
   not?: Prisma.NestedEnumavailability_approval_statusFilter<$PrismaModel> | $Enums.availability_approval_status
 }
 
-export type NestedEnumavailability_privacy_modeFilter<$PrismaModel = never> = {
-  equals?: $Enums.availability_privacy_mode | Prisma.Enumavailability_privacy_modeFieldRefInput<$PrismaModel>
-  in?: $Enums.availability_privacy_mode[] | Prisma.ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel>
-  notIn?: $Enums.availability_privacy_mode[] | Prisma.ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumavailability_privacy_modeFilter<$PrismaModel> | $Enums.availability_privacy_mode
-}
-
-export type NestedEnumavailability_contactabilityFilter<$PrismaModel = never> = {
-  equals?: $Enums.availability_contactability | Prisma.Enumavailability_contactabilityFieldRefInput<$PrismaModel>
-  in?: $Enums.availability_contactability[] | Prisma.ListEnumavailability_contactabilityFieldRefInput<$PrismaModel>
-  notIn?: $Enums.availability_contactability[] | Prisma.ListEnumavailability_contactabilityFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumavailability_contactabilityFilter<$PrismaModel> | $Enums.availability_contactability
-}
-
 export type NestedEnumavailability_publish_statusFilter<$PrismaModel = never> = {
   equals?: $Enums.availability_publish_status | Prisma.Enumavailability_publish_statusFieldRefInput<$PrismaModel>
   in?: $Enums.availability_publish_status[] | Prisma.ListEnumavailability_publish_statusFieldRefInput<$PrismaModel>
@@ -1056,26 +1212,6 @@ export type NestedEnumavailability_approval_statusWithAggregatesFilter<$PrismaMo
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumavailability_approval_statusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumavailability_approval_statusFilter<$PrismaModel>
-}
-
-export type NestedEnumavailability_privacy_modeWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.availability_privacy_mode | Prisma.Enumavailability_privacy_modeFieldRefInput<$PrismaModel>
-  in?: $Enums.availability_privacy_mode[] | Prisma.ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel>
-  notIn?: $Enums.availability_privacy_mode[] | Prisma.ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumavailability_privacy_modeWithAggregatesFilter<$PrismaModel> | $Enums.availability_privacy_mode
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumavailability_privacy_modeFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumavailability_privacy_modeFilter<$PrismaModel>
-}
-
-export type NestedEnumavailability_contactabilityWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.availability_contactability | Prisma.Enumavailability_contactabilityFieldRefInput<$PrismaModel>
-  in?: $Enums.availability_contactability[] | Prisma.ListEnumavailability_contactabilityFieldRefInput<$PrismaModel>
-  notIn?: $Enums.availability_contactability[] | Prisma.ListEnumavailability_contactabilityFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumavailability_contactabilityWithAggregatesFilter<$PrismaModel> | $Enums.availability_contactability
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumavailability_contactabilityFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumavailability_contactabilityFilter<$PrismaModel>
 }
 
 export type NestedEnumavailability_publish_statusWithAggregatesFilter<$PrismaModel = never> = {
@@ -1139,6 +1275,13 @@ export type NestedFloatFilter<$PrismaModel = never> = {
   not?: Prisma.NestedFloatFilter<$PrismaModel> | number
 }
 
+export type NestedEnumavailability_record_typeNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.availability_record_type | Prisma.Enumavailability_record_typeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.availability_record_type[] | Prisma.ListEnumavailability_record_typeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.availability_record_type[] | Prisma.ListEnumavailability_record_typeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumavailability_record_typeNullableFilter<$PrismaModel> | $Enums.availability_record_type | null
+}
+
 export type NestedDecimalFilter<$PrismaModel = never> = {
   equals?: runtime.Decimal | runtime.DecimalJsLike | number | string | Prisma.DecimalFieldRefInput<$PrismaModel>
   in?: runtime.Decimal[] | runtime.DecimalJsLike[] | number[] | string[] | Prisma.ListDecimalFieldRefInput<$PrismaModel>
@@ -1148,6 +1291,23 @@ export type NestedDecimalFilter<$PrismaModel = never> = {
   gt?: runtime.Decimal | runtime.DecimalJsLike | number | string | Prisma.DecimalFieldRefInput<$PrismaModel>
   gte?: runtime.Decimal | runtime.DecimalJsLike | number | string | Prisma.DecimalFieldRefInput<$PrismaModel>
   not?: Prisma.NestedDecimalFilter<$PrismaModel> | runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type NestedEnumleave_balance_unitNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.leave_balance_unit | Prisma.Enumleave_balance_unitFieldRefInput<$PrismaModel> | null
+  in?: $Enums.leave_balance_unit[] | Prisma.ListEnumleave_balance_unitFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.leave_balance_unit[] | Prisma.ListEnumleave_balance_unitFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumleave_balance_unitNullableFilter<$PrismaModel> | $Enums.leave_balance_unit | null
+}
+
+export type NestedEnumavailability_record_typeNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.availability_record_type | Prisma.Enumavailability_record_typeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.availability_record_type[] | Prisma.ListEnumavailability_record_typeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.availability_record_type[] | Prisma.ListEnumavailability_record_typeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumavailability_record_typeNullableWithAggregatesFilter<$PrismaModel> | $Enums.availability_record_type | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumavailability_record_typeNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumavailability_record_typeNullableFilter<$PrismaModel>
 }
 
 export type NestedDecimalWithAggregatesFilter<$PrismaModel = never> = {
@@ -1164,6 +1324,84 @@ export type NestedDecimalWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedDecimalFilter<$PrismaModel>
   _min?: Prisma.NestedDecimalFilter<$PrismaModel>
   _max?: Prisma.NestedDecimalFilter<$PrismaModel>
+}
+
+export type NestedEnumleave_balance_unitNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.leave_balance_unit | Prisma.Enumleave_balance_unitFieldRefInput<$PrismaModel> | null
+  in?: $Enums.leave_balance_unit[] | Prisma.ListEnumleave_balance_unitFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.leave_balance_unit[] | Prisma.ListEnumleave_balance_unitFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumleave_balance_unitNullableWithAggregatesFilter<$PrismaModel> | $Enums.leave_balance_unit | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumleave_balance_unitNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumleave_balance_unitNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumpublic_holiday_sourceFilter<$PrismaModel = never> = {
+  equals?: $Enums.public_holiday_source | Prisma.Enumpublic_holiday_sourceFieldRefInput<$PrismaModel>
+  in?: $Enums.public_holiday_source[] | Prisma.ListEnumpublic_holiday_sourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.public_holiday_source[] | Prisma.ListEnumpublic_holiday_sourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumpublic_holiday_sourceFilter<$PrismaModel> | $Enums.public_holiday_source
+}
+
+export type NestedEnumpublic_holiday_sourceWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.public_holiday_source | Prisma.Enumpublic_holiday_sourceFieldRefInput<$PrismaModel>
+  in?: $Enums.public_holiday_source[] | Prisma.ListEnumpublic_holiday_sourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.public_holiday_source[] | Prisma.ListEnumpublic_holiday_sourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumpublic_holiday_sourceWithAggregatesFilter<$PrismaModel> | $Enums.public_holiday_source
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumpublic_holiday_sourceFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumpublic_holiday_sourceFilter<$PrismaModel>
+}
+
+export type NestedEnumpublic_holiday_typeFilter<$PrismaModel = never> = {
+  equals?: $Enums.public_holiday_type | Prisma.Enumpublic_holiday_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.public_holiday_type[] | Prisma.ListEnumpublic_holiday_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.public_holiday_type[] | Prisma.ListEnumpublic_holiday_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumpublic_holiday_typeFilter<$PrismaModel> | $Enums.public_holiday_type
+}
+
+export type NestedEnumpublic_holiday_day_classificationFilter<$PrismaModel = never> = {
+  equals?: $Enums.public_holiday_day_classification | Prisma.Enumpublic_holiday_day_classificationFieldRefInput<$PrismaModel>
+  in?: $Enums.public_holiday_day_classification[] | Prisma.ListEnumpublic_holiday_day_classificationFieldRefInput<$PrismaModel>
+  notIn?: $Enums.public_holiday_day_classification[] | Prisma.ListEnumpublic_holiday_day_classificationFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumpublic_holiday_day_classificationFilter<$PrismaModel> | $Enums.public_holiday_day_classification
+}
+
+export type NestedEnumpublic_holiday_typeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.public_holiday_type | Prisma.Enumpublic_holiday_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.public_holiday_type[] | Prisma.ListEnumpublic_holiday_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.public_holiday_type[] | Prisma.ListEnumpublic_holiday_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumpublic_holiday_typeWithAggregatesFilter<$PrismaModel> | $Enums.public_holiday_type
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumpublic_holiday_typeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumpublic_holiday_typeFilter<$PrismaModel>
+}
+
+export type NestedEnumpublic_holiday_day_classificationWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.public_holiday_day_classification | Prisma.Enumpublic_holiday_day_classificationFieldRefInput<$PrismaModel>
+  in?: $Enums.public_holiday_day_classification[] | Prisma.ListEnumpublic_holiday_day_classificationFieldRefInput<$PrismaModel>
+  notIn?: $Enums.public_holiday_day_classification[] | Prisma.ListEnumpublic_holiday_day_classificationFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumpublic_holiday_day_classificationWithAggregatesFilter<$PrismaModel> | $Enums.public_holiday_day_classification
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumpublic_holiday_day_classificationFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumpublic_holiday_day_classificationFilter<$PrismaModel>
+}
+
+export type NestedEnumpublic_holiday_assignment_scope_typeFilter<$PrismaModel = never> = {
+  equals?: $Enums.public_holiday_assignment_scope_type | Prisma.Enumpublic_holiday_assignment_scope_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.public_holiday_assignment_scope_type[] | Prisma.ListEnumpublic_holiday_assignment_scope_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.public_holiday_assignment_scope_type[] | Prisma.ListEnumpublic_holiday_assignment_scope_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumpublic_holiday_assignment_scope_typeFilter<$PrismaModel> | $Enums.public_holiday_assignment_scope_type
+}
+
+export type NestedEnumpublic_holiday_assignment_scope_typeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.public_holiday_assignment_scope_type | Prisma.Enumpublic_holiday_assignment_scope_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.public_holiday_assignment_scope_type[] | Prisma.ListEnumpublic_holiday_assignment_scope_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.public_holiday_assignment_scope_type[] | Prisma.ListEnumpublic_holiday_assignment_scope_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumpublic_holiday_assignment_scope_typeWithAggregatesFilter<$PrismaModel> | $Enums.public_holiday_assignment_scope_type
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumpublic_holiday_assignment_scope_typeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumpublic_holiday_assignment_scope_typeFilter<$PrismaModel>
 }
 
 export type NestedEnumfeed_statusFilter<$PrismaModel = never> = {

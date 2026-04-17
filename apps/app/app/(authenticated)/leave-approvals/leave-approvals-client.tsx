@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { updateAvailabilityApprovalAction } from "@/app/actions/availability/approval";
+import { mapRecordTypeToApprovalCategory } from "@/lib/availability-record-types";
 
 type LeaveTypeId =
   | "holiday"
@@ -121,18 +122,7 @@ const typeForRecord = (recordType: string): LeaveType => {
 };
 
 const mapRecordType = (recordType: string): LeaveTypeId => {
-  switch (recordType) {
-    case "leave":
-      return "holiday";
-    case "wfh":
-      return "wfh";
-    case "travel":
-    case "client_site":
-    case "training":
-      return "travelling";
-    default:
-      return "custom";
-  }
+  return mapRecordTypeToApprovalCategory(recordType);
 };
 
 const getInitials = (name: string): string =>
@@ -235,7 +225,7 @@ export const LeaveApprovalsClient = ({
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[220px]">Team Member</TableHead>
+                  <TableHead className="w-55">Team Member</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Dates</TableHead>
                   <TableHead className="text-right">Duration</TableHead>
@@ -273,8 +263,11 @@ export const LeaveApprovalsClient = ({
                               <span className="font-medium text-[0.875rem]">
                                 {personName}
                               </span>
-                              <span className="text-[0.75rem] text-muted-foreground">
-                                Submitted {formatter.format(record.createdAt)}
+                              <span
+                                className="text-label-md"
+                                style={{ color: typeInfo.textColor }}
+                              >
+                                {typeInfo.label}
                               </span>
                             </div>
                           </div>

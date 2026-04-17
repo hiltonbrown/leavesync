@@ -61,6 +61,9 @@ export const ModelName = {
   AvailabilityRecord: 'AvailabilityRecord',
   AvailabilityPublication: 'AvailabilityPublication',
   LeaveBalance: 'LeaveBalance',
+  PublicHolidayJurisdiction: 'PublicHolidayJurisdiction',
+  PublicHoliday: 'PublicHoliday',
+  PublicHolidayAssignment: 'PublicHolidayAssignment',
   Feed: 'Feed',
   FeedScope: 'FeedScope',
   FeedToken: 'FeedToken',
@@ -92,6 +95,7 @@ export const OrganisationScalarFieldEnum = {
   clerk_org_id: 'clerk_org_id',
   name: 'name',
   country_code: 'country_code',
+  is_active: 'is_active',
   timezone: 'timezone',
   locale: 'locale',
   fiscal_year_start: 'fiscal_year_start',
@@ -122,7 +126,9 @@ export const LocationScalarFieldEnum = {
   clerk_org_id: 'clerk_org_id',
   organisation_id: 'organisation_id',
   name: 'name',
+  country_code: 'country_code',
   region_code: 'region_code',
+  timezone: 'timezone',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -136,6 +142,7 @@ export const PersonScalarFieldEnum = {
   organisation_id: 'organisation_id',
   team_id: 'team_id',
   location_id: 'location_id',
+  person_type: 'person_type',
   source_system: 'source_system',
   source_person_key: 'source_person_key',
   first_name: 'first_name',
@@ -146,6 +153,9 @@ export const PersonScalarFieldEnum = {
   display_name: 'display_name',
   clerk_user_id: 'clerk_user_id',
   job_title: 'job_title',
+  default_contactability: 'default_contactability',
+  default_privacy_mode: 'default_privacy_mode',
+  include_in_feeds_by_default: 'include_in_feeds_by_default',
   archived_at: 'archived_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
@@ -212,6 +222,9 @@ export const AvailabilityRecordScalarFieldEnum = {
   include_in_feed: 'include_in_feed',
   publish_status: 'publish_status',
   source_payload_json: 'source_payload_json',
+  source_remote_hash: 'source_remote_hash',
+  source_remote_version: 'source_remote_version',
+  source_last_modified_at: 'source_last_modified_at',
   derived_uid_key: 'derived_uid_key',
   title: 'title',
   all_day: 'all_day',
@@ -221,7 +234,12 @@ export const AvailabilityRecordScalarFieldEnum = {
   created_by_user_id: 'created_by_user_id',
   updated_by_user_id: 'updated_by_user_id',
   archived_at: 'archived_at',
+  approval_note: 'approval_note',
   approved_at: 'approved_at',
+  xero_write_error: 'xero_write_error',
+  xero_write_error_raw: 'xero_write_error_raw',
+  submitted_at: 'submitted_at',
+  withdrawn_at: 'withdrawn_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -254,12 +272,80 @@ export const LeaveBalanceScalarFieldEnum = {
   person_id: 'person_id',
   xero_tenant_id: 'xero_tenant_id',
   leave_type_xero_id: 'leave_type_xero_id',
+  leave_type_name: 'leave_type_name',
+  record_type: 'record_type',
   balance: 'balance',
+  balance_unit: 'balance_unit',
+  as_at: 'as_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
 
 export type LeaveBalanceScalarFieldEnum = (typeof LeaveBalanceScalarFieldEnum)[keyof typeof LeaveBalanceScalarFieldEnum]
+
+
+export const PublicHolidayJurisdictionScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  country_code: 'country_code',
+  region_code: 'region_code',
+  source: 'source',
+  is_enabled: 'is_enabled',
+  created_by_user_id: 'created_by_user_id',
+  updated_by_user_id: 'updated_by_user_id',
+  archived_at: 'archived_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type PublicHolidayJurisdictionScalarFieldEnum = (typeof PublicHolidayJurisdictionScalarFieldEnum)[keyof typeof PublicHolidayJurisdictionScalarFieldEnum]
+
+
+export const PublicHolidayScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  jurisdiction_id: 'jurisdiction_id',
+  source: 'source',
+  source_remote_id: 'source_remote_id',
+  country_code: 'country_code',
+  region_code: 'region_code',
+  holiday_date: 'holiday_date',
+  name: 'name',
+  local_name: 'local_name',
+  holiday_type: 'holiday_type',
+  default_classification: 'default_classification',
+  notes_internal: 'notes_internal',
+  source_payload_json: 'source_payload_json',
+  created_by_user_id: 'created_by_user_id',
+  updated_by_user_id: 'updated_by_user_id',
+  archived_at: 'archived_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type PublicHolidayScalarFieldEnum = (typeof PublicHolidayScalarFieldEnum)[keyof typeof PublicHolidayScalarFieldEnum]
+
+
+export const PublicHolidayAssignmentScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  public_holiday_id: 'public_holiday_id',
+  scope_type: 'scope_type',
+  scope_value: 'scope_value',
+  day_classification: 'day_classification',
+  include_in_feeds: 'include_in_feeds',
+  notes_internal: 'notes_internal',
+  created_by_user_id: 'created_by_user_id',
+  updated_by_user_id: 'updated_by_user_id',
+  archived_at: 'archived_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type PublicHolidayAssignmentScalarFieldEnum = (typeof PublicHolidayAssignmentScalarFieldEnum)[keyof typeof PublicHolidayAssignmentScalarFieldEnum]
 
 
 export const FeedScalarFieldEnum = {

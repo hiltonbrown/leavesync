@@ -10,6 +10,10 @@ import {
   listPendingApprovalRecords,
   listPeopleForOrganisation,
 } from "@repo/database/src/queries";
+import {
+  isLeaveRecordType,
+  isUnavailableRecordType,
+} from "@/lib/availability-record-types";
 
 /**
  * Loads comprehensive dashboard data including stats, recent activity, and notifications.
@@ -99,7 +103,7 @@ export async function loadDashboardData(
     // Count people currently unavailable (leave or WFH)
     const uniqueUnavailablePeople = new Set(
       todayAvailabilityResult.value
-        .filter((r) => ["leave", "wfh"].includes(r.recordType))
+        .filter((r) => isUnavailableRecordType(r.recordType))
         .map((r) => r.personId)
     );
 
@@ -107,7 +111,7 @@ export async function loadDashboardData(
     const approvedLeaveByDay = new Set<string>();
     for (const record of upcomingLeaveResult.value) {
       if (
-        record.recordType === "leave" &&
+        isLeaveRecordType(record.recordType) &&
         record.approvalStatus === "approved"
       ) {
         const current = new Date(record.startsAt);

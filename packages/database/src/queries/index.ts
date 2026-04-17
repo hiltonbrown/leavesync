@@ -27,11 +27,17 @@ export {
   listLeaveBalancesForOrganisation,
   listLeaveBalancesForPerson,
 } from "./leave-balances";
-export type { NotificationData } from "./notifications";
+export type {
+  NotificationData,
+  NotificationPreferenceData,
+} from "./notifications";
 export {
   countUnreadNotifications,
+  listNotificationPreferencesForUser,
   listNotificationsForUser,
+  markAllNotificationsRead,
   markNotificationRead,
+  upsertNotificationPreference,
 } from "./notifications";
 export {
   getOrganisationById,
@@ -43,6 +49,11 @@ export {
   getPersonProfile,
   listPeopleForOrganisation,
 } from "./people";
+export type {
+  PublicHolidayImportInput,
+  PublicHolidayImportResult,
+} from "./public-holidays";
+export { importPublicHolidaysForFeed } from "./public-holidays";
 export type {
   AuditEventData,
   FailedRecordData,

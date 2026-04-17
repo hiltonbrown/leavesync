@@ -41,7 +41,11 @@ export type LeaveBalanceMinAggregateOutputType = {
   person_id: string | null
   xero_tenant_id: string | null
   leave_type_xero_id: string | null
+  leave_type_name: string | null
+  record_type: $Enums.availability_record_type | null
   balance: runtime.Decimal | null
+  balance_unit: $Enums.leave_balance_unit | null
+  as_at: Date | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -53,7 +57,11 @@ export type LeaveBalanceMaxAggregateOutputType = {
   person_id: string | null
   xero_tenant_id: string | null
   leave_type_xero_id: string | null
+  leave_type_name: string | null
+  record_type: $Enums.availability_record_type | null
   balance: runtime.Decimal | null
+  balance_unit: $Enums.leave_balance_unit | null
+  as_at: Date | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -65,7 +73,11 @@ export type LeaveBalanceCountAggregateOutputType = {
   person_id: number
   xero_tenant_id: number
   leave_type_xero_id: number
+  leave_type_name: number
+  record_type: number
   balance: number
+  balance_unit: number
+  as_at: number
   created_at: number
   updated_at: number
   _all: number
@@ -87,7 +99,11 @@ export type LeaveBalanceMinAggregateInputType = {
   person_id?: true
   xero_tenant_id?: true
   leave_type_xero_id?: true
+  leave_type_name?: true
+  record_type?: true
   balance?: true
+  balance_unit?: true
+  as_at?: true
   created_at?: true
   updated_at?: true
 }
@@ -99,7 +115,11 @@ export type LeaveBalanceMaxAggregateInputType = {
   person_id?: true
   xero_tenant_id?: true
   leave_type_xero_id?: true
+  leave_type_name?: true
+  record_type?: true
   balance?: true
+  balance_unit?: true
+  as_at?: true
   created_at?: true
   updated_at?: true
 }
@@ -111,7 +131,11 @@ export type LeaveBalanceCountAggregateInputType = {
   person_id?: true
   xero_tenant_id?: true
   leave_type_xero_id?: true
+  leave_type_name?: true
+  record_type?: true
   balance?: true
+  balance_unit?: true
+  as_at?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -210,7 +234,11 @@ export type LeaveBalanceGroupByOutputType = {
   person_id: string
   xero_tenant_id: string
   leave_type_xero_id: string
+  leave_type_name: string | null
+  record_type: $Enums.availability_record_type | null
   balance: runtime.Decimal
+  balance_unit: $Enums.leave_balance_unit | null
+  as_at: Date | null
   created_at: Date
   updated_at: Date
   _count: LeaveBalanceCountAggregateOutputType | null
@@ -245,7 +273,11 @@ export type LeaveBalanceWhereInput = {
   person_id?: Prisma.UuidFilter<"LeaveBalance"> | string
   xero_tenant_id?: Prisma.UuidFilter<"LeaveBalance"> | string
   leave_type_xero_id?: Prisma.StringFilter<"LeaveBalance"> | string
+  leave_type_name?: Prisma.StringNullableFilter<"LeaveBalance"> | string | null
+  record_type?: Prisma.Enumavailability_record_typeNullableFilter<"LeaveBalance"> | $Enums.availability_record_type | null
   balance?: Prisma.DecimalFilter<"LeaveBalance"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: Prisma.Enumleave_balance_unitNullableFilter<"LeaveBalance"> | $Enums.leave_balance_unit | null
+  as_at?: Prisma.DateTimeNullableFilter<"LeaveBalance"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"LeaveBalance"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"LeaveBalance"> | Date | string
   organisation?: Prisma.XOR<Prisma.OrganisationScalarRelationFilter, Prisma.OrganisationWhereInput>
@@ -260,7 +292,11 @@ export type LeaveBalanceOrderByWithRelationInput = {
   person_id?: Prisma.SortOrder
   xero_tenant_id?: Prisma.SortOrder
   leave_type_xero_id?: Prisma.SortOrder
+  leave_type_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  record_type?: Prisma.SortOrderInput | Prisma.SortOrder
   balance?: Prisma.SortOrder
+  balance_unit?: Prisma.SortOrderInput | Prisma.SortOrder
+  as_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   organisation?: Prisma.OrganisationOrderByWithRelationInput
@@ -279,7 +315,11 @@ export type LeaveBalanceWhereUniqueInput = Prisma.AtLeast<{
   person_id?: Prisma.UuidFilter<"LeaveBalance"> | string
   xero_tenant_id?: Prisma.UuidFilter<"LeaveBalance"> | string
   leave_type_xero_id?: Prisma.StringFilter<"LeaveBalance"> | string
+  leave_type_name?: Prisma.StringNullableFilter<"LeaveBalance"> | string | null
+  record_type?: Prisma.Enumavailability_record_typeNullableFilter<"LeaveBalance"> | $Enums.availability_record_type | null
   balance?: Prisma.DecimalFilter<"LeaveBalance"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: Prisma.Enumleave_balance_unitNullableFilter<"LeaveBalance"> | $Enums.leave_balance_unit | null
+  as_at?: Prisma.DateTimeNullableFilter<"LeaveBalance"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"LeaveBalance"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"LeaveBalance"> | Date | string
   organisation?: Prisma.XOR<Prisma.OrganisationScalarRelationFilter, Prisma.OrganisationWhereInput>
@@ -294,7 +334,11 @@ export type LeaveBalanceOrderByWithAggregationInput = {
   person_id?: Prisma.SortOrder
   xero_tenant_id?: Prisma.SortOrder
   leave_type_xero_id?: Prisma.SortOrder
+  leave_type_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  record_type?: Prisma.SortOrderInput | Prisma.SortOrder
   balance?: Prisma.SortOrder
+  balance_unit?: Prisma.SortOrderInput | Prisma.SortOrder
+  as_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.LeaveBalanceCountOrderByAggregateInput
@@ -314,7 +358,11 @@ export type LeaveBalanceScalarWhereWithAggregatesInput = {
   person_id?: Prisma.UuidWithAggregatesFilter<"LeaveBalance"> | string
   xero_tenant_id?: Prisma.UuidWithAggregatesFilter<"LeaveBalance"> | string
   leave_type_xero_id?: Prisma.StringWithAggregatesFilter<"LeaveBalance"> | string
+  leave_type_name?: Prisma.StringNullableWithAggregatesFilter<"LeaveBalance"> | string | null
+  record_type?: Prisma.Enumavailability_record_typeNullableWithAggregatesFilter<"LeaveBalance"> | $Enums.availability_record_type | null
   balance?: Prisma.DecimalWithAggregatesFilter<"LeaveBalance"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: Prisma.Enumleave_balance_unitNullableWithAggregatesFilter<"LeaveBalance"> | $Enums.leave_balance_unit | null
+  as_at?: Prisma.DateTimeNullableWithAggregatesFilter<"LeaveBalance"> | Date | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"LeaveBalance"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"LeaveBalance"> | Date | string
 }
@@ -323,7 +371,11 @@ export type LeaveBalanceCreateInput = {
   id?: string
   clerk_org_id: string
   leave_type_xero_id: string
+  leave_type_name?: string | null
+  record_type?: $Enums.availability_record_type | null
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: $Enums.leave_balance_unit | null
+  as_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutLeave_balancesInput
@@ -338,7 +390,11 @@ export type LeaveBalanceUncheckedCreateInput = {
   person_id: string
   xero_tenant_id: string
   leave_type_xero_id: string
+  leave_type_name?: string | null
+  record_type?: $Enums.availability_record_type | null
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: $Enums.leave_balance_unit | null
+  as_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -347,7 +403,11 @@ export type LeaveBalanceUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   leave_type_xero_id?: Prisma.StringFieldUpdateOperationsInput | string
+  leave_type_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  record_type?: Prisma.NullableEnumavailability_record_typeFieldUpdateOperationsInput | $Enums.availability_record_type | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
+  as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutLeave_balancesNestedInput
@@ -362,7 +422,11 @@ export type LeaveBalanceUncheckedUpdateInput = {
   person_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   leave_type_xero_id?: Prisma.StringFieldUpdateOperationsInput | string
+  leave_type_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  record_type?: Prisma.NullableEnumavailability_record_typeFieldUpdateOperationsInput | $Enums.availability_record_type | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
+  as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -374,7 +438,11 @@ export type LeaveBalanceCreateManyInput = {
   person_id: string
   xero_tenant_id: string
   leave_type_xero_id: string
+  leave_type_name?: string | null
+  record_type?: $Enums.availability_record_type | null
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: $Enums.leave_balance_unit | null
+  as_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -383,7 +451,11 @@ export type LeaveBalanceUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   leave_type_xero_id?: Prisma.StringFieldUpdateOperationsInput | string
+  leave_type_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  record_type?: Prisma.NullableEnumavailability_record_typeFieldUpdateOperationsInput | $Enums.availability_record_type | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
+  as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -395,7 +467,11 @@ export type LeaveBalanceUncheckedUpdateManyInput = {
   person_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   leave_type_xero_id?: Prisma.StringFieldUpdateOperationsInput | string
+  leave_type_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  record_type?: Prisma.NullableEnumavailability_record_typeFieldUpdateOperationsInput | $Enums.availability_record_type | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
+  as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -423,7 +499,11 @@ export type LeaveBalanceCountOrderByAggregateInput = {
   person_id?: Prisma.SortOrder
   xero_tenant_id?: Prisma.SortOrder
   leave_type_xero_id?: Prisma.SortOrder
+  leave_type_name?: Prisma.SortOrder
+  record_type?: Prisma.SortOrder
   balance?: Prisma.SortOrder
+  balance_unit?: Prisma.SortOrder
+  as_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -439,7 +519,11 @@ export type LeaveBalanceMaxOrderByAggregateInput = {
   person_id?: Prisma.SortOrder
   xero_tenant_id?: Prisma.SortOrder
   leave_type_xero_id?: Prisma.SortOrder
+  leave_type_name?: Prisma.SortOrder
+  record_type?: Prisma.SortOrder
   balance?: Prisma.SortOrder
+  balance_unit?: Prisma.SortOrder
+  as_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -451,7 +535,11 @@ export type LeaveBalanceMinOrderByAggregateInput = {
   person_id?: Prisma.SortOrder
   xero_tenant_id?: Prisma.SortOrder
   leave_type_xero_id?: Prisma.SortOrder
+  leave_type_name?: Prisma.SortOrder
+  record_type?: Prisma.SortOrder
   balance?: Prisma.SortOrder
+  balance_unit?: Prisma.SortOrder
+  as_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -586,6 +674,10 @@ export type LeaveBalanceUncheckedUpdateManyWithoutXero_tenantNestedInput = {
   deleteMany?: Prisma.LeaveBalanceScalarWhereInput | Prisma.LeaveBalanceScalarWhereInput[]
 }
 
+export type NullableEnumavailability_record_typeFieldUpdateOperationsInput = {
+  set?: $Enums.availability_record_type | null
+}
+
 export type DecimalFieldUpdateOperationsInput = {
   set?: runtime.Decimal | runtime.DecimalJsLike | number | string
   increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -594,11 +686,19 @@ export type DecimalFieldUpdateOperationsInput = {
   divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
+export type NullableEnumleave_balance_unitFieldUpdateOperationsInput = {
+  set?: $Enums.leave_balance_unit | null
+}
+
 export type LeaveBalanceCreateWithoutOrganisationInput = {
   id?: string
   clerk_org_id: string
   leave_type_xero_id: string
+  leave_type_name?: string | null
+  record_type?: $Enums.availability_record_type | null
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: $Enums.leave_balance_unit | null
+  as_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   person: Prisma.PersonCreateNestedOneWithoutLeave_balancesInput
@@ -611,7 +711,11 @@ export type LeaveBalanceUncheckedCreateWithoutOrganisationInput = {
   person_id: string
   xero_tenant_id: string
   leave_type_xero_id: string
+  leave_type_name?: string | null
+  record_type?: $Enums.availability_record_type | null
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: $Enums.leave_balance_unit | null
+  as_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -652,7 +756,11 @@ export type LeaveBalanceScalarWhereInput = {
   person_id?: Prisma.UuidFilter<"LeaveBalance"> | string
   xero_tenant_id?: Prisma.UuidFilter<"LeaveBalance"> | string
   leave_type_xero_id?: Prisma.StringFilter<"LeaveBalance"> | string
+  leave_type_name?: Prisma.StringNullableFilter<"LeaveBalance"> | string | null
+  record_type?: Prisma.Enumavailability_record_typeNullableFilter<"LeaveBalance"> | $Enums.availability_record_type | null
   balance?: Prisma.DecimalFilter<"LeaveBalance"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: Prisma.Enumleave_balance_unitNullableFilter<"LeaveBalance"> | $Enums.leave_balance_unit | null
+  as_at?: Prisma.DateTimeNullableFilter<"LeaveBalance"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"LeaveBalance"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"LeaveBalance"> | Date | string
 }
@@ -661,7 +769,11 @@ export type LeaveBalanceCreateWithoutPersonInput = {
   id?: string
   clerk_org_id: string
   leave_type_xero_id: string
+  leave_type_name?: string | null
+  record_type?: $Enums.availability_record_type | null
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: $Enums.leave_balance_unit | null
+  as_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutLeave_balancesInput
@@ -674,7 +786,11 @@ export type LeaveBalanceUncheckedCreateWithoutPersonInput = {
   organisation_id: string
   xero_tenant_id: string
   leave_type_xero_id: string
+  leave_type_name?: string | null
+  record_type?: $Enums.availability_record_type | null
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: $Enums.leave_balance_unit | null
+  as_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -709,7 +825,11 @@ export type LeaveBalanceCreateWithoutXero_tenantInput = {
   id?: string
   clerk_org_id: string
   leave_type_xero_id: string
+  leave_type_name?: string | null
+  record_type?: $Enums.availability_record_type | null
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: $Enums.leave_balance_unit | null
+  as_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutLeave_balancesInput
@@ -722,7 +842,11 @@ export type LeaveBalanceUncheckedCreateWithoutXero_tenantInput = {
   organisation_id: string
   person_id: string
   leave_type_xero_id: string
+  leave_type_name?: string | null
+  record_type?: $Enums.availability_record_type | null
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: $Enums.leave_balance_unit | null
+  as_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -759,7 +883,11 @@ export type LeaveBalanceCreateManyOrganisationInput = {
   person_id: string
   xero_tenant_id: string
   leave_type_xero_id: string
+  leave_type_name?: string | null
+  record_type?: $Enums.availability_record_type | null
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: $Enums.leave_balance_unit | null
+  as_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -768,7 +896,11 @@ export type LeaveBalanceUpdateWithoutOrganisationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   leave_type_xero_id?: Prisma.StringFieldUpdateOperationsInput | string
+  leave_type_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  record_type?: Prisma.NullableEnumavailability_record_typeFieldUpdateOperationsInput | $Enums.availability_record_type | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
+  as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   person?: Prisma.PersonUpdateOneRequiredWithoutLeave_balancesNestedInput
@@ -781,7 +913,11 @@ export type LeaveBalanceUncheckedUpdateWithoutOrganisationInput = {
   person_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   leave_type_xero_id?: Prisma.StringFieldUpdateOperationsInput | string
+  leave_type_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  record_type?: Prisma.NullableEnumavailability_record_typeFieldUpdateOperationsInput | $Enums.availability_record_type | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
+  as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -792,7 +928,11 @@ export type LeaveBalanceUncheckedUpdateManyWithoutOrganisationInput = {
   person_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   leave_type_xero_id?: Prisma.StringFieldUpdateOperationsInput | string
+  leave_type_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  record_type?: Prisma.NullableEnumavailability_record_typeFieldUpdateOperationsInput | $Enums.availability_record_type | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
+  as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -803,7 +943,11 @@ export type LeaveBalanceCreateManyPersonInput = {
   organisation_id: string
   xero_tenant_id: string
   leave_type_xero_id: string
+  leave_type_name?: string | null
+  record_type?: $Enums.availability_record_type | null
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: $Enums.leave_balance_unit | null
+  as_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -812,7 +956,11 @@ export type LeaveBalanceUpdateWithoutPersonInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   leave_type_xero_id?: Prisma.StringFieldUpdateOperationsInput | string
+  leave_type_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  record_type?: Prisma.NullableEnumavailability_record_typeFieldUpdateOperationsInput | $Enums.availability_record_type | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
+  as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutLeave_balancesNestedInput
@@ -825,7 +973,11 @@ export type LeaveBalanceUncheckedUpdateWithoutPersonInput = {
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   leave_type_xero_id?: Prisma.StringFieldUpdateOperationsInput | string
+  leave_type_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  record_type?: Prisma.NullableEnumavailability_record_typeFieldUpdateOperationsInput | $Enums.availability_record_type | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
+  as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -836,7 +988,11 @@ export type LeaveBalanceUncheckedUpdateManyWithoutPersonInput = {
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
   leave_type_xero_id?: Prisma.StringFieldUpdateOperationsInput | string
+  leave_type_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  record_type?: Prisma.NullableEnumavailability_record_typeFieldUpdateOperationsInput | $Enums.availability_record_type | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
+  as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -847,7 +1003,11 @@ export type LeaveBalanceCreateManyXero_tenantInput = {
   organisation_id: string
   person_id: string
   leave_type_xero_id: string
+  leave_type_name?: string | null
+  record_type?: $Enums.availability_record_type | null
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: $Enums.leave_balance_unit | null
+  as_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -856,7 +1016,11 @@ export type LeaveBalanceUpdateWithoutXero_tenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   leave_type_xero_id?: Prisma.StringFieldUpdateOperationsInput | string
+  leave_type_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  record_type?: Prisma.NullableEnumavailability_record_typeFieldUpdateOperationsInput | $Enums.availability_record_type | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
+  as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutLeave_balancesNestedInput
@@ -869,7 +1033,11 @@ export type LeaveBalanceUncheckedUpdateWithoutXero_tenantInput = {
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   person_id?: Prisma.StringFieldUpdateOperationsInput | string
   leave_type_xero_id?: Prisma.StringFieldUpdateOperationsInput | string
+  leave_type_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  record_type?: Prisma.NullableEnumavailability_record_typeFieldUpdateOperationsInput | $Enums.availability_record_type | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
+  as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -880,7 +1048,11 @@ export type LeaveBalanceUncheckedUpdateManyWithoutXero_tenantInput = {
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   person_id?: Prisma.StringFieldUpdateOperationsInput | string
   leave_type_xero_id?: Prisma.StringFieldUpdateOperationsInput | string
+  leave_type_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  record_type?: Prisma.NullableEnumavailability_record_typeFieldUpdateOperationsInput | $Enums.availability_record_type | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
+  as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -894,7 +1066,11 @@ export type LeaveBalanceSelect<ExtArgs extends runtime.Types.Extensions.Internal
   person_id?: boolean
   xero_tenant_id?: boolean
   leave_type_xero_id?: boolean
+  leave_type_name?: boolean
+  record_type?: boolean
   balance?: boolean
+  balance_unit?: boolean
+  as_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
@@ -909,7 +1085,11 @@ export type LeaveBalanceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   person_id?: boolean
   xero_tenant_id?: boolean
   leave_type_xero_id?: boolean
+  leave_type_name?: boolean
+  record_type?: boolean
   balance?: boolean
+  balance_unit?: boolean
+  as_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
@@ -924,7 +1104,11 @@ export type LeaveBalanceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   person_id?: boolean
   xero_tenant_id?: boolean
   leave_type_xero_id?: boolean
+  leave_type_name?: boolean
+  record_type?: boolean
   balance?: boolean
+  balance_unit?: boolean
+  as_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
@@ -939,12 +1123,16 @@ export type LeaveBalanceSelectScalar = {
   person_id?: boolean
   xero_tenant_id?: boolean
   leave_type_xero_id?: boolean
+  leave_type_name?: boolean
+  record_type?: boolean
   balance?: boolean
+  balance_unit?: boolean
+  as_at?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type LeaveBalanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "person_id" | "xero_tenant_id" | "leave_type_xero_id" | "balance" | "created_at" | "updated_at", ExtArgs["result"]["leaveBalance"]>
+export type LeaveBalanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "person_id" | "xero_tenant_id" | "leave_type_xero_id" | "leave_type_name" | "record_type" | "balance" | "balance_unit" | "as_at" | "created_at" | "updated_at", ExtArgs["result"]["leaveBalance"]>
 export type LeaveBalanceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
   person?: boolean | Prisma.PersonDefaultArgs<ExtArgs>
@@ -975,7 +1163,11 @@ export type $LeaveBalancePayload<ExtArgs extends runtime.Types.Extensions.Intern
     person_id: string
     xero_tenant_id: string
     leave_type_xero_id: string
+    leave_type_name: string | null
+    record_type: $Enums.availability_record_type | null
     balance: runtime.Decimal
+    balance_unit: $Enums.leave_balance_unit | null
+    as_at: Date | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["leaveBalance"]>
@@ -1410,7 +1602,11 @@ export interface LeaveBalanceFieldRefs {
   readonly person_id: Prisma.FieldRef<"LeaveBalance", 'String'>
   readonly xero_tenant_id: Prisma.FieldRef<"LeaveBalance", 'String'>
   readonly leave_type_xero_id: Prisma.FieldRef<"LeaveBalance", 'String'>
+  readonly leave_type_name: Prisma.FieldRef<"LeaveBalance", 'String'>
+  readonly record_type: Prisma.FieldRef<"LeaveBalance", 'availability_record_type'>
   readonly balance: Prisma.FieldRef<"LeaveBalance", 'Decimal'>
+  readonly balance_unit: Prisma.FieldRef<"LeaveBalance", 'leave_balance_unit'>
+  readonly as_at: Prisma.FieldRef<"LeaveBalance", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"LeaveBalance", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"LeaveBalance", 'DateTime'>
 }

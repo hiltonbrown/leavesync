@@ -394,6 +394,9 @@ export const ModelName = {
   AvailabilityRecord: 'AvailabilityRecord',
   AvailabilityPublication: 'AvailabilityPublication',
   LeaveBalance: 'LeaveBalance',
+  PublicHolidayJurisdiction: 'PublicHolidayJurisdiction',
+  PublicHoliday: 'PublicHoliday',
+  PublicHolidayAssignment: 'PublicHolidayAssignment',
   Feed: 'Feed',
   FeedScope: 'FeedScope',
   FeedToken: 'FeedToken',
@@ -417,7 +420,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "organisation" | "team" | "location" | "person" | "xeroConnection" | "xeroTenant" | "xeroSyncCursor" | "availabilityRecord" | "availabilityPublication" | "leaveBalance" | "feed" | "feedScope" | "feedToken" | "notification" | "notificationPreference" | "syncRun" | "failedRecord" | "auditEvent"
+    modelProps: "organisation" | "team" | "location" | "person" | "xeroConnection" | "xeroTenant" | "xeroSyncCursor" | "availabilityRecord" | "availabilityPublication" | "leaveBalance" | "publicHolidayJurisdiction" | "publicHoliday" | "publicHolidayAssignment" | "feed" | "feedScope" | "feedToken" | "notification" | "notificationPreference" | "syncRun" | "failedRecord" | "auditEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1161,6 +1164,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PublicHolidayJurisdiction: {
+      payload: Prisma.$PublicHolidayJurisdictionPayload<ExtArgs>
+      fields: Prisma.PublicHolidayJurisdictionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PublicHolidayJurisdictionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayJurisdictionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PublicHolidayJurisdictionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayJurisdictionPayload>
+        }
+        findFirst: {
+          args: Prisma.PublicHolidayJurisdictionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayJurisdictionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PublicHolidayJurisdictionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayJurisdictionPayload>
+        }
+        findMany: {
+          args: Prisma.PublicHolidayJurisdictionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayJurisdictionPayload>[]
+        }
+        create: {
+          args: Prisma.PublicHolidayJurisdictionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayJurisdictionPayload>
+        }
+        createMany: {
+          args: Prisma.PublicHolidayJurisdictionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PublicHolidayJurisdictionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayJurisdictionPayload>[]
+        }
+        delete: {
+          args: Prisma.PublicHolidayJurisdictionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayJurisdictionPayload>
+        }
+        update: {
+          args: Prisma.PublicHolidayJurisdictionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayJurisdictionPayload>
+        }
+        deleteMany: {
+          args: Prisma.PublicHolidayJurisdictionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PublicHolidayJurisdictionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PublicHolidayJurisdictionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayJurisdictionPayload>[]
+        }
+        upsert: {
+          args: Prisma.PublicHolidayJurisdictionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayJurisdictionPayload>
+        }
+        aggregate: {
+          args: Prisma.PublicHolidayJurisdictionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePublicHolidayJurisdiction>
+        }
+        groupBy: {
+          args: Prisma.PublicHolidayJurisdictionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PublicHolidayJurisdictionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PublicHolidayJurisdictionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PublicHolidayJurisdictionCountAggregateOutputType> | number
+        }
+      }
+    }
+    PublicHoliday: {
+      payload: Prisma.$PublicHolidayPayload<ExtArgs>
+      fields: Prisma.PublicHolidayFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PublicHolidayFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PublicHolidayFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayPayload>
+        }
+        findFirst: {
+          args: Prisma.PublicHolidayFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PublicHolidayFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayPayload>
+        }
+        findMany: {
+          args: Prisma.PublicHolidayFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayPayload>[]
+        }
+        create: {
+          args: Prisma.PublicHolidayCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayPayload>
+        }
+        createMany: {
+          args: Prisma.PublicHolidayCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PublicHolidayCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayPayload>[]
+        }
+        delete: {
+          args: Prisma.PublicHolidayDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayPayload>
+        }
+        update: {
+          args: Prisma.PublicHolidayUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayPayload>
+        }
+        deleteMany: {
+          args: Prisma.PublicHolidayDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PublicHolidayUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PublicHolidayUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayPayload>[]
+        }
+        upsert: {
+          args: Prisma.PublicHolidayUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayPayload>
+        }
+        aggregate: {
+          args: Prisma.PublicHolidayAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePublicHoliday>
+        }
+        groupBy: {
+          args: Prisma.PublicHolidayGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PublicHolidayGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PublicHolidayCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PublicHolidayCountAggregateOutputType> | number
+        }
+      }
+    }
+    PublicHolidayAssignment: {
+      payload: Prisma.$PublicHolidayAssignmentPayload<ExtArgs>
+      fields: Prisma.PublicHolidayAssignmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PublicHolidayAssignmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayAssignmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PublicHolidayAssignmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayAssignmentPayload>
+        }
+        findFirst: {
+          args: Prisma.PublicHolidayAssignmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayAssignmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PublicHolidayAssignmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayAssignmentPayload>
+        }
+        findMany: {
+          args: Prisma.PublicHolidayAssignmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayAssignmentPayload>[]
+        }
+        create: {
+          args: Prisma.PublicHolidayAssignmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayAssignmentPayload>
+        }
+        createMany: {
+          args: Prisma.PublicHolidayAssignmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PublicHolidayAssignmentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayAssignmentPayload>[]
+        }
+        delete: {
+          args: Prisma.PublicHolidayAssignmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayAssignmentPayload>
+        }
+        update: {
+          args: Prisma.PublicHolidayAssignmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayAssignmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.PublicHolidayAssignmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PublicHolidayAssignmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PublicHolidayAssignmentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayAssignmentPayload>[]
+        }
+        upsert: {
+          args: Prisma.PublicHolidayAssignmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PublicHolidayAssignmentPayload>
+        }
+        aggregate: {
+          args: Prisma.PublicHolidayAssignmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePublicHolidayAssignment>
+        }
+        groupBy: {
+          args: Prisma.PublicHolidayAssignmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PublicHolidayAssignmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PublicHolidayAssignmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PublicHolidayAssignmentCountAggregateOutputType> | number
+        }
+      }
+    }
     Feed: {
       payload: Prisma.$FeedPayload<ExtArgs>
       fields: Prisma.FeedFieldRefs
@@ -1797,6 +2022,7 @@ export const OrganisationScalarFieldEnum = {
   clerk_org_id: 'clerk_org_id',
   name: 'name',
   country_code: 'country_code',
+  is_active: 'is_active',
   timezone: 'timezone',
   locale: 'locale',
   fiscal_year_start: 'fiscal_year_start',
@@ -1827,7 +2053,9 @@ export const LocationScalarFieldEnum = {
   clerk_org_id: 'clerk_org_id',
   organisation_id: 'organisation_id',
   name: 'name',
+  country_code: 'country_code',
   region_code: 'region_code',
+  timezone: 'timezone',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -1841,6 +2069,7 @@ export const PersonScalarFieldEnum = {
   organisation_id: 'organisation_id',
   team_id: 'team_id',
   location_id: 'location_id',
+  person_type: 'person_type',
   source_system: 'source_system',
   source_person_key: 'source_person_key',
   first_name: 'first_name',
@@ -1851,6 +2080,9 @@ export const PersonScalarFieldEnum = {
   display_name: 'display_name',
   clerk_user_id: 'clerk_user_id',
   job_title: 'job_title',
+  default_contactability: 'default_contactability',
+  default_privacy_mode: 'default_privacy_mode',
+  include_in_feeds_by_default: 'include_in_feeds_by_default',
   archived_at: 'archived_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
@@ -1917,6 +2149,9 @@ export const AvailabilityRecordScalarFieldEnum = {
   include_in_feed: 'include_in_feed',
   publish_status: 'publish_status',
   source_payload_json: 'source_payload_json',
+  source_remote_hash: 'source_remote_hash',
+  source_remote_version: 'source_remote_version',
+  source_last_modified_at: 'source_last_modified_at',
   derived_uid_key: 'derived_uid_key',
   title: 'title',
   all_day: 'all_day',
@@ -1926,7 +2161,12 @@ export const AvailabilityRecordScalarFieldEnum = {
   created_by_user_id: 'created_by_user_id',
   updated_by_user_id: 'updated_by_user_id',
   archived_at: 'archived_at',
+  approval_note: 'approval_note',
   approved_at: 'approved_at',
+  xero_write_error: 'xero_write_error',
+  xero_write_error_raw: 'xero_write_error_raw',
+  submitted_at: 'submitted_at',
+  withdrawn_at: 'withdrawn_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -1959,12 +2199,80 @@ export const LeaveBalanceScalarFieldEnum = {
   person_id: 'person_id',
   xero_tenant_id: 'xero_tenant_id',
   leave_type_xero_id: 'leave_type_xero_id',
+  leave_type_name: 'leave_type_name',
+  record_type: 'record_type',
   balance: 'balance',
+  balance_unit: 'balance_unit',
+  as_at: 'as_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
 
 export type LeaveBalanceScalarFieldEnum = (typeof LeaveBalanceScalarFieldEnum)[keyof typeof LeaveBalanceScalarFieldEnum]
+
+
+export const PublicHolidayJurisdictionScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  country_code: 'country_code',
+  region_code: 'region_code',
+  source: 'source',
+  is_enabled: 'is_enabled',
+  created_by_user_id: 'created_by_user_id',
+  updated_by_user_id: 'updated_by_user_id',
+  archived_at: 'archived_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type PublicHolidayJurisdictionScalarFieldEnum = (typeof PublicHolidayJurisdictionScalarFieldEnum)[keyof typeof PublicHolidayJurisdictionScalarFieldEnum]
+
+
+export const PublicHolidayScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  jurisdiction_id: 'jurisdiction_id',
+  source: 'source',
+  source_remote_id: 'source_remote_id',
+  country_code: 'country_code',
+  region_code: 'region_code',
+  holiday_date: 'holiday_date',
+  name: 'name',
+  local_name: 'local_name',
+  holiday_type: 'holiday_type',
+  default_classification: 'default_classification',
+  notes_internal: 'notes_internal',
+  source_payload_json: 'source_payload_json',
+  created_by_user_id: 'created_by_user_id',
+  updated_by_user_id: 'updated_by_user_id',
+  archived_at: 'archived_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type PublicHolidayScalarFieldEnum = (typeof PublicHolidayScalarFieldEnum)[keyof typeof PublicHolidayScalarFieldEnum]
+
+
+export const PublicHolidayAssignmentScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  public_holiday_id: 'public_holiday_id',
+  scope_type: 'scope_type',
+  scope_value: 'scope_value',
+  day_classification: 'day_classification',
+  include_in_feeds: 'include_in_feeds',
+  notes_internal: 'notes_internal',
+  created_by_user_id: 'created_by_user_id',
+  updated_by_user_id: 'updated_by_user_id',
+  archived_at: 'archived_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type PublicHolidayAssignmentScalarFieldEnum = (typeof PublicHolidayAssignmentScalarFieldEnum)[keyof typeof PublicHolidayAssignmentScalarFieldEnum]
 
 
 export const FeedScalarFieldEnum = {
@@ -2159,6 +2467,13 @@ export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMod
 
 
 /**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
  * Reference to a field of type 'Int'
  */
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -2201,6 +2516,20 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
+ * Reference to a field of type 'person_type'
+ */
+export type Enumperson_typeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'person_type'>
+    
+
+
+/**
+ * Reference to a field of type 'person_type[]'
+ */
+export type ListEnumperson_typeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'person_type[]'>
+    
+
+
+/**
  * Reference to a field of type 'source_system'
  */
 export type Enumsource_systemFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'source_system'>
@@ -2229,9 +2558,30 @@ export type ListEnumemployment_typeFieldRefInput<$PrismaModel> = FieldRefInputTy
 
 
 /**
- * Reference to a field of type 'Boolean'
+ * Reference to a field of type 'availability_contactability'
  */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+export type Enumavailability_contactabilityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'availability_contactability'>
+    
+
+
+/**
+ * Reference to a field of type 'availability_contactability[]'
+ */
+export type ListEnumavailability_contactabilityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'availability_contactability[]'>
+    
+
+
+/**
+ * Reference to a field of type 'availability_privacy_mode'
+ */
+export type Enumavailability_privacy_modeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'availability_privacy_mode'>
+    
+
+
+/**
+ * Reference to a field of type 'availability_privacy_mode[]'
+ */
+export type ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'availability_privacy_mode[]'>
     
 
 
@@ -2306,34 +2656,6 @@ export type ListEnumavailability_approval_statusFieldRefInput<$PrismaModel> = Fi
 
 
 /**
- * Reference to a field of type 'availability_privacy_mode'
- */
-export type Enumavailability_privacy_modeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'availability_privacy_mode'>
-    
-
-
-/**
- * Reference to a field of type 'availability_privacy_mode[]'
- */
-export type ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'availability_privacy_mode[]'>
-    
-
-
-/**
- * Reference to a field of type 'availability_contactability'
- */
-export type Enumavailability_contactabilityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'availability_contactability'>
-    
-
-
-/**
- * Reference to a field of type 'availability_contactability[]'
- */
-export type ListEnumavailability_contactabilityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'availability_contactability[]'>
-    
-
-
-/**
  * Reference to a field of type 'availability_publish_status'
  */
 export type Enumavailability_publish_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'availability_publish_status'>
@@ -2358,6 +2680,76 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
  * Reference to a field of type 'QueryMode'
  */
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
+ * Reference to a field of type 'leave_balance_unit'
+ */
+export type Enumleave_balance_unitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'leave_balance_unit'>
+    
+
+
+/**
+ * Reference to a field of type 'leave_balance_unit[]'
+ */
+export type ListEnumleave_balance_unitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'leave_balance_unit[]'>
+    
+
+
+/**
+ * Reference to a field of type 'public_holiday_source'
+ */
+export type Enumpublic_holiday_sourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'public_holiday_source'>
+    
+
+
+/**
+ * Reference to a field of type 'public_holiday_source[]'
+ */
+export type ListEnumpublic_holiday_sourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'public_holiday_source[]'>
+    
+
+
+/**
+ * Reference to a field of type 'public_holiday_type'
+ */
+export type Enumpublic_holiday_typeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'public_holiday_type'>
+    
+
+
+/**
+ * Reference to a field of type 'public_holiday_type[]'
+ */
+export type ListEnumpublic_holiday_typeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'public_holiday_type[]'>
+    
+
+
+/**
+ * Reference to a field of type 'public_holiday_day_classification'
+ */
+export type Enumpublic_holiday_day_classificationFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'public_holiday_day_classification'>
+    
+
+
+/**
+ * Reference to a field of type 'public_holiday_day_classification[]'
+ */
+export type ListEnumpublic_holiday_day_classificationFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'public_holiday_day_classification[]'>
+    
+
+
+/**
+ * Reference to a field of type 'public_holiday_assignment_scope_type'
+ */
+export type Enumpublic_holiday_assignment_scope_typeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'public_holiday_assignment_scope_type'>
+    
+
+
+/**
+ * Reference to a field of type 'public_holiday_assignment_scope_type[]'
+ */
+export type ListEnumpublic_holiday_assignment_scope_typeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'public_holiday_assignment_scope_type[]'>
     
 
 
@@ -2535,6 +2927,9 @@ export type GlobalOmitConfig = {
   availabilityRecord?: Prisma.AvailabilityRecordOmit
   availabilityPublication?: Prisma.AvailabilityPublicationOmit
   leaveBalance?: Prisma.LeaveBalanceOmit
+  publicHolidayJurisdiction?: Prisma.PublicHolidayJurisdictionOmit
+  publicHoliday?: Prisma.PublicHolidayOmit
+  publicHolidayAssignment?: Prisma.PublicHolidayAssignmentOmit
   feed?: Prisma.FeedOmit
   feedScope?: Prisma.FeedScopeOmit
   feedToken?: Prisma.FeedTokenOmit

@@ -1,5 +1,9 @@
 import { toDateOnly } from "@repo/core";
 import { AlertCircleIcon } from "lucide-react";
+import {
+  getAvailabilityRecordLabel,
+  isXeroSourceType,
+} from "@/lib/availability-record-types";
 
 interface AvailabilityRecord {
   approvalStatus: string;
@@ -16,14 +20,6 @@ interface AvailabilityTimelineProps {
   records: AvailabilityRecord[];
   title: string;
 }
-
-const RECORD_TYPE_LABELS: Record<string, string> = {
-  leave: "Leave",
-  wfh: "Work from Home",
-  training: "Training",
-  travel: "Travel",
-  "client-site": "Client Site",
-};
 
 const STATUS_COLORS: Record<string, string> = {
   approved: "bg-green-100 text-green-800",
@@ -70,14 +66,14 @@ export function AvailabilityTimeline({
             >
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-foreground text-sm">
-                  {RECORD_TYPE_LABELS[record.recordType] || record.recordType}
+                  {getAvailabilityRecordLabel(record.recordType)}
                 </p>
                 <p className="mt-1 text-muted-foreground text-xs">
                   {toDateOnly(record.startsAt)} – {toDateOnly(record.endsAt)}
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                {record.sourceType === "xero" && (
+                {isXeroSourceType(record.sourceType) && (
                   <span className="whitespace-nowrap rounded bg-blue-50 px-2 py-1 text-blue-700 text-xs">
                     Xero
                   </span>

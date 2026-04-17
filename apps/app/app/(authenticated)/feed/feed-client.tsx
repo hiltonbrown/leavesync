@@ -27,6 +27,7 @@ import {
   RotateCwIcon,
   RssIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import {
   createFeedAction,
@@ -185,7 +186,12 @@ export function FeedClient({
               <div className="flex flex-col gap-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="font-semibold text-foreground">{feed.name}</p>
+                    <Link
+                      className="font-semibold text-foreground hover:text-primary"
+                      href={`/feed/${feed.id}`}
+                    >
+                      {feed.name}
+                    </Link>
                     <p className="mt-1 text-muted-foreground text-sm">
                       {feed.scopeType.replaceAll("_", " ")} ·{" "}
                       {feed.privacyDefault} privacy · {people.length} people
@@ -389,7 +395,7 @@ function CreateFeedDialog({
 }
 
 function feedUrl(token: string): string {
-  return `https://app.leavesync.com/api/feeds/${token}/calendar.ics`;
+  return `https://app.leavesync.com/ical/${token}.ics`;
 }
 
 function normalisePrivacy(value: string): "masked" | "named" | "private" {

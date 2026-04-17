@@ -8,7 +8,7 @@ import {
   type Result,
 } from "@repo/core";
 import { database, scopedQuery } from "@repo/database";
-import ical from "ical-generator";
+import ical, { ICalEventTransparency } from "ical-generator";
 import { z } from "zod";
 
 export interface FeedTenantContext {
@@ -336,6 +336,10 @@ export const renderFeedForToken = async (
     return { ok: false, error: appError("not_found", "Feed not found") };
   }
 
+  if (!feedToken.feed.organisation_id) {
+    return { ok: false, error: appError("not_found", "Feed not found") };
+  }
+
   const records = await database.availabilityRecord.findMany({
     where: {
       ...scopedQuery(
@@ -372,6 +376,38 @@ export const renderFeedForToken = async (
       sequence: record.publication?.published_sequence ?? 0,
       start: record.starts_at,
       summary: buildSummary(record),
+    });
+  }
+
+  const holidayAssignments = await database.publicHolidayAssignment.findMany({
+    where: {
+      clerk_org_id: feedToken.feed.clerk_org_id,
+      organisation_id: feedToken.feed.organisation_id,
+      archived_at: null,
+      include_in_feeds: true,
+      scope_type: "feed",
+      scope_value: feedToken.feed.id,
+      public_holiday: {
+        archived_at: null,
+      },
+    },
+    include: { public_holiday: true },
+    orderBy: { public_holiday: { holiday_date: "asc" } },
+  });
+
+  for (const assignment of holidayAssignments) {
+    const holiday = assignment.public_holiday;
+    calendar.createEvent({
+      allDay: true,
+      end: holiday.holiday_date,
+      id: `public-holiday:${holiday.id}:${assignment.id}`,
+      sequence: 0,
+      start: holiday.holiday_date,
+      summary: holiday.name,
+      transparency:
+        assignment.day_classification === "working"
+          ? ICalEventTransparency.TRANSPARENT
+          : ICalEventTransparency.OPAQUE,
     });
   }
 

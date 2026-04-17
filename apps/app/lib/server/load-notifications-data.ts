@@ -5,6 +5,7 @@ import type { ClerkOrgId, Result } from "@repo/core";
 import { appError } from "@repo/core";
 import {
   countUnreadNotifications,
+  listNotificationPreferencesForUser,
   listNotificationsForUser,
 } from "@repo/database/src/queries/notifications";
 
@@ -26,6 +27,11 @@ export async function loadNotificationsData(
       payload: unknown;
       isRead: boolean;
       createdAt: Date;
+    }>;
+    preferences: Array<{
+      emailEnabled: boolean;
+      inAppEnabled: boolean;
+      notificationType: string;
     }>;
     unreadCount: number;
   }>
@@ -56,13 +62,22 @@ export async function loadNotificationsData(
       };
     }
 
-    // Count unread
-    const unreadResult = await countUnreadNotifications(clerkOrgId, userId);
+    const [unreadResult, preferencesResult] = await Promise.all([
+      countUnreadNotifications(clerkOrgId, userId),
+      listNotificationPreferencesForUser(clerkOrgId, userId),
+    ]);
 
     if (!unreadResult.ok) {
       return {
         ok: false,
         error: unreadResult.error,
+      };
+    }
+
+    if (!preferencesResult.ok) {
+      return {
+        ok: false,
+        error: preferencesResult.error,
       };
     }
 
@@ -75,6 +90,11 @@ export async function loadNotificationsData(
           payload: notification.payload,
           isRead: notification.isRead,
           createdAt: notification.createdAt,
+        })),
+        preferences: preferencesResult.value.map((preference) => ({
+          notificationType: preference.notificationType,
+          inAppEnabled: preference.inAppEnabled,
+          emailEnabled: preference.emailEnabled,
         })),
         unreadCount: unreadResult.value,
       },

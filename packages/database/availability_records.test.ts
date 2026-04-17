@@ -193,7 +193,8 @@ describe("availability_records", () => {
         "availability_records_person_id_starts_at_ends_at_idx",
         "availability_records_source_type_source_remote_id_idx",
         "availability_records_organisation_id_publish_status_include_idx",
-        "availability_records_xero_remote_unique_idx",
+        "availability_records_source_identity_key",
+        "availability_records_source_type_source_last_modified_at_idx",
       ])
     );
 

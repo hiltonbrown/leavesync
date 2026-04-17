@@ -27,6 +27,16 @@ export const employment_type = {
 export type employment_type = (typeof employment_type)[keyof typeof employment_type]
 
 
+export const person_type = {
+  employee: 'employee',
+  contractor: 'contractor',
+  director: 'director',
+  offshore_staff: 'offshore_staff'
+} as const
+
+export type person_type = (typeof person_type)[keyof typeof person_type]
+
+
 export const payroll_region = {
   AU: 'AU',
   NZ: 'NZ',
@@ -47,10 +57,25 @@ export type xero_sync_entity_type = (typeof xero_sync_entity_type)[keyof typeof 
 
 export const availability_record_type = {
   leave: 'leave',
+  annual_leave: 'annual_leave',
+  personal_leave: 'personal_leave',
+  holiday: 'holiday',
+  sick_leave: 'sick_leave',
+  long_service_leave: 'long_service_leave',
+  unpaid_leave: 'unpaid_leave',
+  public_holiday: 'public_holiday',
   wfh: 'wfh',
   travel: 'travel',
+  travelling: 'travelling',
   training: 'training',
-  client_site: 'client_site'
+  client_site: 'client_site',
+  another_office: 'another_office',
+  offsite_meeting: 'offsite_meeting',
+  contractor_unavailable: 'contractor_unavailable',
+  limited_availability: 'limited_availability',
+  alternative_contact: 'alternative_contact',
+  other: 'other',
+  leave_request: 'leave_request'
 } as const
 
 export type availability_record_type = (typeof availability_record_type)[keyof typeof availability_record_type]
@@ -58,6 +83,8 @@ export type availability_record_type = (typeof availability_record_type)[keyof t
 
 export const availability_source_type = {
   xero: 'xero',
+  xero_leave: 'xero_leave',
+  leavesync_leave: 'leavesync_leave',
   manual: 'manual'
 } as const
 
@@ -69,7 +96,9 @@ export const availability_approval_status = {
   submitted: 'submitted',
   approved: 'approved',
   declined: 'declined',
-  cancelled: 'cancelled'
+  cancelled: 'cancelled',
+  withdrawn: 'withdrawn',
+  xero_sync_failed: 'xero_sync_failed'
 } as const
 
 export type availability_approval_status = (typeof availability_approval_status)[keyof typeof availability_approval_status]
@@ -87,7 +116,8 @@ export type availability_privacy_mode = (typeof availability_privacy_mode)[keyof
 export const availability_contactability = {
   contactable: 'contactable',
   limited: 'limited',
-  unavailable: 'unavailable'
+  unavailable: 'unavailable',
+  use_alternative_contact: 'use_alternative_contact'
 } as const
 
 export type availability_contactability = (typeof availability_contactability)[keyof typeof availability_contactability]
@@ -100,6 +130,14 @@ export const availability_publish_status = {
 } as const
 
 export type availability_publish_status = (typeof availability_publish_status)[keyof typeof availability_publish_status]
+
+
+export const leave_balance_unit = {
+  hours: 'hours',
+  days: 'days'
+} as const
+
+export type leave_balance_unit = (typeof leave_balance_unit)[keyof typeof leave_balance_unit]
 
 
 export const feed_scope_rule_type = {
@@ -138,3 +176,44 @@ export const notification_type = {
 } as const
 
 export type notification_type = (typeof notification_type)[keyof typeof notification_type]
+
+
+export const public_holiday_source = {
+  nager: 'nager',
+  manual: 'manual'
+} as const
+
+export type public_holiday_source = (typeof public_holiday_source)[keyof typeof public_holiday_source]
+
+
+export const public_holiday_type = {
+  public: 'public',
+  bank: 'bank',
+  school: 'school',
+  authorities: 'authorities',
+  optional: 'optional',
+  observance: 'observance',
+  closure: 'closure',
+  custom: 'custom'
+} as const
+
+export type public_holiday_type = (typeof public_holiday_type)[keyof typeof public_holiday_type]
+
+
+export const public_holiday_assignment_scope_type = {
+  organisation: 'organisation',
+  location: 'location',
+  team: 'team',
+  person: 'person',
+  feed: 'feed'
+} as const
+
+export type public_holiday_assignment_scope_type = (typeof public_holiday_assignment_scope_type)[keyof typeof public_holiday_assignment_scope_type]
+
+
+export const public_holiday_day_classification = {
+  non_working: 'non_working',
+  working: 'working'
+} as const
+
+export type public_holiday_day_classification = (typeof public_holiday_day_classification)[keyof typeof public_holiday_day_classification]
