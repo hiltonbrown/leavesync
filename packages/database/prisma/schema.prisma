@@ -20,6 +20,13 @@ enum employment_type {
   offshore
 }
 
+enum person_type {
+  employee
+  contractor
+  director
+  offshore_staff
+}
+
 enum payroll_region {
   AU
   NZ
@@ -34,14 +41,31 @@ enum xero_sync_entity_type {
 
 enum availability_record_type {
   leave
+  annual_leave
+  personal_leave
+  holiday
+  sick_leave
+  long_service_leave
+  unpaid_leave
+  public_holiday
   wfh
   travel
+  travelling
   training
   client_site
+  another_office
+  offsite_meeting
+  contractor_unavailable
+  limited_availability
+  alternative_contact
+  other
+  leave_request
 }
 
 enum availability_source_type {
   xero
+  xero_leave
+  leavesync_leave
   manual
 }
 
@@ -51,6 +75,8 @@ enum availability_approval_status {
   approved
   declined
   cancelled
+  withdrawn
+  xero_sync_failed
 }
 
 enum availability_privacy_mode {
@@ -63,12 +89,18 @@ enum availability_contactability {
   contactable
   limited
   unavailable
+  use_alternative_contact
 }
 
 enum availability_publish_status {
   eligible
   suppressed
   archived
+}
+
+enum leave_balance_unit {
+  hours
+  days
 }
 
 enum feed_scope_rule_type {
@@ -97,11 +129,41 @@ enum notification_type {
   missing_alternative_contact
 }
 
+enum public_holiday_source {
+  nager
+  manual
+}
+
+enum public_holiday_type {
+  public
+  bank
+  school
+  authorities
+  optional
+  observance
+  closure
+  custom
+}
+
+enum public_holiday_assignment_scope_type {
+  organisation
+  location
+  team
+  person
+  feed
+}
+
+enum public_holiday_day_classification {
+  non_working
+  working
+}
+
 model Organisation {
   id                    String    @id @default(uuid()) @db.Uuid
   clerk_org_id          String
   name                  String
   country_code          String
+  is_active             Boolean   @default(true)
   timezone              String?
   locale                String?
   fiscal_year_start     Int?
@@ -111,19 +173,22 @@ model Organisation {
   created_at            DateTime  @default(now())
   updated_at            DateTime  @updatedAt
 
-  teams                     Team[]
-  locations                 Location[]
-  people                    Person[]
-  leave_balances            LeaveBalance[]
-  availability_records      AvailabilityRecord[]
-  availability_publications AvailabilityPublication[]
-  feeds                     Feed[]
-  xero_connection           XeroConnection?
-  xero_tenants              XeroTenant[]
-  xero_sync_cursors         XeroSyncCursor[]
-  sync_runs                 SyncRun[]
-  failed_records            FailedRecord[]
-  audit_events              AuditEvent[]
+  teams                        Team[]
+  locations                    Location[]
+  people                       Person[]
+  leave_balances               LeaveBalance[]
+  availability_records         AvailabilityRecord[]
+  availability_publications    AvailabilityPublication[]
+  feeds                        Feed[]
+  public_holiday_jurisdictions PublicHolidayJurisdiction[]
+  public_holidays              PublicHoliday[]
+  public_holiday_assignments   PublicHolidayAssignment[]
+  xero_connection              XeroConnection?
+  xero_tenants                 XeroTenant[]
+  xero_sync_cursors            XeroSyncCursor[]
+  sync_runs                    SyncRun[]
+  failed_records               FailedRecord[]
+  audit_events                 AuditEvent[]
 
   @@index([clerk_org_id])
   @@map("organisations")
@@ -150,7 +215,9 @@ model Location {
   clerk_org_id    String
   organisation_id String   @db.Uuid
   name            String
+  country_code    String?
   region_code     String?
+  timezone        String?
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
 
@@ -163,24 +230,28 @@ model Location {
 }
 
 model Person {
-  id                String          @id @default(uuid()) @db.Uuid
-  clerk_org_id      String
-  organisation_id   String          @db.Uuid
-  team_id           String?         @db.Uuid
-  location_id       String?         @db.Uuid
-  source_system     source_system
-  source_person_key String?
-  first_name        String
-  last_name         String
-  email             String
-  employment_type   employment_type
-  is_active         Boolean         @default(true)
-  display_name      String?
-  clerk_user_id     String?
-  job_title         String?
-  archived_at       DateTime?
-  created_at        DateTime        @default(now())
-  updated_at        DateTime        @updatedAt
+  id                          String                      @id @default(uuid()) @db.Uuid
+  clerk_org_id                String
+  organisation_id             String                      @db.Uuid
+  team_id                     String?                     @db.Uuid
+  location_id                 String?                     @db.Uuid
+  person_type                 person_type?
+  source_system               source_system
+  source_person_key           String?
+  first_name                  String
+  last_name                   String
+  email                       String
+  employment_type             employment_type
+  is_active                   Boolean                     @default(true)
+  display_name                String?
+  clerk_user_id               String?
+  job_title                   String?
+  default_contactability      availability_contactability @default(contactable)
+  default_privacy_mode        availability_privacy_mode   @default(named)
+  include_in_feeds_by_default Boolean                     @default(true)
+  archived_at                 DateTime?
+  created_at                  DateTime                    @default(now())
+  updated_at                  DateTime                    @updatedAt
 
   organisation         Organisation         @relation(fields: [organisation_id], references: [id])
   team                 Team?                @relation(fields: [team_id], references: [id])
@@ -272,6 +343,9 @@ model AvailabilityRecord {
   include_in_feed          Boolean                      @default(true)
   publish_status           availability_publish_status  @default(eligible)
   source_payload_json      Json?
+  source_remote_hash       String?
+  source_remote_version    String?
+  source_last_modified_at  DateTime?
   derived_uid_key          String
   title                    String?
   all_day                  Boolean                      @default(true)
@@ -281,7 +355,12 @@ model AvailabilityRecord {
   created_by_user_id       String?
   updated_by_user_id       String?
   archived_at              DateTime?
+  approval_note            String?
   approved_at              DateTime?
+  xero_write_error         String?
+  xero_write_error_raw     Json?
+  submitted_at             DateTime?
+  withdrawn_at             DateTime?
   created_at               DateTime                     @default(now())
   updated_at               DateTime                     @updatedAt
 
@@ -289,11 +368,13 @@ model AvailabilityRecord {
   person       Person                   @relation(fields: [person_id], references: [id])
   publication  AvailabilityPublication?
 
+  @@unique([organisation_id, source_type, source_remote_id], map: "availability_records_source_identity_key")
   @@index([clerk_org_id])
   @@index([organisation_id])
   @@index([person_id, starts_at, ends_at])
   @@index([source_type, source_remote_id])
   @@index([organisation_id, publish_status, include_in_feed])
+  @@index([source_type, source_last_modified_at])
   @@map("availability_records")
 }
 
@@ -321,15 +402,19 @@ model AvailabilityPublication {
 }
 
 model LeaveBalance {
-  id                 String   @id @default(uuid()) @db.Uuid
+  id                 String                    @id @default(uuid()) @db.Uuid
   clerk_org_id       String
-  organisation_id    String   @db.Uuid
-  person_id          String   @db.Uuid
-  xero_tenant_id     String   @db.Uuid
+  organisation_id    String                    @db.Uuid
+  person_id          String                    @db.Uuid
+  xero_tenant_id     String                    @db.Uuid
   leave_type_xero_id String
-  balance            Decimal  @db.Decimal(12, 4)
-  created_at         DateTime @default(now())
-  updated_at         DateTime @updatedAt
+  leave_type_name    String?
+  record_type        availability_record_type?
+  balance            Decimal                   @db.Decimal(12, 4)
+  balance_unit       leave_balance_unit?
+  as_at              DateTime?
+  created_at         DateTime                  @default(now())
+  updated_at         DateTime                  @updatedAt
 
   organisation Organisation @relation(fields: [organisation_id], references: [id])
   person       Person       @relation(fields: [person_id], references: [id])
@@ -341,6 +426,89 @@ model LeaveBalance {
   @@index([person_id])
   @@index([xero_tenant_id])
   @@map("leave_balances")
+}
+
+model PublicHolidayJurisdiction {
+  id                 String                @id @default(uuid()) @db.Uuid
+  clerk_org_id       String
+  organisation_id    String                @db.Uuid
+  country_code       String
+  region_code        String?
+  source             public_holiday_source @default(nager)
+  is_enabled         Boolean               @default(true)
+  created_by_user_id String?
+  updated_by_user_id String?
+  archived_at        DateTime?
+  created_at         DateTime              @default(now())
+  updated_at         DateTime              @updatedAt
+
+  organisation Organisation    @relation(fields: [organisation_id], references: [id])
+  holidays     PublicHoliday[]
+
+  @@unique([organisation_id, country_code, region_code])
+  @@index([clerk_org_id])
+  @@index([organisation_id])
+  @@map("public_holiday_jurisdictions")
+}
+
+model PublicHoliday {
+  id                     String                            @id @default(uuid()) @db.Uuid
+  clerk_org_id           String
+  organisation_id        String                            @db.Uuid
+  jurisdiction_id        String?                           @db.Uuid
+  source                 public_holiday_source
+  source_remote_id       String?
+  country_code           String
+  region_code            String?
+  holiday_date           DateTime
+  name                   String
+  local_name             String?
+  holiday_type           public_holiday_type
+  default_classification public_holiday_day_classification @default(non_working)
+  notes_internal         String?
+  source_payload_json    Json?
+  created_by_user_id     String?
+  updated_by_user_id     String?
+  archived_at            DateTime?
+  created_at             DateTime                          @default(now())
+  updated_at             DateTime                          @updatedAt
+
+  organisation Organisation               @relation(fields: [organisation_id], references: [id])
+  jurisdiction PublicHolidayJurisdiction? @relation(fields: [jurisdiction_id], references: [id])
+  assignments  PublicHolidayAssignment[]
+
+  @@unique([organisation_id, source, source_remote_id])
+  @@index([clerk_org_id])
+  @@index([organisation_id, holiday_date])
+  @@index([jurisdiction_id])
+  @@map("public_holidays")
+}
+
+model PublicHolidayAssignment {
+  id                 String                               @id @default(uuid()) @db.Uuid
+  clerk_org_id       String
+  organisation_id    String                               @db.Uuid
+  public_holiday_id  String                               @db.Uuid
+  scope_type         public_holiday_assignment_scope_type
+  scope_value        String
+  day_classification public_holiday_day_classification    @default(non_working)
+  include_in_feeds   Boolean                              @default(true)
+  notes_internal     String?
+  created_by_user_id String?
+  updated_by_user_id String?
+  archived_at        DateTime?
+  created_at         DateTime                             @default(now())
+  updated_at         DateTime                             @updatedAt
+
+  organisation   Organisation  @relation(fields: [organisation_id], references: [id])
+  public_holiday PublicHoliday @relation(fields: [public_holiday_id], references: [id])
+
+  @@unique([public_holiday_id, scope_type, scope_value])
+  @@index([clerk_org_id])
+  @@index([organisation_id])
+  @@index([public_holiday_id])
+  @@index([scope_type, scope_value])
+  @@map("public_holiday_assignments")
 }
 
 model Feed {

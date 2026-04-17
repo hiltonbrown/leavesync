@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@repo/design-system/components/ui/dialog";
 import { Input } from "@repo/design-system/components/ui/input";
+import { toast } from "@repo/design-system/components/ui/sonner";
 import {
   Tabs,
   TabsContent,
@@ -25,8 +26,13 @@ import {
   RotateCwIcon,
   Trash2Icon,
 } from "lucide-react";
+import { useState, useTransition } from "react";
+import {
+  rotateFeedTokenAction,
+  setFeedStatusAction,
+} from "@/app/actions/feeds/manage";
 
-type FeedStatus = "active" | "paused";
+type FeedStatus = "active" | "archived" | "paused";
 
 interface Person {
   id: string;
@@ -76,20 +82,78 @@ const formatDate = (iso: string): string =>
 interface FeedDetailClientProperties {
   readonly feed: Feed;
   readonly members: Person[];
+  readonly organisationId: string;
   readonly previewEvents: PreviewEvent[];
 }
 
 const FeedDetailClient = ({
-  feed,
+  feed: initialFeed,
   members,
+  organisationId,
   previewEvents,
 }: FeedDetailClientProperties) => {
+  const [feed, setFeed] = useState(initialFeed);
+  const [revealedToken, setRevealedToken] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
   const maskedUrl = feed.activeTokenHint
     ? `Token ending ${feed.activeTokenHint}`
     : "No active token";
   const activeTokenLabel = feed.activeTokenHint
     ? `Active, ending ${feed.activeTokenHint}`
     : "No active token";
+
+  const handleRotate = () => {
+    startTransition(async () => {
+      const result = await rotateFeedTokenAction({
+        feedId: feed.id,
+        organisationId,
+      });
+      if (!(result.ok && result.feed && result.token)) {
+        toast.error(result.ok ? "Feed token was not rotated" : result.error);
+        return;
+      }
+      const updatedFeed = result.feed;
+      setFeed((current) => ({
+        ...current,
+        activeTokenHint: updatedFeed.activeTokenHint,
+        name: updatedFeed.name,
+        slug: updatedFeed.slug,
+        status: normaliseFeedStatus(updatedFeed.status),
+        tokenCount: current.tokenCount + 1,
+      }));
+      setRevealedToken(result.token);
+      toast.success("New feed URL ready to copy");
+    });
+  };
+
+  const handleCopy = async () => {
+    if (!revealedToken) {
+      toast.info("Rotate the token to reveal a fresh feed URL.");
+      return;
+    }
+    await navigator.clipboard.writeText(feedUrl(revealedToken));
+    toast.success("Feed URL copied");
+  };
+
+  const handleStatus = (status: FeedStatus) => {
+    startTransition(async () => {
+      const result = await setFeedStatusAction({
+        feedId: feed.id,
+        organisationId,
+        status,
+      });
+      if (!(result.ok && result.feed)) {
+        toast.error(result.ok ? "Feed was not updated" : result.error);
+        return;
+      }
+      const updatedFeed = result.feed;
+      setFeed((current) => ({
+        ...current,
+        status: normaliseFeedStatus(updatedFeed.status),
+      }));
+      toast.success(status === "active" ? "Feed resumed" : "Feed updated");
+    });
+  };
 
   return (
     <>
@@ -117,10 +181,11 @@ const FeedDetailClient = ({
             <Input
               className="rounded-lg font-mono text-xs"
               readOnly
-              value={maskedUrl}
+              value={revealedToken ? feedUrl(revealedToken) : maskedUrl}
             />
             <Button
-              disabled
+              disabled={isPending || !revealedToken}
+              onClick={handleCopy}
               size="sm"
               title="Rotate the token to copy a fresh URL"
               variant="outline"
@@ -157,7 +222,12 @@ const FeedDetailClient = ({
                 Stored tokens: {feed.tokenCount}
               </div>
             </div>
-            <Button disabled size="sm" variant="outline">
+            <Button
+              disabled={isPending}
+              onClick={handleRotate}
+              size="sm"
+              variant="outline"
+            >
               <RotateCwIcon className="mr-1 h-4 w-4" />
               Rotate
             </Button>
@@ -226,7 +296,14 @@ const FeedDetailClient = ({
         </div>
 
         <div className="flex gap-2 pt-4">
-          <Button className="flex-1" disabled variant="outline">
+          <Button
+            className="flex-1"
+            disabled={isPending}
+            onClick={() =>
+              handleStatus(feed.status === "active" ? "paused" : "active")
+            }
+            variant="outline"
+          >
             {feed.status === "active" ? (
               <>
                 <PauseCircleIcon className="mr-2 h-4 w-4" />
@@ -239,7 +316,11 @@ const FeedDetailClient = ({
               </>
             )}
           </Button>
-          <Button disabled variant="destructive">
+          <Button
+            disabled={isPending}
+            onClick={() => handleStatus("archived")}
+            variant="destructive"
+          >
             <Trash2Icon className="mr-2 h-4 w-4" />
             Archive
           </Button>
@@ -276,3 +357,14 @@ function PreviewRow({
 }
 
 export { FeedDetailClient };
+
+function feedUrl(token: string): string {
+  return `https://app.leavesync.com/ical/${token}.ics`;
+}
+
+function normaliseFeedStatus(status: string): FeedStatus {
+  if (status === "paused" || status === "archived") {
+    return status;
+  }
+  return "active";
+}

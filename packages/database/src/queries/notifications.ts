@@ -1,5 +1,6 @@
 import type { ClerkOrgId, Result } from "@repo/core";
 import { appError } from "@repo/core";
+import type { notification_type } from "../../generated/enums";
 import { database } from "../client";
 
 export interface NotificationData {
@@ -11,6 +12,17 @@ export interface NotificationData {
   recipientUserId: string;
   type: string;
   updatedAt: Date;
+}
+
+export interface NotificationPreferenceData {
+  clerkOrgId: string;
+  createdAt: Date;
+  emailEnabled: boolean;
+  id: string;
+  inAppEnabled: boolean;
+  notificationType: string;
+  updatedAt: Date;
+  userId: string;
 }
 
 interface NotificationFilters {
@@ -122,6 +134,140 @@ export async function markNotificationRead(
     return {
       ok: false,
       error: appError("internal", "Failed to mark notification as read"),
+    };
+  }
+}
+
+export async function markAllNotificationsRead(
+  clerkOrgId: ClerkOrgId,
+  userId: string
+): Promise<Result<{ updatedCount: number }>> {
+  try {
+    const result = await database.notification.updateMany({
+      where: {
+        clerk_org_id: clerkOrgId,
+        recipient_user_id: userId,
+        is_read: false,
+      },
+      data: {
+        is_read: true,
+      },
+    });
+
+    return {
+      ok: true,
+      value: { updatedCount: result.count },
+    };
+  } catch {
+    return {
+      ok: false,
+      error: appError("internal", "Failed to mark notifications as read"),
+    };
+  }
+}
+
+export async function listNotificationPreferencesForUser(
+  clerkOrgId: ClerkOrgId,
+  userId: string
+): Promise<Result<NotificationPreferenceData[]>> {
+  try {
+    const preferences = await database.notificationPreference.findMany({
+      where: {
+        clerk_org_id: clerkOrgId,
+        user_id: userId,
+      },
+      select: {
+        id: true,
+        user_id: true,
+        clerk_org_id: true,
+        notification_type: true,
+        in_app_enabled: true,
+        email_enabled: true,
+        created_at: true,
+        updated_at: true,
+      },
+      orderBy: { notification_type: "asc" },
+    });
+
+    return {
+      ok: true,
+      value: preferences.map((preference) => ({
+        id: preference.id,
+        userId: preference.user_id,
+        clerkOrgId: preference.clerk_org_id,
+        notificationType: preference.notification_type,
+        inAppEnabled: preference.in_app_enabled,
+        emailEnabled: preference.email_enabled,
+        createdAt: preference.created_at,
+        updatedAt: preference.updated_at,
+      })),
+    };
+  } catch {
+    return {
+      ok: false,
+      error: appError("internal", "Failed to list notification preferences"),
+    };
+  }
+}
+
+export async function upsertNotificationPreference(
+  clerkOrgId: ClerkOrgId,
+  userId: string,
+  input: {
+    emailEnabled: boolean;
+    inAppEnabled: boolean;
+    notificationType: notification_type;
+  }
+): Promise<Result<NotificationPreferenceData>> {
+  try {
+    const preference = await database.notificationPreference.upsert({
+      where: {
+        user_id_clerk_org_id_notification_type: {
+          user_id: userId,
+          clerk_org_id: clerkOrgId,
+          notification_type: input.notificationType,
+        },
+      },
+      create: {
+        user_id: userId,
+        clerk_org_id: clerkOrgId,
+        notification_type: input.notificationType,
+        in_app_enabled: input.inAppEnabled,
+        email_enabled: input.emailEnabled,
+      },
+      update: {
+        in_app_enabled: input.inAppEnabled,
+        email_enabled: input.emailEnabled,
+      },
+      select: {
+        id: true,
+        user_id: true,
+        clerk_org_id: true,
+        notification_type: true,
+        in_app_enabled: true,
+        email_enabled: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+
+    return {
+      ok: true,
+      value: {
+        id: preference.id,
+        userId: preference.user_id,
+        clerkOrgId: preference.clerk_org_id,
+        notificationType: preference.notification_type,
+        inAppEnabled: preference.in_app_enabled,
+        emailEnabled: preference.email_enabled,
+        createdAt: preference.created_at,
+        updatedAt: preference.updated_at,
+      },
+    };
+  } catch {
+    return {
+      ok: false,
+      error: appError("internal", "Failed to update notification preference"),
     };
   }
 }

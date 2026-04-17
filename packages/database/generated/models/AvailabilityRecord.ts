@@ -39,6 +39,9 @@ export type AvailabilityRecordMinAggregateOutputType = {
   contactability: $Enums.availability_contactability | null
   include_in_feed: boolean | null
   publish_status: $Enums.availability_publish_status | null
+  source_remote_hash: string | null
+  source_remote_version: string | null
+  source_last_modified_at: Date | null
   derived_uid_key: string | null
   title: string | null
   all_day: boolean | null
@@ -48,7 +51,11 @@ export type AvailabilityRecordMinAggregateOutputType = {
   created_by_user_id: string | null
   updated_by_user_id: string | null
   archived_at: Date | null
+  approval_note: string | null
   approved_at: Date | null
+  xero_write_error: string | null
+  submitted_at: Date | null
+  withdrawn_at: Date | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -68,6 +75,9 @@ export type AvailabilityRecordMaxAggregateOutputType = {
   contactability: $Enums.availability_contactability | null
   include_in_feed: boolean | null
   publish_status: $Enums.availability_publish_status | null
+  source_remote_hash: string | null
+  source_remote_version: string | null
+  source_last_modified_at: Date | null
   derived_uid_key: string | null
   title: string | null
   all_day: boolean | null
@@ -77,7 +87,11 @@ export type AvailabilityRecordMaxAggregateOutputType = {
   created_by_user_id: string | null
   updated_by_user_id: string | null
   archived_at: Date | null
+  approval_note: string | null
   approved_at: Date | null
+  xero_write_error: string | null
+  submitted_at: Date | null
+  withdrawn_at: Date | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -98,6 +112,9 @@ export type AvailabilityRecordCountAggregateOutputType = {
   include_in_feed: number
   publish_status: number
   source_payload_json: number
+  source_remote_hash: number
+  source_remote_version: number
+  source_last_modified_at: number
   derived_uid_key: number
   title: number
   all_day: number
@@ -107,7 +124,12 @@ export type AvailabilityRecordCountAggregateOutputType = {
   created_by_user_id: number
   updated_by_user_id: number
   archived_at: number
+  approval_note: number
   approved_at: number
+  xero_write_error: number
+  xero_write_error_raw: number
+  submitted_at: number
+  withdrawn_at: number
   created_at: number
   updated_at: number
   _all: number
@@ -129,6 +151,9 @@ export type AvailabilityRecordMinAggregateInputType = {
   contactability?: true
   include_in_feed?: true
   publish_status?: true
+  source_remote_hash?: true
+  source_remote_version?: true
+  source_last_modified_at?: true
   derived_uid_key?: true
   title?: true
   all_day?: true
@@ -138,7 +163,11 @@ export type AvailabilityRecordMinAggregateInputType = {
   created_by_user_id?: true
   updated_by_user_id?: true
   archived_at?: true
+  approval_note?: true
   approved_at?: true
+  xero_write_error?: true
+  submitted_at?: true
+  withdrawn_at?: true
   created_at?: true
   updated_at?: true
 }
@@ -158,6 +187,9 @@ export type AvailabilityRecordMaxAggregateInputType = {
   contactability?: true
   include_in_feed?: true
   publish_status?: true
+  source_remote_hash?: true
+  source_remote_version?: true
+  source_last_modified_at?: true
   derived_uid_key?: true
   title?: true
   all_day?: true
@@ -167,7 +199,11 @@ export type AvailabilityRecordMaxAggregateInputType = {
   created_by_user_id?: true
   updated_by_user_id?: true
   archived_at?: true
+  approval_note?: true
   approved_at?: true
+  xero_write_error?: true
+  submitted_at?: true
+  withdrawn_at?: true
   created_at?: true
   updated_at?: true
 }
@@ -188,6 +224,9 @@ export type AvailabilityRecordCountAggregateInputType = {
   include_in_feed?: true
   publish_status?: true
   source_payload_json?: true
+  source_remote_hash?: true
+  source_remote_version?: true
+  source_last_modified_at?: true
   derived_uid_key?: true
   title?: true
   all_day?: true
@@ -197,7 +236,12 @@ export type AvailabilityRecordCountAggregateInputType = {
   created_by_user_id?: true
   updated_by_user_id?: true
   archived_at?: true
+  approval_note?: true
   approved_at?: true
+  xero_write_error?: true
+  xero_write_error_raw?: true
+  submitted_at?: true
+  withdrawn_at?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -291,6 +335,9 @@ export type AvailabilityRecordGroupByOutputType = {
   include_in_feed: boolean
   publish_status: $Enums.availability_publish_status
   source_payload_json: runtime.JsonValue | null
+  source_remote_hash: string | null
+  source_remote_version: string | null
+  source_last_modified_at: Date | null
   derived_uid_key: string
   title: string | null
   all_day: boolean
@@ -300,7 +347,12 @@ export type AvailabilityRecordGroupByOutputType = {
   created_by_user_id: string | null
   updated_by_user_id: string | null
   archived_at: Date | null
+  approval_note: string | null
   approved_at: Date | null
+  xero_write_error: string | null
+  xero_write_error_raw: runtime.JsonValue | null
+  submitted_at: Date | null
+  withdrawn_at: Date | null
   created_at: Date
   updated_at: Date
   _count: AvailabilityRecordCountAggregateOutputType | null
@@ -342,6 +394,9 @@ export type AvailabilityRecordWhereInput = {
   include_in_feed?: Prisma.BoolFilter<"AvailabilityRecord"> | boolean
   publish_status?: Prisma.Enumavailability_publish_statusFilter<"AvailabilityRecord"> | $Enums.availability_publish_status
   source_payload_json?: Prisma.JsonNullableFilter<"AvailabilityRecord">
+  source_remote_hash?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
+  source_remote_version?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
+  source_last_modified_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
   derived_uid_key?: Prisma.StringFilter<"AvailabilityRecord"> | string
   title?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
   all_day?: Prisma.BoolFilter<"AvailabilityRecord"> | boolean
@@ -351,7 +406,12 @@ export type AvailabilityRecordWhereInput = {
   created_by_user_id?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
   updated_by_user_id?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
   archived_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
+  approval_note?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
   approved_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
+  xero_write_error?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
+  xero_write_error_raw?: Prisma.JsonNullableFilter<"AvailabilityRecord">
+  submitted_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
+  withdrawn_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"AvailabilityRecord"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"AvailabilityRecord"> | Date | string
   organisation?: Prisma.XOR<Prisma.OrganisationScalarRelationFilter, Prisma.OrganisationWhereInput>
@@ -375,6 +435,9 @@ export type AvailabilityRecordOrderByWithRelationInput = {
   include_in_feed?: Prisma.SortOrder
   publish_status?: Prisma.SortOrder
   source_payload_json?: Prisma.SortOrderInput | Prisma.SortOrder
+  source_remote_hash?: Prisma.SortOrderInput | Prisma.SortOrder
+  source_remote_version?: Prisma.SortOrderInput | Prisma.SortOrder
+  source_last_modified_at?: Prisma.SortOrderInput | Prisma.SortOrder
   derived_uid_key?: Prisma.SortOrder
   title?: Prisma.SortOrderInput | Prisma.SortOrder
   all_day?: Prisma.SortOrder
@@ -384,7 +447,12 @@ export type AvailabilityRecordOrderByWithRelationInput = {
   created_by_user_id?: Prisma.SortOrderInput | Prisma.SortOrder
   updated_by_user_id?: Prisma.SortOrderInput | Prisma.SortOrder
   archived_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  approval_note?: Prisma.SortOrderInput | Prisma.SortOrder
   approved_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  xero_write_error?: Prisma.SortOrderInput | Prisma.SortOrder
+  xero_write_error_raw?: Prisma.SortOrderInput | Prisma.SortOrder
+  submitted_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  withdrawn_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   organisation?: Prisma.OrganisationOrderByWithRelationInput
@@ -394,6 +462,7 @@ export type AvailabilityRecordOrderByWithRelationInput = {
 
 export type AvailabilityRecordWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  organisation_id_source_type_source_remote_id?: Prisma.AvailabilityRecordOrganisation_idSource_typeSource_remote_idCompoundUniqueInput
   AND?: Prisma.AvailabilityRecordWhereInput | Prisma.AvailabilityRecordWhereInput[]
   OR?: Prisma.AvailabilityRecordWhereInput[]
   NOT?: Prisma.AvailabilityRecordWhereInput | Prisma.AvailabilityRecordWhereInput[]
@@ -411,6 +480,9 @@ export type AvailabilityRecordWhereUniqueInput = Prisma.AtLeast<{
   include_in_feed?: Prisma.BoolFilter<"AvailabilityRecord"> | boolean
   publish_status?: Prisma.Enumavailability_publish_statusFilter<"AvailabilityRecord"> | $Enums.availability_publish_status
   source_payload_json?: Prisma.JsonNullableFilter<"AvailabilityRecord">
+  source_remote_hash?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
+  source_remote_version?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
+  source_last_modified_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
   derived_uid_key?: Prisma.StringFilter<"AvailabilityRecord"> | string
   title?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
   all_day?: Prisma.BoolFilter<"AvailabilityRecord"> | boolean
@@ -420,13 +492,18 @@ export type AvailabilityRecordWhereUniqueInput = Prisma.AtLeast<{
   created_by_user_id?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
   updated_by_user_id?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
   archived_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
+  approval_note?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
   approved_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
+  xero_write_error?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
+  xero_write_error_raw?: Prisma.JsonNullableFilter<"AvailabilityRecord">
+  submitted_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
+  withdrawn_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"AvailabilityRecord"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"AvailabilityRecord"> | Date | string
   organisation?: Prisma.XOR<Prisma.OrganisationScalarRelationFilter, Prisma.OrganisationWhereInput>
   person?: Prisma.XOR<Prisma.PersonScalarRelationFilter, Prisma.PersonWhereInput>
   publication?: Prisma.XOR<Prisma.AvailabilityPublicationNullableScalarRelationFilter, Prisma.AvailabilityPublicationWhereInput> | null
-}, "id">
+}, "id" | "organisation_id_source_type_source_remote_id">
 
 export type AvailabilityRecordOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -444,6 +521,9 @@ export type AvailabilityRecordOrderByWithAggregationInput = {
   include_in_feed?: Prisma.SortOrder
   publish_status?: Prisma.SortOrder
   source_payload_json?: Prisma.SortOrderInput | Prisma.SortOrder
+  source_remote_hash?: Prisma.SortOrderInput | Prisma.SortOrder
+  source_remote_version?: Prisma.SortOrderInput | Prisma.SortOrder
+  source_last_modified_at?: Prisma.SortOrderInput | Prisma.SortOrder
   derived_uid_key?: Prisma.SortOrder
   title?: Prisma.SortOrderInput | Prisma.SortOrder
   all_day?: Prisma.SortOrder
@@ -453,7 +533,12 @@ export type AvailabilityRecordOrderByWithAggregationInput = {
   created_by_user_id?: Prisma.SortOrderInput | Prisma.SortOrder
   updated_by_user_id?: Prisma.SortOrderInput | Prisma.SortOrder
   archived_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  approval_note?: Prisma.SortOrderInput | Prisma.SortOrder
   approved_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  xero_write_error?: Prisma.SortOrderInput | Prisma.SortOrder
+  xero_write_error_raw?: Prisma.SortOrderInput | Prisma.SortOrder
+  submitted_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  withdrawn_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.AvailabilityRecordCountOrderByAggregateInput
@@ -480,6 +565,9 @@ export type AvailabilityRecordScalarWhereWithAggregatesInput = {
   include_in_feed?: Prisma.BoolWithAggregatesFilter<"AvailabilityRecord"> | boolean
   publish_status?: Prisma.Enumavailability_publish_statusWithAggregatesFilter<"AvailabilityRecord"> | $Enums.availability_publish_status
   source_payload_json?: Prisma.JsonNullableWithAggregatesFilter<"AvailabilityRecord">
+  source_remote_hash?: Prisma.StringNullableWithAggregatesFilter<"AvailabilityRecord"> | string | null
+  source_remote_version?: Prisma.StringNullableWithAggregatesFilter<"AvailabilityRecord"> | string | null
+  source_last_modified_at?: Prisma.DateTimeNullableWithAggregatesFilter<"AvailabilityRecord"> | Date | string | null
   derived_uid_key?: Prisma.StringWithAggregatesFilter<"AvailabilityRecord"> | string
   title?: Prisma.StringNullableWithAggregatesFilter<"AvailabilityRecord"> | string | null
   all_day?: Prisma.BoolWithAggregatesFilter<"AvailabilityRecord"> | boolean
@@ -489,7 +577,12 @@ export type AvailabilityRecordScalarWhereWithAggregatesInput = {
   created_by_user_id?: Prisma.StringNullableWithAggregatesFilter<"AvailabilityRecord"> | string | null
   updated_by_user_id?: Prisma.StringNullableWithAggregatesFilter<"AvailabilityRecord"> | string | null
   archived_at?: Prisma.DateTimeNullableWithAggregatesFilter<"AvailabilityRecord"> | Date | string | null
+  approval_note?: Prisma.StringNullableWithAggregatesFilter<"AvailabilityRecord"> | string | null
   approved_at?: Prisma.DateTimeNullableWithAggregatesFilter<"AvailabilityRecord"> | Date | string | null
+  xero_write_error?: Prisma.StringNullableWithAggregatesFilter<"AvailabilityRecord"> | string | null
+  xero_write_error_raw?: Prisma.JsonNullableWithAggregatesFilter<"AvailabilityRecord">
+  submitted_at?: Prisma.DateTimeNullableWithAggregatesFilter<"AvailabilityRecord"> | Date | string | null
+  withdrawn_at?: Prisma.DateTimeNullableWithAggregatesFilter<"AvailabilityRecord"> | Date | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"AvailabilityRecord"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"AvailabilityRecord"> | Date | string
 }
@@ -508,6 +601,9 @@ export type AvailabilityRecordCreateInput = {
   include_in_feed?: boolean
   publish_status?: $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: string | null
+  source_remote_version?: string | null
+  source_last_modified_at?: Date | string | null
   derived_uid_key: string
   title?: string | null
   all_day?: boolean
@@ -517,7 +613,12 @@ export type AvailabilityRecordCreateInput = {
   created_by_user_id?: string | null
   updated_by_user_id?: string | null
   archived_at?: Date | string | null
+  approval_note?: string | null
   approved_at?: Date | string | null
+  xero_write_error?: string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Date | string | null
+  withdrawn_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutAvailability_recordsInput
@@ -541,6 +642,9 @@ export type AvailabilityRecordUncheckedCreateInput = {
   include_in_feed?: boolean
   publish_status?: $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: string | null
+  source_remote_version?: string | null
+  source_last_modified_at?: Date | string | null
   derived_uid_key: string
   title?: string | null
   all_day?: boolean
@@ -550,7 +654,12 @@ export type AvailabilityRecordUncheckedCreateInput = {
   created_by_user_id?: string | null
   updated_by_user_id?: string | null
   archived_at?: Date | string | null
+  approval_note?: string | null
   approved_at?: Date | string | null
+  xero_write_error?: string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Date | string | null
+  withdrawn_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   publication?: Prisma.AvailabilityPublicationUncheckedCreateNestedOneWithoutAvailability_recordInput
@@ -570,6 +679,9 @@ export type AvailabilityRecordUpdateInput = {
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publish_status?: Prisma.Enumavailability_publish_statusFieldUpdateOperationsInput | $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_remote_version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_last_modified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   derived_uid_key?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   all_day?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -579,7 +691,12 @@ export type AvailabilityRecordUpdateInput = {
   created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updated_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutAvailability_recordsNestedInput
@@ -603,6 +720,9 @@ export type AvailabilityRecordUncheckedUpdateInput = {
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publish_status?: Prisma.Enumavailability_publish_statusFieldUpdateOperationsInput | $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_remote_version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_last_modified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   derived_uid_key?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   all_day?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -612,7 +732,12 @@ export type AvailabilityRecordUncheckedUpdateInput = {
   created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updated_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   publication?: Prisma.AvailabilityPublicationUncheckedUpdateOneWithoutAvailability_recordNestedInput
@@ -634,6 +759,9 @@ export type AvailabilityRecordCreateManyInput = {
   include_in_feed?: boolean
   publish_status?: $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: string | null
+  source_remote_version?: string | null
+  source_last_modified_at?: Date | string | null
   derived_uid_key: string
   title?: string | null
   all_day?: boolean
@@ -643,7 +771,12 @@ export type AvailabilityRecordCreateManyInput = {
   created_by_user_id?: string | null
   updated_by_user_id?: string | null
   archived_at?: Date | string | null
+  approval_note?: string | null
   approved_at?: Date | string | null
+  xero_write_error?: string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Date | string | null
+  withdrawn_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -662,6 +795,9 @@ export type AvailabilityRecordUpdateManyMutationInput = {
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publish_status?: Prisma.Enumavailability_publish_statusFieldUpdateOperationsInput | $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_remote_version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_last_modified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   derived_uid_key?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   all_day?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -671,7 +807,12 @@ export type AvailabilityRecordUpdateManyMutationInput = {
   created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updated_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -692,6 +833,9 @@ export type AvailabilityRecordUncheckedUpdateManyInput = {
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publish_status?: Prisma.Enumavailability_publish_statusFieldUpdateOperationsInput | $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_remote_version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_last_modified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   derived_uid_key?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   all_day?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -701,7 +845,12 @@ export type AvailabilityRecordUncheckedUpdateManyInput = {
   created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updated_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -714,6 +863,12 @@ export type AvailabilityRecordListRelationFilter = {
 
 export type AvailabilityRecordOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type AvailabilityRecordOrganisation_idSource_typeSource_remote_idCompoundUniqueInput = {
+  organisation_id: string
+  source_type: $Enums.availability_source_type
+  source_remote_id: string
 }
 
 export type AvailabilityRecordCountOrderByAggregateInput = {
@@ -732,6 +887,9 @@ export type AvailabilityRecordCountOrderByAggregateInput = {
   include_in_feed?: Prisma.SortOrder
   publish_status?: Prisma.SortOrder
   source_payload_json?: Prisma.SortOrder
+  source_remote_hash?: Prisma.SortOrder
+  source_remote_version?: Prisma.SortOrder
+  source_last_modified_at?: Prisma.SortOrder
   derived_uid_key?: Prisma.SortOrder
   title?: Prisma.SortOrder
   all_day?: Prisma.SortOrder
@@ -741,7 +899,12 @@ export type AvailabilityRecordCountOrderByAggregateInput = {
   created_by_user_id?: Prisma.SortOrder
   updated_by_user_id?: Prisma.SortOrder
   archived_at?: Prisma.SortOrder
+  approval_note?: Prisma.SortOrder
   approved_at?: Prisma.SortOrder
+  xero_write_error?: Prisma.SortOrder
+  xero_write_error_raw?: Prisma.SortOrder
+  submitted_at?: Prisma.SortOrder
+  withdrawn_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -761,6 +924,9 @@ export type AvailabilityRecordMaxOrderByAggregateInput = {
   contactability?: Prisma.SortOrder
   include_in_feed?: Prisma.SortOrder
   publish_status?: Prisma.SortOrder
+  source_remote_hash?: Prisma.SortOrder
+  source_remote_version?: Prisma.SortOrder
+  source_last_modified_at?: Prisma.SortOrder
   derived_uid_key?: Prisma.SortOrder
   title?: Prisma.SortOrder
   all_day?: Prisma.SortOrder
@@ -770,7 +936,11 @@ export type AvailabilityRecordMaxOrderByAggregateInput = {
   created_by_user_id?: Prisma.SortOrder
   updated_by_user_id?: Prisma.SortOrder
   archived_at?: Prisma.SortOrder
+  approval_note?: Prisma.SortOrder
   approved_at?: Prisma.SortOrder
+  xero_write_error?: Prisma.SortOrder
+  submitted_at?: Prisma.SortOrder
+  withdrawn_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -790,6 +960,9 @@ export type AvailabilityRecordMinOrderByAggregateInput = {
   contactability?: Prisma.SortOrder
   include_in_feed?: Prisma.SortOrder
   publish_status?: Prisma.SortOrder
+  source_remote_hash?: Prisma.SortOrder
+  source_remote_version?: Prisma.SortOrder
+  source_last_modified_at?: Prisma.SortOrder
   derived_uid_key?: Prisma.SortOrder
   title?: Prisma.SortOrder
   all_day?: Prisma.SortOrder
@@ -799,7 +972,11 @@ export type AvailabilityRecordMinOrderByAggregateInput = {
   created_by_user_id?: Prisma.SortOrder
   updated_by_user_id?: Prisma.SortOrder
   archived_at?: Prisma.SortOrder
+  approval_note?: Prisma.SortOrder
   approved_at?: Prisma.SortOrder
+  xero_write_error?: Prisma.SortOrder
+  submitted_at?: Prisma.SortOrder
+  withdrawn_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -905,14 +1082,6 @@ export type Enumavailability_approval_statusFieldUpdateOperationsInput = {
   set?: $Enums.availability_approval_status
 }
 
-export type Enumavailability_privacy_modeFieldUpdateOperationsInput = {
-  set?: $Enums.availability_privacy_mode
-}
-
-export type Enumavailability_contactabilityFieldUpdateOperationsInput = {
-  set?: $Enums.availability_contactability
-}
-
 export type Enumavailability_publish_statusFieldUpdateOperationsInput = {
   set?: $Enums.availability_publish_status
 }
@@ -945,6 +1114,9 @@ export type AvailabilityRecordCreateWithoutOrganisationInput = {
   include_in_feed?: boolean
   publish_status?: $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: string | null
+  source_remote_version?: string | null
+  source_last_modified_at?: Date | string | null
   derived_uid_key: string
   title?: string | null
   all_day?: boolean
@@ -954,7 +1126,12 @@ export type AvailabilityRecordCreateWithoutOrganisationInput = {
   created_by_user_id?: string | null
   updated_by_user_id?: string | null
   archived_at?: Date | string | null
+  approval_note?: string | null
   approved_at?: Date | string | null
+  xero_write_error?: string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Date | string | null
+  withdrawn_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   person: Prisma.PersonCreateNestedOneWithoutAvailability_recordsInput
@@ -976,6 +1153,9 @@ export type AvailabilityRecordUncheckedCreateWithoutOrganisationInput = {
   include_in_feed?: boolean
   publish_status?: $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: string | null
+  source_remote_version?: string | null
+  source_last_modified_at?: Date | string | null
   derived_uid_key: string
   title?: string | null
   all_day?: boolean
@@ -985,7 +1165,12 @@ export type AvailabilityRecordUncheckedCreateWithoutOrganisationInput = {
   created_by_user_id?: string | null
   updated_by_user_id?: string | null
   archived_at?: Date | string | null
+  approval_note?: string | null
   approved_at?: Date | string | null
+  xero_write_error?: string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Date | string | null
+  withdrawn_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   publication?: Prisma.AvailabilityPublicationUncheckedCreateNestedOneWithoutAvailability_recordInput
@@ -1036,6 +1221,9 @@ export type AvailabilityRecordScalarWhereInput = {
   include_in_feed?: Prisma.BoolFilter<"AvailabilityRecord"> | boolean
   publish_status?: Prisma.Enumavailability_publish_statusFilter<"AvailabilityRecord"> | $Enums.availability_publish_status
   source_payload_json?: Prisma.JsonNullableFilter<"AvailabilityRecord">
+  source_remote_hash?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
+  source_remote_version?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
+  source_last_modified_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
   derived_uid_key?: Prisma.StringFilter<"AvailabilityRecord"> | string
   title?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
   all_day?: Prisma.BoolFilter<"AvailabilityRecord"> | boolean
@@ -1045,7 +1233,12 @@ export type AvailabilityRecordScalarWhereInput = {
   created_by_user_id?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
   updated_by_user_id?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
   archived_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
+  approval_note?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
   approved_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
+  xero_write_error?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
+  xero_write_error_raw?: Prisma.JsonNullableFilter<"AvailabilityRecord">
+  submitted_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
+  withdrawn_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"AvailabilityRecord"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"AvailabilityRecord"> | Date | string
 }
@@ -1064,6 +1257,9 @@ export type AvailabilityRecordCreateWithoutPersonInput = {
   include_in_feed?: boolean
   publish_status?: $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: string | null
+  source_remote_version?: string | null
+  source_last_modified_at?: Date | string | null
   derived_uid_key: string
   title?: string | null
   all_day?: boolean
@@ -1073,7 +1269,12 @@ export type AvailabilityRecordCreateWithoutPersonInput = {
   created_by_user_id?: string | null
   updated_by_user_id?: string | null
   archived_at?: Date | string | null
+  approval_note?: string | null
   approved_at?: Date | string | null
+  xero_write_error?: string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Date | string | null
+  withdrawn_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutAvailability_recordsInput
@@ -1095,6 +1296,9 @@ export type AvailabilityRecordUncheckedCreateWithoutPersonInput = {
   include_in_feed?: boolean
   publish_status?: $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: string | null
+  source_remote_version?: string | null
+  source_last_modified_at?: Date | string | null
   derived_uid_key: string
   title?: string | null
   all_day?: boolean
@@ -1104,7 +1308,12 @@ export type AvailabilityRecordUncheckedCreateWithoutPersonInput = {
   created_by_user_id?: string | null
   updated_by_user_id?: string | null
   archived_at?: Date | string | null
+  approval_note?: string | null
   approved_at?: Date | string | null
+  xero_write_error?: string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Date | string | null
+  withdrawn_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   publication?: Prisma.AvailabilityPublicationUncheckedCreateNestedOneWithoutAvailability_recordInput
@@ -1150,6 +1359,9 @@ export type AvailabilityRecordCreateWithoutPublicationInput = {
   include_in_feed?: boolean
   publish_status?: $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: string | null
+  source_remote_version?: string | null
+  source_last_modified_at?: Date | string | null
   derived_uid_key: string
   title?: string | null
   all_day?: boolean
@@ -1159,7 +1371,12 @@ export type AvailabilityRecordCreateWithoutPublicationInput = {
   created_by_user_id?: string | null
   updated_by_user_id?: string | null
   archived_at?: Date | string | null
+  approval_note?: string | null
   approved_at?: Date | string | null
+  xero_write_error?: string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Date | string | null
+  withdrawn_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutAvailability_recordsInput
@@ -1182,6 +1399,9 @@ export type AvailabilityRecordUncheckedCreateWithoutPublicationInput = {
   include_in_feed?: boolean
   publish_status?: $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: string | null
+  source_remote_version?: string | null
+  source_last_modified_at?: Date | string | null
   derived_uid_key: string
   title?: string | null
   all_day?: boolean
@@ -1191,7 +1411,12 @@ export type AvailabilityRecordUncheckedCreateWithoutPublicationInput = {
   created_by_user_id?: string | null
   updated_by_user_id?: string | null
   archived_at?: Date | string | null
+  approval_note?: string | null
   approved_at?: Date | string | null
+  xero_write_error?: string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Date | string | null
+  withdrawn_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -1226,6 +1451,9 @@ export type AvailabilityRecordUpdateWithoutPublicationInput = {
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publish_status?: Prisma.Enumavailability_publish_statusFieldUpdateOperationsInput | $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_remote_version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_last_modified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   derived_uid_key?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   all_day?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1235,7 +1463,12 @@ export type AvailabilityRecordUpdateWithoutPublicationInput = {
   created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updated_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutAvailability_recordsNestedInput
@@ -1258,6 +1491,9 @@ export type AvailabilityRecordUncheckedUpdateWithoutPublicationInput = {
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publish_status?: Prisma.Enumavailability_publish_statusFieldUpdateOperationsInput | $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_remote_version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_last_modified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   derived_uid_key?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   all_day?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1267,7 +1503,12 @@ export type AvailabilityRecordUncheckedUpdateWithoutPublicationInput = {
   created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updated_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1287,6 +1528,9 @@ export type AvailabilityRecordCreateManyOrganisationInput = {
   include_in_feed?: boolean
   publish_status?: $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: string | null
+  source_remote_version?: string | null
+  source_last_modified_at?: Date | string | null
   derived_uid_key: string
   title?: string | null
   all_day?: boolean
@@ -1296,7 +1540,12 @@ export type AvailabilityRecordCreateManyOrganisationInput = {
   created_by_user_id?: string | null
   updated_by_user_id?: string | null
   archived_at?: Date | string | null
+  approval_note?: string | null
   approved_at?: Date | string | null
+  xero_write_error?: string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Date | string | null
+  withdrawn_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -1315,6 +1564,9 @@ export type AvailabilityRecordUpdateWithoutOrganisationInput = {
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publish_status?: Prisma.Enumavailability_publish_statusFieldUpdateOperationsInput | $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_remote_version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_last_modified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   derived_uid_key?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   all_day?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1324,7 +1576,12 @@ export type AvailabilityRecordUpdateWithoutOrganisationInput = {
   created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updated_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   person?: Prisma.PersonUpdateOneRequiredWithoutAvailability_recordsNestedInput
@@ -1346,6 +1603,9 @@ export type AvailabilityRecordUncheckedUpdateWithoutOrganisationInput = {
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publish_status?: Prisma.Enumavailability_publish_statusFieldUpdateOperationsInput | $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_remote_version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_last_modified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   derived_uid_key?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   all_day?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1355,7 +1615,12 @@ export type AvailabilityRecordUncheckedUpdateWithoutOrganisationInput = {
   created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updated_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   publication?: Prisma.AvailabilityPublicationUncheckedUpdateOneWithoutAvailability_recordNestedInput
@@ -1376,6 +1641,9 @@ export type AvailabilityRecordUncheckedUpdateManyWithoutOrganisationInput = {
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publish_status?: Prisma.Enumavailability_publish_statusFieldUpdateOperationsInput | $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_remote_version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_last_modified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   derived_uid_key?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   all_day?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1385,7 +1653,12 @@ export type AvailabilityRecordUncheckedUpdateManyWithoutOrganisationInput = {
   created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updated_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1405,6 +1678,9 @@ export type AvailabilityRecordCreateManyPersonInput = {
   include_in_feed?: boolean
   publish_status?: $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: string | null
+  source_remote_version?: string | null
+  source_last_modified_at?: Date | string | null
   derived_uid_key: string
   title?: string | null
   all_day?: boolean
@@ -1414,7 +1690,12 @@ export type AvailabilityRecordCreateManyPersonInput = {
   created_by_user_id?: string | null
   updated_by_user_id?: string | null
   archived_at?: Date | string | null
+  approval_note?: string | null
   approved_at?: Date | string | null
+  xero_write_error?: string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Date | string | null
+  withdrawn_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -1433,6 +1714,9 @@ export type AvailabilityRecordUpdateWithoutPersonInput = {
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publish_status?: Prisma.Enumavailability_publish_statusFieldUpdateOperationsInput | $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_remote_version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_last_modified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   derived_uid_key?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   all_day?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1442,7 +1726,12 @@ export type AvailabilityRecordUpdateWithoutPersonInput = {
   created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updated_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutAvailability_recordsNestedInput
@@ -1464,6 +1753,9 @@ export type AvailabilityRecordUncheckedUpdateWithoutPersonInput = {
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publish_status?: Prisma.Enumavailability_publish_statusFieldUpdateOperationsInput | $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_remote_version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_last_modified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   derived_uid_key?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   all_day?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1473,7 +1765,12 @@ export type AvailabilityRecordUncheckedUpdateWithoutPersonInput = {
   created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updated_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   publication?: Prisma.AvailabilityPublicationUncheckedUpdateOneWithoutAvailability_recordNestedInput
@@ -1494,6 +1791,9 @@ export type AvailabilityRecordUncheckedUpdateManyWithoutPersonInput = {
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publish_status?: Prisma.Enumavailability_publish_statusFieldUpdateOperationsInput | $Enums.availability_publish_status
   source_payload_json?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  source_remote_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_remote_version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  source_last_modified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   derived_uid_key?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   all_day?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1503,7 +1803,12 @@ export type AvailabilityRecordUncheckedUpdateManyWithoutPersonInput = {
   created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   updated_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1526,6 +1831,9 @@ export type AvailabilityRecordSelect<ExtArgs extends runtime.Types.Extensions.In
   include_in_feed?: boolean
   publish_status?: boolean
   source_payload_json?: boolean
+  source_remote_hash?: boolean
+  source_remote_version?: boolean
+  source_last_modified_at?: boolean
   derived_uid_key?: boolean
   title?: boolean
   all_day?: boolean
@@ -1535,7 +1843,12 @@ export type AvailabilityRecordSelect<ExtArgs extends runtime.Types.Extensions.In
   created_by_user_id?: boolean
   updated_by_user_id?: boolean
   archived_at?: boolean
+  approval_note?: boolean
   approved_at?: boolean
+  xero_write_error?: boolean
+  xero_write_error_raw?: boolean
+  submitted_at?: boolean
+  withdrawn_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
@@ -1559,6 +1872,9 @@ export type AvailabilityRecordSelectCreateManyAndReturn<ExtArgs extends runtime.
   include_in_feed?: boolean
   publish_status?: boolean
   source_payload_json?: boolean
+  source_remote_hash?: boolean
+  source_remote_version?: boolean
+  source_last_modified_at?: boolean
   derived_uid_key?: boolean
   title?: boolean
   all_day?: boolean
@@ -1568,7 +1884,12 @@ export type AvailabilityRecordSelectCreateManyAndReturn<ExtArgs extends runtime.
   created_by_user_id?: boolean
   updated_by_user_id?: boolean
   archived_at?: boolean
+  approval_note?: boolean
   approved_at?: boolean
+  xero_write_error?: boolean
+  xero_write_error_raw?: boolean
+  submitted_at?: boolean
+  withdrawn_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
@@ -1591,6 +1912,9 @@ export type AvailabilityRecordSelectUpdateManyAndReturn<ExtArgs extends runtime.
   include_in_feed?: boolean
   publish_status?: boolean
   source_payload_json?: boolean
+  source_remote_hash?: boolean
+  source_remote_version?: boolean
+  source_last_modified_at?: boolean
   derived_uid_key?: boolean
   title?: boolean
   all_day?: boolean
@@ -1600,7 +1924,12 @@ export type AvailabilityRecordSelectUpdateManyAndReturn<ExtArgs extends runtime.
   created_by_user_id?: boolean
   updated_by_user_id?: boolean
   archived_at?: boolean
+  approval_note?: boolean
   approved_at?: boolean
+  xero_write_error?: boolean
+  xero_write_error_raw?: boolean
+  submitted_at?: boolean
+  withdrawn_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
@@ -1623,6 +1952,9 @@ export type AvailabilityRecordSelectScalar = {
   include_in_feed?: boolean
   publish_status?: boolean
   source_payload_json?: boolean
+  source_remote_hash?: boolean
+  source_remote_version?: boolean
+  source_last_modified_at?: boolean
   derived_uid_key?: boolean
   title?: boolean
   all_day?: boolean
@@ -1632,12 +1964,17 @@ export type AvailabilityRecordSelectScalar = {
   created_by_user_id?: boolean
   updated_by_user_id?: boolean
   archived_at?: boolean
+  approval_note?: boolean
   approved_at?: boolean
+  xero_write_error?: boolean
+  xero_write_error_raw?: boolean
+  submitted_at?: boolean
+  withdrawn_at?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type AvailabilityRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "person_id" | "record_type" | "source_type" | "source_remote_id" | "starts_at" | "ends_at" | "approval_status" | "privacy_mode" | "contactability" | "include_in_feed" | "publish_status" | "source_payload_json" | "derived_uid_key" | "title" | "all_day" | "notes_internal" | "working_location" | "preferred_contact_method" | "created_by_user_id" | "updated_by_user_id" | "archived_at" | "approved_at" | "created_at" | "updated_at", ExtArgs["result"]["availabilityRecord"]>
+export type AvailabilityRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "person_id" | "record_type" | "source_type" | "source_remote_id" | "starts_at" | "ends_at" | "approval_status" | "privacy_mode" | "contactability" | "include_in_feed" | "publish_status" | "source_payload_json" | "source_remote_hash" | "source_remote_version" | "source_last_modified_at" | "derived_uid_key" | "title" | "all_day" | "notes_internal" | "working_location" | "preferred_contact_method" | "created_by_user_id" | "updated_by_user_id" | "archived_at" | "approval_note" | "approved_at" | "xero_write_error" | "xero_write_error_raw" | "submitted_at" | "withdrawn_at" | "created_at" | "updated_at", ExtArgs["result"]["availabilityRecord"]>
 export type AvailabilityRecordInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
   person?: boolean | Prisma.PersonDefaultArgs<ExtArgs>
@@ -1675,6 +2012,9 @@ export type $AvailabilityRecordPayload<ExtArgs extends runtime.Types.Extensions.
     include_in_feed: boolean
     publish_status: $Enums.availability_publish_status
     source_payload_json: runtime.JsonValue | null
+    source_remote_hash: string | null
+    source_remote_version: string | null
+    source_last_modified_at: Date | null
     derived_uid_key: string
     title: string | null
     all_day: boolean
@@ -1684,7 +2024,12 @@ export type $AvailabilityRecordPayload<ExtArgs extends runtime.Types.Extensions.
     created_by_user_id: string | null
     updated_by_user_id: string | null
     archived_at: Date | null
+    approval_note: string | null
     approved_at: Date | null
+    xero_write_error: string | null
+    xero_write_error_raw: runtime.JsonValue | null
+    submitted_at: Date | null
+    withdrawn_at: Date | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["availabilityRecord"]>
@@ -2128,6 +2473,9 @@ export interface AvailabilityRecordFieldRefs {
   readonly include_in_feed: Prisma.FieldRef<"AvailabilityRecord", 'Boolean'>
   readonly publish_status: Prisma.FieldRef<"AvailabilityRecord", 'availability_publish_status'>
   readonly source_payload_json: Prisma.FieldRef<"AvailabilityRecord", 'Json'>
+  readonly source_remote_hash: Prisma.FieldRef<"AvailabilityRecord", 'String'>
+  readonly source_remote_version: Prisma.FieldRef<"AvailabilityRecord", 'String'>
+  readonly source_last_modified_at: Prisma.FieldRef<"AvailabilityRecord", 'DateTime'>
   readonly derived_uid_key: Prisma.FieldRef<"AvailabilityRecord", 'String'>
   readonly title: Prisma.FieldRef<"AvailabilityRecord", 'String'>
   readonly all_day: Prisma.FieldRef<"AvailabilityRecord", 'Boolean'>
@@ -2137,7 +2485,12 @@ export interface AvailabilityRecordFieldRefs {
   readonly created_by_user_id: Prisma.FieldRef<"AvailabilityRecord", 'String'>
   readonly updated_by_user_id: Prisma.FieldRef<"AvailabilityRecord", 'String'>
   readonly archived_at: Prisma.FieldRef<"AvailabilityRecord", 'DateTime'>
+  readonly approval_note: Prisma.FieldRef<"AvailabilityRecord", 'String'>
   readonly approved_at: Prisma.FieldRef<"AvailabilityRecord", 'DateTime'>
+  readonly xero_write_error: Prisma.FieldRef<"AvailabilityRecord", 'String'>
+  readonly xero_write_error_raw: Prisma.FieldRef<"AvailabilityRecord", 'Json'>
+  readonly submitted_at: Prisma.FieldRef<"AvailabilityRecord", 'DateTime'>
+  readonly withdrawn_at: Prisma.FieldRef<"AvailabilityRecord", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"AvailabilityRecord", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"AvailabilityRecord", 'DateTime'>
 }

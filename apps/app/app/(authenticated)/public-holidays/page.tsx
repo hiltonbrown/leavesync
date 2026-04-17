@@ -53,7 +53,11 @@ const PublicHolidaysPage = async ({
     <>
       <Header page="Public Holidays" />
       <div className="flex flex-1 flex-col p-6 pt-0">
-        <PublicHolidaysClient countries={countries} feeds={feeds} />
+        <PublicHolidaysClient
+          countries={countries}
+          feeds={feeds}
+          organisationId={organisationId}
+        />
       </div>
     </>
   );

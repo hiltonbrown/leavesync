@@ -7,6 +7,7 @@ import type {
 import { Input } from "@repo/design-system/components/ui/input";
 import { SearchIcon, UsersIcon } from "lucide-react";
 import { useState } from "react";
+import { derivePersonStatus } from "@/lib/availability-record-types";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -47,17 +48,7 @@ function deriveStatus(
   if (todayRecords.length === 0) {
     return "in-office";
   }
-  const recordType = todayRecords[0].recordType;
-  if (recordType === "leave") {
-    return "away";
-  }
-  if (recordType === "wfh") {
-    return "remote";
-  }
-  if (["travel", "client_site", "training"].includes(recordType)) {
-    return "travelling";
-  }
-  return "in-office";
+  return derivePersonStatus(todayRecords[0].recordType);
 }
 
 // ─── Status config ────────────────────────────────────────────────────────────

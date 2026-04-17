@@ -14,7 +14,10 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ token: string }> }
 ) {
-  const { token } = await params;
+  const { token: tokenParam } = await params;
+  const token = tokenParam.endsWith(".ics")
+    ? tokenParam.slice(0, -".ics".length)
+    : tokenParam;
 
   // Render the feed for this token
   const feedResult = await renderFeedForToken(token);

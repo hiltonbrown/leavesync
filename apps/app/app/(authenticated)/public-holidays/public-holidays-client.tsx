@@ -33,6 +33,7 @@ import {
   getPublicHolidays,
   type NagerHoliday,
 } from "@/app/actions/holidays/get-holidays";
+import { importPublicHolidaysAction } from "@/app/actions/holidays/import-public-holidays";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -482,9 +483,14 @@ function LoadingSkeleton() {
 interface Props {
   countries: AvailableCountry[];
   feeds: Feed[];
+  organisationId: string;
 }
 
-export function PublicHolidaysClient({ countries, feeds }: Props) {
+export function PublicHolidaysClient({
+  countries,
+  feeds,
+  organisationId,
+}: Props) {
   const [year, setYear] = useState(CURRENT_YEAR);
   const [countryCode, setCountryCode] = useState<string | null>(null);
   const [regionCode, setRegionCode] = useState<string | null>(null);
@@ -493,7 +499,9 @@ export function PublicHolidaysClient({ countries, feeds }: Props) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [addedFeedName, setAddedFeedName] = useState<string | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [isImportPending, startImportTransition] = useTransition();
 
   const fetchHolidays = (nextYear: number, nextCountry: string) => {
     setFetchError(null);
@@ -501,6 +509,7 @@ export function PublicHolidaysClient({ countries, feeds }: Props) {
     setRegionCode(null);
     setSelected(new Set());
     setAddedFeedName(null);
+    setImportError(null);
 
     startTransition(async () => {
       const result = await getPublicHolidays(nextYear, nextCountry);
@@ -528,6 +537,7 @@ export function PublicHolidaysClient({ countries, feeds }: Props) {
     setRegionCode(value === "__all__" ? null : value);
     setSelected(new Set());
     setAddedFeedName(null);
+    setImportError(null);
   };
 
   const regions = deriveRegions(allHolidays);
@@ -551,11 +561,48 @@ export function PublicHolidaysClient({ countries, feeds }: Props) {
     });
   };
 
-  const handleConfirmAdd = (feeds: Feed[], feedId: string) => {
+  const handleConfirmAdd = (
+    feeds: Feed[],
+    feedId: string,
+    classification: DayClassification
+  ) => {
     const feed = feeds.find((f) => f.id === feedId);
-    setDialogOpen(false);
-    setSelected(new Set());
-    setAddedFeedName(feed?.name ?? null);
+    const selectedHolidays = holidays.filter((holiday) =>
+      selected.has(holidayKey(holiday))
+    );
+    if (!countryCode || selectedHolidays.length === 0) {
+      return;
+    }
+
+    setImportError(null);
+    startImportTransition(async () => {
+      const result = await importPublicHolidaysAction({
+        organisationId,
+        feedId,
+        countryCode,
+        regionCode,
+        classification:
+          classification === "non-working" ? "non_working" : "working",
+        holidays: selectedHolidays.map((holiday) => ({
+          counties: holiday.counties,
+          date: holiday.date,
+          localName: holiday.localName,
+          name: holiday.name,
+          types: holiday.types,
+        })),
+      });
+
+      if (!result.ok) {
+        setImportError(result.error);
+        return;
+      }
+
+      setDialogOpen(false);
+      setSelected(new Set());
+      setAddedFeedName(
+        `${feed?.name ?? "feed"} (${result.assignedCount} assigned, ${result.skippedCount} already imported)`
+      );
+    });
   };
 
   const countryName =
@@ -756,9 +803,14 @@ export function PublicHolidaysClient({ countries, feeds }: Props) {
                   Clear
                 </button>
               )}
+              {importError && (
+                <p className="text-destructive text-sm">{importError}</p>
+              )}
               <Button
                 className="gap-1.5"
-                disabled={!someSelected || feeds.length === 0}
+                disabled={
+                  !someSelected || feeds.length === 0 || isImportPending
+                }
                 onClick={() => {
                   setAddedFeedName(null);
                   setDialogOpen(true);
@@ -882,7 +934,9 @@ export function PublicHolidaysClient({ countries, feeds }: Props) {
         count={selected.size}
         feeds={feeds}
         onClose={() => setDialogOpen(false)}
-        onConfirm={(feedId) => handleConfirmAdd(feeds, feedId)}
+        onConfirm={(feedId, classification) =>
+          handleConfirmAdd(feeds, feedId, classification)
+        }
         open={dialogOpen}
       />
     </div>

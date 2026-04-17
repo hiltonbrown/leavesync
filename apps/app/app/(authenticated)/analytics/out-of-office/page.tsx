@@ -5,6 +5,10 @@ import {
 } from "@repo/database/src/queries";
 import { getOrganisationById } from "@repo/database/src/queries/organisations";
 import type { Metadata } from "next";
+import {
+  isRemoteRecordType,
+  isTravellingRecordType,
+} from "@/lib/availability-record-types";
 import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
 import { Header } from "../../components/header";
 import { OooClient } from "./ooo-client";
@@ -71,15 +75,13 @@ const OooReportsPage = async ({ searchParams }: OooReportsPageProps) => {
     ...new Set(people.map((person) => person.employmentType)),
   ];
   const wfhDays = availability
-    .filter((record) => record.recordType === "wfh")
+    .filter((record) => isRemoteRecordType(record.recordType))
     .reduce(
       (total, record) => total + countDays(record.startsAt, record.endsAt),
       0
     );
   const travelDays = availability
-    .filter((record) =>
-      ["client_site", "travel", "training"].includes(record.recordType)
-    )
+    .filter((record) => isTravellingRecordType(record.recordType))
     .reduce(
       (total, record) => total + countDays(record.startsAt, record.endsAt),
       0
@@ -113,15 +115,13 @@ const OooReportsPage = async ({ searchParams }: OooReportsPageProps) => {
       name: `${person.firstName} ${person.lastName}`,
       team: person.employmentType,
       travelDays: personRecords
-        .filter((record) =>
-          ["client_site", "travel", "training"].includes(record.recordType)
-        )
+        .filter((record) => isTravellingRecordType(record.recordType))
         .reduce(
           (total, record) => total + countDays(record.startsAt, record.endsAt),
           0
         ),
       wfhDays: personRecords
-        .filter((record) => record.recordType === "wfh")
+        .filter((record) => isRemoteRecordType(record.recordType))
         .reduce(
           (total, record) => total + countDays(record.startsAt, record.endsAt),
           0

@@ -92,6 +92,21 @@ export type AvailabilityPublication = Prisma.AvailabilityPublicationModel
  */
 export type LeaveBalance = Prisma.LeaveBalanceModel
 /**
+ * Model PublicHolidayJurisdiction
+ * 
+ */
+export type PublicHolidayJurisdiction = Prisma.PublicHolidayJurisdictionModel
+/**
+ * Model PublicHoliday
+ * 
+ */
+export type PublicHoliday = Prisma.PublicHolidayModel
+/**
+ * Model PublicHolidayAssignment
+ * 
+ */
+export type PublicHolidayAssignment = Prisma.PublicHolidayAssignmentModel
+/**
  * Model Feed
  * 
  */

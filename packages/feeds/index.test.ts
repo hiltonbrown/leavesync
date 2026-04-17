@@ -28,6 +28,15 @@ const tenantB: TenantFixture = {
 const testClerkOrgIds = [tenantA.clerkOrgId, tenantB.clerkOrgId];
 
 const cleanTestData = async () => {
+  await database.publicHolidayAssignment.deleteMany({
+    where: { clerk_org_id: { in: testClerkOrgIds } },
+  });
+  await database.publicHoliday.deleteMany({
+    where: { clerk_org_id: { in: testClerkOrgIds } },
+  });
+  await database.publicHolidayJurisdiction.deleteMany({
+    where: { clerk_org_id: { in: testClerkOrgIds } },
+  });
   await database.feedToken.deleteMany({
     where: { clerk_org_id: { in: testClerkOrgIds } },
   });
@@ -179,5 +188,52 @@ describe("feed services", () => {
       ok: true,
       value: expect.objectContaining({ status: "archived" }),
     });
+  });
+
+  test("renders feed-scoped public holidays without exposing token plaintext", async () => {
+    const created = await createFeed(contextFor(tenantA), {
+      name: "Holiday feed",
+    });
+
+    expect(created.ok).toBe(true);
+    if (!created.ok) {
+      return;
+    }
+
+    const holiday = await database.publicHoliday.create({
+      data: {
+        clerk_org_id: tenantA.clerkOrgId,
+        organisation_id: tenantA.organisationId,
+        source: "nager",
+        source_remote_id: "AU:national:2026-01-26:australia-day",
+        country_code: "AU",
+        region_code: null,
+        holiday_date: new Date("2026-01-26T00:00:00.000Z"),
+        name: "Australia Day",
+        local_name: "Australia Day",
+        holiday_type: "public",
+      },
+    });
+
+    await database.publicHolidayAssignment.create({
+      data: {
+        clerk_org_id: tenantA.clerkOrgId,
+        organisation_id: tenantA.organisationId,
+        public_holiday_id: holiday.id,
+        scope_type: "feed",
+        scope_value: created.value.feed.id,
+        day_classification: "non_working",
+      },
+    });
+
+    const rendered = await renderFeedForToken(created.value.token);
+
+    expect(rendered.ok).toBe(true);
+    if (!rendered.ok) {
+      return;
+    }
+
+    expect(rendered.value.body).toContain("SUMMARY:Australia Day");
+    expect(rendered.value.body).not.toContain(created.value.token);
   });
 });
