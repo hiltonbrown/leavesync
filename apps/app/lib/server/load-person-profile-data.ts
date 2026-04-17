@@ -120,7 +120,7 @@ export async function loadPersonProfileData(
         })),
       },
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       ok: false,
       error: appError("internal", "Failed to load person profile data"),

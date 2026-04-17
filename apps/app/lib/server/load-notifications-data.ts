@@ -1,11 +1,11 @@
 import "server-only";
 
+import { currentUser } from "@repo/auth/server";
 import type { ClerkOrgId, Result } from "@repo/core";
 import { appError } from "@repo/core";
-import { currentUser } from "@repo/auth";
 import {
-  listNotificationsForUser,
   countUnreadNotifications,
+  listNotificationsForUser,
 } from "@repo/database/src/queries/notifications";
 
 /**
@@ -79,7 +79,7 @@ export async function loadNotificationsData(
         unreadCount: unreadResult.value,
       },
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       ok: false,
       error: appError("internal", "Failed to load notifications"),

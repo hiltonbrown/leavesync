@@ -42,12 +42,24 @@ type FeedStatus = "active" | "paused";
 
 interface LeaveEntry {
   end: string;
-  id: number;
+  id: string;
   initials: string;
   name: string;
   personId: string;
   start: string; // YYYY-MM-DD
-  type: LeaveType;
+  type: string;
+}
+
+interface CalendarPerson {
+  email: string;
+  firstName: string;
+  id: string;
+  initials?: string;
+  lastName: string;
+  locationId: string | null;
+  name?: string;
+  role?: string;
+  teamId: string | null;
 }
 
 interface CalendarFeed {
@@ -63,9 +75,9 @@ interface CalendarFeed {
 
 const TODAY = new Date(2026, 3, 5); // April 5, 2026
 
-const ALL_LEAVE_DATA: LeaveEntry[] = [];
+const _ALL_LEAVE_DATA: LeaveEntry[] = [];
 
-const PEOPLE = [];
+const PEOPLE: CalendarPerson[] = [];
 
 const CALENDAR_FEEDS: CalendarFeed[] = [];
 
@@ -96,7 +108,7 @@ const FULL_DAY_NAMES = [
   "Saturday",
 ] as const;
 
-const LEAVE_STYLES: Record<LeaveType, { bg: string; text: string }> = {
+const LEAVE_STYLES: Record<string, { bg: string; text: string }> = {
   "Annual Leave": {
     bg: "color-mix(in srgb, var(--primary) 14%, transparent)",
     text: "var(--primary)",
@@ -382,7 +394,10 @@ function TimelineView({
     .filter((p) => personIds.includes(p.id))
     .sort((a, b) => {
       if (groupByRole) {
-        return a.role.localeCompare(b.role) || a.name.localeCompare(b.name);
+        return (
+          (a.role ?? "").localeCompare(b.role ?? "") ||
+          (a.name ?? "").localeCompare(b.name ?? "")
+        );
       }
       return 0;
     });
@@ -393,7 +408,7 @@ function TimelineView({
   const stickyScrollRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const [selectedLeaveId, setSelectedLeaveId] = useState<number | null>(null);
+  const [selectedLeaveId, setSelectedLeaveId] = useState<string | null>(null);
 
   // Sync scroll positions
   const onMainScroll = useCallback(() => {
@@ -450,7 +465,8 @@ function TimelineView({
             </div>
             {people.map((person, i) => {
               const showGroupHeader =
-                groupByRole && (i === 0 || person.role !== people[i - 1].role);
+                groupByRole &&
+                (i === 0 || (person.role ?? "") !== (people[i - 1].role ?? ""));
               return (
                 <Fragment key={person.id + anchor.toISOString()}>
                   {showGroupHeader && (
@@ -471,14 +487,15 @@ function TimelineView({
                         color: "var(--muted-foreground)",
                       }}
                     >
-                      {person.initials}
+                      {person.initials ?? "?"}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-semibold text-[0.8125rem] text-foreground">
-                        {person.name}
+                        {person.name ??
+                          `${person.firstName} ${person.lastName}`}
                       </p>
                       <p className="truncate text-[0.625rem] text-muted-foreground uppercase tracking-wider">
-                        {person.role}
+                        {person.role ?? ""}
                       </p>
                     </div>
                   </motion.div>
@@ -546,7 +563,8 @@ function TimelineView({
                   const showGroupHeader =
                     groupByRole &&
                     (personIndex === 0 ||
-                      person.role !== people[personIndex - 1].role);
+                      (person.role ?? "") !==
+                        (people[personIndex - 1].role ?? ""));
                   const personLeaves = leaveData.filter(
                     (l) => l.personId === person.id
                   );
@@ -578,7 +596,10 @@ function TimelineView({
                             return null;
                           }
 
-                          const style = LEAVE_STYLES[leave.type];
+                          const style = LEAVE_STYLES[leave.type] ?? {
+                            bg: "color-mix(in srgb, var(--muted) 14%, transparent)",
+                            text: "var(--muted)",
+                          };
                           const left = visibleStart * dayWidth;
                           const width =
                             (visibleEnd - visibleStart + 1) * dayWidth;
@@ -679,7 +700,10 @@ function TimelineView({
               if (!selectedLeave) {
                 return null;
               }
-              const style = LEAVE_STYLES[selectedLeave.type];
+              const style = LEAVE_STYLES[selectedLeave.type] ?? {
+                bg: "color-mix(in srgb, var(--muted) 14%, transparent)",
+                text: "var(--muted)",
+              };
               return (
                 <motion.div
                   className="pointer-events-auto relative w-full max-w-md overflow-hidden rounded-3xl border border-border bg-popover shadow-2xl"
@@ -838,7 +862,10 @@ function MonthView({
               </span>
 
               {leaves.slice(0, 2).map((entry) => {
-                const s = LEAVE_STYLES[entry.type];
+                const s = LEAVE_STYLES[entry.type] ?? {
+                  bg: "color-mix(in srgb, var(--muted) 14%, transparent)",
+                  text: "var(--muted)",
+                };
                 return (
                   <div
                     className="flex items-center gap-1 truncate rounded px-1.5 py-0.5"
@@ -945,7 +972,10 @@ function WeekView({
               }}
             >
               {leaves.map((entry) => {
-                const s = LEAVE_STYLES[entry.type];
+                const s = LEAVE_STYLES[entry.type] ?? {
+                  bg: "color-mix(in srgb, var(--muted) 14%, transparent)",
+                  text: "var(--muted)",
+                };
                 return (
                   <div
                     className="rounded-lg px-2 py-1.5"
@@ -1055,7 +1085,10 @@ function DayView({
       ) : (
         <div className="flex flex-col gap-2">
           {leaves.map((entry) => {
-            const s = LEAVE_STYLES[entry.type];
+            const s = LEAVE_STYLES[entry.type] ?? {
+              bg: "color-mix(in srgb, var(--muted) 14%, transparent)",
+              text: "var(--muted)",
+            };
             return (
               <div
                 className="flex items-center gap-3 rounded-xl p-4"
@@ -1442,21 +1475,30 @@ function SetupInstructions() {
 // ─── Main exported component ──────────────────────────────────────────────────
 
 export interface CalendarClientProps {
-  initialEntries?: LeaveEntry[];
-  people?: Array<{ id: string; firstName: string; lastName: string; email: string; teamId: string | null; locationId: string | null }>;
-  weekStart?: Date;
   filters?: {
     team?: string;
     location?: string;
     recordType?: string;
     approvalStatus?: string;
   };
+  initialEntries?: LeaveEntry[];
+  people?: Array<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    teamId: string | null;
+    locationId: string | null;
+  }>;
+  weekStart?: Date;
 }
 
 export function CalendarClient(props: CalendarClientProps = {}) {
   const [selectedFeedId, setSelectedFeedId] = useState<string>("");
   const [view, setView] = useState<View>("month");
-  const [anchor, setAnchor] = useState<Date>(props.weekStart ? new Date(props.weekStart) : new Date(TODAY));
+  const [anchor, setAnchor] = useState<Date>(
+    props.weekStart ? new Date(props.weekStart) : new Date(TODAY)
+  );
   const [setupOpen, setSetupOpen] = useState(false);
 
   const selectedFeed =

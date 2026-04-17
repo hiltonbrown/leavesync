@@ -1,14 +1,14 @@
 import "server-only";
 
+import { currentUser } from "@repo/auth/server";
 import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
-import { appError, toDateOnly, startOfUtcDay, endOfUtcDay } from "@repo/core";
-import { currentUser } from "@repo/auth/helpers";
+import { appError, endOfUtcDay, startOfUtcDay, toDateOnly } from "@repo/core";
 import {
-  listPendingApprovalRecords,
-  listFeedsForOrganisation,
   listAvailabilityForCalendar,
-  listPeopleForOrganisation,
+  listFeedsForOrganisation,
   listNotificationsForUser,
+  listPendingApprovalRecords,
+  listPeopleForOrganisation,
 } from "@repo/database/src/queries";
 
 /**
@@ -46,7 +46,10 @@ export async function loadDashboardData(
     // Get 14-day window
     const twoWeeksAhead = new Date(now);
     twoWeeksAhead.setDate(twoWeeksAhead.getDate() + 14);
-    const twoWeeksAheadDate = toDateOnly(twoWeeksAhead);
+    const _twoWeeksAheadDate = toDateOnly(twoWeeksAhead);
+
+    // Get user for notifications
+    const user = await currentUser();
 
     // Load all required data in parallel
     const [
@@ -67,15 +70,9 @@ export async function loadDashboardData(
         endDate: twoWeeksAhead,
       }),
       listFeedsForOrganisation(clerkOrgId, organisationId),
-      (async () => {
-        const user = await currentUser();
-        if (!user) {
-          return { ok: true, value: [] };
-        }
-        return listNotificationsForUser(clerkOrgId, user.id, {
-          isRead: false,
-        });
-      })(),
+      user
+        ? listNotificationsForUser(clerkOrgId, user.id, { isRead: false })
+        : Promise.resolve({ ok: true, value: [] } as const),
       listPendingApprovalRecords(clerkOrgId, organisationId),
     ]);
 
@@ -108,9 +105,12 @@ export async function loadDashboardData(
 
     // Count unique days of upcoming leave (next 14 days, approved only)
     const approvedLeaveByDay = new Set<string>();
-    upcomingLeaveResult.value.forEach((record) => {
-      if (record.recordType === "leave" && record.approvalStatus === "approved") {
-        let current = new Date(record.startsAt);
+    for (const record of upcomingLeaveResult.value) {
+      if (
+        record.recordType === "leave" &&
+        record.approvalStatus === "approved"
+      ) {
+        const current = new Date(record.startsAt);
         const end = new Date(record.endsAt);
 
         while (current <= end) {
@@ -119,7 +119,7 @@ export async function loadDashboardData(
           current.setDate(current.getDate() + 1);
         }
       }
-    });
+    }
 
     // Recent activity: all availability changes from past 7 days
     const sevenDaysAgo = new Date(now);
@@ -138,13 +138,20 @@ export async function loadDashboardData(
       return { ok: false, error: recentActivityResult.error };
     }
 
+    const peopleById = new Map(
+      peopleResult.value.map((person) => [
+        person.id,
+        `${person.firstName} ${person.lastName}`,
+      ])
+    );
+
     // Create activity list sorted by date, limited to 5 most recent
     const recentActivity = recentActivityResult.value
       .sort((a, b) => b.startsAt.getTime() - a.startsAt.getTime())
       .slice(0, 5)
       .map((record) => ({
         id: record.id,
-        personName: "", // Will be fetched from people data if needed
+        personName: peopleById.get(record.personId) ?? "Unknown",
         recordType: record.recordType,
         startsAt: record.startsAt,
         endsAt: record.endsAt,
@@ -165,7 +172,7 @@ export async function loadDashboardData(
         recentActivity,
       },
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       ok: false,
       error: appError("internal", "Failed to load dashboard data"),

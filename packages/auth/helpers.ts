@@ -10,9 +10,7 @@ export async function requireOrg(): Promise<string> {
   const { orgId } = await auth();
 
   if (!orgId) {
-    throw new Error(
-      "Not authenticated or no organisation selected"
-    );
+    throw new Error("Not authenticated or no organisation selected");
   }
 
   return orgId;
@@ -38,10 +36,10 @@ export async function requireRole(role: string): Promise<boolean> {
     throw new Error("Not authenticated");
   }
 
-  const userRole = sessionClaims.metadata?.role;
+  const userRole = (sessionClaims.metadata as { role?: string })?.role;
   return userRole === role;
 }
 
+export type { User } from "@clerk/nextjs/server";
 // Re-export Clerk auth functions for convenience
 export { auth, currentUser } from "@clerk/nextjs/server";
-export type { User } from "@clerk/nextjs/server";

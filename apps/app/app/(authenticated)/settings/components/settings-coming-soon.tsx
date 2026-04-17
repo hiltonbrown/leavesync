@@ -16,7 +16,9 @@ export const SettingsComingSoon = ({ feature }: SettingsComingSoonProps) => (
       </div>
       <div>
         <p className="font-medium text-sm">{feature}</p>
-        <p className="text-muted-foreground text-xs">Coming soon</p>
+        <p className="text-muted-foreground text-xs">
+          Not available in the manual MVP
+        </p>
       </div>
     </CardContent>
   </Card>

@@ -51,7 +51,24 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  Page: 'Page'
+  Organisation: 'Organisation',
+  Team: 'Team',
+  Location: 'Location',
+  Person: 'Person',
+  XeroConnection: 'XeroConnection',
+  XeroTenant: 'XeroTenant',
+  XeroSyncCursor: 'XeroSyncCursor',
+  AvailabilityRecord: 'AvailabilityRecord',
+  AvailabilityPublication: 'AvailabilityPublication',
+  LeaveBalance: 'LeaveBalance',
+  Feed: 'Feed',
+  FeedScope: 'FeedScope',
+  FeedToken: 'FeedToken',
+  Notification: 'Notification',
+  NotificationPreference: 'NotificationPreference',
+  SyncRun: 'SyncRun',
+  FailedRecord: 'FailedRecord',
+  AuditEvent: 'AuditEvent'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -70,12 +87,302 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
-export const PageScalarFieldEnum = {
+export const OrganisationScalarFieldEnum = {
   id: 'id',
-  name: 'name'
+  clerk_org_id: 'clerk_org_id',
+  name: 'name',
+  country_code: 'country_code',
+  timezone: 'timezone',
+  locale: 'locale',
+  fiscal_year_start: 'fiscal_year_start',
+  working_hours_per_day: 'working_hours_per_day',
+  reporting_unit: 'reporting_unit',
+  archived_at: 'archived_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
 } as const
 
-export type PageScalarFieldEnum = (typeof PageScalarFieldEnum)[keyof typeof PageScalarFieldEnum]
+export type OrganisationScalarFieldEnum = (typeof OrganisationScalarFieldEnum)[keyof typeof OrganisationScalarFieldEnum]
+
+
+export const TeamScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  name: 'name',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]
+
+
+export const LocationScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  name: 'name',
+  region_code: 'region_code',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type LocationScalarFieldEnum = (typeof LocationScalarFieldEnum)[keyof typeof LocationScalarFieldEnum]
+
+
+export const PersonScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  team_id: 'team_id',
+  location_id: 'location_id',
+  source_system: 'source_system',
+  source_person_key: 'source_person_key',
+  first_name: 'first_name',
+  last_name: 'last_name',
+  email: 'email',
+  employment_type: 'employment_type',
+  is_active: 'is_active',
+  display_name: 'display_name',
+  clerk_user_id: 'clerk_user_id',
+  job_title: 'job_title',
+  archived_at: 'archived_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type PersonScalarFieldEnum = (typeof PersonScalarFieldEnum)[keyof typeof PersonScalarFieldEnum]
+
+
+export const XeroConnectionScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  access_token_encrypted: 'access_token_encrypted',
+  refresh_token_encrypted: 'refresh_token_encrypted',
+  expires_at: 'expires_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type XeroConnectionScalarFieldEnum = (typeof XeroConnectionScalarFieldEnum)[keyof typeof XeroConnectionScalarFieldEnum]
+
+
+export const XeroTenantScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  xero_connection_id: 'xero_connection_id',
+  xero_tenant_id: 'xero_tenant_id',
+  payroll_region: 'payroll_region',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type XeroTenantScalarFieldEnum = (typeof XeroTenantScalarFieldEnum)[keyof typeof XeroTenantScalarFieldEnum]
+
+
+export const XeroSyncCursorScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  xero_tenant_id: 'xero_tenant_id',
+  entity_type: 'entity_type',
+  cursor_value: 'cursor_value',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type XeroSyncCursorScalarFieldEnum = (typeof XeroSyncCursorScalarFieldEnum)[keyof typeof XeroSyncCursorScalarFieldEnum]
+
+
+export const AvailabilityRecordScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  person_id: 'person_id',
+  record_type: 'record_type',
+  source_type: 'source_type',
+  source_remote_id: 'source_remote_id',
+  starts_at: 'starts_at',
+  ends_at: 'ends_at',
+  approval_status: 'approval_status',
+  privacy_mode: 'privacy_mode',
+  contactability: 'contactability',
+  include_in_feed: 'include_in_feed',
+  publish_status: 'publish_status',
+  source_payload_json: 'source_payload_json',
+  derived_uid_key: 'derived_uid_key',
+  title: 'title',
+  all_day: 'all_day',
+  notes_internal: 'notes_internal',
+  working_location: 'working_location',
+  preferred_contact_method: 'preferred_contact_method',
+  created_by_user_id: 'created_by_user_id',
+  updated_by_user_id: 'updated_by_user_id',
+  archived_at: 'archived_at',
+  approved_at: 'approved_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type AvailabilityRecordScalarFieldEnum = (typeof AvailabilityRecordScalarFieldEnum)[keyof typeof AvailabilityRecordScalarFieldEnum]
+
+
+export const AvailabilityPublicationScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  availability_record_id: 'availability_record_id',
+  published_uid: 'published_uid',
+  published_summary: 'published_summary',
+  published_description: 'published_description',
+  published_sequence: 'published_sequence',
+  published_at: 'published_at',
+  privacy_mode: 'privacy_mode',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type AvailabilityPublicationScalarFieldEnum = (typeof AvailabilityPublicationScalarFieldEnum)[keyof typeof AvailabilityPublicationScalarFieldEnum]
+
+
+export const LeaveBalanceScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  person_id: 'person_id',
+  xero_tenant_id: 'xero_tenant_id',
+  leave_type_xero_id: 'leave_type_xero_id',
+  balance: 'balance',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type LeaveBalanceScalarFieldEnum = (typeof LeaveBalanceScalarFieldEnum)[keyof typeof LeaveBalanceScalarFieldEnum]
+
+
+export const FeedScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  name: 'name',
+  slug: 'slug',
+  status: 'status',
+  privacy_default: 'privacy_default',
+  scope_type: 'scope_type',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type FeedScalarFieldEnum = (typeof FeedScalarFieldEnum)[keyof typeof FeedScalarFieldEnum]
+
+
+export const FeedScopeScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  feed_id: 'feed_id',
+  rule_type: 'rule_type',
+  rule_value: 'rule_value',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type FeedScopeScalarFieldEnum = (typeof FeedScopeScalarFieldEnum)[keyof typeof FeedScopeScalarFieldEnum]
+
+
+export const FeedTokenScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  feed_id: 'feed_id',
+  token_hash: 'token_hash',
+  token_hint: 'token_hint',
+  status: 'status',
+  expires_at: 'expires_at',
+  revoked_at: 'revoked_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type FeedTokenScalarFieldEnum = (typeof FeedTokenScalarFieldEnum)[keyof typeof FeedTokenScalarFieldEnum]
+
+
+export const NotificationScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  recipient_user_id: 'recipient_user_id',
+  type: 'type',
+  payload: 'payload',
+  is_read: 'is_read',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const NotificationPreferenceScalarFieldEnum = {
+  id: 'id',
+  user_id: 'user_id',
+  clerk_org_id: 'clerk_org_id',
+  notification_type: 'notification_type',
+  in_app_enabled: 'in_app_enabled',
+  email_enabled: 'email_enabled',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type NotificationPreferenceScalarFieldEnum = (typeof NotificationPreferenceScalarFieldEnum)[keyof typeof NotificationPreferenceScalarFieldEnum]
+
+
+export const SyncRunScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  xero_tenant_id: 'xero_tenant_id',
+  status: 'status',
+  entity_type: 'entity_type',
+  records_synced: 'records_synced',
+  records_failed: 'records_failed',
+  error_message: 'error_message',
+  started_at: 'started_at',
+  completed_at: 'completed_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type SyncRunScalarFieldEnum = (typeof SyncRunScalarFieldEnum)[keyof typeof SyncRunScalarFieldEnum]
+
+
+export const FailedRecordScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  sync_run_id: 'sync_run_id',
+  entity_type: 'entity_type',
+  source_id: 'source_id',
+  error_message: 'error_message',
+  raw_payload: 'raw_payload',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type FailedRecordScalarFieldEnum = (typeof FailedRecordScalarFieldEnum)[keyof typeof FailedRecordScalarFieldEnum]
+
+
+export const AuditEventScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  actor_user_id: 'actor_user_id',
+  action: 'action',
+  resource_type: 'resource_type',
+  resource_id: 'resource_id',
+  payload: 'payload',
+  created_at: 'created_at'
+} as const
+
+export type AuditEventScalarFieldEnum = (typeof AuditEventScalarFieldEnum)[keyof typeof AuditEventScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -86,10 +393,42 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
 } as const
 
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

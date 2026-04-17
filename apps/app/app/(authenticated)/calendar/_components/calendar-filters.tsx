@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@repo/design-system/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -8,14 +8,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
-import { Button } from "@repo/design-system/components/ui/button";
 import { XIcon } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { preserveOrgQueryParam } from "@/lib/navigation/org-url";
 
 interface CalendarFiltersProps {
-  team?: string;
-  location?: string;
-  recordType?: string;
   approvalStatus?: string;
+  location?: string;
+  orgQueryValue?: null | string;
+  recordType?: string;
+  team?: string;
 }
 
 const RECORD_TYPE_OPTIONS = [
@@ -33,9 +35,13 @@ const APPROVAL_STATUS_OPTIONS = [
   { value: "draft", label: "Draft" },
 ];
 
+const ALL_RECORD_TYPES_VALUE = "__all_record_types__";
+const ALL_APPROVAL_STATUSES_VALUE = "__all_approval_statuses__";
+
 export function CalendarFilters({
   team,
   location,
+  orgQueryValue,
   recordType,
   approvalStatus,
 }: CalendarFiltersProps) {
@@ -50,6 +56,7 @@ export function CalendarFilters({
     } else {
       params.delete(key);
     }
+    preserveOrgQueryParam(params, orgQueryValue);
 
     router.push(`?${params.toString()}`);
   };
@@ -60,21 +67,29 @@ export function CalendarFilters({
     params.delete("location");
     params.delete("recordType");
     params.delete("approvalStatus");
+    preserveOrgQueryParam(params, orgQueryValue);
 
     router.push(`?${params.toString()}`);
   };
 
-  const hasFilters =
-    team || location || recordType || approvalStatus;
+  const hasFilters = team || location || recordType || approvalStatus;
 
   return (
-    <div className="flex flex-wrap gap-3 items-center mb-6">
-      <Select value={recordType || ""} onValueChange={(value) => updateFilter("recordType", value || null)}>
+    <div className="mb-6 flex flex-wrap items-center gap-3">
+      <Select
+        onValueChange={(value) =>
+          updateFilter(
+            "recordType",
+            value === ALL_RECORD_TYPES_VALUE ? null : value
+          )
+        }
+        value={recordType || ALL_RECORD_TYPES_VALUE}
+      >
         <SelectTrigger className="w-40">
           <SelectValue placeholder="Record type" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All types</SelectItem>
+          <SelectItem value={ALL_RECORD_TYPES_VALUE}>All types</SelectItem>
           {RECORD_TYPE_OPTIONS.map((option) => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}
@@ -83,12 +98,22 @@ export function CalendarFilters({
         </SelectContent>
       </Select>
 
-      <Select value={approvalStatus || ""} onValueChange={(value) => updateFilter("approvalStatus", value || null)}>
+      <Select
+        onValueChange={(value) =>
+          updateFilter(
+            "approvalStatus",
+            value === ALL_APPROVAL_STATUSES_VALUE ? null : value
+          )
+        }
+        value={approvalStatus || ALL_APPROVAL_STATUSES_VALUE}
+      >
         <SelectTrigger className="w-40">
           <SelectValue placeholder="Status" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All statuses</SelectItem>
+          <SelectItem value={ALL_APPROVAL_STATUSES_VALUE}>
+            All statuses
+          </SelectItem>
           {APPROVAL_STATUS_OPTIONS.map((option) => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}
@@ -99,10 +124,10 @@ export function CalendarFilters({
 
       {hasFilters && (
         <Button
-          variant="ghost"
-          size="sm"
-          onClick={clearFilters}
           className="gap-2"
+          onClick={clearFilters}
+          size="sm"
+          variant="ghost"
         >
           <XIcon className="size-4" />
           Clear filters

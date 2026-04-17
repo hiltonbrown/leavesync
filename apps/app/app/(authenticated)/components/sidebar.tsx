@@ -30,8 +30,9 @@ import {
   UsersIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
+import { getOrgFromSearchParams, withOrg } from "@/lib/navigation/org-url";
 
 interface GlobalSidebarProperties {
   readonly children: ReactNode;
@@ -89,6 +90,8 @@ const navGroups = [
 export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
   const sidebar = useSidebar();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const orgId = getOrgFromSearchParams(searchParams);
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -137,7 +140,7 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                         isActive={isActive(item.href)}
                         tooltip={item.title}
                       >
-                        <Link href={item.href}>
+                        <Link href={withOrg(item.href, orgId)}>
                           <item.icon
                             className="h-4 w-4 shrink-0"
                             strokeWidth={1.75}
@@ -164,7 +167,7 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                 isActive={pathname.startsWith("/settings")}
                 tooltip="Settings"
               >
-                <Link href="/settings">
+                <Link href={withOrg("/settings", orgId)}>
                   <Settings2Icon
                     className="h-4 w-4 shrink-0"
                     strokeWidth={1.75}
@@ -181,7 +184,7 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                 isActive={pathname.startsWith("/support")}
                 tooltip="Support & Feedback"
               >
-                <Link href="/support">
+                <Link href={withOrg("/support", orgId)}>
                   <LifeBuoyIcon
                     className="h-4 w-4 shrink-0"
                     strokeWidth={1.75}

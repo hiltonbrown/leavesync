@@ -26,7 +26,7 @@ const RouteModal = ({ children }: RouteModalProperties) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog onOpenChange={handleOpenChange} open={open}>
       <DialogContent className="max-h-[92dvh] w-full overflow-y-auto sm:max-w-[640px]">
         {children}
       </DialogContent>

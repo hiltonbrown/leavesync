@@ -69,6 +69,7 @@ const MONTHS = [
 interface GeneralClientProps {
   fiscalYearStart: number;
   locale: string;
+  organisationId: string;
   orgName: string;
   reportingUnit: string;
   timezone: string;
@@ -76,6 +77,7 @@ interface GeneralClientProps {
 }
 
 export const GeneralClient = ({
+  organisationId,
   orgName,
   timezone,
   locale,
@@ -102,6 +104,7 @@ export const GeneralClient = ({
   const handleSave = () => {
     startTransition(async () => {
       const result = await updateOrg({
+        organisationId,
         name,
         timezone: tz,
         locale: loc,
@@ -139,7 +142,7 @@ export const GeneralClient = ({
               className="max-w-sm"
               id="org-name"
               onChange={(e) => setName(e.target.value)}
-              placeholder="Acme Ltd"
+              placeholder="Organisation Pty Ltd"
               value={name}
             />
           </div>

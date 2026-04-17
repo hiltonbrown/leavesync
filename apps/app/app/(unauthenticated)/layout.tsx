@@ -12,7 +12,7 @@ const AuthLayout = ({ children }: AuthLayoutProps) => (
       <div className="absolute inset-0 bg-muted" />
       <div className="relative z-20 flex items-center font-medium text-lg text-primary">
         <CommandIcon className="mr-2 h-6 w-6" />
-        Acme Inc
+        LeaveSync
       </div>
       <div className="absolute top-4 right-4">
         <ModeToggle />
@@ -20,11 +20,10 @@ const AuthLayout = ({ children }: AuthLayoutProps) => (
       <div className="relative z-20 mt-auto text-primary">
         <blockquote className="space-y-2">
           <p className="text-lg">
-            &ldquo;This library has saved me countless hours of work and helped
-            me deliver stunning designs to my clients faster than ever
-            before.&rdquo;
+            &ldquo;Publish approved leave and manual availability to secure
+            calendar feeds without handing payroll access to every team.&rdquo;
           </p>
-          <footer className="text-sm">Sofia Davis</footer>
+          <footer className="text-sm">LeaveSync</footer>
         </blockquote>
       </div>
     </div>

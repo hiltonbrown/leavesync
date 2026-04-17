@@ -1,12 +1,12 @@
+import { toDateOnly } from "@repo/core";
 import { ClipboardListIcon, LinkIcon, UserIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { withOrg } from "@/lib/navigation/org-url";
+import { loadDashboardData } from "@/lib/server/load-dashboard-data";
+import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
 import { Header } from "./components/header";
 import { LivingTimelineModule } from "./components/living-timeline-module";
-import { getActiveOrgContext } from "@/lib/server/get-active-org-context";
-import { loadDashboardData } from "@/lib/server/load-dashboard-data";
-import { toDateOnly } from "@repo/core";
 
 export const metadata: Metadata = {
   title: "Dashboard — LeaveSync",
@@ -22,14 +22,8 @@ interface DashboardPageProps {
 const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
   const { org } = await searchParams;
 
-  // Step 1: Validate organisation context
-  const contextResult = await getActiveOrgContext(org || "");
-
-  if (!contextResult.ok) {
-    return notFound();
-  }
-
-  const { clerkOrgId, organisationId } = contextResult.value;
+  const { clerkOrgId, organisationId, orgQueryValue } =
+    await requireActiveOrgPageContext(org);
 
   // Step 2: Load dashboard data
   const dataResult = await loadDashboardData(clerkOrgId, organisationId);
@@ -51,7 +45,10 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
 
   const todayAbsences = recentActivity
     .filter((r) => ["leave", "wfh"].includes(r.recordType))
-    .slice(0, 5);
+    .slice(0, 5)
+    .map((record) => ({
+      name: record.personName || "Unknown",
+    }));
 
   return (
     <>
@@ -61,21 +58,24 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
         <div className="grid gap-5 md:grid-cols-3">
           <div className="relative z-30 md:col-span-2">
             <LivingTimelineModule
+              orgQueryValue={orgQueryValue}
               todayAbsences={todayAbsences}
               total={stats.peopleUnavailableToday}
             />
           </div>
           <div className="flex flex-col gap-4">
             <ActionModule
-              ctaHref="/plans"
+              ctaHref={withOrg("/plans", orgQueryValue)}
               ctaLabel="Review"
-              icon={<ClipboardListIcon className="size-3.5" strokeWidth={1.75} />}
+              icon={
+                <ClipboardListIcon className="size-3.5" strokeWidth={1.75} />
+              }
               label="Pending approvals"
               sub=""
               value={String(stats.pendingApprovals)}
             />
             <ActionModule
-              ctaHref="/feed"
+              ctaHref={withOrg("/feed", orgQueryValue)}
               ctaLabel="Manage"
               icon={<LinkIcon className="size-3.5" strokeWidth={1.75} />}
               label="Active Calendar Feeds"
@@ -86,7 +86,10 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
         </div>
 
         {/* Row 2 — full-width recent requests */}
-        <RecentRequestsCard entries={displayActivity} />
+        <RecentRequestsCard
+          entries={displayActivity}
+          orgQueryValue={orgQueryValue}
+        />
       </div>
     </>
   );
@@ -146,9 +149,13 @@ interface RecentRequestsCardProps {
     to: string;
     type: string;
   }[];
+  orgQueryValue: null | string;
 }
 
-const RecentRequestsCard = ({ entries }: RecentRequestsCardProps) => (
+const RecentRequestsCard = ({
+  entries,
+  orgQueryValue,
+}: RecentRequestsCardProps) => (
   <div className="flex flex-col gap-5 rounded-2xl bg-muted p-6">
     <div className="flex items-center justify-between">
       <div>
@@ -161,7 +168,7 @@ const RecentRequestsCard = ({ entries }: RecentRequestsCardProps) => (
       </div>
       <Link
         className="font-medium text-[0.8125rem] transition-opacity hover:opacity-70"
-        href="/people"
+        href={withOrg("/people", orgQueryValue)}
         style={{ color: "var(--primary)" }}
       >
         View all &rarr;

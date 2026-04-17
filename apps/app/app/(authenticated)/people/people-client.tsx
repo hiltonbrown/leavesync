@@ -1,5 +1,9 @@
 "use client";
 
+import type {
+  AvailabilityRecordData,
+  PersonData,
+} from "@repo/database/src/queries";
 import { Input } from "@repo/design-system/components/ui/input";
 import { SearchIcon, UsersIcon } from "lucide-react";
 import { useState } from "react";
@@ -7,11 +11,9 @@ import { useState } from "react";
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type Status = "in-office" | "remote" | "away" | "sick" | "travelling";
-type Department = "Engineering" | "Product" | "Design";
 
-interface Person {
+interface PersonDisplay {
   avatarIdx: number;
-  dept: Department;
   id: string;
   initials: string;
   location: string;
@@ -21,89 +23,42 @@ interface Person {
   title: string;
 }
 
-// ─── Data ────────────────────────────────────────────────────────────────────
+interface PeopleClientProps {
+  orgQueryValue: null | string;
+  people: PersonData[];
+  todayAvailability: AvailabilityRecordData[];
+}
 
-const PEOPLE: Person[] = [
-  {
-    id: "p1",
-    name: "Priya Sharma",
-    initials: "PS",
-    title: "Senior Engineer",
-    dept: "Engineering",
-    location: "London, UK",
-    status: "in-office",
-    statusNote: null,
-    avatarIdx: 0,
-  },
-  {
-    id: "p2",
-    name: "Marcus Webb",
-    initials: "MW",
-    title: "Backend Engineer",
-    dept: "Engineering",
-    location: "Manchester, UK",
-    status: "sick",
-    statusNote: "Back 7 Apr",
-    avatarIdx: 1,
-  },
-  {
-    id: "p3",
-    name: "Yuki Tanaka",
-    initials: "YT",
-    title: "Product Manager",
-    dept: "Product",
-    location: "London, UK",
-    status: "travelling",
-    statusNote: "Berlin this week",
-    avatarIdx: 2,
-  },
-  {
-    id: "p4",
-    name: "Aisha Okonkwo",
-    initials: "AO",
-    title: "UI Designer",
-    dept: "Design",
-    location: "London, UK",
-    status: "remote",
-    statusNote: null,
-    avatarIdx: 3,
-  },
-  {
-    id: "p5",
-    name: "Tom Eriksson",
-    initials: "TE",
-    title: "Frontend Engineer",
-    dept: "Engineering",
-    location: "Stockholm, Sweden",
-    status: "in-office",
-    statusNote: null,
-    avatarIdx: 4,
-  },
-  {
-    id: "p6",
-    name: "Sofia Reyes",
-    initials: "SR",
-    title: "Data Analyst",
-    dept: "Product",
-    location: "Madrid, Spain",
-    status: "remote",
-    statusNote: null,
-    avatarIdx: 5,
-  },
-  {
-    id: "p7",
-    name: "Elena Rossi",
-    initials: "ER",
-    title: "Product Marketing",
-    dept: "Product",
-    location: "Milan, Italy",
-    status: "in-office",
-    statusNote: null,
-    avatarIdx: 0,
-  },
-];
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const DEPARTMENTS: Department[] = ["Engineering", "Product", "Design"];
+function getInitials(firstName: string, lastName: string): string {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+}
+
+function getAvatarIdx(id: string): number {
+  return id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+}
+
+function deriveStatus(
+  personId: string,
+  availability: AvailabilityRecordData[]
+): Status {
+  const todayRecords = availability.filter((a) => a.personId === personId);
+  if (todayRecords.length === 0) {
+    return "in-office";
+  }
+  const recordType = todayRecords[0].recordType;
+  if (recordType === "leave") {
+    return "away";
+  }
+  if (recordType === "wfh") {
+    return "remote";
+  }
+  if (["travel", "client_site", "training"].includes(recordType)) {
+    return "travelling";
+  }
+  return "in-office";
+}
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -116,33 +71,33 @@ interface StatusConfig {
 
 const STATUS_CONFIG: Record<Status, StatusConfig> = {
   "in-office": {
-    label: "In office",
-    dot: "var(--primary)",
     bg: "color-mix(in srgb, var(--primary) 12%, transparent)",
+    dot: "var(--primary)",
+    label: "In office",
     text: "var(--primary)",
   },
-  remote: {
-    label: "Working remotely",
-    dot: "var(--tertiary)",
-    bg: "color-mix(in srgb, var(--tertiary) 15%, transparent)",
-    text: "var(--tertiary)",
-  },
   away: {
-    label: "On leave",
-    dot: "var(--outline)",
     bg: "var(--accent)",
+    dot: "var(--outline)",
+    label: "On leave",
     text: "var(--muted-foreground)",
   },
+  remote: {
+    bg: "color-mix(in srgb, var(--tertiary) 15%, transparent)",
+    dot: "var(--tertiary)",
+    label: "Working remotely",
+    text: "var(--tertiary)",
+  },
   sick: {
-    label: "Out sick",
-    dot: "var(--destructive)",
     bg: "var(--error-container)",
+    dot: "var(--destructive)",
+    label: "Out sick",
     text: "var(--destructive)",
   },
   travelling: {
-    label: "Travelling",
-    dot: "var(--primary-container)",
     bg: "color-mix(in srgb, var(--primary-container) 30%, transparent)",
+    dot: "var(--primary-container)",
+    label: "Travelling",
     text: "var(--on-primary-container)",
   },
 };
@@ -169,7 +124,7 @@ const AVATAR_PALETTE: { bg: string; text: string }[] = [
 
 // ─── PersonCard ───────────────────────────────────────────────────────────────
 
-function PersonCard({ person }: { person: Person }) {
+function PersonCard({ person }: { person: PersonDisplay }) {
   const avatar = AVATAR_PALETTE[person.avatarIdx % AVATAR_PALETTE.length];
   const status = STATUS_CONFIG[person.status];
 
@@ -201,17 +156,8 @@ function PersonCard({ person }: { person: Person }) {
         <p className="text-[0.8125rem] text-muted-foreground">{person.title}</p>
       </div>
 
-      {/* Dept + location */}
+      {/* Location */}
       <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-        <span
-          className="rounded-full px-2.5 py-0.5 font-semibold text-[0.625rem] uppercase tracking-widest"
-          style={{
-            background: "color-mix(in srgb, var(--primary) 10%, transparent)",
-            color: "var(--primary)",
-          }}
-        >
-          {person.dept}
-        </span>
         <span className="text-[0.75rem] text-muted-foreground">
           {person.location}
         </span>
@@ -248,7 +194,7 @@ function PersonCard({ person }: { person: Person }) {
 interface FilterChipProps {
   active: boolean;
   children: React.ReactNode;
-  dot?: string; // optional colored dot
+  dot?: string;
   onClick: () => void;
 }
 
@@ -277,33 +223,46 @@ function FilterChip({ active, onClick, children, dot }: FilterChipProps) {
 
 // ─── PeopleClient (main) ─────────────────────────────────────────────────────
 
-export function PeopleClient() {
+export function PeopleClient({
+  people,
+  todayAvailability,
+  orgQueryValue: _orgQueryValue,
+}: PeopleClientProps) {
   const [search, setSearch] = useState("");
-  const [deptFilter, setDeptFilter] = useState<Department | "all">("all");
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
 
-  const filtered = PEOPLE.filter((p) => {
+  // Transform database people to display format
+  const displayPeople: PersonDisplay[] = people.map((p) => ({
+    avatarIdx: getAvatarIdx(p.id),
+    id: p.id,
+    initials: getInitials(p.firstName, p.lastName),
+    location: "Unknown",
+    name: `${p.firstName} ${p.lastName}`,
+    status: deriveStatus(p.id, todayAvailability),
+    statusNote: null,
+    title: p.employmentType,
+  }));
+
+  const filtered = displayPeople.filter((p) => {
     const q = search.toLowerCase();
     const matchSearch =
       p.name.toLowerCase().includes(q) ||
       p.title.toLowerCase().includes(q) ||
-      p.dept.toLowerCase().includes(q) ||
       p.location.toLowerCase().includes(q);
-    const matchDept = deptFilter === "all" || p.dept === deptFilter;
     const matchStatus = statusFilter === "all" || p.status === statusFilter;
-    return matchSearch && matchDept && matchStatus;
+    return matchSearch && matchStatus;
   });
 
   // Only show status filters that have at least one person
   const presentStatuses = (Object.keys(STATUS_CONFIG) as Status[]).filter((s) =>
-    PEOPLE.some((p) => p.status === s)
+    displayPeople.some((p) => p.status === s)
   );
 
   // Summary counts across all people (not filtered) for context
   const summaryCounts = (Object.keys(STATUS_CONFIG) as Status[])
     .map((s) => ({
       status: s,
-      count: PEOPLE.filter((p) => p.status === s).length,
+      count: displayPeople.filter((p) => p.status === s).length,
     }))
     .filter((s) => s.count > 0);
 
@@ -319,7 +278,7 @@ export function PeopleClient() {
             People
           </h1>
           <p className="mt-1 text-[0.875rem] text-muted-foreground">
-            {PEOPLE.length} team members
+            {displayPeople.length} team members
             {summaryCounts.map((s, i) => (
               <span key={s.status}>
                 {i === 0 ? " · " : " · "}
@@ -346,25 +305,6 @@ export function PeopleClient() {
             placeholder="Search by name, role, or location..."
             value={search}
           />
-        </div>
-
-        {/* Department chips */}
-        <div className="flex flex-wrap gap-1.5">
-          <FilterChip
-            active={deptFilter === "all"}
-            onClick={() => setDeptFilter("all")}
-          >
-            All departments
-          </FilterChip>
-          {DEPARTMENTS.map((dept) => (
-            <FilterChip
-              active={deptFilter === dept}
-              key={dept}
-              onClick={() => setDeptFilter(dept)}
-            >
-              {dept}
-            </FilterChip>
-          ))}
         </div>
 
         {/* Status chips */}
@@ -413,7 +353,6 @@ export function PeopleClient() {
             className="mt-1 font-medium text-[0.8125rem] transition-colors"
             onClick={() => {
               setSearch("");
-              setDeptFilter("all");
               setStatusFilter("all");
             }}
             style={{ color: "var(--primary)" }}
@@ -424,9 +363,9 @@ export function PeopleClient() {
         </div>
       ) : (
         <>
-          {filtered.length !== PEOPLE.length && (
+          {filtered.length !== displayPeople.length && (
             <p className="text-[0.75rem] text-muted-foreground">
-              Showing {filtered.length} of {PEOPLE.length} people
+              Showing {filtered.length} of {displayPeople.length} people
             </p>
           )}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

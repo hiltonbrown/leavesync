@@ -1,8 +1,8 @@
 import "server-only";
 
+import { requireOrg } from "@repo/auth/helpers";
 import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
 import { appError } from "@repo/core";
-import { requireOrg } from "@repo/auth/helpers";
 import { getOrganisationById } from "@repo/database/src/queries/organisations";
 
 /**
@@ -13,9 +13,7 @@ import { getOrganisationById } from "@repo/database/src/queries/organisations";
  * If organisation is missing or not accessible within the clerk_org_id boundary,
  * returns an error result.
  */
-export async function getActiveOrgContext(
-  organisationId: string
-): Promise<
+export async function getActiveOrgContext(organisationId: string): Promise<
   Result<{
     clerkOrgId: ClerkOrgId;
     organisationId: OrganisationId;
@@ -24,11 +22,14 @@ export async function getActiveOrgContext(
   // Get authenticated Clerk Org ID
   let clerkOrgId: ClerkOrgId;
   try {
-    clerkOrgId = requireOrg() as ClerkOrgId;
-  } catch (error) {
+    clerkOrgId = (await requireOrg()) as ClerkOrgId;
+  } catch (_error) {
     return {
       ok: false,
-      error: appError("unauthorised", "Not authenticated or no organisation selected"),
+      error: appError(
+        "unauthorised",
+        "Not authenticated or no organisation selected"
+      ),
     };
   }
 

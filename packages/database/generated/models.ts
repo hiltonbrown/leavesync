@@ -8,5 +8,22 @@
  *
  * 🟢 You can import this file directly.
  */
-export type * from './models/Page'
+export type * from './models/Organisation'
+export type * from './models/Team'
+export type * from './models/Location'
+export type * from './models/Person'
+export type * from './models/XeroConnection'
+export type * from './models/XeroTenant'
+export type * from './models/XeroSyncCursor'
+export type * from './models/AvailabilityRecord'
+export type * from './models/AvailabilityPublication'
+export type * from './models/LeaveBalance'
+export type * from './models/Feed'
+export type * from './models/FeedScope'
+export type * from './models/FeedToken'
+export type * from './models/Notification'
+export type * from './models/NotificationPreference'
+export type * from './models/SyncRun'
+export type * from './models/FailedRecord'
+export type * from './models/AuditEvent'
 export type * from './commonInputTypes'

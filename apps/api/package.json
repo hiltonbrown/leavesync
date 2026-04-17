@@ -17,6 +17,7 @@
     "@repo/auth": "*",
     "@repo/database": "*",
     "@repo/design-system": "*",
+    "@repo/feeds": "*",
     "@repo/next-config": "*",
     "@repo/observability": "*",
     "@repo/payments": "*",

@@ -1,11 +1,11 @@
 import { Badge } from "@repo/design-system/components/ui/badge";
-import { MapPinIcon, BriefcaseIcon } from "lucide-react";
+import { BriefcaseIcon, MapPinIcon } from "lucide-react";
 
 interface PersonSummaryCardProps {
   employmentType: string;
   isActive: boolean;
-  team: { id: string; name: string } | null;
   location: { id: string; name: string } | null;
+  team: { id: string; name: string } | null;
 }
 
 export function PersonSummaryCard({
@@ -18,11 +18,14 @@ export function PersonSummaryCard({
     <div className="rounded-2xl bg-muted p-6">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
+          <p className="font-medium text-muted-foreground text-sm uppercase tracking-widest">
             Profile
           </p>
           {!isActive && (
-            <Badge variant="outline" className="bg-destructive/10 text-destructive">
+            <Badge
+              className="bg-destructive/10 text-destructive"
+              variant="outline"
+            >
               Inactive
             </Badge>
           )}
@@ -33,10 +36,12 @@ export function PersonSummaryCard({
           <div className="flex items-center gap-3">
             <BriefcaseIcon className="size-4 text-muted-foreground" />
             <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-widest">
+              <p className="text-muted-foreground text-xs uppercase tracking-widest">
                 Employment
               </p>
-              <p className="text-sm font-medium">{employmentType || "Not specified"}</p>
+              <p className="font-medium text-sm">
+                {employmentType || "Not specified"}
+              </p>
             </div>
           </div>
 
@@ -45,10 +50,10 @@ export function PersonSummaryCard({
             <div className="flex items-center gap-3">
               <BriefcaseIcon className="size-4 text-muted-foreground" />
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-widest">
+                <p className="text-muted-foreground text-xs uppercase tracking-widest">
                   Team
                 </p>
-                <p className="text-sm font-medium">{team.name}</p>
+                <p className="font-medium text-sm">{team.name}</p>
               </div>
             </div>
           )}
@@ -58,10 +63,10 @@ export function PersonSummaryCard({
             <div className="flex items-center gap-3">
               <MapPinIcon className="size-4 text-muted-foreground" />
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-widest">
+                <p className="text-muted-foreground text-xs uppercase tracking-widest">
                   Location
                 </p>
-                <p className="text-sm font-medium">{location.name}</p>
+                <p className="font-medium text-sm">{location.name}</p>
               </div>
             </div>
           )}

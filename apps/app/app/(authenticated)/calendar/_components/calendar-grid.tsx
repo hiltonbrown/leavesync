@@ -3,36 +3,36 @@
 import { CalendarClient } from "../calendar-client";
 
 interface LeaveEntry {
-  id: string;
-  start: string; // YYYY-MM-DD
+  approvalStatus: string;
   end: string; // YYYY-MM-DD
+  id: string;
+  initials: string;
   name: string;
   personId: string;
-  initials: string;
-  type: string;
-  approvalStatus: string;
   privacyMode: string;
+  start: string; // YYYY-MM-DD
+  type: string;
 }
 
 interface Person {
-  id: string;
-  firstName: string;
-  lastName: string;
   email: string;
-  teamId: string | null;
+  firstName: string;
+  id: string;
+  lastName: string;
   locationId: string | null;
+  teamId: string | null;
 }
 
 interface CalendarGridProps {
   entries: LeaveEntry[];
-  people: Person[];
-  weekStart: Date;
   filters?: {
     team?: string;
     location?: string;
     recordType?: string;
     approvalStatus?: string;
   };
+  people: Person[];
+  weekStart: Date;
 }
 
 /**
@@ -47,10 +47,10 @@ export function CalendarGrid({
 }: CalendarGridProps) {
   return (
     <CalendarClient
+      filters={filters}
       initialEntries={entries}
       people={people}
       weekStart={weekStart}
-      filters={filters}
     />
   );
 }

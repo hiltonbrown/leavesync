@@ -22,8 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
-import { toast } from "@repo/design-system/components/ui/sonner";
-import { CalendarCheckIcon, PlusIcon, XIcon } from "lucide-react";
+import { CalendarCheckIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import type { AvailableCountry } from "@/app/actions/holidays/get-countries";
 import { SettingsComingSoon } from "../components/settings-coming-soon";
@@ -43,38 +42,10 @@ export const HolidaysClient = ({
   countries,
   enabledJurisdictions: initialJurisdictions,
 }: HolidaysClientProps) => {
-  const [jurisdictions, setJurisdictions] =
-    useState<EnabledJurisdiction[]>(initialJurisdictions);
+  const jurisdictions = initialJurisdictions;
   const [selectedCountry, setSelectedCountry] = useState("");
 
   const enabledCodes = new Set(jurisdictions.map((j) => j.countryCode));
-
-  const handleAdd = () => {
-    if (!selectedCountry) {
-      return;
-    }
-    if (enabledCodes.has(selectedCountry)) {
-      toast.error("Jurisdiction already added");
-      return;
-    }
-    const country = countries.find((c) => c.countryCode === selectedCountry);
-    if (!country) {
-      return;
-    }
-
-    // Optimistic update — persistence requires DB (stub)
-    setJurisdictions((prev) => [
-      ...prev,
-      { countryCode: country.countryCode, countryName: country.name },
-    ]);
-    setSelectedCountry("");
-    toast.success(`${country.name} public holidays added`);
-  };
-
-  const handleRemove = (code: string) => {
-    setJurisdictions((prev) => prev.filter((j) => j.countryCode !== code));
-    toast.success("Jurisdiction removed");
-  };
 
   return (
     <div className="space-y-6">
@@ -88,8 +59,8 @@ export const HolidaysClient = ({
         <CardHeader className="pb-4">
           <CardTitle className="text-base">Add jurisdiction</CardTitle>
           <CardDescription>
-            Public holidays from selected jurisdictions will appear in your
-            organisation's feeds.
+            Public holiday jurisdiction storage is not enabled for this
+            organisation yet.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -108,11 +79,7 @@ export const HolidaysClient = ({
                   ))}
               </SelectContent>
             </Select>
-            <Button
-              className="shrink-0 gap-2"
-              disabled={!selectedCountry}
-              onClick={handleAdd}
-            >
+            <Button className="shrink-0 gap-2" disabled>
               <PlusIcon className="h-4 w-4" strokeWidth={2} />
               Add
             </Button>
@@ -163,15 +130,6 @@ export const HolidaysClient = ({
                     </span>
                     <span className="font-medium text-sm">{j.countryName}</span>
                   </div>
-                  <Button
-                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                    onClick={() => handleRemove(j.countryCode)}
-                    size="icon"
-                    variant="ghost"
-                  >
-                    <XIcon className="h-4 w-4" strokeWidth={2} />
-                    <span className="sr-only">Remove {j.countryName}</span>
-                  </Button>
                 </li>
               ))}
             </ul>
