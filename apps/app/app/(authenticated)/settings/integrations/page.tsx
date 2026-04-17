@@ -7,10 +7,6 @@ export const metadata: Metadata = {
     "Connect your payroll and HR systems to sync leave data into LeaveSync.",
 };
 
-const IntegrationsPage = async () => {
-  // ProviderConnection table not yet in DB schema — pass empty array.
-  // All four provider cards render with "Not connected" status.
-  return <IntegrationsClient connections={[]} />;
-};
+const IntegrationsPage = async () => <IntegrationsClient connections={[]} />;
 
 export default IntegrationsPage;

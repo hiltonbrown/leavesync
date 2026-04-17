@@ -29,6 +29,7 @@
         "@repo/auth": "*",
         "@repo/database": "*",
         "@repo/design-system": "*",
+        "@repo/feeds": "*",
         "@repo/next-config": "*",
         "@repo/observability": "*",
         "@repo/payments": "*",
@@ -58,10 +59,13 @@
       "dependencies": {
         "@repo/analytics": "*",
         "@repo/auth": "*",
+        "@repo/availability": "*",
         "@repo/collaboration": "*",
+        "@repo/core": "*",
         "@repo/database": "*",
         "@repo/design-system": "*",
         "@repo/feature-flags": "*",
+        "@repo/feeds": "*",
         "@repo/next-config": "*",
         "@repo/notifications": "*",
         "@repo/observability": "*",
@@ -81,6 +85,7 @@
         "react-dom": "19.2.4",
         "recharts": "^3.8.1",
         "require-in-the-middle": "8.0.1",
+        "server-only": "^0.0.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {
@@ -266,6 +271,21 @@
         "typescript": "^6.0.2",
       },
     },
+    "packages/availability": {
+      "name": "@repo/availability",
+      "version": "0.0.0",
+      "dependencies": {
+        "@repo/core": "*",
+        "@repo/database": "*",
+        "server-only": "^0.0.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@repo/typescript-config": "*",
+        "dotenv": "^17.4.1",
+        "typescript": "^6.0.2",
+      },
+    },
     "packages/cms": {
       "name": "@repo/cms",
       "version": "0.0.0",
@@ -302,6 +322,17 @@
         "@types/react-dom": "19.2.3",
       },
     },
+    "packages/core": {
+      "name": "@repo/core",
+      "version": "0.0.0",
+      "dependencies": {
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@repo/typescript-config": "*",
+        "typescript": "^6.0.2",
+      },
+    },
     "packages/database": {
       "name": "@repo/database",
       "version": "0.0.0",
@@ -310,6 +341,7 @@
         "@prisma/adapter-neon": "7.6.0",
         "@prisma/client": "7.6.0",
         "@prisma/client-runtime-utils": "^7.6.0",
+        "@repo/core": "*",
         "@t3-oss/env-nextjs": "^0.13.11",
         "server-only": "^0.0.1",
         "undici": "^8.0.2",
@@ -324,6 +356,7 @@
         "dotenv": "^17.4.1",
         "prisma": "7.6.0",
         "typescript": "^6.0.2",
+        "vitest": "^4.1.2",
       },
     },
     "packages/design-system": {
@@ -409,6 +442,22 @@
       },
       "peerDependencies": {
         "next": "16.2.2",
+      },
+    },
+    "packages/feeds": {
+      "name": "@repo/feeds",
+      "version": "0.0.0",
+      "dependencies": {
+        "@repo/core": "*",
+        "@repo/database": "*",
+        "ical-generator": "^10.0.0",
+        "server-only": "^0.0.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@repo/typescript-config": "*",
+        "dotenv": "^17.4.1",
+        "typescript": "^6.0.2",
       },
     },
     "packages/internationalization": {
@@ -1534,9 +1583,13 @@
 
     "@repo/auth": ["@repo/auth@workspace:packages/auth"],
 
+    "@repo/availability": ["@repo/availability@workspace:packages/availability"],
+
     "@repo/cms": ["@repo/cms@workspace:packages/cms"],
 
     "@repo/collaboration": ["@repo/collaboration@workspace:packages/collaboration"],
+
+    "@repo/core": ["@repo/core@workspace:packages/core"],
 
     "@repo/database": ["@repo/database@workspace:packages/database"],
 
@@ -1545,6 +1598,8 @@
     "@repo/email": ["@repo/email@workspace:packages/email"],
 
     "@repo/feature-flags": ["@repo/feature-flags@workspace:packages/feature-flags"],
+
+    "@repo/feeds": ["@repo/feeds@workspace:packages/feeds"],
 
     "@repo/internationalization": ["@repo/internationalization@workspace:packages/internationalization"],
 
@@ -3035,6 +3090,8 @@
     "human-signals": ["human-signals@2.1.0", "", {}, "sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw=="],
 
     "humanize-ms": ["humanize-ms@1.2.1", "", { "dependencies": { "ms": "^2.0.0" } }, "sha512-Fl70vYtsAFb/C06PTS9dZBo7ihau+Tu/DNCk/OyHhea07S+aeMWpFFkUaXRa8fI+ScZbEI8dfSxwY7gxZ9SAVQ=="],
+
+    "ical-generator": ["ical-generator@10.1.0", "", { "peerDependencies": { "@touch4it/ical-timezones": ">=1.6.0", "@types/luxon": ">= 1.26.0", "@types/mocha": ">= 8.2.1", "dayjs": ">= 1.10.0", "luxon": ">= 1.26.0", "moment": ">= 2.29.0", "moment-timezone": ">= 0.5.33", "rrule": ">= 2.6.8" }, "optionalPeers": ["@touch4it/ical-timezones", "@types/luxon", "@types/mocha", "dayjs", "luxon", "moment", "moment-timezone", "rrule"] }, "sha512-VgWzox2svupw4HoZo9Ym0pmj50Cr7CO+By/TraNUVTXQL5Qh0p13iGNzizhXd/KDuzOHUSSXwUWIMZmBHQU65Q=="],
 
     "iconv-lite": ["iconv-lite@0.7.2", "", { "dependencies": { "safer-buffer": ">= 2.1.2 < 3.0.0" } }, "sha512-im9DjEDQ55s9fL4EYzOAv0yMqmMBSZp6G0VvFyTMPKWxiSBHUj9NW/qqLmXUwXrrM7AvqSlTCfvqRb0cM8yYqw=="],
 

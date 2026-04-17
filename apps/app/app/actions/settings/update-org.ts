@@ -1,9 +1,13 @@
 "use server";
 
 import { auth, clerkClient } from "@repo/auth/server";
+import { database } from "@repo/database";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { getActiveOrgContext } from "@/lib/server/get-active-org-context";
 
 const UpdateOrgSchema = z.object({
+  organisationId: z.string().uuid(),
   name: z.string().min(1, "Name is required").max(128),
   timezone: z.string().min(1),
   locale: z.string().min(1),
@@ -35,6 +39,7 @@ export const updateOrg = async (
 
   const {
     name,
+    organisationId,
     timezone,
     locale,
     fiscalYearStart,
@@ -43,6 +48,23 @@ export const updateOrg = async (
   } = parsed.data;
 
   try {
+    const contextResult = await getActiveOrgContext(organisationId);
+    if (!contextResult.ok) {
+      return { ok: false, error: contextResult.error.message };
+    }
+
+    await database.organisation.update({
+      where: { id: organisationId },
+      data: {
+        fiscal_year_start: fiscalYearStart,
+        locale,
+        name,
+        reporting_unit: reportingUnit,
+        timezone,
+        working_hours_per_day: workingHoursPerDay,
+      },
+    });
+
     const clerk = await clerkClient();
     await clerk.organizations.updateOrganization(orgId, {
       name,
@@ -54,6 +76,16 @@ export const updateOrg = async (
         workingHoursPerDay,
       },
     });
+
+    for (const path of [
+      "/settings/general",
+      "/analytics/leave-reports",
+      "/analytics/out-of-office",
+      "/leave-approvals",
+    ]) {
+      revalidatePath(path);
+    }
+
     return { ok: true, value: undefined };
   } catch {
     return { ok: false, error: "Failed to update organisation" };

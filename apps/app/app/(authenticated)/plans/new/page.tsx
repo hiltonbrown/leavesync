@@ -1,19 +1,59 @@
 import type { Metadata } from "next";
+import { loadManualAvailabilityPageData } from "@/lib/server/load-manual-availability-page-data";
+import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
+import { ManualAvailabilityForm } from "../../availability/manual-availability-form";
 import { Header } from "../../components/header";
-import { NewPlanClient } from "./new-plan-client";
 
 export const metadata: Metadata = {
   title: "New Plan — LeaveSync",
   description: "Create a new draft plan.",
 };
 
-const NewPlanPage = () => (
-  <>
-    <Header page="New Plan" />
-    <div className="flex flex-1 flex-col p-6 pt-0">
-      <NewPlanClient />
-    </div>
-  </>
-);
+interface NewPlanPageProps {
+  searchParams: Promise<{
+    org?: string;
+  }>;
+}
+
+const NewPlanPage = async ({ searchParams }: NewPlanPageProps) => {
+  const { org } = await searchParams;
+
+  const { clerkOrgId, organisationId, orgQueryValue } =
+    await requireActiveOrgPageContext(org);
+
+  const dataResult = await loadManualAvailabilityPageData(
+    clerkOrgId,
+    organisationId
+  );
+
+  if (!dataResult.ok) {
+    throw new Error(dataResult.error.message);
+  }
+
+  return (
+    <>
+      <Header page="New Plan" />
+      <div className="flex flex-1 flex-col p-6 pt-0">
+        <div className="max-w-2xl rounded-2xl bg-muted p-6">
+          <h2 className="mb-4 font-semibold text-lg">Create plan</h2>
+          <p className="mb-6 text-muted-foreground text-sm">
+            Add a manual availability record for leave, travel, training,
+            working from home, or client site work.
+          </p>
+
+          <div className="rounded-2xl bg-background p-5">
+            <ManualAvailabilityForm
+              mode="create"
+              organisationId={organisationId}
+              orgQueryValue={orgQueryValue}
+              people={dataResult.value.people}
+              redirectTo="/plans"
+            />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
 
 export default NewPlanPage;

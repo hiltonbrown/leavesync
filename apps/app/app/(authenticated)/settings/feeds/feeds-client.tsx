@@ -47,7 +47,7 @@ interface CalendarFeed {
   scope: string;
   status: "active" | "paused";
   type: "ics" | "html" | "both";
-  url: string;
+  url: null | string;
 }
 
 interface NotificationChannel {
@@ -271,15 +271,26 @@ function ICalSection({
   feedUrl,
   feedName,
 }: {
-  feedUrl: string;
+  feedUrl: null | string;
   feedName: string;
 }) {
   const [copied, setCopied] = useState<string | null>(null);
 
-  // Derive a webcal:// URL from the https:// URL if applicable
-  const httpsUrl = feedUrl.startsWith("https://")
-    ? feedUrl
-    : "https://app.leavesync.com/api/feeds/calendar.ics";
+  if (!feedUrl) {
+    return (
+      <div className="flex flex-col gap-2 rounded-2xl bg-muted p-5">
+        <p className="font-semibold text-[0.9375rem] text-foreground">
+          Feed URL hidden
+        </p>
+        <p className="text-muted-foreground text-sm">
+          Existing feed URLs cannot be revealed because LeaveSync stores only
+          token hashes. Rotate or create a feed token to copy a fresh URL.
+        </p>
+      </div>
+    );
+  }
+
+  const httpsUrl = feedUrl.startsWith("https://") ? feedUrl : feedUrl;
   const webcalUrl = httpsUrl.replace(HTTPS_TO_WEBCAL_RE, "webcal://");
 
   const copy = (text: string, key: string) => {
@@ -438,9 +449,9 @@ function AddToCalendarSection({ feeds }: { feeds: CalendarFeed[] }) {
 
   // Use the first active ICS/both feed, falling back to the first feed
   const activeFeed =
-    feeds.find((f) => f.status === "active" && f.type !== "html") ??
-    feeds.find((f) => f.status === "active") ??
-    feeds[0];
+    feeds.find((f) => f.url && f.status === "active" && f.type !== "html") ??
+    feeds.find((f) => f.url && f.status === "active") ??
+    feeds.find((f) => f.url);
 
   if (!activeFeed) {
     return null;
@@ -503,11 +514,7 @@ export const FeedsClient = ({ feeds, channels }: FeedsClientProps) => {
               Publish leave calendars as ICS subscriptions or HTML pages.
             </p>
           </div>
-          <Button
-            className="gap-1.5 text-xs"
-            onClick={() => toast.info("Feed creation coming soon")}
-            size="sm"
-          >
+          <Button className="gap-1.5 text-xs" disabled size="sm">
             <PlusIcon className="h-3.5 w-3.5" strokeWidth={2} />
             Add feed
           </Button>
@@ -531,7 +538,7 @@ export const FeedsClient = ({ feeds, channels }: FeedsClientProps) => {
                 </EmptyHeader>
                 <Button
                   className="gap-1.5"
-                  onClick={() => toast.info("Feed creation coming soon")}
+                  disabled
                   size="sm"
                   variant="outline"
                 >
@@ -580,7 +587,12 @@ export const FeedsClient = ({ feeds, channels }: FeedsClientProps) => {
                     </Badge>
                     <Button
                       className="h-7 w-7 text-muted-foreground"
-                      onClick={() => handleCopyUrl(feed.url)}
+                      disabled={!feed.url}
+                      onClick={() => {
+                        if (feed.url) {
+                          handleCopyUrl(feed.url);
+                        }
+                      }}
                       size="icon"
                       variant="ghost"
                     >
@@ -589,7 +601,7 @@ export const FeedsClient = ({ feeds, channels }: FeedsClientProps) => {
                     </Button>
                     <Button
                       className="h-7 w-7 text-muted-foreground"
-                      onClick={() => toast.info("Coming soon")}
+                      disabled
                       size="icon"
                       variant="ghost"
                     >
@@ -598,7 +610,7 @@ export const FeedsClient = ({ feeds, channels }: FeedsClientProps) => {
                     </Button>
                     <Button
                       className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                      onClick={() => toast.info("Coming soon")}
+                      disabled
                       size="icon"
                       variant="ghost"
                     >
@@ -624,7 +636,7 @@ export const FeedsClient = ({ feeds, channels }: FeedsClientProps) => {
           </div>
           <Button
             className="gap-1.5 text-xs"
-            onClick={() => toast.info("Channel creation coming soon")}
+            disabled
             size="sm"
             variant="outline"
           >
@@ -651,7 +663,7 @@ export const FeedsClient = ({ feeds, channels }: FeedsClientProps) => {
                 </EmptyHeader>
                 <Button
                   className="gap-1.5"
-                  onClick={() => toast.info("Channel creation coming soon")}
+                  disabled
                   size="sm"
                   variant="outline"
                 >
@@ -684,7 +696,7 @@ export const FeedsClient = ({ feeds, channels }: FeedsClientProps) => {
                     </div>
                     <Button
                       className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                      onClick={() => toast.info("Coming soon")}
+                      disabled
                       size="icon"
                       variant="ghost"
                     >

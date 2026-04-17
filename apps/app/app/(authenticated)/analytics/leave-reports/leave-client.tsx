@@ -59,166 +59,56 @@ import {
 
 const TRAILING_ZERO_REGEX = /\.0$/;
 
-const getStatusClass = (status: string): string => {
-  if (status === "Taken") {
-    return "bg-surface-container text-on-surface-variant";
-  }
-  if (status === "Approved") {
-    return "bg-primary/10 text-primary";
-  }
-  return "bg-[#BA1A1A]/10 text-[#BA1A1A]";
-};
+interface TimeRange {
+  id: string;
+  label: string;
+}
 
-const TIME_RANGES = [
-  { id: "week", label: "Week" },
-  { id: "fortnight", label: "Fortnight" },
-  { id: "month", label: "Month" },
-  { id: "year", label: "Year" },
-] as const;
+interface LeaveType {
+  annual: number;
+  available: number;
+  bgFill: string;
+  color: string;
+  consumed: number;
+  icon: "house-heart" | "sun";
+  id: string;
+  label: string;
+}
 
-const DEPARTMENTS = [
-  "All Departments",
-  "Engineering",
-  "Marketing",
-  "Sales",
-  "Product",
-  "Ops",
-];
+interface StaffLeaveData {
+  holidayAvailable: number;
+  holidayConsumed: number;
+  id: number;
+  name: string;
+  personalAvailable: number;
+  personalConsumed: number;
+  team: string;
+}
 
-const LEAVE_TYPES = [
-  {
-    id: "all",
-    label: "Total PTO",
-    available: 20,
-    consumed: 8,
-    annual: 28,
-    color: "#57624F", // Tertiary green
-    bgFill: "oklch(0.92 0.01 100)",
-    icon: CalendarIcon,
-  },
-  {
-    id: "holiday",
-    label: "Holiday leave",
-    available: 15,
-    consumed: 5,
-    annual: 20,
-    color: "#336A3B", // Brand primary
-    bgFill: "oklch(0.95 0.02 145)",
-    icon: SunIcon,
-  },
-  {
-    id: "personal",
-    label: "Personal leave",
-    available: 5,
-    consumed: 3,
-    annual: 8,
-    color: "#BA1A1A", // Error / Brand red
-    bgFill: "oklch(0.95 0.02 20)",
-    icon: HouseHeart,
-  },
-] as const;
+interface LeaveChartDataPoint {
+  holiday?: number;
+  name: string;
+  personal?: number;
+}
 
-// Enhanced Mock Data for Cinematic Morphing
-const getMockLeaveHistory = (
-  id: number,
-  formatVal: (val: number) => string
-) => {
-  const types = ["Holiday", "Personal", "Out of Office"];
-  const statuses = ["Taken", "Approved", "Pending"];
-  const days = [1, 2, 3, 5, 10];
-
-  return Array.from({ length: 4 }, (_, i) => {
-    const isPast = i < 2;
-    return {
-      id: `${id}-${i}`,
-      type: types[(id + i) % 3],
-      status: isPast ? "Taken" : statuses[((id + (i % 2)) % 2) + 1],
-      duration: formatVal(days[(id + i) % 5]),
-      date: isPast
-        ? format(subDays(new Date(), (i + 1) * 15), "MMM dd, yyyy")
-        : format(addDays(new Date(), (i + 1) * 20), "MMM dd, yyyy"),
-      isPast,
-    };
-  });
-};
-
-const STAFF_LEAVE_DATA = Array.from({ length: 50 }, (_, i) => ({
-  id: i + 1,
-  name:
-    [
-      "Alice Johnson",
-      "Bob Smith",
-      "Charlie Davis",
-      "Diana Prince",
-      "Eve Adams",
-      "Frank Miller",
-      "Grace Hopper",
-      "Hank Pym",
-      "Ivy Pepper",
-      "Jack Sparrow",
-    ][i % 10] + (i > 10 ? ` ${Math.floor(i / 10)}` : ""),
-  team: ["Engineering", "Marketing", "Sales", "Product", "Ops"][i % 5],
-  holidayAvailable: Math.floor(Math.random() * 20),
-  holidayConsumed: Math.floor(Math.random() * 15),
-  personalAvailable: Math.floor(Math.random() * 10),
-  personalConsumed: Math.floor(Math.random() * 8),
-}));
+const LEAVE_TYPE_ICONS = {
+  "house-heart": HouseHeart,
+  sun: SunIcon,
+} as const;
 
 // ─── Sub-Components ──────────────────────────────────────────────────────────
 
 const LeaveTimelineChart = ({
-  date,
   activeType,
+  data,
+  holidayColor,
+  personalColor,
 }: {
-  date: DateRange | undefined;
   activeType: string;
+  data: LeaveChartDataPoint[];
+  holidayColor?: string;
+  personalColor?: string;
 }) => {
-  const data = useMemo(() => {
-    if (!(date?.from && date?.to)) {
-      return [];
-    }
-
-    let from = date.from;
-    let to = date.to;
-    if (from > to) {
-      const temp = from;
-      from = to;
-      to = temp;
-    }
-
-    const days = Math.round(
-      (to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    if (days > 90) {
-      // Aggregate roughly by months for large ranges
-      const months = Math.ceil(days / 30) || 1;
-      return Array.from({ length: months }, (_, i) => {
-        const d = new Date(from.getTime());
-        d.setMonth(d.getMonth() + i);
-        return {
-          name: format(d, "MMM yy"),
-          holiday: Math.floor(Math.random() * 50) + 10,
-          personal: Math.floor(Math.random() * 20) + 5,
-        };
-      });
-    }
-
-    const points = days + 1;
-    return Array.from({ length: points }, (_, i) => {
-      const d = new Date(from.getTime());
-      d.setDate(d.getDate() + i);
-      return {
-        name: format(d, "dd MMM"),
-        holiday: Math.floor(Math.random() * 10) + 2,
-        personal: Math.floor(Math.random() * 5) + 1,
-      };
-    });
-  }, [date]);
-
-  const holidayColor = LEAVE_TYPES.find((t) => t.id === "holiday")?.color;
-  const personalColor = LEAVE_TYPES.find((t) => t.id === "personal")?.color;
-
   return (
     <div className="h-[300px] w-full">
       <ResponsiveContainer height="100%" width="100%">
@@ -301,23 +191,24 @@ const LeaveTimelineChart = ({
   );
 };
 
+interface BarChartDataPoint {
+  holiday?: number;
+  name: string;
+  personal?: number;
+}
+
 const AnimatedBarChart = ({
   data,
   activeType,
+  holidayColor,
+  personalColor,
 }: {
-  data: typeof STAFF_LEAVE_DATA;
+  data: BarChartDataPoint[];
   activeType: string;
+  holidayColor?: string;
+  personalColor?: string;
 }) => {
-  const chartData = useMemo(() => {
-    return data.slice(0, 12).map((d) => ({
-      name: d.name.split(" ")[0],
-      holiday: d.holidayConsumed,
-      personal: d.personalConsumed,
-    }));
-  }, [data]);
-
-  const holidayColor = LEAVE_TYPES.find((t) => t.id === "holiday")?.color;
-  const personalColor = LEAVE_TYPES.find((t) => t.id === "personal")?.color;
+  const chartData = data;
 
   return (
     <div className="relative flex h-[400px] w-full items-end gap-4 px-4 pb-8">
@@ -332,7 +223,7 @@ const AnimatedBarChart = ({
               animate={{
                 height:
                   activeType === "all" || activeType === "holiday"
-                    ? `${(item.holiday / 30) * 100}%`
+                    ? `${((item.holiday ?? 0) / 30) * 100}%`
                     : 0,
               }}
               className="w-full"
@@ -346,7 +237,7 @@ const AnimatedBarChart = ({
               animate={{
                 height:
                   activeType === "all" || activeType === "personal"
-                    ? `${(item.personal / 30) * 100}%`
+                    ? `${((item.personal ?? 0) / 30) * 100}%`
                     : 0,
               }}
               className="w-full"
@@ -373,8 +264,8 @@ const StaffTableVirtualized = ({
   onSelect,
   formatVal,
 }: {
-  data: typeof STAFF_LEAVE_DATA;
-  onSelect: (member: (typeof STAFF_LEAVE_DATA)[0]) => void;
+  data: StaffLeaveData[];
+  onSelect: (member: StaffLeaveData) => void;
   formatVal: (val: number) => string;
 }) => {
   return (
@@ -428,25 +319,41 @@ const StaffTableVirtualized = ({
 
 // ─── Main Client ───────────────────────────────────────────────────────────────
 
-export const LeaveClient = ({
-  reportingUnit = "hours",
-  workingHoursPerDay = 7.6,
-}: {
+interface LeaveClientProps {
+  barChartData?: BarChartDataPoint[];
+  departments?: string[];
+  leaveTypes?: LeaveType[];
   reportingUnit?: string;
+  staffData?: StaffLeaveData[];
+  timelineChartData?: LeaveChartDataPoint[];
+  timeRanges?: TimeRange[];
   workingHoursPerDay?: number;
-}) => {
+}
+
+export const LeaveClient = ({
+  barChartData,
+  departments,
+  leaveTypes,
+  reportingUnit = "hours",
+  staffData,
+  timelineChartData,
+  timeRanges,
+  workingHoursPerDay = 7.6,
+}: LeaveClientProps) => {
   const [activeType, setActiveType] = useState<"holiday" | "personal" | "all">(
     "all"
   );
   const [timeRange, setTimeRange] = useState<string>("month");
-  const [department, setDepartment] = useState<string>("All Departments");
+  const [department, setDepartment] = useState<string>(
+    departments?.[0] ?? "All Departments"
+  );
   const [date, setDate] = useState<DateRange | undefined>({
     from: startOfMonth(new Date()),
     to: new Date(),
   });
-  const [selectedStaff, setSelectedStaff] = useState<
-    (typeof STAFF_LEAVE_DATA)[0] | null
-  >(null);
+  const [selectedStaff, setSelectedStaff] = useState<StaffLeaveData | null>(
+    null
+  );
 
   const formatVal = useMemo(
     () => (days: number) => {
@@ -459,11 +366,36 @@ export const LeaveClient = ({
   );
 
   const filteredStaffData = useMemo(() => {
-    if (department === "All Departments") {
-      return STAFF_LEAVE_DATA;
+    if (department === departments?.[0]) {
+      return staffData ?? [];
     }
-    return STAFF_LEAVE_DATA.filter((s) => s.team === department);
-  }, [department]);
+    return (staffData ?? []).filter((s) => s.team === department);
+  }, [department, staffData, departments]);
+
+  // Show empty state if no data is available
+  if (
+    !leaveTypes ||
+    leaveTypes.length === 0 ||
+    !staffData ||
+    staffData.length === 0
+  ) {
+    return (
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-12 px-8 py-8">
+        <div
+          className="flex flex-col items-center justify-center gap-3 rounded-2xl py-20"
+          style={{ background: "var(--muted)" }}
+        >
+          <p className="font-medium text-[0.9375rem] text-foreground">
+            No leave data available
+          </p>
+          <p className="mt-0.5 text-[0.875rem] text-muted-foreground">
+            Leave records will appear here once your organisation data is synced
+            from Xero.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const setRelativeRange = (days: number) => {
     setDate({
@@ -484,54 +416,58 @@ export const LeaveClient = ({
       {/* Cinematic Header Section */}
       <section className="flex flex-col gap-8">
         <div className="flex h-12 items-center justify-end gap-4">
-          <Select onValueChange={setDepartment} value={department}>
-            <SelectTrigger className="!h-11 box-border w-[200px] flex-none rounded-2xl border-none bg-surface-container-highest px-4 text-on-surface hover:bg-surface-container-high focus:ring-0">
-              <SelectValue placeholder="Department" />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl border-none bg-surface-container-lowest shadow-xl">
-              {DEPARTMENTS.map((dept) => (
-                <SelectItem
-                  className="rounded-xl focus:bg-surface-container-low focus:text-primary"
-                  key={dept}
-                  value={dept}
-                >
-                  {dept}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {(departments?.length ?? 0) > 0 && (
+            <Select onValueChange={setDepartment} value={department}>
+              <SelectTrigger className="!h-11 box-border w-[200px] flex-none rounded-2xl border-none bg-surface-container-highest px-4 text-on-surface hover:bg-surface-container-high focus:ring-0">
+                <SelectValue placeholder="Department" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border-none bg-surface-container-lowest shadow-xl">
+                {departments?.map((dept) => (
+                  <SelectItem
+                    className="rounded-xl focus:bg-surface-container-low focus:text-primary"
+                    key={dept}
+                    value={dept}
+                  >
+                    {dept}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
-          <Tabs
-            className="box-border h-11 flex-none rounded-2xl bg-surface-container-highest p-1"
-            onValueChange={(val) => {
-              setTimeRange(val);
-              if (val === "week") {
-                setRelativeRange(7);
-              }
-              if (val === "fortnight") {
-                setRelativeRange(14);
-              }
-              if (val === "month") {
-                setRelativeRange(30);
-              }
-              if (val === "year") {
-                setRelativeRange(365);
-              }
-            }}
-            value={timeRange}
-          >
-            <TabsList className="h-full gap-1 border-none bg-transparent">
-              {TIME_RANGES.map((range) => (
-                <TabsTrigger
-                  className="h-full rounded-xl px-4 transition-all data-[state=active]:bg-surface-container-lowest data-[state=active]:text-primary data-[state=active]:shadow-sm"
-                  key={range.id}
-                  value={range.id}
-                >
-                  {range.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+          {(timeRanges?.length ?? 0) > 0 && (
+            <Tabs
+              className="box-border h-11 flex-none rounded-2xl bg-surface-container-highest p-1"
+              onValueChange={(val) => {
+                setTimeRange(val);
+                if (val === "week") {
+                  setRelativeRange(7);
+                }
+                if (val === "fortnight") {
+                  setRelativeRange(14);
+                }
+                if (val === "month") {
+                  setRelativeRange(30);
+                }
+                if (val === "year") {
+                  setRelativeRange(365);
+                }
+              }}
+              value={timeRange}
+            >
+              <TabsList className="h-full gap-1 border-none bg-transparent">
+                {timeRanges?.map((range) => (
+                  <TabsTrigger
+                    className="h-full rounded-xl px-4 transition-all data-[state=active]:bg-surface-container-lowest data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                    key={range.id}
+                    value={range.id}
+                  >
+                    {range.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          )}
 
           <Popover>
             <PopoverTrigger asChild>
@@ -620,67 +556,74 @@ export const LeaveClient = ({
         </div>
 
         {/* Cinematic Metric Highlights */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {LEAVE_TYPES.map((type) => (
-            <motion.button
-              className={cn(
-                "relative flex flex-col overflow-hidden rounded-[1rem] px-6 py-5 transition-all duration-500",
-                activeType === type.id
-                  ? "bg-surface-container-low"
-                  : "bg-surface-container-lowest"
-              )}
-              key={type.id}
-              onClick={() => setActiveType(type.id)}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-            >
-              <AnimatePresence>
-                {activeType === type.id && (
-                  <motion.div
-                    animate={{ opacity: 1 }}
-                    className="pointer-events-none absolute inset-0 bg-primary/5"
-                    exit={{ opacity: 0 }}
-                    initial={{ opacity: 0 }}
-                    layoutId="active-bg"
-                  />
-                )}
-              </AnimatePresence>
+        {leaveTypes.length > 0 && (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            {leaveTypes.map((type) => {
+              const Icon = LEAVE_TYPE_ICONS[type.icon];
 
-              <div className="relative z-10 flex items-center justify-between">
-                <div className="flex flex-col gap-1">
-                  <span className="text-label-md text-on-surface-variant uppercase tracking-widest">
-                    {type.label}
-                  </span>
-                  <span className="font-semibold text-display-sm text-on-surface">
-                    {formatVal(type.consumed)}{" "}
-                    <span className="font-normal text-body-lg text-on-surface-variant">
-                      / {formatVal(type.annual)}
-                    </span>
-                  </span>
-                </div>
-                <div
-                  className="relative flex h-16 w-16 items-center justify-center rounded-full"
-                  style={{ backgroundColor: type.bgFill }}
+              return (
+                <motion.button
+                  className={cn(
+                    "relative flex flex-col overflow-hidden rounded-[1rem] px-6 py-5 transition-all duration-500",
+                    activeType === type.id
+                      ? "bg-surface-container-low"
+                      : "bg-surface-container-lowest"
+                  )}
+                  key={type.id}
+                  onClick={() =>
+                    setActiveType(type.id as "holiday" | "personal" | "all")
+                  }
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
                 >
-                  <type.icon
-                    className="absolute h-6 w-6 opacity-30"
-                    style={{ color: type.color }}
-                  />
-                  <motion.div
-                    animate={{ rotate: activeType === type.id ? 360 : 0 }}
-                    className="absolute z-10 h-10 w-10 rounded-full border-2 border-dashed"
-                    style={{ borderColor: type.color }}
-                    transition={{
-                      duration: 10,
-                      repeat: Number.POSITIVE_INFINITY,
-                      ease: "linear",
-                    }}
-                  />
-                </div>
-              </div>
-            </motion.button>
-          ))}
-        </div>
+                  <AnimatePresence>
+                    {activeType === type.id && (
+                      <motion.div
+                        animate={{ opacity: 1 }}
+                        className="pointer-events-none absolute inset-0 bg-primary/5"
+                        exit={{ opacity: 0 }}
+                        initial={{ opacity: 0 }}
+                        layoutId="active-bg"
+                      />
+                    )}
+                  </AnimatePresence>
+
+                  <div className="relative z-10 flex items-center justify-between">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-label-md text-on-surface-variant uppercase tracking-widest">
+                        {type.label}
+                      </span>
+                      <span className="font-semibold text-display-sm text-on-surface">
+                        {formatVal(type.consumed)}{" "}
+                        <span className="font-normal text-body-lg text-on-surface-variant">
+                          / {formatVal(type.annual)}
+                        </span>
+                      </span>
+                    </div>
+                    <div
+                      className="relative flex h-16 w-16 items-center justify-center rounded-full"
+                      style={{ backgroundColor: type.bgFill }}
+                    >
+                      <div style={{ color: type.color }}>
+                        <Icon className="absolute h-6 w-6 opacity-30" />
+                      </div>
+                      <motion.div
+                        animate={{ rotate: activeType === type.id ? 360 : 0 }}
+                        className="absolute z-10 h-10 w-10 rounded-full border-2 border-dashed"
+                        style={{ borderColor: type.color }}
+                        transition={{
+                          duration: 10,
+                          repeat: Number.POSITIVE_INFINITY,
+                          ease: "linear",
+                        }}
+                      />
+                    </div>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* Main Analysis Stage: Asymmetric 2:1 Split */}
@@ -688,57 +631,74 @@ export const LeaveClient = ({
         {/* Left Column: Chart Group (2/3) */}
         <div className="flex flex-col gap-8 lg:col-span-2">
           {/* Leave usage (Line Chart) */}
-          <motion.div
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col gap-8 rounded-[1rem] bg-surface-container-low p-8"
-            initial={{ opacity: 0, y: 20 }}
-          >
-            <div className="flex flex-col gap-1">
-              <h2 className="text-headline-md text-on-surface leading-tight">
-                Leave usage
-              </h2>
-              <p className="text-body-sm text-on-surface-variant">
-                Leave consumption patterns over the selected dates.
-              </p>
-            </div>
-
-            <LeaveTimelineChart activeType={activeType} date={date} />
-          </motion.div>
-
-          {/* Utilization Flow (Bar Chart) */}
-          <motion.div
-            className="flex min-h-[500px] flex-col gap-8 rounded-[1rem] bg-surface-container-low p-8"
-            layout
-          >
-            <div className="flex items-center justify-between">
+          {(timelineChartData?.length ?? 0) > 0 && (
+            <motion.div
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col gap-8 rounded-[1rem] bg-surface-container-low p-8"
+              initial={{ opacity: 0, y: 20 }}
+            >
               <div className="flex flex-col gap-1">
                 <h2 className="text-headline-md text-on-surface leading-tight">
-                  Utilization Flow
+                  Leave usage
                 </h2>
                 <p className="text-body-sm text-on-surface-variant">
-                  Comparative leave utilization by staff member.
+                  Leave consumption patterns over the selected dates.
                 </p>
               </div>
-              <div className="flex gap-4">
-                {LEAVE_TYPES.map((type) => (
-                  <div className="flex items-center gap-2" key={type.id}>
-                    <div
-                      className="h-3 w-3 rounded-full"
-                      style={{ backgroundColor: type.color }}
-                    />
-                    <span className="whitespace-nowrap text-label-sm text-on-surface-variant">
-                      {type.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            <AnimatedBarChart
-              activeType={activeType}
-              data={filteredStaffData}
-            />
-          </motion.div>
+              <LeaveTimelineChart
+                activeType={activeType}
+                data={timelineChartData ?? []}
+                holidayColor={leaveTypes.find((t) => t.id === "holiday")?.color}
+                personalColor={
+                  leaveTypes.find((t) => t.id === "personal")?.color
+                }
+              />
+            </motion.div>
+          )}
+
+          {/* Utilization Flow (Bar Chart) */}
+          {(barChartData?.length ?? 0) > 0 && (
+            <motion.div
+              className="flex min-h-[500px] flex-col gap-8 rounded-[1rem] bg-surface-container-low p-8"
+              layout
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-1">
+                  <h2 className="text-headline-md text-on-surface leading-tight">
+                    Utilization Flow
+                  </h2>
+                  <p className="text-body-sm text-on-surface-variant">
+                    Comparative leave utilization by staff member.
+                  </p>
+                </div>
+                {leaveTypes.length > 0 && (
+                  <div className="flex gap-4">
+                    {leaveTypes.map((type) => (
+                      <div className="flex items-center gap-2" key={type.id}>
+                        <div
+                          className="h-3 w-3 rounded-full"
+                          style={{ backgroundColor: type.color }}
+                        />
+                        <span className="whitespace-nowrap text-label-sm text-on-surface-variant">
+                          {type.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <AnimatedBarChart
+                activeType={activeType}
+                data={barChartData ?? []}
+                holidayColor={leaveTypes.find((t) => t.id === "holiday")?.color}
+                personalColor={
+                  leaveTypes.find((t) => t.id === "personal")?.color
+                }
+              />
+            </motion.div>
+          )}
         </div>
 
         {/* Sidebar Column: Staff Distribution (1/3) */}
@@ -828,31 +788,10 @@ export const LeaveClient = ({
                     Recent & Upcoming Leave
                   </h3>
                   <div className="flex flex-col gap-2">
-                    {getMockLeaveHistory(selectedStaff.id, formatVal).map(
-                      (leave) => (
-                        <div
-                          className="group flex items-center justify-between rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-4 transition-all hover:border-outline-variant/30 hover:bg-surface-container-low"
-                          key={leave.id}
-                        >
-                          <div className="flex flex-col">
-                            <span className="font-medium text-body-sm text-on-surface">
-                              {leave.type}
-                            </span>
-                            <span className="text-label-sm text-on-surface-variant">
-                              {leave.date} · {leave.duration}
-                            </span>
-                          </div>
-                          <div
-                            className={cn(
-                              "rounded-md px-2.5 py-1 font-bold text-[10px] uppercase tracking-widest",
-                              getStatusClass(leave.status)
-                            )}
-                          >
-                            {leave.status}
-                          </div>
-                        </div>
-                      )
-                    )}
+                    <p className="text-muted-foreground text-sm">
+                      Detailed leave history is available from the person
+                      profile.
+                    </p>
                   </div>
                 </div>
               </div>

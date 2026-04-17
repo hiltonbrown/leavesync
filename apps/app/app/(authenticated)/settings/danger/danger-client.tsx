@@ -14,10 +14,14 @@ import { ConfirmActionDialog } from "../components/confirm-action-dialog";
 import { SettingsSectionHeader } from "../components/settings-section-header";
 
 interface DangerClientProps {
+  organisationId: string;
   orgName: string;
 }
 
-export const DangerClient = ({ orgName }: DangerClientProps) => {
+export const DangerClient = ({
+  organisationId,
+  orgName,
+}: DangerClientProps) => {
   const [revokeOpen, setRevokeOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -25,9 +29,9 @@ export const DangerClient = ({ orgName }: DangerClientProps) => {
   const handleRevokeTokens = () => {
     setRevokeOpen(false);
     startTransition(async () => {
-      const result = await revokeAllTokens();
+      const result = await revokeAllTokens({ organisationId });
       if (result.ok) {
-        toast.success("All feed tokens revoked");
+        toast.success(`${result.value.revokedCount} feed tokens revoked`);
       } else {
         toast.error(result.error);
       }
@@ -36,7 +40,6 @@ export const DangerClient = ({ orgName }: DangerClientProps) => {
 
   const handleDeleteOrg = () => {
     setDeleteOpen(false);
-    // Organisation deletion requires deeper DB + Clerk teardown — stub for now
     toast.error(
       "Organisation deletion is not yet available. Contact support to delete your organisation."
     );

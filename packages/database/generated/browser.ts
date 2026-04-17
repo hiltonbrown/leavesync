@@ -18,7 +18,92 @@ export { Prisma }
 export * as $Enums from './enums'
 export * from './enums';
 /**
- * Model Page
+ * Model Organisation
  * 
  */
-export type Page = Prisma.PageModel
+export type Organisation = Prisma.OrganisationModel
+/**
+ * Model Team
+ * 
+ */
+export type Team = Prisma.TeamModel
+/**
+ * Model Location
+ * 
+ */
+export type Location = Prisma.LocationModel
+/**
+ * Model Person
+ * 
+ */
+export type Person = Prisma.PersonModel
+/**
+ * Model XeroConnection
+ * 
+ */
+export type XeroConnection = Prisma.XeroConnectionModel
+/**
+ * Model XeroTenant
+ * 
+ */
+export type XeroTenant = Prisma.XeroTenantModel
+/**
+ * Model XeroSyncCursor
+ * 
+ */
+export type XeroSyncCursor = Prisma.XeroSyncCursorModel
+/**
+ * Model AvailabilityRecord
+ * 
+ */
+export type AvailabilityRecord = Prisma.AvailabilityRecordModel
+/**
+ * Model AvailabilityPublication
+ * 
+ */
+export type AvailabilityPublication = Prisma.AvailabilityPublicationModel
+/**
+ * Model LeaveBalance
+ * 
+ */
+export type LeaveBalance = Prisma.LeaveBalanceModel
+/**
+ * Model Feed
+ * 
+ */
+export type Feed = Prisma.FeedModel
+/**
+ * Model FeedScope
+ * 
+ */
+export type FeedScope = Prisma.FeedScopeModel
+/**
+ * Model FeedToken
+ * 
+ */
+export type FeedToken = Prisma.FeedTokenModel
+/**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel
+/**
+ * Model NotificationPreference
+ * 
+ */
+export type NotificationPreference = Prisma.NotificationPreferenceModel
+/**
+ * Model SyncRun
+ * 
+ */
+export type SyncRun = Prisma.SyncRunModel
+/**
+ * Model FailedRecord
+ * 
+ */
+export type FailedRecord = Prisma.FailedRecordModel
+/**
+ * Model AuditEvent
+ * 
+ */
+export type AuditEvent = Prisma.AuditEventModel

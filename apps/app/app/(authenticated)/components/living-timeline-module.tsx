@@ -3,9 +3,11 @@
 import { UserIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { withOrg } from "@/lib/navigation/org-url";
 
 interface LivingTimelineModuleProps {
   className?: string;
+  orgQueryValue: null | string;
   todayAbsences: { name: string }[];
   total?: number;
 }
@@ -32,20 +34,6 @@ const getAbsencesForDay = (
   switch (i) {
     case 0:
       return todayAbsences;
-    case 1:
-      return [{ name: "Priya Sharma" }, { name: "Marcus Webb" }];
-    case 2:
-      return [
-        { name: "Yuki Tanaka" },
-        { name: "Tom Eriksson" },
-        { name: "Priya Sharma" },
-      ];
-    case 5:
-      return [{ name: "Tom Eriksson" }];
-    case 11:
-      return [{ name: "Aisha Okonkwo" }];
-    case 12:
-      return [{ name: "Aisha Okonkwo" }, { name: "Yuki Tanaka" }];
     default:
       return [];
   }
@@ -96,6 +84,7 @@ const getLabelClassName = (isToday: boolean, isWeekend: boolean) => {
 
 export const LivingTimelineModule = ({
   className,
+  orgQueryValue,
   total = 38,
   todayAbsences,
 }: LivingTimelineModuleProps) => {
@@ -231,7 +220,7 @@ export const LivingTimelineModule = ({
         </p>
         <Link
           className="font-medium text-[0.8125rem] transition-opacity hover:opacity-70"
-          href="/calendar"
+          href={withOrg("/calendar", orgQueryValue)}
           style={{ color: "var(--primary)" }}
         >
           View team calendar &rarr;

@@ -38,7 +38,7 @@ import {
 
 type DayClassification = "non-working" | "working";
 
-interface MockFeed {
+interface Feed {
   description: string;
   id: string;
   name: string;
@@ -49,30 +49,6 @@ interface MockFeed {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CURRENT_YEAR = new Date().getFullYear();
-
-const MOCK_FEEDS: MockFeed[] = [
-  {
-    id: "feed_1",
-    name: "Engineering Team",
-    description: "All leave for the engineering department",
-    status: "active",
-    personCount: 3,
-  },
-  {
-    id: "feed_2",
-    name: "Product & Design",
-    description: "Leave calendar for product and design",
-    status: "active",
-    personCount: 4,
-  },
-  {
-    id: "feed_3",
-    name: "All Staff",
-    description: "Company-wide leave feed for all employees",
-    status: "paused",
-    personCount: 7,
-  },
-];
 
 // Human-readable names for known ISO 3166-2 subdivision codes.
 // For codes not in this map, the raw subdivision part (e.g. "BY") is used.
@@ -293,6 +269,7 @@ function groupByMonth(
 
 interface AddToFeedDialogProps {
   count: number;
+  feeds: Feed[];
   onClose: () => void;
   onConfirm: (feedId: string, classification: DayClassification) => void;
   open: boolean;
@@ -303,6 +280,7 @@ function AddToFeedDialog({
   onClose,
   count,
   onConfirm,
+  feeds,
 }: AddToFeedDialogProps) {
   const [feedId, setFeedId] = useState<string>("");
   const [classification, setClassification] =
@@ -316,7 +294,7 @@ function AddToFeedDialog({
     }
   };
 
-  const selectedFeed = MOCK_FEEDS.find((f) => f.id === feedId) ?? null;
+  const selectedFeed = feeds.find((f) => f.id === feedId) ?? null;
 
   return (
     <Dialog onOpenChange={handleOpenChange} open={open}>
@@ -340,19 +318,25 @@ function AddToFeedDialog({
                 <SelectValue placeholder="Select a feed…" />
               </SelectTrigger>
               <SelectContent>
-                {MOCK_FEEDS.map((f) => (
-                  <SelectItem key={f.id} value={f.id}>
-                    <span className="flex items-center gap-2">
-                      <RssIcon className="size-3.5 shrink-0 text-muted-foreground" />
-                      <span>{f.name}</span>
-                      {f.status === "paused" && (
-                        <span className="font-semibold text-[0.625rem] text-muted-foreground uppercase tracking-wider">
-                          Paused
-                        </span>
-                      )}
-                    </span>
-                  </SelectItem>
-                ))}
+                {feeds.length > 0 ? (
+                  feeds.map((f) => (
+                    <SelectItem key={f.id} value={f.id}>
+                      <span className="flex items-center gap-2">
+                        <RssIcon className="size-3.5 shrink-0 text-muted-foreground" />
+                        <span>{f.name}</span>
+                        {f.status === "paused" && (
+                          <span className="font-semibold text-[0.625rem] text-muted-foreground uppercase tracking-wider">
+                            Paused
+                          </span>
+                        )}
+                      </span>
+                    </SelectItem>
+                  ))
+                ) : (
+                  <div className="px-2 py-1.5 text-[0.875rem] text-muted-foreground">
+                    No feeds available
+                  </div>
+                )}
               </SelectContent>
             </Select>
             {selectedFeed && (
@@ -497,9 +481,10 @@ function LoadingSkeleton() {
 
 interface Props {
   countries: AvailableCountry[];
+  feeds: Feed[];
 }
 
-export function PublicHolidaysClient({ countries }: Props) {
+export function PublicHolidaysClient({ countries, feeds }: Props) {
   const [year, setYear] = useState(CURRENT_YEAR);
   const [countryCode, setCountryCode] = useState<string | null>(null);
   const [regionCode, setRegionCode] = useState<string | null>(null);
@@ -566,8 +551,8 @@ export function PublicHolidaysClient({ countries }: Props) {
     });
   };
 
-  const handleConfirmAdd = (feedId: string) => {
-    const feed = MOCK_FEEDS.find((f) => f.id === feedId);
+  const handleConfirmAdd = (feeds: Feed[], feedId: string) => {
+    const feed = feeds.find((f) => f.id === feedId);
     setDialogOpen(false);
     setSelected(new Set());
     setAddedFeedName(feed?.name ?? null);
@@ -773,7 +758,7 @@ export function PublicHolidaysClient({ countries }: Props) {
               )}
               <Button
                 className="gap-1.5"
-                disabled={!someSelected}
+                disabled={!someSelected || feeds.length === 0}
                 onClick={() => {
                   setAddedFeedName(null);
                   setDialogOpen(true);
@@ -895,8 +880,9 @@ export function PublicHolidaysClient({ countries }: Props) {
       {/* ── Dialog ──────────────────────────────────────────────────── */}
       <AddToFeedDialog
         count={selected.size}
+        feeds={feeds}
         onClose={() => setDialogOpen(false)}
-        onConfirm={handleConfirmAdd}
+        onConfirm={(feedId) => handleConfirmAdd(feeds, feedId)}
         open={dialogOpen}
       />
     </div>

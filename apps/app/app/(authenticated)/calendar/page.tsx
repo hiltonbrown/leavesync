@@ -1,12 +1,11 @@
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { startOfWeek, endOfWeek } from "date-fns";
-import { Header } from "../components/header";
-import { CalendarGrid } from "./_components/calendar-grid";
-import { CalendarFilters } from "./_components/calendar-filters";
-import { getActiveOrgContext } from "@/lib/server/get-active-org-context";
-import { loadTeamCalendarData } from "@/lib/server/load-team-calendar-data";
 import { toDateOnly } from "@repo/core";
+import { endOfWeek, startOfWeek } from "date-fns";
+import type { Metadata } from "next";
+import { loadTeamCalendarData } from "@/lib/server/load-team-calendar-data";
+import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
+import { Header } from "../components/header";
+import { CalendarFilters } from "./_components/calendar-filters";
+import { CalendarGrid } from "./_components/calendar-grid";
 
 export const metadata: Metadata = {
   title: "Calendar — LeaveSync",
@@ -25,16 +24,13 @@ interface CalendarPageProps {
   }>;
 }
 
-export default async function CalendarPage({ searchParams }: CalendarPageProps) {
+export default async function CalendarPage({
+  searchParams,
+}: CalendarPageProps) {
   const params = await searchParams;
 
-  // Step 1: Validate organisation context
-  const contextResult = await getActiveOrgContext(params.org || "");
-  if (!contextResult.ok) {
-    return notFound();
-  }
-
-  const { clerkOrgId, organisationId } = contextResult.value;
+  const { clerkOrgId, organisationId, orgQueryValue } =
+    await requireActiveOrgPageContext(params.org);
 
   // Step 2: Determine date range from week param or default to current week
   const now = new Date();
@@ -44,7 +40,7 @@ export default async function CalendarPage({ searchParams }: CalendarPageProps) 
   if (params.week) {
     try {
       const weekDate = new Date(params.week);
-      if (!isNaN(weekDate.getTime())) {
+      if (!Number.isNaN(weekDate.getTime())) {
         weekStart = startOfWeek(weekDate);
         weekEnd = endOfWeek(weekDate);
       }
@@ -104,21 +100,22 @@ export default async function CalendarPage({ searchParams }: CalendarPageProps) 
       <Header page="Calendar" />
       <div className="flex flex-1 flex-col gap-4 p-6 pt-0">
         <CalendarFilters
-          team={params.team}
-          location={params.location}
-          recordType={params.recordType}
           approvalStatus={params.approvalStatus}
+          location={params.location}
+          orgQueryValue={orgQueryValue}
+          recordType={params.recordType}
+          team={params.team}
         />
         <CalendarGrid
           entries={leaveEntries}
-          people={people}
-          weekStart={weekStart}
           filters={{
             team: params.team,
             location: params.location,
             recordType: params.recordType,
             approvalStatus: params.approvalStatus,
           }}
+          people={people}
+          weekStart={weekStart}
         />
       </div>
     </>

@@ -6,9 +6,6 @@ export const metadata: Metadata = {
   description: "Review administrative actions in your organisation.",
 };
 
-const AuditLogPage = async () => {
-  // AuditLog table not yet in DB schema — render empty state.
-  return <AuditLogClient entries={[]} />;
-};
+const AuditLogPage = async () => <AuditLogClient entries={[]} />;
 
 export default AuditLogPage;

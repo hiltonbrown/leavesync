@@ -9,7 +9,132 @@
 * 🟢 You can import this file directly.
 */
 
+export const source_system = {
+  XERO: 'XERO',
+  MANUAL: 'MANUAL'
+} as const
+
+export type source_system = (typeof source_system)[keyof typeof source_system]
 
 
-// This file is empty because there are no enums in the schema.
-export {}
+export const employment_type = {
+  employee: 'employee',
+  contractor: 'contractor',
+  director: 'director',
+  offshore: 'offshore'
+} as const
+
+export type employment_type = (typeof employment_type)[keyof typeof employment_type]
+
+
+export const payroll_region = {
+  AU: 'AU',
+  NZ: 'NZ',
+  UK: 'UK'
+} as const
+
+export type payroll_region = (typeof payroll_region)[keyof typeof payroll_region]
+
+
+export const xero_sync_entity_type = {
+  people: 'people',
+  leave_records: 'leave_records',
+  leave_balances: 'leave_balances'
+} as const
+
+export type xero_sync_entity_type = (typeof xero_sync_entity_type)[keyof typeof xero_sync_entity_type]
+
+
+export const availability_record_type = {
+  leave: 'leave',
+  wfh: 'wfh',
+  travel: 'travel',
+  training: 'training',
+  client_site: 'client_site'
+} as const
+
+export type availability_record_type = (typeof availability_record_type)[keyof typeof availability_record_type]
+
+
+export const availability_source_type = {
+  xero: 'xero',
+  manual: 'manual'
+} as const
+
+export type availability_source_type = (typeof availability_source_type)[keyof typeof availability_source_type]
+
+
+export const availability_approval_status = {
+  draft: 'draft',
+  submitted: 'submitted',
+  approved: 'approved',
+  declined: 'declined',
+  cancelled: 'cancelled'
+} as const
+
+export type availability_approval_status = (typeof availability_approval_status)[keyof typeof availability_approval_status]
+
+
+export const availability_privacy_mode = {
+  named: 'named',
+  masked: 'masked',
+  private: 'private'
+} as const
+
+export type availability_privacy_mode = (typeof availability_privacy_mode)[keyof typeof availability_privacy_mode]
+
+
+export const availability_contactability = {
+  contactable: 'contactable',
+  limited: 'limited',
+  unavailable: 'unavailable'
+} as const
+
+export type availability_contactability = (typeof availability_contactability)[keyof typeof availability_contactability]
+
+
+export const availability_publish_status = {
+  eligible: 'eligible',
+  suppressed: 'suppressed',
+  archived: 'archived'
+} as const
+
+export type availability_publish_status = (typeof availability_publish_status)[keyof typeof availability_publish_status]
+
+
+export const feed_scope_rule_type = {
+  person: 'person',
+  team: 'team',
+  location: 'location',
+  organisation: 'organisation'
+} as const
+
+export type feed_scope_rule_type = (typeof feed_scope_rule_type)[keyof typeof feed_scope_rule_type]
+
+
+export const feed_status = {
+  active: 'active',
+  paused: 'paused',
+  archived: 'archived'
+} as const
+
+export type feed_status = (typeof feed_status)[keyof typeof feed_status]
+
+
+export const feed_token_status = {
+  active: 'active',
+  revoked: 'revoked',
+  expired: 'expired'
+} as const
+
+export type feed_token_status = (typeof feed_token_status)[keyof typeof feed_token_status]
+
+
+export const notification_type = {
+  sync_failed: 'sync_failed',
+  feed_token_rotated: 'feed_token_rotated',
+  privacy_conflict: 'privacy_conflict',
+  missing_alternative_contact: 'missing_alternative_contact'
+} as const
+
+export type notification_type = (typeof notification_type)[keyof typeof notification_type]

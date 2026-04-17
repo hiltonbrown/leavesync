@@ -1,14 +1,14 @@
+import type { PersonId } from "@repo/core";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { getActiveOrgContext } from "@/lib/server/get-active-org-context";
 import { loadPersonProfileData } from "@/lib/server/load-person-profile-data";
+import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
+import { AvailabilityTimeline } from "./_components/availability-timeline";
+import { LeaveBalancesCard } from "./_components/leave-balances-card";
+import { LeaveHistory } from "./_components/leave-history";
 import { PersonHeader } from "./_components/person-header";
 import { PersonSummaryCard } from "./_components/person-summary-card";
-import { AvailabilityTimeline } from "./_components/availability-timeline";
-import { LeaveHistory } from "./_components/leave-history";
-import { LeaveBalancesCard } from "./_components/leave-balances-card";
-import { toDateOnly } from "@repo/core";
 
 export const metadata: Metadata = {
   title: "Person Profile — LeaveSync",
@@ -42,13 +42,8 @@ export default async function PersonProfilePage({
     return notFound();
   }
 
-  // Step 1: Validate organisation context
-  const contextResult = await getActiveOrgContext(org || "");
-  if (!contextResult.ok) {
-    return notFound();
-  }
-
-  const { clerkOrgId, organisationId } = contextResult.value;
+  // Step 1: Resolve organisation context from explicit query or Clerk cookie state.
+  const { clerkOrgId, organisationId } = await requireActiveOrgPageContext(org);
 
   // Step 2: Determine date range (default: 90 days back, 30 days forward)
   const now = new Date();
@@ -59,7 +54,7 @@ export default async function PersonProfilePage({
     try {
       fromDate = new Date(from);
       toDate = new Date(to);
-      if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+      if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
         // Invalid dates, use defaults
         fromDate = new Date(now);
         fromDate.setDate(fromDate.getDate() - 90);
@@ -82,10 +77,12 @@ export default async function PersonProfilePage({
   }
 
   // Step 3: Load person profile data
+  // PersonIdSchema validates the UUID shape before this branded handoff.
+  const personId = personIdParam as PersonId;
   const dataResult = await loadPersonProfileData(
     clerkOrgId,
     organisationId,
-    personIdParam as any, // Already validated
+    personId,
     {
       startDate: fromDate,
       endDate: toDate,
@@ -112,9 +109,9 @@ export default async function PersonProfilePage({
   return (
     <>
       <PersonHeader
+        email={profile.email}
         firstName={profile.firstName}
         lastName={profile.lastName}
-        email={profile.email}
         sourceSystem={profile.sourceSystem}
       />
 
@@ -125,8 +122,8 @@ export default async function PersonProfilePage({
             <PersonSummaryCard
               employmentType={profile.employmentType}
               isActive={profile.isActive}
-              team={profile.team}
               location={profile.location}
+              team={profile.team}
             />
           </div>
           <div>
@@ -137,14 +134,14 @@ export default async function PersonProfilePage({
         {/* Timeline section: Availability and history */}
         <div className="grid gap-5 lg:grid-cols-2">
           <AvailabilityTimeline
-            title="Upcoming Availability"
-            records={upcomingAvailability}
             isEmpty={upcomingAvailability.length === 0}
+            records={upcomingAvailability}
+            title="Upcoming Availability"
           />
           <LeaveHistory
-            title="Recent Leave"
-            records={recentAvailability}
             isEmpty={recentAvailability.length === 0}
+            records={recentAvailability}
+            title="Recent Leave"
           />
         </div>
       </div>

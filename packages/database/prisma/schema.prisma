@@ -1,19 +1,498 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated"
+  provider        = "prisma-client"
+  output          = "../generated"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider     = "postgresql"
-  relationMode = "prisma"
+  provider = "postgresql"
 }
 
-// This is a stub model.
-// Delete it and add your own Prisma models.
-model Page {
-  id   Int    @id @default(autoincrement())
-  name String
+enum source_system {
+  XERO
+  MANUAL
+}
+
+enum employment_type {
+  employee
+  contractor
+  director
+  offshore
+}
+
+enum payroll_region {
+  AU
+  NZ
+  UK
+}
+
+enum xero_sync_entity_type {
+  people
+  leave_records
+  leave_balances
+}
+
+enum availability_record_type {
+  leave
+  wfh
+  travel
+  training
+  client_site
+}
+
+enum availability_source_type {
+  xero
+  manual
+}
+
+enum availability_approval_status {
+  draft
+  submitted
+  approved
+  declined
+  cancelled
+}
+
+enum availability_privacy_mode {
+  named
+  masked
+  private
+}
+
+enum availability_contactability {
+  contactable
+  limited
+  unavailable
+}
+
+enum availability_publish_status {
+  eligible
+  suppressed
+  archived
+}
+
+enum feed_scope_rule_type {
+  person
+  team
+  location
+  organisation
+}
+
+enum feed_status {
+  active
+  paused
+  archived
+}
+
+enum feed_token_status {
+  active
+  revoked
+  expired
+}
+
+enum notification_type {
+  sync_failed
+  feed_token_rotated
+  privacy_conflict
+  missing_alternative_contact
+}
+
+model Organisation {
+  id                    String    @id @default(uuid()) @db.Uuid
+  clerk_org_id          String
+  name                  String
+  country_code          String
+  timezone              String?
+  locale                String?
+  fiscal_year_start     Int?
+  working_hours_per_day Decimal?  @db.Decimal(4, 2)
+  reporting_unit        String?
+  archived_at           DateTime?
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  teams                     Team[]
+  locations                 Location[]
+  people                    Person[]
+  leave_balances            LeaveBalance[]
+  availability_records      AvailabilityRecord[]
+  availability_publications AvailabilityPublication[]
+  feeds                     Feed[]
+  xero_connection           XeroConnection?
+  xero_tenants              XeroTenant[]
+  xero_sync_cursors         XeroSyncCursor[]
+  sync_runs                 SyncRun[]
+  failed_records            FailedRecord[]
+  audit_events              AuditEvent[]
+
+  @@index([clerk_org_id])
+  @@map("organisations")
+}
+
+model Team {
+  id              String   @id @default(uuid()) @db.Uuid
+  clerk_org_id    String
+  organisation_id String   @db.Uuid
+  name            String
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  organisation Organisation @relation(fields: [organisation_id], references: [id])
+  people       Person[]
+
+  @@index([clerk_org_id])
+  @@index([organisation_id])
+  @@map("teams")
+}
+
+model Location {
+  id              String   @id @default(uuid()) @db.Uuid
+  clerk_org_id    String
+  organisation_id String   @db.Uuid
+  name            String
+  region_code     String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  organisation Organisation @relation(fields: [organisation_id], references: [id])
+  people       Person[]
+
+  @@index([clerk_org_id])
+  @@index([organisation_id])
+  @@map("locations")
+}
+
+model Person {
+  id                String          @id @default(uuid()) @db.Uuid
+  clerk_org_id      String
+  organisation_id   String          @db.Uuid
+  team_id           String?         @db.Uuid
+  location_id       String?         @db.Uuid
+  source_system     source_system
+  source_person_key String?
+  first_name        String
+  last_name         String
+  email             String
+  employment_type   employment_type
+  is_active         Boolean         @default(true)
+  display_name      String?
+  clerk_user_id     String?
+  job_title         String?
+  archived_at       DateTime?
+  created_at        DateTime        @default(now())
+  updated_at        DateTime        @updatedAt
+
+  organisation         Organisation         @relation(fields: [organisation_id], references: [id])
+  team                 Team?                @relation(fields: [team_id], references: [id])
+  location             Location?            @relation(fields: [location_id], references: [id])
+  leave_balances       LeaveBalance[]
+  availability_records AvailabilityRecord[]
+
+  @@unique([organisation_id, source_system, source_person_key])
+  @@unique([organisation_id, clerk_user_id])
+  @@index([clerk_org_id])
+  @@index([organisation_id])
+  @@index([organisation_id, team_id])
+  @@index([team_id])
+  @@index([location_id])
+  @@map("people")
+}
+
+model XeroConnection {
+  id                      String   @id @default(uuid()) @db.Uuid
+  clerk_org_id            String
+  organisation_id         String   @unique @db.Uuid
+  access_token_encrypted  String
+  refresh_token_encrypted String
+  expires_at              DateTime
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+
+  organisation Organisation @relation(fields: [organisation_id], references: [id])
+  xero_tenant  XeroTenant?
+
+  @@index([clerk_org_id])
+  @@map("xero_connections")
+}
+
+model XeroTenant {
+  id                 String         @id @default(uuid()) @db.Uuid
+  clerk_org_id       String
+  organisation_id    String         @db.Uuid
+  xero_connection_id String         @unique @db.Uuid
+  xero_tenant_id     String
+  payroll_region     payroll_region
+  created_at         DateTime       @default(now())
+  updated_at         DateTime       @updatedAt
+
+  organisation    Organisation     @relation(fields: [organisation_id], references: [id])
+  xero_connection XeroConnection   @relation(fields: [xero_connection_id], references: [id])
+  sync_cursors    XeroSyncCursor[]
+  leave_balances  LeaveBalance[]
+
+  @@index([clerk_org_id])
+  @@index([organisation_id])
+  @@index([xero_tenant_id])
+  @@map("xero_tenants")
+}
+
+model XeroSyncCursor {
+  id              String                @id @default(uuid()) @db.Uuid
+  clerk_org_id    String
+  organisation_id String                @db.Uuid
+  xero_tenant_id  String                @db.Uuid
+  entity_type     xero_sync_entity_type
+  cursor_value    String?
+  created_at      DateTime              @default(now())
+  updated_at      DateTime              @updatedAt
+
+  organisation Organisation @relation(fields: [organisation_id], references: [id])
+  xero_tenant  XeroTenant   @relation(fields: [xero_tenant_id], references: [id])
+
+  @@unique([xero_tenant_id, entity_type])
+  @@index([clerk_org_id])
+  @@index([organisation_id])
+  @@index([xero_tenant_id])
+  @@map("xero_sync_cursors")
+}
+
+model AvailabilityRecord {
+  id                       String                       @id @default(uuid()) @db.Uuid
+  clerk_org_id             String
+  organisation_id          String                       @db.Uuid
+  person_id                String                       @db.Uuid
+  record_type              availability_record_type
+  source_type              availability_source_type
+  source_remote_id         String?
+  starts_at                DateTime
+  ends_at                  DateTime
+  approval_status          availability_approval_status
+  privacy_mode             availability_privacy_mode
+  contactability           availability_contactability
+  include_in_feed          Boolean                      @default(true)
+  publish_status           availability_publish_status  @default(eligible)
+  source_payload_json      Json?
+  derived_uid_key          String
+  title                    String?
+  all_day                  Boolean                      @default(true)
+  notes_internal           String?
+  working_location         String?
+  preferred_contact_method String?
+  created_by_user_id       String?
+  updated_by_user_id       String?
+  archived_at              DateTime?
+  approved_at              DateTime?
+  created_at               DateTime                     @default(now())
+  updated_at               DateTime                     @updatedAt
+
+  organisation Organisation             @relation(fields: [organisation_id], references: [id])
+  person       Person                   @relation(fields: [person_id], references: [id])
+  publication  AvailabilityPublication?
+
+  @@index([clerk_org_id])
+  @@index([organisation_id])
+  @@index([person_id, starts_at, ends_at])
+  @@index([source_type, source_remote_id])
+  @@index([organisation_id, publish_status, include_in_feed])
+  @@map("availability_records")
+}
+
+model AvailabilityPublication {
+  id                     String                    @id @default(uuid()) @db.Uuid
+  clerk_org_id           String
+  organisation_id        String                    @db.Uuid
+  availability_record_id String                    @unique @db.Uuid
+  published_uid          String
+  published_summary      String
+  published_description  String?
+  published_sequence     Int                       @default(0)
+  published_at           DateTime
+  privacy_mode           availability_privacy_mode
+  created_at             DateTime                  @default(now())
+  updated_at             DateTime                  @updatedAt
+
+  organisation        Organisation       @relation(fields: [organisation_id], references: [id])
+  availability_record AvailabilityRecord @relation(fields: [availability_record_id], references: [id])
+
+  @@index([clerk_org_id])
+  @@index([organisation_id])
+  @@index([published_uid])
+  @@map("availability_publications")
+}
+
+model LeaveBalance {
+  id                 String   @id @default(uuid()) @db.Uuid
+  clerk_org_id       String
+  organisation_id    String   @db.Uuid
+  person_id          String   @db.Uuid
+  xero_tenant_id     String   @db.Uuid
+  leave_type_xero_id String
+  balance            Decimal  @db.Decimal(12, 4)
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  organisation Organisation @relation(fields: [organisation_id], references: [id])
+  person       Person       @relation(fields: [person_id], references: [id])
+  xero_tenant  XeroTenant   @relation(fields: [xero_tenant_id], references: [id])
+
+  @@unique([person_id, xero_tenant_id, leave_type_xero_id])
+  @@index([clerk_org_id])
+  @@index([organisation_id])
+  @@index([person_id])
+  @@index([xero_tenant_id])
+  @@map("leave_balances")
+}
+
+model Feed {
+  id              String      @id @default(uuid()) @db.Uuid
+  clerk_org_id    String
+  organisation_id String?     @db.Uuid
+  name            String
+  slug            String
+  status          feed_status @default(active)
+  privacy_default String      @default("named")
+  scope_type      String      @default("all_staff")
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+
+  organisation Organisation? @relation(fields: [organisation_id], references: [id])
+  scopes       FeedScope[]
+  tokens       FeedToken[]
+
+  @@unique([clerk_org_id, slug])
+  @@index([clerk_org_id])
+  @@index([organisation_id])
+  @@map("feeds")
+}
+
+model FeedScope {
+  id           String               @id @default(uuid()) @db.Uuid
+  clerk_org_id String
+  feed_id      String               @db.Uuid
+  rule_type    feed_scope_rule_type
+  rule_value   String
+  created_at   DateTime             @default(now())
+  updated_at   DateTime             @updatedAt
+
+  feed Feed @relation(fields: [feed_id], references: [id])
+
+  @@index([clerk_org_id])
+  @@index([feed_id])
+  @@index([rule_type, rule_value])
+  @@map("feed_scopes")
+}
+
+model FeedToken {
+  id           String            @id @default(uuid()) @db.Uuid
+  clerk_org_id String
+  feed_id      String            @db.Uuid
+  token_hash   String            @unique
+  token_hint   String
+  status       feed_token_status @default(active)
+  expires_at   DateTime?
+  revoked_at   DateTime?
+  created_at   DateTime          @default(now())
+  updated_at   DateTime          @updatedAt
+
+  feed Feed @relation(fields: [feed_id], references: [id])
+
+  @@index([clerk_org_id])
+  @@index([feed_id])
+  @@map("feed_tokens")
+}
+
+model Notification {
+  id                String            @id @default(uuid()) @db.Uuid
+  clerk_org_id      String
+  recipient_user_id String
+  type              notification_type
+  payload           Json
+  is_read           Boolean           @default(false)
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @updatedAt
+
+  @@index([clerk_org_id])
+  @@index([recipient_user_id, is_read])
+  @@index([recipient_user_id, created_at])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id                String            @id @default(uuid()) @db.Uuid
+  user_id           String
+  clerk_org_id      String
+  notification_type notification_type
+  in_app_enabled    Boolean           @default(true)
+  email_enabled     Boolean           @default(true)
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @updatedAt
+
+  @@unique([user_id, clerk_org_id, notification_type])
+  @@index([clerk_org_id])
+  @@index([user_id])
+  @@map("notification_preferences")
+}
+
+model SyncRun {
+  id              String                 @id @default(uuid()) @db.Uuid
+  clerk_org_id    String
+  organisation_id String                 @db.Uuid
+  xero_tenant_id  String?                @db.Uuid
+  status          String
+  entity_type     xero_sync_entity_type?
+  records_synced  Int                    @default(0)
+  records_failed  Int                    @default(0)
+  error_message   String?
+  started_at      DateTime
+  completed_at    DateTime?
+  created_at      DateTime               @default(now())
+  updated_at      DateTime               @updatedAt
+
+  organisation   Organisation   @relation(fields: [organisation_id], references: [id])
+  failed_records FailedRecord[]
+
+  @@index([clerk_org_id])
+  @@index([organisation_id])
+  @@index([organisation_id, started_at])
+  @@map("sync_runs")
+}
+
+model FailedRecord {
+  id              String                @id @default(uuid()) @db.Uuid
+  clerk_org_id    String
+  organisation_id String                @db.Uuid
+  sync_run_id     String                @db.Uuid
+  entity_type     xero_sync_entity_type
+  source_id       String
+  error_message   String
+  raw_payload     Json?
+  created_at      DateTime              @default(now())
+  updated_at      DateTime              @updatedAt
+
+  organisation Organisation @relation(fields: [organisation_id], references: [id])
+  sync_run     SyncRun      @relation(fields: [sync_run_id], references: [id])
+
+  @@index([clerk_org_id])
+  @@index([organisation_id])
+  @@index([sync_run_id])
+  @@map("failed_records")
+}
+
+model AuditEvent {
+  id              String   @id @default(uuid()) @db.Uuid
+  clerk_org_id    String
+  organisation_id String   @db.Uuid
+  actor_user_id   String?
+  action          String
+  resource_type   String
+  resource_id     String?
+  payload         Json?
+  created_at      DateTime @default(now())
+
+  organisation Organisation @relation(fields: [organisation_id], references: [id])
+
+  @@index([clerk_org_id])
+  @@index([organisation_id])
+  @@index([organisation_id, created_at])
+  @@map("audit_events")
 }

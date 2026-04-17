@@ -31,8 +31,8 @@ export * from "./enums"
  * const prisma = new PrismaClient({
  *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
  * })
- * // Fetch zero or more Pages
- * const pages = await prisma.page.findMany()
+ * // Fetch zero or more Organisations
+ * const organisations = await prisma.organisation.findMany()
  * ```
  * 
  * Read more in our [docs](https://pris.ly/d/client).
@@ -42,7 +42,92 @@ export type PrismaClient<LogOpts extends Prisma.LogLevel = never, OmitOpts exten
 export { Prisma }
 
 /**
- * Model Page
+ * Model Organisation
  * 
  */
-export type Page = Prisma.PageModel
+export type Organisation = Prisma.OrganisationModel
+/**
+ * Model Team
+ * 
+ */
+export type Team = Prisma.TeamModel
+/**
+ * Model Location
+ * 
+ */
+export type Location = Prisma.LocationModel
+/**
+ * Model Person
+ * 
+ */
+export type Person = Prisma.PersonModel
+/**
+ * Model XeroConnection
+ * 
+ */
+export type XeroConnection = Prisma.XeroConnectionModel
+/**
+ * Model XeroTenant
+ * 
+ */
+export type XeroTenant = Prisma.XeroTenantModel
+/**
+ * Model XeroSyncCursor
+ * 
+ */
+export type XeroSyncCursor = Prisma.XeroSyncCursorModel
+/**
+ * Model AvailabilityRecord
+ * 
+ */
+export type AvailabilityRecord = Prisma.AvailabilityRecordModel
+/**
+ * Model AvailabilityPublication
+ * 
+ */
+export type AvailabilityPublication = Prisma.AvailabilityPublicationModel
+/**
+ * Model LeaveBalance
+ * 
+ */
+export type LeaveBalance = Prisma.LeaveBalanceModel
+/**
+ * Model Feed
+ * 
+ */
+export type Feed = Prisma.FeedModel
+/**
+ * Model FeedScope
+ * 
+ */
+export type FeedScope = Prisma.FeedScopeModel
+/**
+ * Model FeedToken
+ * 
+ */
+export type FeedToken = Prisma.FeedTokenModel
+/**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel
+/**
+ * Model NotificationPreference
+ * 
+ */
+export type NotificationPreference = Prisma.NotificationPreferenceModel
+/**
+ * Model SyncRun
+ * 
+ */
+export type SyncRun = Prisma.SyncRunModel
+/**
+ * Model FailedRecord
+ * 
+ */
+export type FailedRecord = Prisma.FailedRecordModel
+/**
+ * Model AuditEvent
+ * 
+ */
+export type AuditEvent = Prisma.AuditEventModel

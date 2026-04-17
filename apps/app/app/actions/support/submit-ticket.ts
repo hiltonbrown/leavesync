@@ -1,7 +1,10 @@
 "use server";
 
 import { auth, clerkClient } from "@repo/auth/server";
+import { resend } from "@repo/email";
+import { log } from "@repo/observability/log";
 import { z } from "zod";
+import { env } from "@/env";
 
 const SubmitTicketSchema = z.object({
   type: z.enum(["support", "feedback", "bug"]),
@@ -33,24 +36,34 @@ export const submitTicket = async (
   const { type, subject, description } = parsed.data;
 
   try {
+    if (!(resend && env.RESEND_FROM)) {
+      return { ok: false, error: "Support email is not configured" };
+    }
+
     const clerk = await clerkClient();
     const user = await clerk.users.getUser(userId);
     const org = await clerk.organizations.getOrganization({
       organizationId: orgId,
     });
+    const userEmail = user.emailAddresses[0]?.emailAddress;
 
-    // TODO: Send email, save to database, or post to webhook
-    console.log(`[Support Ticket]
-Type: ${type}
-Subject: ${subject}
-Description: ${description}
-User: ${user.fullName} (${user.emailAddresses[0]?.emailAddress})
-Org: ${org.name} (${orgId})
-    `);
+    await resend.emails.send({
+      from: env.RESEND_FROM,
+      to: env.RESEND_FROM,
+      replyTo: userEmail,
+      subject: `[LeaveSync ${type}] ${subject}`,
+      text: [
+        `Type: ${type}`,
+        `Subject: ${subject}`,
+        `Description: ${description}`,
+        `User: ${user.fullName ?? userId}${userEmail ? ` (${userEmail})` : ""}`,
+        `Org: ${org.name} (${orgId})`,
+      ].join("\n"),
+    });
 
     return { ok: true, value: undefined };
   } catch (error) {
-    console.error("Failed to submit ticket:", error);
+    log.error("Failed to submit support ticket", { error });
     return { ok: false, error: "Failed to submit support ticket" };
   }
 };

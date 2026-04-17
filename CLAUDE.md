@@ -26,7 +26,7 @@ LeaveSync does not manage payroll, accruals, or leave approvals. Xero is the sou
 | Runtime | Bun |
 | Database | PostgreSQL (Neon serverless) |
 | ORM | Prisma 7 with `@prisma/adapter-neon` |
-| Auth | Clerk |
+| Auth | Clerk (Organisations feature; no custom workspace table) |
 | Job queue | Inngest |
 | Email | Resend + React Email |
 | Monitoring | Sentry |
@@ -43,28 +43,92 @@ LeaveSync does not manage payroll, accruals, or leave approvals. Xero is the sou
 All commands run from the repo root.
 
 ```bash
-# Development
 bun run dev                # Start all apps (Turbo)
-
-# Building
 bun run build              # Build all apps and packages
-
-# Linting and formatting
 bun run check              # Biome/Ultracite lint checks
 bun run fix                # Auto-fix lint issues
-
-# Testing
 bun run test               # Vitest across the monorepo
 bunx vitest run <path>     # Single test file
-
-# Database
 bun run migrate            # Prisma format + generate + migrate dev
 bun run migrate:deploy     # Generate + migrate deploy (production)
 bun run db:push            # Push schema without migration (dev only)
-
-# Utilities
 bun run analyze            # Bundle analysis
 bun run clean              # Remove git-ignored files
+```
+
+---
+
+## Tenancy model
+
+LeaveSync uses **Clerk Organisations** as the top-level tenant boundary. There is no custom `workspaces` database table.
+
+### Hierarchy
+
+```
+Clerk Organisation (clerk_org_id)
+  └─ Organisation              one or many per Clerk Org; e.g. Acme Restaurants, Acme Hotels
+        └─ XeroConnection      one per Organisation (UNIQUE on organisation_id)
+              └─ XeroTenant    one per XeroConnection (UNIQUE on xero_connection_id)
+```
+
+### Key invariants
+
+- One Clerk Organisation = one country code. Enforced at the application layer.
+- One Organisation owns exactly one XeroConnection.
+- One XeroConnection owns exactly one XeroTenant.
+- A Clerk Org with two Xero files has two Organisation rows, two XeroConnections, two XeroTenants.
+- Billing enforced at the Clerk Organisation level via `clerk_org_subscriptions`.
+- **Every database query that touches tenant data must filter by `clerk_org_id`.**
+- Membership and roles are managed entirely by Clerk. No custom membership or role tables.
+- Personal Accounts are disabled. Every user must belong to at least one Clerk Organisation.
+
+### Auth helpers (`packages/auth`)
+
+```typescript
+import { requireOrg, requireRole, getOrgId } from '@repo/auth';
+
+// Server: get clerk_org_id or throw
+const clerkOrgId = requireOrg();
+
+// Server: check role or return 403 Result
+requireRole('admin');
+
+// Server: get org ID for query scoping
+const clerkOrgId = getOrgId();
+
+// Re-exported Clerk helpers
+import { auth, currentUser, useAuth, useOrganization } from '@repo/auth';
+```
+
+For Inngest jobs and background API routes, call `getToken()` and pass the token in the `Authorization` header. Do not rely on the session cookie in background contexts.
+
+### Roles
+
+| Role | Scope |
+|---|---|
+| owner | Full Clerk Organisation access |
+| admin | Full Organisation (payroll entity) access |
+| manager | Team and direct-report access |
+| viewer | Read-only filtered access |
+
+Permission checks use `auth().has({ role: 'org:admin' })` or helpers from `@repo/auth`.
+
+### Query scoping pattern
+
+Every service function that queries tenant data must accept and apply both `clerk_org_id` and `organisation_id`:
+
+```typescript
+// Correct
+async function listPeople(clerkOrgId: ClerkOrgId, organisationId: OrganisationId) {
+  return db.person.findMany({
+    where: { clerk_org_id: clerkOrgId, organisation_id: organisationId },
+  });
+}
+
+// Wrong: missing clerk_org_id
+async function listPeople(organisationId: OrganisationId) {
+  return db.person.findMany({ where: { organisation_id: organisationId } });
+}
 ```
 
 ---
@@ -76,10 +140,10 @@ bun run clean              # Remove git-ignored files
 | App | Port | Purpose |
 |---|---|---|
 | `app` | 3000 | Authenticated product UI |
-| `api` | 3002 | Xero OAuth, sync orchestration, feed endpoints, Inngest handlers |
+| `api` | 3002 | Xero OAuth, sync orchestration, feed endpoints (`GET /ical/:token.ics`), Inngest handlers |
 | `web` | 3001 | Public marketing site |
 | `docs` | 3004 | Mintlify documentation |
-| `email` | 3003 | React Email template development |
+| `email` | 3003 | React Email templates |
 
 ### Domain packages
 
@@ -96,7 +160,7 @@ bun run clean              # Remove git-ignored files
 | Package | Purpose |
 |---|---|
 | `packages/database` | Prisma schema, migrations, generated client, query helpers |
-| `packages/auth` | Clerk session management, RBAC, workspace and organisation guards |
+| `packages/auth` | `requireOrg()`, `requireRole()`, `getOrgId()`, re-exported Clerk hooks |
 | `packages/design-system` | Shared React components, Tailwind CSS, shadcn/ui |
 | `packages/email` | React Email templates + Resend transport |
 | `packages/observability` | Sentry error tracking, structured logging |
@@ -106,29 +170,39 @@ bun run clean              # Remove git-ignored files
 
 ### Not in use
 
-These stock next-forge packages are not required for the current build: `ai`, `cms`, `collaboration`, `feature-flags`, `internationalization`, `payments`, `rate-limit`, `security`, `storage`, `webhooks`. Do not add dependencies on them.
+`ai`, `cms`, `collaboration`, `feature-flags`, `internationalization`, `payments`, `rate-limit`, `security`, `storage`, `webhooks`. Do not add dependencies on them.
 
 ---
 
 ## Architecture rules
 
-### Tenancy
+### Data access boundaries
 
-- Model: Workspace > Organisation > People / XeroConnection / Feed / AvailabilityRecord.
-- Users belong to workspaces via memberships.
-- Billing enforced at workspace level.
-- **All data queries must be scoped by organisation.**
-
-### Data access
-
-- All database access goes through `packages/database`. Never import Prisma client directly in apps.
-- All Xero-specific logic lives in `packages/xero`. Canonical domain logic in `packages/availability` never depends on Xero payload shapes.
-- All ICS generation logic lives in `packages/feeds`.
-- Shared UI components live in `packages/design-system`. Do not redefine base components in apps.
+- All database access through `packages/database`. Never import Prisma client directly in apps.
+- All Xero-specific logic in `packages/xero`. Canonical domain logic in `packages/availability` never depends on Xero payload shapes.
+- All ICS generation logic in `packages/feeds`.
+- Shared UI components in `packages/design-system`. Do not redefine base components in apps.
 
 ### Core entity
 
-The primary domain object is `AvailabilityRecord`, not a leave application. This table holds both Xero-synced leave and manual availability entries. See PRODUCT.md for the full schema.
+The primary domain object is `AvailabilityRecord`. It holds both Xero-synced leave and manual availability entries. It is not called a "leave application". See PRODUCT.md for the full schema.
+
+### Xero connection structure
+
+Each Organisation owns exactly one `XeroConnection` (unique on `organisation_id`) and through it exactly one `XeroTenant` (unique on `xero_connection_id`). When implementing Xero sync or write operations, always resolve the connection and tenant via the Organisation FK, never via a bare `clerk_org_id` lookup.
+
+```typescript
+// Correct: resolve tenant via Organisation
+const tenant = await db.xeroTenant.findFirst({
+  where: { organisation_id: organisationId },
+  include: { xero_connection: true },
+});
+
+// Wrong: resolving by clerk_org_id alone could match multiple tenants
+const tenant = await db.xeroTenant.findFirst({
+  where: { clerk_org_id: clerkOrgId },
+});
+```
 
 ---
 
@@ -139,12 +213,15 @@ The primary domain object is `AvailabilityRecord`, not a leave application. This
 - Strict mode. No `any`. No `as` casts unless justified with a comment.
 - Named exports only. No default exports.
 - No barrel files (`index.ts` re-exports) except at package root.
-- Import aliases: `@repo/database`, `@repo/core`, `@repo/xero`, `@repo/availability`, `@repo/feeds`, etc.
+- Import aliases: `@repo/database`, `@repo/core`, `@repo/xero`, `@repo/availability`, `@repo/feeds`, `@repo/auth`, etc.
 
 ### Validation
 
 - Zod on all external input: API params, Xero responses, webhook payloads, form submissions.
-- Branded types for domain IDs (WorkspaceId, OrganisationId, PersonId, etc.), defined in `packages/core`.
+- Branded types for domain IDs (`ClerkOrgId`, `OrganisationId`, `PersonId`, `XeroTenantId`, etc.), defined in `packages/core`.
+
+### MCP Servers
+- Always use Context7 when I need library/API documentation, code generation, setup or configuration steps without me having to explicitly ask.
 
 ### Error handling
 
@@ -152,20 +229,20 @@ The primary domain object is `AvailabilityRecord`, not a leave application. This
 type Result<T, E = AppError> = { ok: true; value: T } | { ok: false; error: E };
 ```
 
-Service functions return `Result`. Route handlers map errors to HTTP responses. Do not throw for expected failures. Thrown exceptions are for truly unexpected or unrecoverable errors only.
+Service functions return `Result`. Route handlers map errors to HTTP responses. Do not throw for expected failures.
 
 ### Next.js
 
 - App Router only. No `pages/` directory.
 - Server Components by default. Add `"use client"` only when browser APIs or interactivity require it.
-- Route protection and security headers composed in `apps/app/proxy.ts`, not `middleware.ts`.
+- Route protection and org validation composed in `apps/app/proxy.ts`, not `middleware.ts`.
 
 ### Style
 
 - No `console.log` in production code. Use the observability package logger.
-- Comments only where intent is non-obvious. Do not restate what the code does.
+- Comments only where intent is non-obvious.
 - Australian English in all UI copy, documentation, and comments.
-- No em dashes anywhere (UI copy, comments, docs, generated text).
+- No em dashes anywhere.
 
 ---
 
@@ -173,35 +250,35 @@ Service functions return `Result`. Route handlers map errors to HTTP responses. 
 
 - Table names: `snake_case`, plural (e.g. `availability_records`, `xero_tenants`).
 - Column names: `snake_case`.
-- Every table includes `id` (UUID, PK), `created_at`, `updated_at`.
-- Soft deletes where specified: `archived_at` column, nullable.
-- Foreign keys explicit.
-- Enums defined at database level.
-- JSON columns typed with Zod schemas and documented.
+- Every table: `id` (UUID, PK), `created_at`, `updated_at`.
+- `clerk_org_id` (text, not null, indexed) on every tenant-scoped table.
+- Soft deletes where specified: `archived_at` (nullable timestamp).
+- Foreign keys explicit. Enums at database level.
+- JSON columns typed with Zod schemas and documented with a schema reference comment.
 - One migration per schema change. Never hand-edit generated migrations.
-- Full schema specification in PRODUCT.md.
+- Full schema at `packages/database/prisma/schema.prisma`. PRODUCT.md is the authoritative description.
 
 ---
 
 ## Testing rules
 
 - Co-located: `foo.ts` has `foo.test.ts` in the same directory.
-- Vitest as runner.
-- Tests from the first slice. No deferring tests.
-- Factories or builders for test data, not repeated raw object literals.
+- Vitest as runner. Tests from the first slice. No deferring.
+- Factories or builders for test data, not repeated raw literals.
 - Fixture-based tests for Xero response mappers and region-specific parsers.
-- Explicitly test: ICS serialisation, UID generation, SEQUENCE incrementing, privacy transforms, Zod validators, feed token validation.
+- Explicitly test: ICS serialisation, UID generation, SEQUENCE incrementing, privacy transforms, Zod validators, feed token validation, `clerk_org_id` query isolation, XeroConnection/XeroTenant uniqueness invariants.
 
 ---
 
 ## Xero adapter rules
 
-- All Xero code lives in `packages/xero`.
-- Region-specific logic (AU, NZ, UK) isolated in subdirectories (`packages/xero/src/au/`, etc.).
+- All Xero code in `packages/xero`. Region-specific logic in subdirectories (`au/`, `nz/`, `uk/`).
 - Raw Xero responses stored in `source_payload_json` on `availability_records` for audit.
-- Xero-specific logic never leaks into `packages/availability` or `packages/feeds`.
+- Xero-specific types never leak into `packages/availability` or `packages/feeds`.
 - Rate limiting (60/min per org, 5,000/day per org, five concurrent per org) handled inside `packages/xero`.
 - Token refresh handled proactively before sync runs.
+- All Xero sync operations carry `clerk_org_id` and `organisation_id` in their context.
+- Resolve XeroTenant via `organisation_id` FK, not bare `clerk_org_id`.
 
 ---
 
@@ -218,22 +295,22 @@ Service functions return `Result`. Route handlers map errors to HTTP responses. 
 
 ## Inngest job rules
 
-- Job definitions live in `packages/jobs`.
-- Inngest handlers registered in `apps/api`.
-- Jobs: `sync-xero-people`, `sync-xero-leave-records`, `reconcile-feed-publications`, `rebuild-feed-cache`.
+- Job definitions in `packages/jobs`. Handlers registered in `apps/api`.
+- Jobs: `sync-xero-people`, `sync-xero-leave-records`, `sync-xero-leave-balances`, `reconcile-feed-publications`, `rebuild-feed-cache`, `reconcile-xero-approval-state`.
 - Inngest handles retries with exponential backoff.
-- Record-level failures do not fail the entire sync run unless a configurable threshold is breached.
+- Record-level failures do not fail the entire sync run.
 - All upserts must be idempotent.
+- Jobs carry both `clerk_org_id` and `organisation_id` in their event payload. Never rely on session context inside a job handler.
 
 ---
 
 ## Security baseline
 
-- Workspace isolation on every query.
-- Organisation scoping on all data access.
+- Clerk Organisation isolation on every query (`clerk_org_id` from `auth().orgId`).
+- Organisation scoping on all data access (`organisation_id` within the Clerk Org).
 - Clerk auth on all authenticated routes.
-- Xero tokens encrypted at rest.
-- Feed tokens signed and revocable.
+- Xero tokens encrypted at rest; never in plaintext.
+- Feed tokens signed and revocable; plaintext never persisted.
 - Audit logs for admin actions.
 - No tokens or raw payloads exposed to client.
 - No secrets in client bundles.
@@ -242,11 +319,7 @@ Service functions return `Result`. Route handlers map errors to HTTP responses. 
 
 ## Environment variables
 
-Defined in `.env.example` per app and package. Server variables are unprefixed; client variables use `NEXT_PUBLIC_`.
-
-**Critical:** optional variables with format constraints (email, URL, `startsWith`) must be absent (commented out) rather than set to `""`. Empty strings fail Zod format validation even for `.optional()` fields.
-
-### Required variables
+Optional variables with format constraints must be absent (commented out), not `""`. Empty strings fail Zod format validation even for `.optional()` fields.
 
 | Variable | Used by | Purpose |
 |---|---|---|
@@ -267,31 +340,30 @@ Defined in `.env.example` per app and package. Server variables are unprefixed; 
 
 ## Platform notes
 
-- Prisma 7 uses a WASM query compiler. `serverExternalPackages: ["@prisma/client", "@prisma/adapter-neon"]` in `packages/next-config/index.ts` is required. Without it, Turbopack bundles Prisma incorrectly and throws `PrismaClientInitializationError` at runtime.
-- Turborepo caches build outputs (`.next/`, `dist/`). Do not bypass Turbo for builds.
+- Prisma 7 WASM compiler requires `serverExternalPackages: ["@prisma/client", "@prisma/adapter-neon"]` in `packages/next-config/index.ts`.
+- Route protection composed in `apps/app/proxy.ts`, not `middleware.ts`.
 - Biome 2 + Ultracite enforce repo style. Configuration in `biome.jsonc` at root.
-
----
-
-## Git conventions
-
-- Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`.
-- One logical change per commit.
-- Branch per feature slice.
+- Git: conventional commits (`feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`), one logical change per commit, branch per feature slice.
 
 ---
 
 ## Build order
 
-Implement in this order. Each step should produce a deployable, testable vertical slice.
-
-1. Workspace, organisation, people, team, location schema and seed data
-2. Xero OAuth and tenant persistence
+1. Organisation, people, team, location schema and seed data (keyed by `clerk_org_id`)
+2. Xero OAuth and tenant persistence (XeroConnection + XeroTenant per Organisation)
 3. Xero employee sync (AU, NZ, UK)
 4. Xero leave normalisation into `availability_records`
-5. Manual availability CRUD
-6. Feed model and token model
-7. ICS renderer with stable UID and privacy modes
-8. Feed preview and feed detail UI
-9. Team calendar and person profile UI
-10. Reconciliation jobs, sync health UI, and audit reporting
+5. Leave balance sync from Xero
+6. Leave submission workflow: draft, submit, Xero write-back, approval state machine
+7. Leave approval workflow: manager approve/decline, Xero write-back
+8. Manual availability CRUD
+9. Public holiday data: API sourcing, manual overrides, per-location configuration
+10. SSE notification infrastructure and in-app notification delivery
+11. Feed model and token model
+12. ICS renderer with stable UID and privacy modes
+13. Feed preview and feed detail UI
+14. Team calendar and person profile UI
+15. Analytics: leave reports and out-of-office reports
+16. Reconciliation jobs, sync health UI, and audit reporting
+
+Each step: deployable, testable vertical slice.

@@ -3,8 +3,8 @@ import "server-only";
 import type { ClerkOrgId, FeedId, OrganisationId, Result } from "@repo/core";
 import { appError } from "@repo/core";
 import {
-  listFeedsForOrganisation,
   getFeedDetail,
+  listFeedsForOrganisation,
 } from "@repo/database/src/queries/feeds";
 
 /**
@@ -19,11 +19,19 @@ export async function loadFeedManagementData(
   Result<{
     feeds: Array<{
       id: FeedId;
+      activeTokenHint: string | null;
+      name: string;
+      privacyDefault: string;
+      scopeType: string;
       slug: string;
+      status: string;
       createdAt: Date;
     }>;
     selectedFeed?: {
       id: FeedId;
+      activeTokenHint: string | null;
+      name: string;
+      status: string;
       slug: string;
       scopes: Array<{
         id: string;
@@ -32,6 +40,8 @@ export async function loadFeedManagementData(
       }>;
       tokens: Array<{
         id: string;
+        status: string;
+        tokenHint: string;
         expiresAt: Date | null;
         revokedAt: Date | null;
         createdAt: Date;
@@ -54,21 +64,28 @@ export async function loadFeedManagementData(
     }
 
     // Optionally load detail for selected feed
-    let selectedFeed: undefined | {
-      id: FeedId;
-      slug: string;
-      scopes: Array<{
-        id: string;
-        ruleType: string;
-        ruleValue: string;
-      }>;
-      tokens: Array<{
-        id: string;
-        expiresAt: Date | null;
-        revokedAt: Date | null;
-        createdAt: Date;
-      }>;
-    };
+    let selectedFeed:
+      | undefined
+      | {
+          id: FeedId;
+          activeTokenHint: string | null;
+          name: string;
+          status: string;
+          slug: string;
+          scopes: Array<{
+            id: string;
+            ruleType: string;
+            ruleValue: string;
+          }>;
+          tokens: Array<{
+            id: string;
+            status: string;
+            tokenHint: string;
+            expiresAt: Date | null;
+            revokedAt: Date | null;
+            createdAt: Date;
+          }>;
+        };
 
     if (feedId) {
       const detailResult = await getFeedDetail(
@@ -86,6 +103,9 @@ export async function loadFeedManagementData(
 
       selectedFeed = {
         id: detailResult.value.id,
+        activeTokenHint: detailResult.value.activeTokenHint,
+        name: detailResult.value.name,
+        status: detailResult.value.status,
         slug: detailResult.value.slug,
         scopes: detailResult.value.scopes,
         tokens: detailResult.value.tokens,
@@ -97,13 +117,18 @@ export async function loadFeedManagementData(
       value: {
         feeds: feedsResult.value.map((feed) => ({
           id: feed.id,
+          activeTokenHint: feed.activeTokenHint,
+          name: feed.name,
+          privacyDefault: feed.privacyDefault,
+          scopeType: feed.scopeType,
           slug: feed.slug,
+          status: feed.status,
           createdAt: feed.createdAt,
         })),
         selectedFeed,
       },
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       ok: false,
       error: appError("internal", "Failed to load feed management data"),

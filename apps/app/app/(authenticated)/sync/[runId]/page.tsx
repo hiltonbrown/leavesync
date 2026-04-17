@@ -11,9 +11,7 @@ interface SyncRunDetailPageProperties {
   readonly params: Promise<{ runId: string }>;
 }
 
-const SyncRunDetailPage = async ({
-  params,
-}: SyncRunDetailPageProperties) => {
+const SyncRunDetailPage = async ({ params }: SyncRunDetailPageProperties) => {
   const { runId } = await params;
 
   return (

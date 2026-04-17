@@ -3,8 +3,8 @@ import "server-only";
 import type { ClerkOrgId, OrganisationId, PersonId, Result } from "@repo/core";
 import { appError } from "@repo/core";
 import {
-  listPeopleForOrganisation,
   listAvailabilityForCalendar,
+  listPeopleForOrganisation,
 } from "@repo/database/src/queries";
 
 /**
@@ -62,7 +62,8 @@ export async function loadTeamCalendarData(
     }
 
     // Build query filters
-    const calendarFilters: Parameters<typeof listAvailabilityForCalendar>[3] = {};
+    const calendarFilters: Parameters<typeof listAvailabilityForCalendar>[3] =
+      {};
 
     // Add person IDs filter if team or location filter applied
     if (filters?.teamId || filters?.locationId) {
@@ -117,7 +118,7 @@ export async function loadTeamCalendarData(
         })),
       },
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       ok: false,
       error: appError("internal", "Failed to load team calendar data"),

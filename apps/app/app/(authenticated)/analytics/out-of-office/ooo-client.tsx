@@ -59,157 +59,53 @@ import {
 
 const TRAILING_ZERO_REGEX = /\.0$/;
 
-const getStatusClass = (status: string): string => {
-  if (status === "Completed") {
-    return "bg-surface-container text-on-surface-variant";
-  }
-  if (status === "Approved") {
-    return "bg-primary/10 text-primary";
-  }
-  return "bg-[#a855f7]/10 text-[#a855f7]";
-};
+interface TimeRange {
+  id: string;
+  label: string;
+}
 
-const TIME_RANGES = [
-  { id: "week", label: "Week" },
-  { id: "fortnight", label: "Fortnight" },
-  { id: "month", label: "Month" },
-  { id: "year", label: "Year" },
-] as const;
+interface OooType {
+  bgFill: string;
+  color: string;
+  days: number;
+  icon: "home" | "plane";
+  id: string;
+  label: string;
+  total: number;
+}
 
-const DEPARTMENTS = [
-  "All Departments",
-  "Engineering",
-  "Marketing",
-  "Sales",
-  "Product",
-  "Ops",
-];
+interface StaffOooData {
+  id: number;
+  name: string;
+  team: string;
+  travelDays: number;
+  wfhDays: number;
+}
 
-const OOO_TYPES = [
-  {
-    id: "all",
-    label: "Total OOO",
-    days: 42,
-    total: 120,
-    color: "#57624F", // Tertiary green
-    bgFill: "oklch(0.92 0.01 100)",
-    icon: CalendarIcon,
-  },
-  {
-    id: "wfh",
-    label: "Working from Home",
-    days: 28,
-    total: 80,
-    color: "#3b82f6", // blue-500
-    bgFill: "oklch(0.95 0.03 250)",
-    icon: HomeIcon,
-  },
-  {
-    id: "travelling",
-    label: "Travelling",
-    days: 14,
-    total: 40,
-    color: "#a855f7", // purple-500
-    bgFill: "oklch(0.95 0.05 300)",
-    icon: PlaneIcon,
-  },
-] as const;
+interface OooChartDataPoint {
+  name: string;
+  travelling?: number;
+  wfh?: number;
+}
 
-// Enhanced Mock Data
-const getMockOooHistory = (id: number, formatVal: (val: number) => string) => {
-  const types = ["Working from Home", "Travelling"];
-  const statuses = ["Completed", "Approved", "Upcoming"];
-  const days = [1, 2, 3, 5];
-
-  return Array.from({ length: 4 }, (_, i) => {
-    const isPast = i < 2;
-    return {
-      id: `${id}-${i}`,
-      type: types[(id + i) % 2],
-      status: isPast ? "Completed" : statuses[((id + (i % 2)) % 2) + 1],
-      duration: formatVal(days[(id + i) % 4]),
-      date: isPast
-        ? format(subDays(new Date(), (i + 1) * 7), "MMM dd, yyyy")
-        : format(addDays(new Date(), (i + 1) * 10), "MMM dd, yyyy"),
-      isPast,
-    };
-  });
-};
-
-const STAFF_OOO_DATA = Array.from({ length: 50 }, (_, i) => ({
-  id: i + 1,
-  name:
-    [
-      "Alice Johnson",
-      "Bob Smith",
-      "Charlie Davis",
-      "Diana Prince",
-      "Eve Adams",
-      "Frank Miller",
-      "Grace Hopper",
-      "Hank Pym",
-      "Ivy Pepper",
-      "Jack Sparrow",
-    ][i % 10] + (i > 10 ? ` ${Math.floor(i / 10)}` : ""),
-  team: ["Engineering", "Marketing", "Sales", "Product", "Ops"][i % 5],
-  wfhDays: Math.floor(Math.random() * 10),
-  travelDays: Math.floor(Math.random() * 5),
-}));
+const OOO_TYPE_ICONS = {
+  home: HomeIcon,
+  plane: PlaneIcon,
+} as const;
 
 // ─── Sub-Components ──────────────────────────────────────────────────────────
 
 const OooTimelineChart = ({
-  date,
   activeType,
+  data,
+  wfhColor,
+  travelColor,
 }: {
-  date: DateRange | undefined;
   activeType: string;
+  data: OooChartDataPoint[];
+  wfhColor?: string;
+  travelColor?: string;
 }) => {
-  const data = useMemo(() => {
-    if (!(date?.from && date?.to)) {
-      return [];
-    }
-
-    let from = date.from;
-    let to = date.to;
-    if (from > to) {
-      const temp = from;
-      from = to;
-      to = temp;
-    }
-
-    const days = Math.round(
-      (to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    if (days > 90) {
-      const months = Math.ceil(days / 30) || 1;
-      return Array.from({ length: months }, (_, i) => {
-        const d = new Date(from.getTime());
-        d.setMonth(d.getMonth() + i);
-        return {
-          name: format(d, "MMM yy"),
-          wfh: Math.floor(Math.random() * 80) + 20,
-          travelling: Math.floor(Math.random() * 40) + 10,
-        };
-      });
-    }
-
-    const points = days + 1;
-    return Array.from({ length: points }, (_, i) => {
-      const d = new Date(from.getTime());
-      d.setDate(d.getDate() + i);
-      return {
-        name: format(d, "dd MMM"),
-        wfh: Math.floor(Math.random() * 20) + 5,
-        travelling: Math.floor(Math.random() * 10) + 2,
-      };
-    });
-  }, [date]);
-
-  const wfhColor = OOO_TYPES.find((t) => t.id === "wfh")?.color;
-  const travelColor = OOO_TYPES.find((t) => t.id === "travelling")?.color;
-
   return (
     <div className="h-[300px] w-full">
       <ResponsiveContainer height="100%" width="100%">
@@ -292,23 +188,24 @@ const OooTimelineChart = ({
   );
 };
 
+interface BarChartDataPoint {
+  name: string;
+  travelling?: number;
+  wfh?: number;
+}
+
 const AnimatedOooBarChart = ({
   data,
   activeType,
+  wfhColor,
+  travelColor,
 }: {
-  data: typeof STAFF_OOO_DATA;
+  data: BarChartDataPoint[];
   activeType: string;
+  wfhColor?: string;
+  travelColor?: string;
 }) => {
-  const chartData = useMemo(() => {
-    return data.slice(0, 12).map((d) => ({
-      name: d.name.split(" ")[0],
-      wfh: d.wfhDays,
-      travelling: d.travelDays,
-    }));
-  }, [data]);
-
-  const wfhColor = OOO_TYPES.find((t) => t.id === "wfh")?.color;
-  const travelColor = OOO_TYPES.find((t) => t.id === "travelling")?.color;
+  const chartData = data;
 
   return (
     <div className="relative flex h-[400px] w-full items-end gap-4 px-4 pb-8">
@@ -323,7 +220,7 @@ const AnimatedOooBarChart = ({
               animate={{
                 height:
                   activeType === "all" || activeType === "wfh"
-                    ? `${(item.wfh / 15) * 100}%`
+                    ? `${((item.wfh ?? 0) / 15) * 100}%`
                     : 0,
               }}
               className="w-full"
@@ -337,7 +234,7 @@ const AnimatedOooBarChart = ({
               animate={{
                 height:
                   activeType === "all" || activeType === "travelling"
-                    ? `${(item.travelling / 15) * 100}%`
+                    ? `${((item.travelling ?? 0) / 15) * 100}%`
                     : 0,
               }}
               className="w-full"
@@ -364,8 +261,8 @@ const StaffOooTableVirtualized = ({
   onSelect,
   formatVal,
 }: {
-  data: typeof STAFF_OOO_DATA;
-  onSelect: (member: (typeof STAFF_OOO_DATA)[0]) => void;
+  data: StaffOooData[];
+  onSelect: (member: StaffOooData) => void;
   formatVal: (val: number) => string;
 }) => {
   return (
@@ -419,25 +316,39 @@ const StaffOooTableVirtualized = ({
 
 // ─── Main Client ───────────────────────────────────────────────────────────────
 
-export const OooClient = ({
-  reportingUnit = "hours",
-  workingHoursPerDay = 7.6,
-}: {
+interface OooClientProps {
+  barChartData?: BarChartDataPoint[];
+  departments?: string[];
+  oooTypes?: OooType[];
   reportingUnit?: string;
+  staffData?: StaffOooData[];
+  timelineChartData?: OooChartDataPoint[];
+  timeRanges?: TimeRange[];
   workingHoursPerDay?: number;
-}) => {
+}
+
+export const OooClient = ({
+  barChartData,
+  departments,
+  oooTypes,
+  reportingUnit = "hours",
+  staffData,
+  timelineChartData,
+  timeRanges,
+  workingHoursPerDay = 7.6,
+}: OooClientProps) => {
   const [activeType, setActiveType] = useState<"wfh" | "travelling" | "all">(
     "all"
   );
   const [timeRange, setTimeRange] = useState<string>("month");
-  const [department, setDepartment] = useState<string>("All Departments");
+  const [department, setDepartment] = useState<string>(
+    departments?.[0] ?? "All Departments"
+  );
   const [date, setDate] = useState<DateRange | undefined>({
     from: startOfMonth(new Date()),
     to: new Date(),
   });
-  const [selectedStaff, setSelectedStaff] = useState<
-    (typeof STAFF_OOO_DATA)[0] | null
-  >(null);
+  const [selectedStaff, setSelectedStaff] = useState<StaffOooData | null>(null);
 
   const formatVal = useMemo(
     () => (days: number) => {
@@ -450,11 +361,36 @@ export const OooClient = ({
   );
 
   const filteredStaffData = useMemo(() => {
-    if (department === "All Departments") {
-      return STAFF_OOO_DATA;
+    if (department === departments?.[0]) {
+      return staffData ?? [];
     }
-    return STAFF_OOO_DATA.filter((s) => s.team === department);
-  }, [department]);
+    return (staffData ?? []).filter((s) => s.team === department);
+  }, [department, staffData, departments]);
+
+  // Show empty state if no data is available
+  if (
+    !oooTypes ||
+    oooTypes.length === 0 ||
+    !staffData ||
+    staffData.length === 0
+  ) {
+    return (
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-12 px-8 py-8">
+        <div
+          className="flex flex-col items-center justify-center gap-3 rounded-2xl py-20"
+          style={{ background: "var(--muted)" }}
+        >
+          <p className="font-medium text-[0.9375rem] text-foreground">
+            No out of office data available
+          </p>
+          <p className="mt-0.5 text-[0.875rem] text-muted-foreground">
+            Work from home and travel records will appear here once your
+            organisation data is available.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const setRelativeRange = (days: number) => {
     setDate({
@@ -475,54 +411,58 @@ export const OooClient = ({
       {/* Cinematic Header Section */}
       <section className="flex flex-col gap-8">
         <div className="flex h-12 items-center justify-end gap-4">
-          <Select onValueChange={setDepartment} value={department}>
-            <SelectTrigger className="!h-11 box-border w-[200px] flex-none rounded-2xl border-none bg-surface-container-highest px-4 text-on-surface hover:bg-surface-container-high focus:ring-0">
-              <SelectValue placeholder="Department" />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl border-none bg-surface-container-lowest shadow-xl">
-              {DEPARTMENTS.map((dept) => (
-                <SelectItem
-                  className="rounded-xl focus:bg-surface-container-low focus:text-primary"
-                  key={dept}
-                  value={dept}
-                >
-                  {dept}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {(departments?.length ?? 0) > 0 && (
+            <Select onValueChange={setDepartment} value={department}>
+              <SelectTrigger className="!h-11 box-border w-[200px] flex-none rounded-2xl border-none bg-surface-container-highest px-4 text-on-surface hover:bg-surface-container-high focus:ring-0">
+                <SelectValue placeholder="Department" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border-none bg-surface-container-lowest shadow-xl">
+                {departments?.map((dept) => (
+                  <SelectItem
+                    className="rounded-xl focus:bg-surface-container-low focus:text-primary"
+                    key={dept}
+                    value={dept}
+                  >
+                    {dept}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
-          <Tabs
-            className="box-border h-11 flex-none rounded-2xl bg-surface-container-highest p-1"
-            onValueChange={(val) => {
-              setTimeRange(val);
-              if (val === "week") {
-                setRelativeRange(7);
-              }
-              if (val === "fortnight") {
-                setRelativeRange(14);
-              }
-              if (val === "month") {
-                setRelativeRange(30);
-              }
-              if (val === "year") {
-                setRelativeRange(365);
-              }
-            }}
-            value={timeRange}
-          >
-            <TabsList className="h-full gap-1 border-none bg-transparent">
-              {TIME_RANGES.map((range) => (
-                <TabsTrigger
-                  className="h-full rounded-xl px-4 transition-all data-[state=active]:bg-surface-container-lowest data-[state=active]:text-primary data-[state=active]:shadow-sm"
-                  key={range.id}
-                  value={range.id}
-                >
-                  {range.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+          {(timeRanges?.length ?? 0) > 0 && (
+            <Tabs
+              className="box-border h-11 flex-none rounded-2xl bg-surface-container-highest p-1"
+              onValueChange={(val) => {
+                setTimeRange(val);
+                if (val === "week") {
+                  setRelativeRange(7);
+                }
+                if (val === "fortnight") {
+                  setRelativeRange(14);
+                }
+                if (val === "month") {
+                  setRelativeRange(30);
+                }
+                if (val === "year") {
+                  setRelativeRange(365);
+                }
+              }}
+              value={timeRange}
+            >
+              <TabsList className="h-full gap-1 border-none bg-transparent">
+                {timeRanges?.map((range) => (
+                  <TabsTrigger
+                    className="h-full rounded-xl px-4 transition-all data-[state=active]:bg-surface-container-lowest data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                    key={range.id}
+                    value={range.id}
+                  >
+                    {range.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          )}
 
           <Popover>
             <PopoverTrigger asChild>
@@ -611,69 +551,74 @@ export const OooClient = ({
         </div>
 
         {/* Cinematic Metric Highlights */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {OOO_TYPES.map((type) => (
-            <motion.button
-              className={cn(
-                "relative flex flex-col overflow-hidden rounded-[1rem] px-6 py-5 transition-all duration-500",
-                activeType === type.id
-                  ? "bg-surface-container-low"
-                  : "bg-surface-container-lowest"
-              )}
-              key={type.id}
-              onClick={() =>
-                setActiveType(type.id as "wfh" | "travelling" | "all")
-              }
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-            >
-              <AnimatePresence>
-                {activeType === type.id && (
-                  <motion.div
-                    animate={{ opacity: 1 }}
-                    className="pointer-events-none absolute inset-0 bg-primary/5"
-                    exit={{ opacity: 0 }}
-                    initial={{ opacity: 0 }}
-                    layoutId="active-ooo-bg"
-                  />
-                )}
-              </AnimatePresence>
+        {(oooTypes?.length ?? 0) > 0 && (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            {oooTypes?.map((type) => {
+              const Icon = OOO_TYPE_ICONS[type.icon];
 
-              <div className="relative z-10 flex items-center justify-between">
-                <div className="flex flex-col gap-1">
-                  <span className="text-label-md text-on-surface-variant uppercase tracking-widest">
-                    {type.label}
-                  </span>
-                  <span className="font-semibold text-display-sm text-on-surface">
-                    {formatVal(type.days)}{" "}
-                    <span className="font-normal text-body-lg text-on-surface-variant">
-                      / {formatVal(type.total)}
-                    </span>
-                  </span>
-                </div>
-                <div
-                  className="relative flex h-16 w-16 items-center justify-center rounded-full"
-                  style={{ backgroundColor: type.bgFill }}
+              return (
+                <motion.button
+                  className={cn(
+                    "relative flex flex-col overflow-hidden rounded-[1rem] px-6 py-5 transition-all duration-500",
+                    activeType === type.id
+                      ? "bg-surface-container-low"
+                      : "bg-surface-container-lowest"
+                  )}
+                  key={type.id}
+                  onClick={() =>
+                    setActiveType(type.id as "wfh" | "travelling" | "all")
+                  }
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
                 >
-                  <type.icon
-                    className="absolute h-6 w-6 opacity-30"
-                    style={{ color: type.color }}
-                  />
-                  <motion.div
-                    animate={{ rotate: activeType === type.id ? 360 : 0 }}
-                    className="absolute z-10 h-10 w-10 rounded-full border-2 border-dashed"
-                    style={{ borderColor: type.color }}
-                    transition={{
-                      duration: 10,
-                      repeat: Number.POSITIVE_INFINITY,
-                      ease: "linear",
-                    }}
-                  />
-                </div>
-              </div>
-            </motion.button>
-          ))}
-        </div>
+                  <AnimatePresence>
+                    {activeType === type.id && (
+                      <motion.div
+                        animate={{ opacity: 1 }}
+                        className="pointer-events-none absolute inset-0 bg-primary/5"
+                        exit={{ opacity: 0 }}
+                        initial={{ opacity: 0 }}
+                        layoutId="active-ooo-bg"
+                      />
+                    )}
+                  </AnimatePresence>
+
+                  <div className="relative z-10 flex items-center justify-between">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-label-md text-on-surface-variant uppercase tracking-widest">
+                        {type.label}
+                      </span>
+                      <span className="font-semibold text-display-sm text-on-surface">
+                        {formatVal(type.days)}{" "}
+                        <span className="font-normal text-body-lg text-on-surface-variant">
+                          / {formatVal(type.total)}
+                        </span>
+                      </span>
+                    </div>
+                    <div
+                      className="relative flex h-16 w-16 items-center justify-center rounded-full"
+                      style={{ backgroundColor: type.bgFill }}
+                    >
+                      <div style={{ color: type.color }}>
+                        <Icon className="absolute h-6 w-6 opacity-30" />
+                      </div>
+                      <motion.div
+                        animate={{ rotate: activeType === type.id ? 360 : 0 }}
+                        className="absolute z-10 h-10 w-10 rounded-full border-2 border-dashed"
+                        style={{ borderColor: type.color }}
+                        transition={{
+                          duration: 10,
+                          repeat: Number.POSITIVE_INFINITY,
+                          ease: "linear",
+                        }}
+                      />
+                    </div>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* Main Analysis Stage: Asymmetric 2:1 Split */}
@@ -681,57 +626,74 @@ export const OooClient = ({
         {/* Left Column: Chart Group (2/3) */}
         <div className="flex flex-col gap-8 lg:col-span-2">
           {/* OOO Volume (Line Chart) */}
-          <motion.div
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col gap-8 rounded-[1rem] bg-surface-container-low p-8"
-            initial={{ opacity: 0, y: 20 }}
-          >
-            <div className="flex flex-col gap-1">
-              <h2 className="text-headline-md text-on-surface leading-tight">
-                OOO Volume
-              </h2>
-              <p className="text-body-sm text-on-surface-variant">
-                Out of office trends over the selected dates.
-              </p>
-            </div>
-
-            <OooTimelineChart activeType={activeType} date={date} />
-          </motion.div>
-
-          {/* Location Distribution (Bar Chart) */}
-          <motion.div
-            className="flex min-h-[500px] flex-col gap-8 rounded-[1rem] bg-surface-container-low p-8"
-            layout
-          >
-            <div className="flex items-center justify-between">
+          {(timelineChartData?.length ?? 0) > 0 && (
+            <motion.div
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col gap-8 rounded-[1rem] bg-surface-container-low p-8"
+              initial={{ opacity: 0, y: 20 }}
+            >
               <div className="flex flex-col gap-1">
                 <h2 className="text-headline-md text-on-surface leading-tight">
-                  Location Distribution
+                  OOO Volume
                 </h2>
                 <p className="text-body-sm text-on-surface-variant">
-                  Comparative remote and travel days by staff member.
+                  Out of office trends over the selected dates.
                 </p>
               </div>
-              <div className="flex gap-4">
-                {OOO_TYPES.map((type) => (
-                  <div className="flex items-center gap-2" key={type.id}>
-                    <div
-                      className="h-3 w-3 rounded-full"
-                      style={{ backgroundColor: type.color }}
-                    />
-                    <span className="whitespace-nowrap text-label-sm text-on-surface-variant">
-                      {type.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
 
-            <AnimatedOooBarChart
-              activeType={activeType}
-              data={filteredStaffData}
-            />
-          </motion.div>
+              <OooTimelineChart
+                activeType={activeType}
+                data={timelineChartData ?? []}
+                travelColor={
+                  oooTypes?.find((t) => t.id === "travelling")?.color
+                }
+                wfhColor={oooTypes?.find((t) => t.id === "wfh")?.color}
+              />
+            </motion.div>
+          )}
+
+          {/* Location Distribution (Bar Chart) */}
+          {(barChartData?.length ?? 0) > 0 && (
+            <motion.div
+              className="flex min-h-[500px] flex-col gap-8 rounded-[1rem] bg-surface-container-low p-8"
+              layout
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-1">
+                  <h2 className="text-headline-md text-on-surface leading-tight">
+                    Location Distribution
+                  </h2>
+                  <p className="text-body-sm text-on-surface-variant">
+                    Comparative remote and travel days by staff member.
+                  </p>
+                </div>
+                {(oooTypes?.length ?? 0) > 0 && (
+                  <div className="flex gap-4">
+                    {oooTypes?.map((type) => (
+                      <div className="flex items-center gap-2" key={type.id}>
+                        <div
+                          className="h-3 w-3 rounded-full"
+                          style={{ backgroundColor: type.color }}
+                        />
+                        <span className="whitespace-nowrap text-label-sm text-on-surface-variant">
+                          {type.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <AnimatedOooBarChart
+                activeType={activeType}
+                data={barChartData ?? []}
+                travelColor={
+                  oooTypes?.find((t) => t.id === "travelling")?.color
+                }
+                wfhColor={oooTypes?.find((t) => t.id === "wfh")?.color}
+              />
+            </motion.div>
+          )}
         </div>
 
         {/* Sidebar Column: Staff Distribution (1/3) */}
@@ -821,36 +783,10 @@ export const OooClient = ({
                     Recent & Upcoming Remote Work
                   </h3>
                   <div className="flex flex-col gap-2">
-                    {getMockOooHistory(selectedStaff.id, formatVal).map(
-                      (leave) => (
-                        <div
-                          className="group flex items-center justify-between rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-4 transition-all hover:border-outline-variant/30 hover:bg-surface-container-low"
-                          key={leave.id}
-                        >
-                          <div className="flex flex-col">
-                            <span className="flex items-center gap-2 font-medium text-body-sm text-on-surface">
-                              {leave.type === "Travelling" ? (
-                                <PlaneIcon className="h-4 w-4 text-on-surface-variant" />
-                              ) : (
-                                <HomeIcon className="h-4 w-4 text-on-surface-variant" />
-                              )}
-                              {leave.type}
-                            </span>
-                            <span className="mt-1 text-label-sm text-on-surface-variant">
-                              {leave.date} · {leave.duration}
-                            </span>
-                          </div>
-                          <div
-                            className={cn(
-                              "rounded-md px-2.5 py-1 font-bold text-[10px] uppercase tracking-widest",
-                              getStatusClass(leave.status)
-                            )}
-                          >
-                            {leave.status}
-                          </div>
-                        </div>
-                      )
-                    )}
+                    <p className="text-muted-foreground text-sm">
+                      Detailed remote work history is available from the person
+                      profile.
+                    </p>
                   </div>
                 </div>
               </div>

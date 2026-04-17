@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
-import { toast } from "@repo/design-system/components/ui/sonner";
 import { LinkIcon, RefreshCwIcon, UnlinkIcon } from "lucide-react";
 import { ProviderStatusBadge } from "../components/provider-status-badge";
 import { SettingsSectionHeader } from "../components/settings-section-header";
@@ -81,8 +80,7 @@ const CAPABILITY_LABELS: Record<keyof ProviderCapabilities, string> = {
   incrementalSync: "Incremental sync",
 };
 
-// Build the default view showing all providers as disconnected
-const DEFAULT_CONNECTIONS: ProviderConnectionView[] = (
+const PROVIDER_CONNECTIONS: ProviderConnectionView[] = (
   ["xero", "myob", "zoho", "quickbooks"] as const
 ).map((provider) => ({
   id: null,
@@ -97,17 +95,9 @@ export const IntegrationsClient = ({
 }: IntegrationsClientProps) => {
   // Merge live connections into the full provider list
   const connectedMap = new Map(connections.map((c) => [c.provider, c]));
-  const allProviders = DEFAULT_CONNECTIONS.map(
+  const allProviders = PROVIDER_CONNECTIONS.map(
     (def) => connectedMap.get(def.provider) ?? def
   );
-
-  const handleConnect = (provider: ProviderConnectionView["provider"]) => {
-    toast.info(`${PROVIDER_META[provider].name} integration coming soon`);
-  };
-
-  const handleDisconnect = () => {
-    toast.info("Disconnect not yet available");
-  };
 
   return (
     <div className="space-y-6">
@@ -133,7 +123,6 @@ export const IntegrationsClient = ({
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-4">
-                    {/* Provider logo placeholder */}
                     <div
                       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-bold text-sm text-white"
                       style={{ backgroundColor: meta.color }}
@@ -152,7 +141,7 @@ export const IntegrationsClient = ({
                     {conn.status === "connected" && (
                       <Button
                         className="gap-1.5 text-xs"
-                        onClick={() => handleDisconnect()}
+                        disabled
                         size="sm"
                         variant="outline"
                       >
@@ -163,7 +152,7 @@ export const IntegrationsClient = ({
                     {conn.status === "error" && (
                       <Button
                         className="gap-1.5 text-xs"
-                        onClick={() => handleConnect(conn.provider)}
+                        disabled
                         size="sm"
                         variant="outline"
                       >
@@ -172,11 +161,7 @@ export const IntegrationsClient = ({
                       </Button>
                     )}
                     {conn.status === "disconnected" && (
-                      <Button
-                        className="gap-1.5 text-xs"
-                        onClick={() => handleConnect(conn.provider)}
-                        size="sm"
-                      >
+                      <Button className="gap-1.5 text-xs" disabled size="sm">
                         <LinkIcon className="h-3 w-3" strokeWidth={2} />
                         Connect
                       </Button>
