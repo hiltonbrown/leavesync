@@ -41,7 +41,7 @@ interface EditablePlanRecord {
   contactabilityStatus: PlanRecordFormInput["contactabilityStatus"];
   endsAt: string;
   endTime: string;
-  id: string;
+  id?: string;
   notesInternal: string;
   personId: string;
   privacyMode: PlanRecordFormInput["privacyMode"];
@@ -470,7 +470,7 @@ async function saveRecord(
   record: EditablePlanRecord | undefined,
   input: PlanRecordFormInput
 ): Promise<PlanActionResult<{ id: string }>> {
-  if (mode === "edit" && record) {
+  if (mode === "edit" && record?.id) {
     if (isUnchanged(record, input)) {
       return { ok: true, value: { id: record.id } };
     }

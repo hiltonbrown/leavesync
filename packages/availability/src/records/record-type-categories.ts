@@ -1,6 +1,10 @@
-import type { availability_record_type } from "@repo/database/generated/enums";
+import type {
+  availability_record_type,
+  availability_source_type,
+} from "@repo/database/generated/enums";
 
 export type RecordType = availability_record_type;
+export type RecordTypeCategory = "all" | "local_only" | "xero_leave";
 
 const recordTypes = <const T extends readonly RecordType[]>(values: T) =>
   values;
@@ -48,6 +52,18 @@ export const USER_CREATABLE_RECORD_TYPES = [
   ...XERO_LEAVE_TYPES,
   ...LOCAL_ONLY_TYPES,
 ] as const;
+
+export const sourceTypesForCategory = (
+  category: RecordTypeCategory
+): availability_source_type[] => {
+  if (category === "xero_leave") {
+    return ["xero_leave", "leavesync_leave"];
+  }
+  if (category === "local_only") {
+    return ["manual"];
+  }
+  return ["xero_leave", "leavesync_leave", "manual"];
+};
 
 type KnownRecordType = (typeof ALL_KNOWN_RECORD_TYPES)[number];
 type UnclassifiedRecordType = Exclude<RecordType, KnownRecordType>;

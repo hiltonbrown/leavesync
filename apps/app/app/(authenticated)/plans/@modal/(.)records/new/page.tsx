@@ -3,14 +3,14 @@ import { RecordForm } from "../../../record-form";
 import { loadPlanFormData } from "../../../record-form-data";
 
 interface NewRecordModalPageProps {
-  searchParams: Promise<{ org?: string }>;
+  searchParams: Promise<{ org?: string; personId?: string; startsAt?: string }>;
 }
 
 const NewRecordModalPage = async ({
   searchParams,
 }: NewRecordModalPageProps) => {
-  const { org } = await searchParams;
-  const data = await loadPlanFormData({ org });
+  const { org, personId, startsAt } = await searchParams;
+  const data = await loadPlanFormData({ org, personId, startsAt });
 
   return (
     <InterceptingModalShell size="default" title="New record">

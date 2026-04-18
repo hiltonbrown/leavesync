@@ -14,12 +14,18 @@ import type { PlanRecordFormInput } from "./_schemas";
 
 interface LoadPlanFormDataInput {
   org?: string;
+  personId?: string;
   recordId?: string;
+  startsAt?: string;
 }
+
+const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 export async function loadPlanFormData({
   org,
+  personId,
   recordId,
+  startsAt,
 }: LoadPlanFormDataInput) {
   const user = await currentUser();
   const { orgRole } = await auth();
@@ -110,9 +116,16 @@ export async function loadPlanFormData({
         startTime: timeInput(recordResult.value.startsAt),
       }
     : undefined;
+  const prefillRecord =
+    record ??
+    createPrefillRecord({
+      people,
+      personId,
+      startsAt,
+    });
 
-  const balancePersonId = record?.personId ?? people[0]?.id;
-  const balanceRecordType = record?.recordType ?? "annual_leave";
+  const balancePersonId = prefillRecord?.personId ?? people[0]?.id;
+  const balanceRecordType = prefillRecord?.recordType ?? "annual_leave";
   const balance =
     balancePersonId && isXeroLeaveType(balanceRecordType)
       ? await database.leaveBalance.findFirst({
@@ -137,7 +150,7 @@ export async function loadPlanFormData({
       id: person.id,
       label: `${person.first_name} ${person.last_name}`,
     })),
-    record,
+    record: prefillRecord,
   };
 }
 
@@ -147,4 +160,35 @@ function dateInput(date: Date): string {
 
 function timeInput(date: Date): string {
   return date.toISOString().slice(11, 16);
+}
+
+function createPrefillRecord({
+  people,
+  personId,
+  startsAt,
+}: {
+  people: Array<{ id: string }>;
+  personId?: string;
+  startsAt?: string;
+}) {
+  if (!startsAt) {
+    return undefined;
+  }
+  const date = startsAt.includes("T") ? startsAt.slice(0, 10) : startsAt;
+  if (!DATE_ONLY_PATTERN.test(date)) {
+    return undefined;
+  }
+  const requestedPerson = people.find((person) => person.id === personId);
+  return {
+    allDay: true,
+    contactabilityStatus: "contactable" as const,
+    endsAt: date,
+    endTime: "",
+    notesInternal: "",
+    personId: requestedPerson?.id ?? people[0]?.id ?? "",
+    privacyMode: "named" as const,
+    recordType: "annual_leave" as const,
+    startsAt: date,
+    startTime: "",
+  };
 }

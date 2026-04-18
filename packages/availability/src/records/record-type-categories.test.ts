@@ -8,6 +8,7 @@ import {
   isXeroLeaveType,
   LOCAL_ONLY_TYPES,
   SYSTEM_RECORD_TYPES,
+  sourceTypesForCategory,
   XERO_LEAVE_TYPES,
 } from "./record-type-categories";
 
@@ -64,5 +65,18 @@ describe("record type categories", () => {
       | "other"
       | "leave_request"
     >();
+  });
+
+  it("maps calendar category filters to source types", () => {
+    expect(sourceTypesForCategory("xero_leave")).toEqual([
+      "xero_leave",
+      "leavesync_leave",
+    ]);
+    expect(sourceTypesForCategory("local_only")).toEqual(["manual"]);
+    expect(sourceTypesForCategory("all")).toEqual([
+      "xero_leave",
+      "leavesync_leave",
+      "manual",
+    ]);
   });
 });
