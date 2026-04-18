@@ -55,6 +55,66 @@ export const xero_sync_entity_type = {
 export type xero_sync_entity_type = (typeof xero_sync_entity_type)[keyof typeof xero_sync_entity_type]
 
 
+export const sync_run_status = {
+  running: 'running',
+  succeeded: 'succeeded',
+  partial_success: 'partial_success',
+  failed: 'failed',
+  cancelled: 'cancelled'
+} as const
+
+export type sync_run_status = (typeof sync_run_status)[keyof typeof sync_run_status]
+
+
+export const sync_run_type = {
+  people: 'people',
+  leave_records: 'leave_records',
+  leave_balances: 'leave_balances',
+  approval_state_reconciliation: 'approval_state_reconciliation'
+} as const
+
+export type sync_run_type = (typeof sync_run_type)[keyof typeof sync_run_type]
+
+
+export const sync_trigger_type = {
+  scheduled: 'scheduled',
+  manual: 'manual',
+  webhook: 'webhook'
+} as const
+
+export type sync_trigger_type = (typeof sync_trigger_type)[keyof typeof sync_trigger_type]
+
+
+export const sync_failed_record_type = {
+  people: 'people',
+  leave_records: 'leave_records',
+  leave_balances: 'leave_balances',
+  approval_state_reconciliation: 'approval_state_reconciliation',
+  leave: 'leave',
+  annual_leave: 'annual_leave',
+  personal_leave: 'personal_leave',
+  holiday: 'holiday',
+  sick_leave: 'sick_leave',
+  long_service_leave: 'long_service_leave',
+  unpaid_leave: 'unpaid_leave',
+  public_holiday: 'public_holiday',
+  wfh: 'wfh',
+  travel: 'travel',
+  travelling: 'travelling',
+  training: 'training',
+  client_site: 'client_site',
+  another_office: 'another_office',
+  offsite_meeting: 'offsite_meeting',
+  contractor_unavailable: 'contractor_unavailable',
+  limited_availability: 'limited_availability',
+  alternative_contact: 'alternative_contact',
+  other: 'other',
+  leave_request: 'leave_request'
+} as const
+
+export type sync_failed_record_type = (typeof sync_failed_record_type)[keyof typeof sync_failed_record_type]
+
+
 export const availability_record_type = {
   leave: 'leave',
   annual_leave: 'annual_leave',
@@ -181,6 +241,7 @@ export type feed_token_status = (typeof feed_token_status)[keyof typeof feed_tok
 
 export const notification_type = {
   sync_failed: 'sync_failed',
+  sync_reconciliation_complete: 'sync_reconciliation_complete',
   feed_token_rotated: 'feed_token_rotated',
   privacy_conflict: 'privacy_conflict',
   missing_alternative_contact: 'missing_alternative_contact',

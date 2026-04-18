@@ -113,6 +113,18 @@ const REGISTRY = [
     actionLabel: "Review failure",
   },
   {
+    type: "sync_reconciliation_complete",
+    label: "Approval reconciliation complete",
+    shortLabel: "Reconciliation complete",
+    iconKey: "refresh-check",
+    description: "Approval reconciliation has completed.",
+    defaultChannels: { inApp: true, email: false },
+    supportsActionUrl: true,
+    userFacingCategory: "sync",
+    emailTemplate: null,
+    actionLabel: "Open sync run",
+  },
+  {
     type: "sync_failed",
     label: "Sync failed",
     shortLabel: "Sync failed",

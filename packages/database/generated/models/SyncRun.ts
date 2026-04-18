@@ -27,11 +27,17 @@ export type AggregateSyncRun = {
 }
 
 export type SyncRunAvgAggregateOutputType = {
+  records_fetched: number | null
+  records_upserted: number | null
+  records_skipped: number | null
   records_synced: number | null
   records_failed: number | null
 }
 
 export type SyncRunSumAggregateOutputType = {
+  records_fetched: number | null
+  records_upserted: number | null
+  records_skipped: number | null
   records_synced: number | null
   records_failed: number | null
 }
@@ -41,11 +47,19 @@ export type SyncRunMinAggregateOutputType = {
   clerk_org_id: string | null
   organisation_id: string | null
   xero_tenant_id: string | null
-  status: string | null
+  status: $Enums.sync_run_status | null
+  run_type: $Enums.sync_run_type | null
+  trigger_type: $Enums.sync_trigger_type | null
+  triggered_by_user_id: string | null
   entity_type: $Enums.xero_sync_entity_type | null
+  records_fetched: number | null
+  records_upserted: number | null
+  records_skipped: number | null
   records_synced: number | null
   records_failed: number | null
   error_message: string | null
+  error_summary: string | null
+  cancel_requested_at: Date | null
   started_at: Date | null
   completed_at: Date | null
   created_at: Date | null
@@ -57,11 +71,19 @@ export type SyncRunMaxAggregateOutputType = {
   clerk_org_id: string | null
   organisation_id: string | null
   xero_tenant_id: string | null
-  status: string | null
+  status: $Enums.sync_run_status | null
+  run_type: $Enums.sync_run_type | null
+  trigger_type: $Enums.sync_trigger_type | null
+  triggered_by_user_id: string | null
   entity_type: $Enums.xero_sync_entity_type | null
+  records_fetched: number | null
+  records_upserted: number | null
+  records_skipped: number | null
   records_synced: number | null
   records_failed: number | null
   error_message: string | null
+  error_summary: string | null
+  cancel_requested_at: Date | null
   started_at: Date | null
   completed_at: Date | null
   created_at: Date | null
@@ -74,10 +96,18 @@ export type SyncRunCountAggregateOutputType = {
   organisation_id: number
   xero_tenant_id: number
   status: number
+  run_type: number
+  trigger_type: number
+  triggered_by_user_id: number
   entity_type: number
+  records_fetched: number
+  records_upserted: number
+  records_skipped: number
   records_synced: number
   records_failed: number
   error_message: number
+  error_summary: number
+  cancel_requested_at: number
   started_at: number
   completed_at: number
   created_at: number
@@ -87,11 +117,17 @@ export type SyncRunCountAggregateOutputType = {
 
 
 export type SyncRunAvgAggregateInputType = {
+  records_fetched?: true
+  records_upserted?: true
+  records_skipped?: true
   records_synced?: true
   records_failed?: true
 }
 
 export type SyncRunSumAggregateInputType = {
+  records_fetched?: true
+  records_upserted?: true
+  records_skipped?: true
   records_synced?: true
   records_failed?: true
 }
@@ -102,10 +138,18 @@ export type SyncRunMinAggregateInputType = {
   organisation_id?: true
   xero_tenant_id?: true
   status?: true
+  run_type?: true
+  trigger_type?: true
+  triggered_by_user_id?: true
   entity_type?: true
+  records_fetched?: true
+  records_upserted?: true
+  records_skipped?: true
   records_synced?: true
   records_failed?: true
   error_message?: true
+  error_summary?: true
+  cancel_requested_at?: true
   started_at?: true
   completed_at?: true
   created_at?: true
@@ -118,10 +162,18 @@ export type SyncRunMaxAggregateInputType = {
   organisation_id?: true
   xero_tenant_id?: true
   status?: true
+  run_type?: true
+  trigger_type?: true
+  triggered_by_user_id?: true
   entity_type?: true
+  records_fetched?: true
+  records_upserted?: true
+  records_skipped?: true
   records_synced?: true
   records_failed?: true
   error_message?: true
+  error_summary?: true
+  cancel_requested_at?: true
   started_at?: true
   completed_at?: true
   created_at?: true
@@ -134,10 +186,18 @@ export type SyncRunCountAggregateInputType = {
   organisation_id?: true
   xero_tenant_id?: true
   status?: true
+  run_type?: true
+  trigger_type?: true
+  triggered_by_user_id?: true
   entity_type?: true
+  records_fetched?: true
+  records_upserted?: true
+  records_skipped?: true
   records_synced?: true
   records_failed?: true
   error_message?: true
+  error_summary?: true
+  cancel_requested_at?: true
   started_at?: true
   completed_at?: true
   created_at?: true
@@ -236,11 +296,19 @@ export type SyncRunGroupByOutputType = {
   clerk_org_id: string
   organisation_id: string
   xero_tenant_id: string | null
-  status: string
+  status: $Enums.sync_run_status
+  run_type: $Enums.sync_run_type
+  trigger_type: $Enums.sync_trigger_type
+  triggered_by_user_id: string | null
   entity_type: $Enums.xero_sync_entity_type | null
+  records_fetched: number
+  records_upserted: number
+  records_skipped: number
   records_synced: number
   records_failed: number
   error_message: string | null
+  error_summary: string | null
+  cancel_requested_at: Date | null
   started_at: Date
   completed_at: Date | null
   created_at: Date
@@ -275,16 +343,25 @@ export type SyncRunWhereInput = {
   clerk_org_id?: Prisma.StringFilter<"SyncRun"> | string
   organisation_id?: Prisma.UuidFilter<"SyncRun"> | string
   xero_tenant_id?: Prisma.UuidNullableFilter<"SyncRun"> | string | null
-  status?: Prisma.StringFilter<"SyncRun"> | string
+  status?: Prisma.Enumsync_run_statusFilter<"SyncRun"> | $Enums.sync_run_status
+  run_type?: Prisma.Enumsync_run_typeFilter<"SyncRun"> | $Enums.sync_run_type
+  trigger_type?: Prisma.Enumsync_trigger_typeFilter<"SyncRun"> | $Enums.sync_trigger_type
+  triggered_by_user_id?: Prisma.StringNullableFilter<"SyncRun"> | string | null
   entity_type?: Prisma.Enumxero_sync_entity_typeNullableFilter<"SyncRun"> | $Enums.xero_sync_entity_type | null
+  records_fetched?: Prisma.IntFilter<"SyncRun"> | number
+  records_upserted?: Prisma.IntFilter<"SyncRun"> | number
+  records_skipped?: Prisma.IntFilter<"SyncRun"> | number
   records_synced?: Prisma.IntFilter<"SyncRun"> | number
   records_failed?: Prisma.IntFilter<"SyncRun"> | number
   error_message?: Prisma.StringNullableFilter<"SyncRun"> | string | null
+  error_summary?: Prisma.StringNullableFilter<"SyncRun"> | string | null
+  cancel_requested_at?: Prisma.DateTimeNullableFilter<"SyncRun"> | Date | string | null
   started_at?: Prisma.DateTimeFilter<"SyncRun"> | Date | string
   completed_at?: Prisma.DateTimeNullableFilter<"SyncRun"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"SyncRun"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"SyncRun"> | Date | string
   organisation?: Prisma.XOR<Prisma.OrganisationScalarRelationFilter, Prisma.OrganisationWhereInput>
+  xero_tenant?: Prisma.XOR<Prisma.XeroTenantNullableScalarRelationFilter, Prisma.XeroTenantWhereInput> | null
   failed_records?: Prisma.FailedRecordListRelationFilter
 }
 
@@ -294,15 +371,24 @@ export type SyncRunOrderByWithRelationInput = {
   organisation_id?: Prisma.SortOrder
   xero_tenant_id?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  run_type?: Prisma.SortOrder
+  trigger_type?: Prisma.SortOrder
+  triggered_by_user_id?: Prisma.SortOrderInput | Prisma.SortOrder
   entity_type?: Prisma.SortOrderInput | Prisma.SortOrder
+  records_fetched?: Prisma.SortOrder
+  records_upserted?: Prisma.SortOrder
+  records_skipped?: Prisma.SortOrder
   records_synced?: Prisma.SortOrder
   records_failed?: Prisma.SortOrder
   error_message?: Prisma.SortOrderInput | Prisma.SortOrder
+  error_summary?: Prisma.SortOrderInput | Prisma.SortOrder
+  cancel_requested_at?: Prisma.SortOrderInput | Prisma.SortOrder
   started_at?: Prisma.SortOrder
   completed_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   organisation?: Prisma.OrganisationOrderByWithRelationInput
+  xero_tenant?: Prisma.XeroTenantOrderByWithRelationInput
   failed_records?: Prisma.FailedRecordOrderByRelationAggregateInput
 }
 
@@ -314,16 +400,25 @@ export type SyncRunWhereUniqueInput = Prisma.AtLeast<{
   clerk_org_id?: Prisma.StringFilter<"SyncRun"> | string
   organisation_id?: Prisma.UuidFilter<"SyncRun"> | string
   xero_tenant_id?: Prisma.UuidNullableFilter<"SyncRun"> | string | null
-  status?: Prisma.StringFilter<"SyncRun"> | string
+  status?: Prisma.Enumsync_run_statusFilter<"SyncRun"> | $Enums.sync_run_status
+  run_type?: Prisma.Enumsync_run_typeFilter<"SyncRun"> | $Enums.sync_run_type
+  trigger_type?: Prisma.Enumsync_trigger_typeFilter<"SyncRun"> | $Enums.sync_trigger_type
+  triggered_by_user_id?: Prisma.StringNullableFilter<"SyncRun"> | string | null
   entity_type?: Prisma.Enumxero_sync_entity_typeNullableFilter<"SyncRun"> | $Enums.xero_sync_entity_type | null
+  records_fetched?: Prisma.IntFilter<"SyncRun"> | number
+  records_upserted?: Prisma.IntFilter<"SyncRun"> | number
+  records_skipped?: Prisma.IntFilter<"SyncRun"> | number
   records_synced?: Prisma.IntFilter<"SyncRun"> | number
   records_failed?: Prisma.IntFilter<"SyncRun"> | number
   error_message?: Prisma.StringNullableFilter<"SyncRun"> | string | null
+  error_summary?: Prisma.StringNullableFilter<"SyncRun"> | string | null
+  cancel_requested_at?: Prisma.DateTimeNullableFilter<"SyncRun"> | Date | string | null
   started_at?: Prisma.DateTimeFilter<"SyncRun"> | Date | string
   completed_at?: Prisma.DateTimeNullableFilter<"SyncRun"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"SyncRun"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"SyncRun"> | Date | string
   organisation?: Prisma.XOR<Prisma.OrganisationScalarRelationFilter, Prisma.OrganisationWhereInput>
+  xero_tenant?: Prisma.XOR<Prisma.XeroTenantNullableScalarRelationFilter, Prisma.XeroTenantWhereInput> | null
   failed_records?: Prisma.FailedRecordListRelationFilter
 }, "id">
 
@@ -333,10 +428,18 @@ export type SyncRunOrderByWithAggregationInput = {
   organisation_id?: Prisma.SortOrder
   xero_tenant_id?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  run_type?: Prisma.SortOrder
+  trigger_type?: Prisma.SortOrder
+  triggered_by_user_id?: Prisma.SortOrderInput | Prisma.SortOrder
   entity_type?: Prisma.SortOrderInput | Prisma.SortOrder
+  records_fetched?: Prisma.SortOrder
+  records_upserted?: Prisma.SortOrder
+  records_skipped?: Prisma.SortOrder
   records_synced?: Prisma.SortOrder
   records_failed?: Prisma.SortOrder
   error_message?: Prisma.SortOrderInput | Prisma.SortOrder
+  error_summary?: Prisma.SortOrderInput | Prisma.SortOrder
+  cancel_requested_at?: Prisma.SortOrderInput | Prisma.SortOrder
   started_at?: Prisma.SortOrder
   completed_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -356,11 +459,19 @@ export type SyncRunScalarWhereWithAggregatesInput = {
   clerk_org_id?: Prisma.StringWithAggregatesFilter<"SyncRun"> | string
   organisation_id?: Prisma.UuidWithAggregatesFilter<"SyncRun"> | string
   xero_tenant_id?: Prisma.UuidNullableWithAggregatesFilter<"SyncRun"> | string | null
-  status?: Prisma.StringWithAggregatesFilter<"SyncRun"> | string
+  status?: Prisma.Enumsync_run_statusWithAggregatesFilter<"SyncRun"> | $Enums.sync_run_status
+  run_type?: Prisma.Enumsync_run_typeWithAggregatesFilter<"SyncRun"> | $Enums.sync_run_type
+  trigger_type?: Prisma.Enumsync_trigger_typeWithAggregatesFilter<"SyncRun"> | $Enums.sync_trigger_type
+  triggered_by_user_id?: Prisma.StringNullableWithAggregatesFilter<"SyncRun"> | string | null
   entity_type?: Prisma.Enumxero_sync_entity_typeNullableWithAggregatesFilter<"SyncRun"> | $Enums.xero_sync_entity_type | null
+  records_fetched?: Prisma.IntWithAggregatesFilter<"SyncRun"> | number
+  records_upserted?: Prisma.IntWithAggregatesFilter<"SyncRun"> | number
+  records_skipped?: Prisma.IntWithAggregatesFilter<"SyncRun"> | number
   records_synced?: Prisma.IntWithAggregatesFilter<"SyncRun"> | number
   records_failed?: Prisma.IntWithAggregatesFilter<"SyncRun"> | number
   error_message?: Prisma.StringNullableWithAggregatesFilter<"SyncRun"> | string | null
+  error_summary?: Prisma.StringNullableWithAggregatesFilter<"SyncRun"> | string | null
+  cancel_requested_at?: Prisma.DateTimeNullableWithAggregatesFilter<"SyncRun"> | Date | string | null
   started_at?: Prisma.DateTimeWithAggregatesFilter<"SyncRun"> | Date | string
   completed_at?: Prisma.DateTimeNullableWithAggregatesFilter<"SyncRun"> | Date | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"SyncRun"> | Date | string
@@ -370,17 +481,25 @@ export type SyncRunScalarWhereWithAggregatesInput = {
 export type SyncRunCreateInput = {
   id?: string
   clerk_org_id: string
-  xero_tenant_id?: string | null
-  status: string
+  status?: $Enums.sync_run_status
+  run_type: $Enums.sync_run_type
+  trigger_type?: $Enums.sync_trigger_type
+  triggered_by_user_id?: string | null
   entity_type?: $Enums.xero_sync_entity_type | null
+  records_fetched?: number
+  records_upserted?: number
+  records_skipped?: number
   records_synced?: number
   records_failed?: number
   error_message?: string | null
+  error_summary?: string | null
+  cancel_requested_at?: Date | string | null
   started_at: Date | string
   completed_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutSync_runsInput
+  xero_tenant?: Prisma.XeroTenantCreateNestedOneWithoutSync_runsInput
   failed_records?: Prisma.FailedRecordCreateNestedManyWithoutSync_runInput
 }
 
@@ -389,11 +508,19 @@ export type SyncRunUncheckedCreateInput = {
   clerk_org_id: string
   organisation_id: string
   xero_tenant_id?: string | null
-  status: string
+  status?: $Enums.sync_run_status
+  run_type: $Enums.sync_run_type
+  trigger_type?: $Enums.sync_trigger_type
+  triggered_by_user_id?: string | null
   entity_type?: $Enums.xero_sync_entity_type | null
+  records_fetched?: number
+  records_upserted?: number
+  records_skipped?: number
   records_synced?: number
   records_failed?: number
   error_message?: string | null
+  error_summary?: string | null
+  cancel_requested_at?: Date | string | null
   started_at: Date | string
   completed_at?: Date | string | null
   created_at?: Date | string
@@ -404,17 +531,25 @@ export type SyncRunUncheckedCreateInput = {
 export type SyncRunUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
-  xero_tenant_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumsync_run_statusFieldUpdateOperationsInput | $Enums.sync_run_status
+  run_type?: Prisma.Enumsync_run_typeFieldUpdateOperationsInput | $Enums.sync_run_type
+  trigger_type?: Prisma.Enumsync_trigger_typeFieldUpdateOperationsInput | $Enums.sync_trigger_type
+  triggered_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableEnumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type | null
+  records_fetched?: Prisma.IntFieldUpdateOperationsInput | number
+  records_upserted?: Prisma.IntFieldUpdateOperationsInput | number
+  records_skipped?: Prisma.IntFieldUpdateOperationsInput | number
   records_synced?: Prisma.IntFieldUpdateOperationsInput | number
   records_failed?: Prisma.IntFieldUpdateOperationsInput | number
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancel_requested_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutSync_runsNestedInput
+  xero_tenant?: Prisma.XeroTenantUpdateOneWithoutSync_runsNestedInput
   failed_records?: Prisma.FailedRecordUpdateManyWithoutSync_runNestedInput
 }
 
@@ -423,11 +558,19 @@ export type SyncRunUncheckedUpdateInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumsync_run_statusFieldUpdateOperationsInput | $Enums.sync_run_status
+  run_type?: Prisma.Enumsync_run_typeFieldUpdateOperationsInput | $Enums.sync_run_type
+  trigger_type?: Prisma.Enumsync_trigger_typeFieldUpdateOperationsInput | $Enums.sync_trigger_type
+  triggered_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableEnumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type | null
+  records_fetched?: Prisma.IntFieldUpdateOperationsInput | number
+  records_upserted?: Prisma.IntFieldUpdateOperationsInput | number
+  records_skipped?: Prisma.IntFieldUpdateOperationsInput | number
   records_synced?: Prisma.IntFieldUpdateOperationsInput | number
   records_failed?: Prisma.IntFieldUpdateOperationsInput | number
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancel_requested_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -440,11 +583,19 @@ export type SyncRunCreateManyInput = {
   clerk_org_id: string
   organisation_id: string
   xero_tenant_id?: string | null
-  status: string
+  status?: $Enums.sync_run_status
+  run_type: $Enums.sync_run_type
+  trigger_type?: $Enums.sync_trigger_type
+  triggered_by_user_id?: string | null
   entity_type?: $Enums.xero_sync_entity_type | null
+  records_fetched?: number
+  records_upserted?: number
+  records_skipped?: number
   records_synced?: number
   records_failed?: number
   error_message?: string | null
+  error_summary?: string | null
+  cancel_requested_at?: Date | string | null
   started_at: Date | string
   completed_at?: Date | string | null
   created_at?: Date | string
@@ -454,12 +605,19 @@ export type SyncRunCreateManyInput = {
 export type SyncRunUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
-  xero_tenant_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumsync_run_statusFieldUpdateOperationsInput | $Enums.sync_run_status
+  run_type?: Prisma.Enumsync_run_typeFieldUpdateOperationsInput | $Enums.sync_run_type
+  trigger_type?: Prisma.Enumsync_trigger_typeFieldUpdateOperationsInput | $Enums.sync_trigger_type
+  triggered_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableEnumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type | null
+  records_fetched?: Prisma.IntFieldUpdateOperationsInput | number
+  records_upserted?: Prisma.IntFieldUpdateOperationsInput | number
+  records_skipped?: Prisma.IntFieldUpdateOperationsInput | number
   records_synced?: Prisma.IntFieldUpdateOperationsInput | number
   records_failed?: Prisma.IntFieldUpdateOperationsInput | number
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancel_requested_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -471,11 +629,19 @@ export type SyncRunUncheckedUpdateManyInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumsync_run_statusFieldUpdateOperationsInput | $Enums.sync_run_status
+  run_type?: Prisma.Enumsync_run_typeFieldUpdateOperationsInput | $Enums.sync_run_type
+  trigger_type?: Prisma.Enumsync_trigger_typeFieldUpdateOperationsInput | $Enums.sync_trigger_type
+  triggered_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableEnumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type | null
+  records_fetched?: Prisma.IntFieldUpdateOperationsInput | number
+  records_upserted?: Prisma.IntFieldUpdateOperationsInput | number
+  records_skipped?: Prisma.IntFieldUpdateOperationsInput | number
   records_synced?: Prisma.IntFieldUpdateOperationsInput | number
   records_failed?: Prisma.IntFieldUpdateOperationsInput | number
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancel_requested_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -498,10 +664,18 @@ export type SyncRunCountOrderByAggregateInput = {
   organisation_id?: Prisma.SortOrder
   xero_tenant_id?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  run_type?: Prisma.SortOrder
+  trigger_type?: Prisma.SortOrder
+  triggered_by_user_id?: Prisma.SortOrder
   entity_type?: Prisma.SortOrder
+  records_fetched?: Prisma.SortOrder
+  records_upserted?: Prisma.SortOrder
+  records_skipped?: Prisma.SortOrder
   records_synced?: Prisma.SortOrder
   records_failed?: Prisma.SortOrder
   error_message?: Prisma.SortOrder
+  error_summary?: Prisma.SortOrder
+  cancel_requested_at?: Prisma.SortOrder
   started_at?: Prisma.SortOrder
   completed_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -509,6 +683,9 @@ export type SyncRunCountOrderByAggregateInput = {
 }
 
 export type SyncRunAvgOrderByAggregateInput = {
+  records_fetched?: Prisma.SortOrder
+  records_upserted?: Prisma.SortOrder
+  records_skipped?: Prisma.SortOrder
   records_synced?: Prisma.SortOrder
   records_failed?: Prisma.SortOrder
 }
@@ -519,10 +696,18 @@ export type SyncRunMaxOrderByAggregateInput = {
   organisation_id?: Prisma.SortOrder
   xero_tenant_id?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  run_type?: Prisma.SortOrder
+  trigger_type?: Prisma.SortOrder
+  triggered_by_user_id?: Prisma.SortOrder
   entity_type?: Prisma.SortOrder
+  records_fetched?: Prisma.SortOrder
+  records_upserted?: Prisma.SortOrder
+  records_skipped?: Prisma.SortOrder
   records_synced?: Prisma.SortOrder
   records_failed?: Prisma.SortOrder
   error_message?: Prisma.SortOrder
+  error_summary?: Prisma.SortOrder
+  cancel_requested_at?: Prisma.SortOrder
   started_at?: Prisma.SortOrder
   completed_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -535,10 +720,18 @@ export type SyncRunMinOrderByAggregateInput = {
   organisation_id?: Prisma.SortOrder
   xero_tenant_id?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  run_type?: Prisma.SortOrder
+  trigger_type?: Prisma.SortOrder
+  triggered_by_user_id?: Prisma.SortOrder
   entity_type?: Prisma.SortOrder
+  records_fetched?: Prisma.SortOrder
+  records_upserted?: Prisma.SortOrder
+  records_skipped?: Prisma.SortOrder
   records_synced?: Prisma.SortOrder
   records_failed?: Prisma.SortOrder
   error_message?: Prisma.SortOrder
+  error_summary?: Prisma.SortOrder
+  cancel_requested_at?: Prisma.SortOrder
   started_at?: Prisma.SortOrder
   completed_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -546,6 +739,9 @@ export type SyncRunMinOrderByAggregateInput = {
 }
 
 export type SyncRunSumOrderByAggregateInput = {
+  records_fetched?: Prisma.SortOrder
+  records_upserted?: Prisma.SortOrder
+  records_skipped?: Prisma.SortOrder
   records_synced?: Prisma.SortOrder
   records_failed?: Prisma.SortOrder
 }
@@ -597,6 +793,60 @@ export type SyncRunUncheckedUpdateManyWithoutOrganisationNestedInput = {
   deleteMany?: Prisma.SyncRunScalarWhereInput | Prisma.SyncRunScalarWhereInput[]
 }
 
+export type SyncRunCreateNestedManyWithoutXero_tenantInput = {
+  create?: Prisma.XOR<Prisma.SyncRunCreateWithoutXero_tenantInput, Prisma.SyncRunUncheckedCreateWithoutXero_tenantInput> | Prisma.SyncRunCreateWithoutXero_tenantInput[] | Prisma.SyncRunUncheckedCreateWithoutXero_tenantInput[]
+  connectOrCreate?: Prisma.SyncRunCreateOrConnectWithoutXero_tenantInput | Prisma.SyncRunCreateOrConnectWithoutXero_tenantInput[]
+  createMany?: Prisma.SyncRunCreateManyXero_tenantInputEnvelope
+  connect?: Prisma.SyncRunWhereUniqueInput | Prisma.SyncRunWhereUniqueInput[]
+}
+
+export type SyncRunUncheckedCreateNestedManyWithoutXero_tenantInput = {
+  create?: Prisma.XOR<Prisma.SyncRunCreateWithoutXero_tenantInput, Prisma.SyncRunUncheckedCreateWithoutXero_tenantInput> | Prisma.SyncRunCreateWithoutXero_tenantInput[] | Prisma.SyncRunUncheckedCreateWithoutXero_tenantInput[]
+  connectOrCreate?: Prisma.SyncRunCreateOrConnectWithoutXero_tenantInput | Prisma.SyncRunCreateOrConnectWithoutXero_tenantInput[]
+  createMany?: Prisma.SyncRunCreateManyXero_tenantInputEnvelope
+  connect?: Prisma.SyncRunWhereUniqueInput | Prisma.SyncRunWhereUniqueInput[]
+}
+
+export type SyncRunUpdateManyWithoutXero_tenantNestedInput = {
+  create?: Prisma.XOR<Prisma.SyncRunCreateWithoutXero_tenantInput, Prisma.SyncRunUncheckedCreateWithoutXero_tenantInput> | Prisma.SyncRunCreateWithoutXero_tenantInput[] | Prisma.SyncRunUncheckedCreateWithoutXero_tenantInput[]
+  connectOrCreate?: Prisma.SyncRunCreateOrConnectWithoutXero_tenantInput | Prisma.SyncRunCreateOrConnectWithoutXero_tenantInput[]
+  upsert?: Prisma.SyncRunUpsertWithWhereUniqueWithoutXero_tenantInput | Prisma.SyncRunUpsertWithWhereUniqueWithoutXero_tenantInput[]
+  createMany?: Prisma.SyncRunCreateManyXero_tenantInputEnvelope
+  set?: Prisma.SyncRunWhereUniqueInput | Prisma.SyncRunWhereUniqueInput[]
+  disconnect?: Prisma.SyncRunWhereUniqueInput | Prisma.SyncRunWhereUniqueInput[]
+  delete?: Prisma.SyncRunWhereUniqueInput | Prisma.SyncRunWhereUniqueInput[]
+  connect?: Prisma.SyncRunWhereUniqueInput | Prisma.SyncRunWhereUniqueInput[]
+  update?: Prisma.SyncRunUpdateWithWhereUniqueWithoutXero_tenantInput | Prisma.SyncRunUpdateWithWhereUniqueWithoutXero_tenantInput[]
+  updateMany?: Prisma.SyncRunUpdateManyWithWhereWithoutXero_tenantInput | Prisma.SyncRunUpdateManyWithWhereWithoutXero_tenantInput[]
+  deleteMany?: Prisma.SyncRunScalarWhereInput | Prisma.SyncRunScalarWhereInput[]
+}
+
+export type SyncRunUncheckedUpdateManyWithoutXero_tenantNestedInput = {
+  create?: Prisma.XOR<Prisma.SyncRunCreateWithoutXero_tenantInput, Prisma.SyncRunUncheckedCreateWithoutXero_tenantInput> | Prisma.SyncRunCreateWithoutXero_tenantInput[] | Prisma.SyncRunUncheckedCreateWithoutXero_tenantInput[]
+  connectOrCreate?: Prisma.SyncRunCreateOrConnectWithoutXero_tenantInput | Prisma.SyncRunCreateOrConnectWithoutXero_tenantInput[]
+  upsert?: Prisma.SyncRunUpsertWithWhereUniqueWithoutXero_tenantInput | Prisma.SyncRunUpsertWithWhereUniqueWithoutXero_tenantInput[]
+  createMany?: Prisma.SyncRunCreateManyXero_tenantInputEnvelope
+  set?: Prisma.SyncRunWhereUniqueInput | Prisma.SyncRunWhereUniqueInput[]
+  disconnect?: Prisma.SyncRunWhereUniqueInput | Prisma.SyncRunWhereUniqueInput[]
+  delete?: Prisma.SyncRunWhereUniqueInput | Prisma.SyncRunWhereUniqueInput[]
+  connect?: Prisma.SyncRunWhereUniqueInput | Prisma.SyncRunWhereUniqueInput[]
+  update?: Prisma.SyncRunUpdateWithWhereUniqueWithoutXero_tenantInput | Prisma.SyncRunUpdateWithWhereUniqueWithoutXero_tenantInput[]
+  updateMany?: Prisma.SyncRunUpdateManyWithWhereWithoutXero_tenantInput | Prisma.SyncRunUpdateManyWithWhereWithoutXero_tenantInput[]
+  deleteMany?: Prisma.SyncRunScalarWhereInput | Prisma.SyncRunScalarWhereInput[]
+}
+
+export type Enumsync_run_statusFieldUpdateOperationsInput = {
+  set?: $Enums.sync_run_status
+}
+
+export type Enumsync_run_typeFieldUpdateOperationsInput = {
+  set?: $Enums.sync_run_type
+}
+
+export type Enumsync_trigger_typeFieldUpdateOperationsInput = {
+  set?: $Enums.sync_trigger_type
+}
+
 export type NullableEnumxero_sync_entity_typeFieldUpdateOperationsInput = {
   set?: $Enums.xero_sync_entity_type | null
 }
@@ -618,16 +868,24 @@ export type SyncRunUpdateOneRequiredWithoutFailed_recordsNestedInput = {
 export type SyncRunCreateWithoutOrganisationInput = {
   id?: string
   clerk_org_id: string
-  xero_tenant_id?: string | null
-  status: string
+  status?: $Enums.sync_run_status
+  run_type: $Enums.sync_run_type
+  trigger_type?: $Enums.sync_trigger_type
+  triggered_by_user_id?: string | null
   entity_type?: $Enums.xero_sync_entity_type | null
+  records_fetched?: number
+  records_upserted?: number
+  records_skipped?: number
   records_synced?: number
   records_failed?: number
   error_message?: string | null
+  error_summary?: string | null
+  cancel_requested_at?: Date | string | null
   started_at: Date | string
   completed_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
+  xero_tenant?: Prisma.XeroTenantCreateNestedOneWithoutSync_runsInput
   failed_records?: Prisma.FailedRecordCreateNestedManyWithoutSync_runInput
 }
 
@@ -635,11 +893,19 @@ export type SyncRunUncheckedCreateWithoutOrganisationInput = {
   id?: string
   clerk_org_id: string
   xero_tenant_id?: string | null
-  status: string
+  status?: $Enums.sync_run_status
+  run_type: $Enums.sync_run_type
+  trigger_type?: $Enums.sync_trigger_type
+  triggered_by_user_id?: string | null
   entity_type?: $Enums.xero_sync_entity_type | null
+  records_fetched?: number
+  records_upserted?: number
+  records_skipped?: number
   records_synced?: number
   records_failed?: number
   error_message?: string | null
+  error_summary?: string | null
+  cancel_requested_at?: Date | string | null
   started_at: Date | string
   completed_at?: Date | string | null
   created_at?: Date | string
@@ -681,31 +947,121 @@ export type SyncRunScalarWhereInput = {
   clerk_org_id?: Prisma.StringFilter<"SyncRun"> | string
   organisation_id?: Prisma.UuidFilter<"SyncRun"> | string
   xero_tenant_id?: Prisma.UuidNullableFilter<"SyncRun"> | string | null
-  status?: Prisma.StringFilter<"SyncRun"> | string
+  status?: Prisma.Enumsync_run_statusFilter<"SyncRun"> | $Enums.sync_run_status
+  run_type?: Prisma.Enumsync_run_typeFilter<"SyncRun"> | $Enums.sync_run_type
+  trigger_type?: Prisma.Enumsync_trigger_typeFilter<"SyncRun"> | $Enums.sync_trigger_type
+  triggered_by_user_id?: Prisma.StringNullableFilter<"SyncRun"> | string | null
   entity_type?: Prisma.Enumxero_sync_entity_typeNullableFilter<"SyncRun"> | $Enums.xero_sync_entity_type | null
+  records_fetched?: Prisma.IntFilter<"SyncRun"> | number
+  records_upserted?: Prisma.IntFilter<"SyncRun"> | number
+  records_skipped?: Prisma.IntFilter<"SyncRun"> | number
   records_synced?: Prisma.IntFilter<"SyncRun"> | number
   records_failed?: Prisma.IntFilter<"SyncRun"> | number
   error_message?: Prisma.StringNullableFilter<"SyncRun"> | string | null
+  error_summary?: Prisma.StringNullableFilter<"SyncRun"> | string | null
+  cancel_requested_at?: Prisma.DateTimeNullableFilter<"SyncRun"> | Date | string | null
   started_at?: Prisma.DateTimeFilter<"SyncRun"> | Date | string
   completed_at?: Prisma.DateTimeNullableFilter<"SyncRun"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"SyncRun"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"SyncRun"> | Date | string
 }
 
-export type SyncRunCreateWithoutFailed_recordsInput = {
+export type SyncRunCreateWithoutXero_tenantInput = {
   id?: string
   clerk_org_id: string
-  xero_tenant_id?: string | null
-  status: string
+  status?: $Enums.sync_run_status
+  run_type: $Enums.sync_run_type
+  trigger_type?: $Enums.sync_trigger_type
+  triggered_by_user_id?: string | null
   entity_type?: $Enums.xero_sync_entity_type | null
+  records_fetched?: number
+  records_upserted?: number
+  records_skipped?: number
   records_synced?: number
   records_failed?: number
   error_message?: string | null
+  error_summary?: string | null
+  cancel_requested_at?: Date | string | null
   started_at: Date | string
   completed_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutSync_runsInput
+  failed_records?: Prisma.FailedRecordCreateNestedManyWithoutSync_runInput
+}
+
+export type SyncRunUncheckedCreateWithoutXero_tenantInput = {
+  id?: string
+  clerk_org_id: string
+  organisation_id: string
+  status?: $Enums.sync_run_status
+  run_type: $Enums.sync_run_type
+  trigger_type?: $Enums.sync_trigger_type
+  triggered_by_user_id?: string | null
+  entity_type?: $Enums.xero_sync_entity_type | null
+  records_fetched?: number
+  records_upserted?: number
+  records_skipped?: number
+  records_synced?: number
+  records_failed?: number
+  error_message?: string | null
+  error_summary?: string | null
+  cancel_requested_at?: Date | string | null
+  started_at: Date | string
+  completed_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  failed_records?: Prisma.FailedRecordUncheckedCreateNestedManyWithoutSync_runInput
+}
+
+export type SyncRunCreateOrConnectWithoutXero_tenantInput = {
+  where: Prisma.SyncRunWhereUniqueInput
+  create: Prisma.XOR<Prisma.SyncRunCreateWithoutXero_tenantInput, Prisma.SyncRunUncheckedCreateWithoutXero_tenantInput>
+}
+
+export type SyncRunCreateManyXero_tenantInputEnvelope = {
+  data: Prisma.SyncRunCreateManyXero_tenantInput | Prisma.SyncRunCreateManyXero_tenantInput[]
+  skipDuplicates?: boolean
+}
+
+export type SyncRunUpsertWithWhereUniqueWithoutXero_tenantInput = {
+  where: Prisma.SyncRunWhereUniqueInput
+  update: Prisma.XOR<Prisma.SyncRunUpdateWithoutXero_tenantInput, Prisma.SyncRunUncheckedUpdateWithoutXero_tenantInput>
+  create: Prisma.XOR<Prisma.SyncRunCreateWithoutXero_tenantInput, Prisma.SyncRunUncheckedCreateWithoutXero_tenantInput>
+}
+
+export type SyncRunUpdateWithWhereUniqueWithoutXero_tenantInput = {
+  where: Prisma.SyncRunWhereUniqueInput
+  data: Prisma.XOR<Prisma.SyncRunUpdateWithoutXero_tenantInput, Prisma.SyncRunUncheckedUpdateWithoutXero_tenantInput>
+}
+
+export type SyncRunUpdateManyWithWhereWithoutXero_tenantInput = {
+  where: Prisma.SyncRunScalarWhereInput
+  data: Prisma.XOR<Prisma.SyncRunUpdateManyMutationInput, Prisma.SyncRunUncheckedUpdateManyWithoutXero_tenantInput>
+}
+
+export type SyncRunCreateWithoutFailed_recordsInput = {
+  id?: string
+  clerk_org_id: string
+  status?: $Enums.sync_run_status
+  run_type: $Enums.sync_run_type
+  trigger_type?: $Enums.sync_trigger_type
+  triggered_by_user_id?: string | null
+  entity_type?: $Enums.xero_sync_entity_type | null
+  records_fetched?: number
+  records_upserted?: number
+  records_skipped?: number
+  records_synced?: number
+  records_failed?: number
+  error_message?: string | null
+  error_summary?: string | null
+  cancel_requested_at?: Date | string | null
+  started_at: Date | string
+  completed_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  organisation: Prisma.OrganisationCreateNestedOneWithoutSync_runsInput
+  xero_tenant?: Prisma.XeroTenantCreateNestedOneWithoutSync_runsInput
 }
 
 export type SyncRunUncheckedCreateWithoutFailed_recordsInput = {
@@ -713,11 +1069,19 @@ export type SyncRunUncheckedCreateWithoutFailed_recordsInput = {
   clerk_org_id: string
   organisation_id: string
   xero_tenant_id?: string | null
-  status: string
+  status?: $Enums.sync_run_status
+  run_type: $Enums.sync_run_type
+  trigger_type?: $Enums.sync_trigger_type
+  triggered_by_user_id?: string | null
   entity_type?: $Enums.xero_sync_entity_type | null
+  records_fetched?: number
+  records_upserted?: number
+  records_skipped?: number
   records_synced?: number
   records_failed?: number
   error_message?: string | null
+  error_summary?: string | null
+  cancel_requested_at?: Date | string | null
   started_at: Date | string
   completed_at?: Date | string | null
   created_at?: Date | string
@@ -743,17 +1107,25 @@ export type SyncRunUpdateToOneWithWhereWithoutFailed_recordsInput = {
 export type SyncRunUpdateWithoutFailed_recordsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
-  xero_tenant_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumsync_run_statusFieldUpdateOperationsInput | $Enums.sync_run_status
+  run_type?: Prisma.Enumsync_run_typeFieldUpdateOperationsInput | $Enums.sync_run_type
+  trigger_type?: Prisma.Enumsync_trigger_typeFieldUpdateOperationsInput | $Enums.sync_trigger_type
+  triggered_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableEnumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type | null
+  records_fetched?: Prisma.IntFieldUpdateOperationsInput | number
+  records_upserted?: Prisma.IntFieldUpdateOperationsInput | number
+  records_skipped?: Prisma.IntFieldUpdateOperationsInput | number
   records_synced?: Prisma.IntFieldUpdateOperationsInput | number
   records_failed?: Prisma.IntFieldUpdateOperationsInput | number
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancel_requested_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutSync_runsNestedInput
+  xero_tenant?: Prisma.XeroTenantUpdateOneWithoutSync_runsNestedInput
 }
 
 export type SyncRunUncheckedUpdateWithoutFailed_recordsInput = {
@@ -761,11 +1133,19 @@ export type SyncRunUncheckedUpdateWithoutFailed_recordsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumsync_run_statusFieldUpdateOperationsInput | $Enums.sync_run_status
+  run_type?: Prisma.Enumsync_run_typeFieldUpdateOperationsInput | $Enums.sync_run_type
+  trigger_type?: Prisma.Enumsync_trigger_typeFieldUpdateOperationsInput | $Enums.sync_trigger_type
+  triggered_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableEnumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type | null
+  records_fetched?: Prisma.IntFieldUpdateOperationsInput | number
+  records_upserted?: Prisma.IntFieldUpdateOperationsInput | number
+  records_skipped?: Prisma.IntFieldUpdateOperationsInput | number
   records_synced?: Prisma.IntFieldUpdateOperationsInput | number
   records_failed?: Prisma.IntFieldUpdateOperationsInput | number
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancel_requested_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -776,11 +1156,19 @@ export type SyncRunCreateManyOrganisationInput = {
   id?: string
   clerk_org_id: string
   xero_tenant_id?: string | null
-  status: string
+  status?: $Enums.sync_run_status
+  run_type: $Enums.sync_run_type
+  trigger_type?: $Enums.sync_trigger_type
+  triggered_by_user_id?: string | null
   entity_type?: $Enums.xero_sync_entity_type | null
+  records_fetched?: number
+  records_upserted?: number
+  records_skipped?: number
   records_synced?: number
   records_failed?: number
   error_message?: string | null
+  error_summary?: string | null
+  cancel_requested_at?: Date | string | null
   started_at: Date | string
   completed_at?: Date | string | null
   created_at?: Date | string
@@ -790,16 +1178,24 @@ export type SyncRunCreateManyOrganisationInput = {
 export type SyncRunUpdateWithoutOrganisationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
-  xero_tenant_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumsync_run_statusFieldUpdateOperationsInput | $Enums.sync_run_status
+  run_type?: Prisma.Enumsync_run_typeFieldUpdateOperationsInput | $Enums.sync_run_type
+  trigger_type?: Prisma.Enumsync_trigger_typeFieldUpdateOperationsInput | $Enums.sync_trigger_type
+  triggered_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableEnumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type | null
+  records_fetched?: Prisma.IntFieldUpdateOperationsInput | number
+  records_upserted?: Prisma.IntFieldUpdateOperationsInput | number
+  records_skipped?: Prisma.IntFieldUpdateOperationsInput | number
   records_synced?: Prisma.IntFieldUpdateOperationsInput | number
   records_failed?: Prisma.IntFieldUpdateOperationsInput | number
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancel_requested_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  xero_tenant?: Prisma.XeroTenantUpdateOneWithoutSync_runsNestedInput
   failed_records?: Prisma.FailedRecordUpdateManyWithoutSync_runNestedInput
 }
 
@@ -807,11 +1203,19 @@ export type SyncRunUncheckedUpdateWithoutOrganisationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumsync_run_statusFieldUpdateOperationsInput | $Enums.sync_run_status
+  run_type?: Prisma.Enumsync_run_typeFieldUpdateOperationsInput | $Enums.sync_run_type
+  trigger_type?: Prisma.Enumsync_trigger_typeFieldUpdateOperationsInput | $Enums.sync_trigger_type
+  triggered_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableEnumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type | null
+  records_fetched?: Prisma.IntFieldUpdateOperationsInput | number
+  records_upserted?: Prisma.IntFieldUpdateOperationsInput | number
+  records_skipped?: Prisma.IntFieldUpdateOperationsInput | number
   records_synced?: Prisma.IntFieldUpdateOperationsInput | number
   records_failed?: Prisma.IntFieldUpdateOperationsInput | number
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancel_requested_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -823,11 +1227,113 @@ export type SyncRunUncheckedUpdateManyWithoutOrganisationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumsync_run_statusFieldUpdateOperationsInput | $Enums.sync_run_status
+  run_type?: Prisma.Enumsync_run_typeFieldUpdateOperationsInput | $Enums.sync_run_type
+  trigger_type?: Prisma.Enumsync_trigger_typeFieldUpdateOperationsInput | $Enums.sync_trigger_type
+  triggered_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   entity_type?: Prisma.NullableEnumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type | null
+  records_fetched?: Prisma.IntFieldUpdateOperationsInput | number
+  records_upserted?: Prisma.IntFieldUpdateOperationsInput | number
+  records_skipped?: Prisma.IntFieldUpdateOperationsInput | number
   records_synced?: Prisma.IntFieldUpdateOperationsInput | number
   records_failed?: Prisma.IntFieldUpdateOperationsInput | number
   error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancel_requested_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type SyncRunCreateManyXero_tenantInput = {
+  id?: string
+  clerk_org_id: string
+  organisation_id: string
+  status?: $Enums.sync_run_status
+  run_type: $Enums.sync_run_type
+  trigger_type?: $Enums.sync_trigger_type
+  triggered_by_user_id?: string | null
+  entity_type?: $Enums.xero_sync_entity_type | null
+  records_fetched?: number
+  records_upserted?: number
+  records_skipped?: number
+  records_synced?: number
+  records_failed?: number
+  error_message?: string | null
+  error_summary?: string | null
+  cancel_requested_at?: Date | string | null
+  started_at: Date | string
+  completed_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+}
+
+export type SyncRunUpdateWithoutXero_tenantInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumsync_run_statusFieldUpdateOperationsInput | $Enums.sync_run_status
+  run_type?: Prisma.Enumsync_run_typeFieldUpdateOperationsInput | $Enums.sync_run_type
+  trigger_type?: Prisma.Enumsync_trigger_typeFieldUpdateOperationsInput | $Enums.sync_trigger_type
+  triggered_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entity_type?: Prisma.NullableEnumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type | null
+  records_fetched?: Prisma.IntFieldUpdateOperationsInput | number
+  records_upserted?: Prisma.IntFieldUpdateOperationsInput | number
+  records_skipped?: Prisma.IntFieldUpdateOperationsInput | number
+  records_synced?: Prisma.IntFieldUpdateOperationsInput | number
+  records_failed?: Prisma.IntFieldUpdateOperationsInput | number
+  error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancel_requested_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organisation?: Prisma.OrganisationUpdateOneRequiredWithoutSync_runsNestedInput
+  failed_records?: Prisma.FailedRecordUpdateManyWithoutSync_runNestedInput
+}
+
+export type SyncRunUncheckedUpdateWithoutXero_tenantInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumsync_run_statusFieldUpdateOperationsInput | $Enums.sync_run_status
+  run_type?: Prisma.Enumsync_run_typeFieldUpdateOperationsInput | $Enums.sync_run_type
+  trigger_type?: Prisma.Enumsync_trigger_typeFieldUpdateOperationsInput | $Enums.sync_trigger_type
+  triggered_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entity_type?: Prisma.NullableEnumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type | null
+  records_fetched?: Prisma.IntFieldUpdateOperationsInput | number
+  records_upserted?: Prisma.IntFieldUpdateOperationsInput | number
+  records_skipped?: Prisma.IntFieldUpdateOperationsInput | number
+  records_synced?: Prisma.IntFieldUpdateOperationsInput | number
+  records_failed?: Prisma.IntFieldUpdateOperationsInput | number
+  error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancel_requested_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  failed_records?: Prisma.FailedRecordUncheckedUpdateManyWithoutSync_runNestedInput
+}
+
+export type SyncRunUncheckedUpdateManyWithoutXero_tenantInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumsync_run_statusFieldUpdateOperationsInput | $Enums.sync_run_status
+  run_type?: Prisma.Enumsync_run_typeFieldUpdateOperationsInput | $Enums.sync_run_type
+  trigger_type?: Prisma.Enumsync_trigger_typeFieldUpdateOperationsInput | $Enums.sync_trigger_type
+  triggered_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entity_type?: Prisma.NullableEnumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type | null
+  records_fetched?: Prisma.IntFieldUpdateOperationsInput | number
+  records_upserted?: Prisma.IntFieldUpdateOperationsInput | number
+  records_skipped?: Prisma.IntFieldUpdateOperationsInput | number
+  records_synced?: Prisma.IntFieldUpdateOperationsInput | number
+  records_failed?: Prisma.IntFieldUpdateOperationsInput | number
+  error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancel_requested_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   started_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -871,15 +1377,24 @@ export type SyncRunSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   organisation_id?: boolean
   xero_tenant_id?: boolean
   status?: boolean
+  run_type?: boolean
+  trigger_type?: boolean
+  triggered_by_user_id?: boolean
   entity_type?: boolean
+  records_fetched?: boolean
+  records_upserted?: boolean
+  records_skipped?: boolean
   records_synced?: boolean
   records_failed?: boolean
   error_message?: boolean
+  error_summary?: boolean
+  cancel_requested_at?: boolean
   started_at?: boolean
   completed_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
+  xero_tenant?: boolean | Prisma.SyncRun$xero_tenantArgs<ExtArgs>
   failed_records?: boolean | Prisma.SyncRun$failed_recordsArgs<ExtArgs>
   _count?: boolean | Prisma.SyncRunCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["syncRun"]>
@@ -890,15 +1405,24 @@ export type SyncRunSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   organisation_id?: boolean
   xero_tenant_id?: boolean
   status?: boolean
+  run_type?: boolean
+  trigger_type?: boolean
+  triggered_by_user_id?: boolean
   entity_type?: boolean
+  records_fetched?: boolean
+  records_upserted?: boolean
+  records_skipped?: boolean
   records_synced?: boolean
   records_failed?: boolean
   error_message?: boolean
+  error_summary?: boolean
+  cancel_requested_at?: boolean
   started_at?: boolean
   completed_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
+  xero_tenant?: boolean | Prisma.SyncRun$xero_tenantArgs<ExtArgs>
 }, ExtArgs["result"]["syncRun"]>
 
 export type SyncRunSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -907,15 +1431,24 @@ export type SyncRunSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   organisation_id?: boolean
   xero_tenant_id?: boolean
   status?: boolean
+  run_type?: boolean
+  trigger_type?: boolean
+  triggered_by_user_id?: boolean
   entity_type?: boolean
+  records_fetched?: boolean
+  records_upserted?: boolean
+  records_skipped?: boolean
   records_synced?: boolean
   records_failed?: boolean
   error_message?: boolean
+  error_summary?: boolean
+  cancel_requested_at?: boolean
   started_at?: boolean
   completed_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
+  xero_tenant?: boolean | Prisma.SyncRun$xero_tenantArgs<ExtArgs>
 }, ExtArgs["result"]["syncRun"]>
 
 export type SyncRunSelectScalar = {
@@ -924,33 +1457,45 @@ export type SyncRunSelectScalar = {
   organisation_id?: boolean
   xero_tenant_id?: boolean
   status?: boolean
+  run_type?: boolean
+  trigger_type?: boolean
+  triggered_by_user_id?: boolean
   entity_type?: boolean
+  records_fetched?: boolean
+  records_upserted?: boolean
+  records_skipped?: boolean
   records_synced?: boolean
   records_failed?: boolean
   error_message?: boolean
+  error_summary?: boolean
+  cancel_requested_at?: boolean
   started_at?: boolean
   completed_at?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type SyncRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "xero_tenant_id" | "status" | "entity_type" | "records_synced" | "records_failed" | "error_message" | "started_at" | "completed_at" | "created_at" | "updated_at", ExtArgs["result"]["syncRun"]>
+export type SyncRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "xero_tenant_id" | "status" | "run_type" | "trigger_type" | "triggered_by_user_id" | "entity_type" | "records_fetched" | "records_upserted" | "records_skipped" | "records_synced" | "records_failed" | "error_message" | "error_summary" | "cancel_requested_at" | "started_at" | "completed_at" | "created_at" | "updated_at", ExtArgs["result"]["syncRun"]>
 export type SyncRunInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
+  xero_tenant?: boolean | Prisma.SyncRun$xero_tenantArgs<ExtArgs>
   failed_records?: boolean | Prisma.SyncRun$failed_recordsArgs<ExtArgs>
   _count?: boolean | Prisma.SyncRunCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type SyncRunIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
+  xero_tenant?: boolean | Prisma.SyncRun$xero_tenantArgs<ExtArgs>
 }
 export type SyncRunIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
+  xero_tenant?: boolean | Prisma.SyncRun$xero_tenantArgs<ExtArgs>
 }
 
 export type $SyncRunPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "SyncRun"
   objects: {
     organisation: Prisma.$OrganisationPayload<ExtArgs>
+    xero_tenant: Prisma.$XeroTenantPayload<ExtArgs> | null
     failed_records: Prisma.$FailedRecordPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -958,11 +1503,19 @@ export type $SyncRunPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     clerk_org_id: string
     organisation_id: string
     xero_tenant_id: string | null
-    status: string
+    status: $Enums.sync_run_status
+    run_type: $Enums.sync_run_type
+    trigger_type: $Enums.sync_trigger_type
+    triggered_by_user_id: string | null
     entity_type: $Enums.xero_sync_entity_type | null
+    records_fetched: number
+    records_upserted: number
+    records_skipped: number
     records_synced: number
     records_failed: number
     error_message: string | null
+    error_summary: string | null
+    cancel_requested_at: Date | null
     started_at: Date
     completed_at: Date | null
     created_at: Date
@@ -1362,6 +1915,7 @@ readonly fields: SyncRunFieldRefs;
 export interface Prisma__SyncRunClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   organisation<T extends Prisma.OrganisationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganisationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganisationClient<runtime.Types.Result.GetResult<Prisma.$OrganisationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  xero_tenant<T extends Prisma.SyncRun$xero_tenantArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SyncRun$xero_tenantArgs<ExtArgs>>): Prisma.Prisma__XeroTenantClient<runtime.Types.Result.GetResult<Prisma.$XeroTenantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   failed_records<T extends Prisma.SyncRun$failed_recordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SyncRun$failed_recordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FailedRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1396,11 +1950,19 @@ export interface SyncRunFieldRefs {
   readonly clerk_org_id: Prisma.FieldRef<"SyncRun", 'String'>
   readonly organisation_id: Prisma.FieldRef<"SyncRun", 'String'>
   readonly xero_tenant_id: Prisma.FieldRef<"SyncRun", 'String'>
-  readonly status: Prisma.FieldRef<"SyncRun", 'String'>
+  readonly status: Prisma.FieldRef<"SyncRun", 'sync_run_status'>
+  readonly run_type: Prisma.FieldRef<"SyncRun", 'sync_run_type'>
+  readonly trigger_type: Prisma.FieldRef<"SyncRun", 'sync_trigger_type'>
+  readonly triggered_by_user_id: Prisma.FieldRef<"SyncRun", 'String'>
   readonly entity_type: Prisma.FieldRef<"SyncRun", 'xero_sync_entity_type'>
+  readonly records_fetched: Prisma.FieldRef<"SyncRun", 'Int'>
+  readonly records_upserted: Prisma.FieldRef<"SyncRun", 'Int'>
+  readonly records_skipped: Prisma.FieldRef<"SyncRun", 'Int'>
   readonly records_synced: Prisma.FieldRef<"SyncRun", 'Int'>
   readonly records_failed: Prisma.FieldRef<"SyncRun", 'Int'>
   readonly error_message: Prisma.FieldRef<"SyncRun", 'String'>
+  readonly error_summary: Prisma.FieldRef<"SyncRun", 'String'>
+  readonly cancel_requested_at: Prisma.FieldRef<"SyncRun", 'DateTime'>
   readonly started_at: Prisma.FieldRef<"SyncRun", 'DateTime'>
   readonly completed_at: Prisma.FieldRef<"SyncRun", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"SyncRun", 'DateTime'>
@@ -1803,6 +2365,25 @@ export type SyncRunDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Limit how many SyncRuns to delete.
    */
   limit?: number
+}
+
+/**
+ * SyncRun.xero_tenant
+ */
+export type SyncRun$xero_tenantArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the XeroTenant
+   */
+  select?: Prisma.XeroTenantSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the XeroTenant
+   */
+  omit?: Prisma.XeroTenantOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.XeroTenantInclude<ExtArgs> | null
+  where?: Prisma.XeroTenantWhereInput
 }
 
 /**

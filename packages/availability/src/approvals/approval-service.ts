@@ -8,6 +8,7 @@ import type {
   availability_failed_action,
   availability_record_type,
 } from "@repo/database/generated/enums";
+import { dispatchSyncEvent } from "@repo/jobs";
 import {
   dispatchNotification,
   type NotificationDispatchDatabase,
@@ -537,10 +538,50 @@ export function dispatchApprovalReconciliation(
     return Promise.resolve(notAuthorised());
   }
 
-  return Promise.resolve({
-    ok: true,
-    value: { queued: false, reason: "reconciliation_not_registered" },
+  return dispatchApprovalReconciliationInternal(parsed.data);
+}
+
+async function dispatchApprovalReconciliationInternal(
+  input: DispatchInput
+): Promise<Result<{ queued: boolean; reason?: string }, ApprovalServiceError>> {
+  const tenant = await database.xeroTenant.findFirst({
+    where: {
+      clerk_org_id: input.clerkOrgId,
+      organisation_id: input.organisationId,
+    },
+    orderBy: { created_at: "asc" },
   });
+  if (!tenant) {
+    return xeroNotConnected();
+  }
+
+  const active = await hasActiveXeroConnection({
+    clerkOrgId: input.clerkOrgId,
+    organisationId: input.organisationId,
+  });
+  if (!active) {
+    return xeroNotConnected();
+  }
+
+  const dispatched = await dispatchSyncEvent({
+    clerkOrgId: input.clerkOrgId,
+    organisationId: input.organisationId,
+    runType: "approval_state_reconciliation",
+    triggerType: "manual",
+    triggeredByUserId: input.actingUserId,
+    xeroTenantId: tenant.id,
+  });
+  if (!dispatched.ok) {
+    return {
+      ok: false,
+      error: {
+        code: "dispatch_failed",
+        message: dispatched.error.message,
+      },
+    };
+  }
+
+  return { ok: true, value: { queued: true } };
 }
 
 async function performApproval(

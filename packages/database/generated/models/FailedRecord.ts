@@ -30,7 +30,10 @@ export type FailedRecordMinAggregateOutputType = {
   organisation_id: string | null
   sync_run_id: string | null
   entity_type: $Enums.xero_sync_entity_type | null
+  record_type: $Enums.sync_failed_record_type | null
   source_id: string | null
+  source_remote_id: string | null
+  error_code: string | null
   error_message: string | null
   created_at: Date | null
   updated_at: Date | null
@@ -42,7 +45,10 @@ export type FailedRecordMaxAggregateOutputType = {
   organisation_id: string | null
   sync_run_id: string | null
   entity_type: $Enums.xero_sync_entity_type | null
+  record_type: $Enums.sync_failed_record_type | null
   source_id: string | null
+  source_remote_id: string | null
+  error_code: string | null
   error_message: string | null
   created_at: Date | null
   updated_at: Date | null
@@ -54,7 +60,10 @@ export type FailedRecordCountAggregateOutputType = {
   organisation_id: number
   sync_run_id: number
   entity_type: number
+  record_type: number
   source_id: number
+  source_remote_id: number
+  error_code: number
   error_message: number
   raw_payload: number
   created_at: number
@@ -69,7 +78,10 @@ export type FailedRecordMinAggregateInputType = {
   organisation_id?: true
   sync_run_id?: true
   entity_type?: true
+  record_type?: true
   source_id?: true
+  source_remote_id?: true
+  error_code?: true
   error_message?: true
   created_at?: true
   updated_at?: true
@@ -81,7 +93,10 @@ export type FailedRecordMaxAggregateInputType = {
   organisation_id?: true
   sync_run_id?: true
   entity_type?: true
+  record_type?: true
   source_id?: true
+  source_remote_id?: true
+  error_code?: true
   error_message?: true
   created_at?: true
   updated_at?: true
@@ -93,7 +108,10 @@ export type FailedRecordCountAggregateInputType = {
   organisation_id?: true
   sync_run_id?: true
   entity_type?: true
+  record_type?: true
   source_id?: true
+  source_remote_id?: true
+  error_code?: true
   error_message?: true
   raw_payload?: true
   created_at?: true
@@ -179,7 +197,10 @@ export type FailedRecordGroupByOutputType = {
   organisation_id: string
   sync_run_id: string
   entity_type: $Enums.xero_sync_entity_type
+  record_type: $Enums.sync_failed_record_type
   source_id: string
+  source_remote_id: string | null
+  error_code: string
   error_message: string
   raw_payload: runtime.JsonValue | null
   created_at: Date
@@ -213,7 +234,10 @@ export type FailedRecordWhereInput = {
   organisation_id?: Prisma.UuidFilter<"FailedRecord"> | string
   sync_run_id?: Prisma.UuidFilter<"FailedRecord"> | string
   entity_type?: Prisma.Enumxero_sync_entity_typeFilter<"FailedRecord"> | $Enums.xero_sync_entity_type
+  record_type?: Prisma.Enumsync_failed_record_typeFilter<"FailedRecord"> | $Enums.sync_failed_record_type
   source_id?: Prisma.StringFilter<"FailedRecord"> | string
+  source_remote_id?: Prisma.StringNullableFilter<"FailedRecord"> | string | null
+  error_code?: Prisma.StringFilter<"FailedRecord"> | string
   error_message?: Prisma.StringFilter<"FailedRecord"> | string
   raw_payload?: Prisma.JsonNullableFilter<"FailedRecord">
   created_at?: Prisma.DateTimeFilter<"FailedRecord"> | Date | string
@@ -228,7 +252,10 @@ export type FailedRecordOrderByWithRelationInput = {
   organisation_id?: Prisma.SortOrder
   sync_run_id?: Prisma.SortOrder
   entity_type?: Prisma.SortOrder
+  record_type?: Prisma.SortOrder
   source_id?: Prisma.SortOrder
+  source_remote_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  error_code?: Prisma.SortOrder
   error_message?: Prisma.SortOrder
   raw_payload?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -246,7 +273,10 @@ export type FailedRecordWhereUniqueInput = Prisma.AtLeast<{
   organisation_id?: Prisma.UuidFilter<"FailedRecord"> | string
   sync_run_id?: Prisma.UuidFilter<"FailedRecord"> | string
   entity_type?: Prisma.Enumxero_sync_entity_typeFilter<"FailedRecord"> | $Enums.xero_sync_entity_type
+  record_type?: Prisma.Enumsync_failed_record_typeFilter<"FailedRecord"> | $Enums.sync_failed_record_type
   source_id?: Prisma.StringFilter<"FailedRecord"> | string
+  source_remote_id?: Prisma.StringNullableFilter<"FailedRecord"> | string | null
+  error_code?: Prisma.StringFilter<"FailedRecord"> | string
   error_message?: Prisma.StringFilter<"FailedRecord"> | string
   raw_payload?: Prisma.JsonNullableFilter<"FailedRecord">
   created_at?: Prisma.DateTimeFilter<"FailedRecord"> | Date | string
@@ -261,7 +291,10 @@ export type FailedRecordOrderByWithAggregationInput = {
   organisation_id?: Prisma.SortOrder
   sync_run_id?: Prisma.SortOrder
   entity_type?: Prisma.SortOrder
+  record_type?: Prisma.SortOrder
   source_id?: Prisma.SortOrder
+  source_remote_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  error_code?: Prisma.SortOrder
   error_message?: Prisma.SortOrder
   raw_payload?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -280,7 +313,10 @@ export type FailedRecordScalarWhereWithAggregatesInput = {
   organisation_id?: Prisma.UuidWithAggregatesFilter<"FailedRecord"> | string
   sync_run_id?: Prisma.UuidWithAggregatesFilter<"FailedRecord"> | string
   entity_type?: Prisma.Enumxero_sync_entity_typeWithAggregatesFilter<"FailedRecord"> | $Enums.xero_sync_entity_type
+  record_type?: Prisma.Enumsync_failed_record_typeWithAggregatesFilter<"FailedRecord"> | $Enums.sync_failed_record_type
   source_id?: Prisma.StringWithAggregatesFilter<"FailedRecord"> | string
+  source_remote_id?: Prisma.StringNullableWithAggregatesFilter<"FailedRecord"> | string | null
+  error_code?: Prisma.StringWithAggregatesFilter<"FailedRecord"> | string
   error_message?: Prisma.StringWithAggregatesFilter<"FailedRecord"> | string
   raw_payload?: Prisma.JsonNullableWithAggregatesFilter<"FailedRecord">
   created_at?: Prisma.DateTimeWithAggregatesFilter<"FailedRecord"> | Date | string
@@ -291,7 +327,10 @@ export type FailedRecordCreateInput = {
   id?: string
   clerk_org_id: string
   entity_type: $Enums.xero_sync_entity_type
+  record_type: $Enums.sync_failed_record_type
   source_id: string
+  source_remote_id?: string | null
+  error_code?: string
   error_message: string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
@@ -306,7 +345,10 @@ export type FailedRecordUncheckedCreateInput = {
   organisation_id: string
   sync_run_id: string
   entity_type: $Enums.xero_sync_entity_type
+  record_type: $Enums.sync_failed_record_type
   source_id: string
+  source_remote_id?: string | null
+  error_code?: string
   error_message: string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
@@ -317,7 +359,10 @@ export type FailedRecordUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   entity_type?: Prisma.Enumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type
+  record_type?: Prisma.Enumsync_failed_record_typeFieldUpdateOperationsInput | $Enums.sync_failed_record_type
   source_id?: Prisma.StringFieldUpdateOperationsInput | string
+  source_remote_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_code?: Prisma.StringFieldUpdateOperationsInput | string
   error_message?: Prisma.StringFieldUpdateOperationsInput | string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -332,7 +377,10 @@ export type FailedRecordUncheckedUpdateInput = {
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   sync_run_id?: Prisma.StringFieldUpdateOperationsInput | string
   entity_type?: Prisma.Enumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type
+  record_type?: Prisma.Enumsync_failed_record_typeFieldUpdateOperationsInput | $Enums.sync_failed_record_type
   source_id?: Prisma.StringFieldUpdateOperationsInput | string
+  source_remote_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_code?: Prisma.StringFieldUpdateOperationsInput | string
   error_message?: Prisma.StringFieldUpdateOperationsInput | string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -345,7 +393,10 @@ export type FailedRecordCreateManyInput = {
   organisation_id: string
   sync_run_id: string
   entity_type: $Enums.xero_sync_entity_type
+  record_type: $Enums.sync_failed_record_type
   source_id: string
+  source_remote_id?: string | null
+  error_code?: string
   error_message: string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
@@ -356,7 +407,10 @@ export type FailedRecordUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   entity_type?: Prisma.Enumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type
+  record_type?: Prisma.Enumsync_failed_record_typeFieldUpdateOperationsInput | $Enums.sync_failed_record_type
   source_id?: Prisma.StringFieldUpdateOperationsInput | string
+  source_remote_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_code?: Prisma.StringFieldUpdateOperationsInput | string
   error_message?: Prisma.StringFieldUpdateOperationsInput | string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -369,7 +423,10 @@ export type FailedRecordUncheckedUpdateManyInput = {
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   sync_run_id?: Prisma.StringFieldUpdateOperationsInput | string
   entity_type?: Prisma.Enumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type
+  record_type?: Prisma.Enumsync_failed_record_typeFieldUpdateOperationsInput | $Enums.sync_failed_record_type
   source_id?: Prisma.StringFieldUpdateOperationsInput | string
+  source_remote_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_code?: Prisma.StringFieldUpdateOperationsInput | string
   error_message?: Prisma.StringFieldUpdateOperationsInput | string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -392,7 +449,10 @@ export type FailedRecordCountOrderByAggregateInput = {
   organisation_id?: Prisma.SortOrder
   sync_run_id?: Prisma.SortOrder
   entity_type?: Prisma.SortOrder
+  record_type?: Prisma.SortOrder
   source_id?: Prisma.SortOrder
+  source_remote_id?: Prisma.SortOrder
+  error_code?: Prisma.SortOrder
   error_message?: Prisma.SortOrder
   raw_payload?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -405,7 +465,10 @@ export type FailedRecordMaxOrderByAggregateInput = {
   organisation_id?: Prisma.SortOrder
   sync_run_id?: Prisma.SortOrder
   entity_type?: Prisma.SortOrder
+  record_type?: Prisma.SortOrder
   source_id?: Prisma.SortOrder
+  source_remote_id?: Prisma.SortOrder
+  error_code?: Prisma.SortOrder
   error_message?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -417,7 +480,10 @@ export type FailedRecordMinOrderByAggregateInput = {
   organisation_id?: Prisma.SortOrder
   sync_run_id?: Prisma.SortOrder
   entity_type?: Prisma.SortOrder
+  record_type?: Prisma.SortOrder
   source_id?: Prisma.SortOrder
+  source_remote_id?: Prisma.SortOrder
+  error_code?: Prisma.SortOrder
   error_message?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -507,11 +573,18 @@ export type FailedRecordUncheckedUpdateManyWithoutSync_runNestedInput = {
   deleteMany?: Prisma.FailedRecordScalarWhereInput | Prisma.FailedRecordScalarWhereInput[]
 }
 
+export type Enumsync_failed_record_typeFieldUpdateOperationsInput = {
+  set?: $Enums.sync_failed_record_type
+}
+
 export type FailedRecordCreateWithoutOrganisationInput = {
   id?: string
   clerk_org_id: string
   entity_type: $Enums.xero_sync_entity_type
+  record_type: $Enums.sync_failed_record_type
   source_id: string
+  source_remote_id?: string | null
+  error_code?: string
   error_message: string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
@@ -524,7 +597,10 @@ export type FailedRecordUncheckedCreateWithoutOrganisationInput = {
   clerk_org_id: string
   sync_run_id: string
   entity_type: $Enums.xero_sync_entity_type
+  record_type: $Enums.sync_failed_record_type
   source_id: string
+  source_remote_id?: string | null
+  error_code?: string
   error_message: string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
@@ -566,7 +642,10 @@ export type FailedRecordScalarWhereInput = {
   organisation_id?: Prisma.UuidFilter<"FailedRecord"> | string
   sync_run_id?: Prisma.UuidFilter<"FailedRecord"> | string
   entity_type?: Prisma.Enumxero_sync_entity_typeFilter<"FailedRecord"> | $Enums.xero_sync_entity_type
+  record_type?: Prisma.Enumsync_failed_record_typeFilter<"FailedRecord"> | $Enums.sync_failed_record_type
   source_id?: Prisma.StringFilter<"FailedRecord"> | string
+  source_remote_id?: Prisma.StringNullableFilter<"FailedRecord"> | string | null
+  error_code?: Prisma.StringFilter<"FailedRecord"> | string
   error_message?: Prisma.StringFilter<"FailedRecord"> | string
   raw_payload?: Prisma.JsonNullableFilter<"FailedRecord">
   created_at?: Prisma.DateTimeFilter<"FailedRecord"> | Date | string
@@ -577,7 +656,10 @@ export type FailedRecordCreateWithoutSync_runInput = {
   id?: string
   clerk_org_id: string
   entity_type: $Enums.xero_sync_entity_type
+  record_type: $Enums.sync_failed_record_type
   source_id: string
+  source_remote_id?: string | null
+  error_code?: string
   error_message: string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
@@ -590,7 +672,10 @@ export type FailedRecordUncheckedCreateWithoutSync_runInput = {
   clerk_org_id: string
   organisation_id: string
   entity_type: $Enums.xero_sync_entity_type
+  record_type: $Enums.sync_failed_record_type
   source_id: string
+  source_remote_id?: string | null
+  error_code?: string
   error_message: string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
@@ -628,7 +713,10 @@ export type FailedRecordCreateManyOrganisationInput = {
   clerk_org_id: string
   sync_run_id: string
   entity_type: $Enums.xero_sync_entity_type
+  record_type: $Enums.sync_failed_record_type
   source_id: string
+  source_remote_id?: string | null
+  error_code?: string
   error_message: string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
@@ -639,7 +727,10 @@ export type FailedRecordUpdateWithoutOrganisationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   entity_type?: Prisma.Enumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type
+  record_type?: Prisma.Enumsync_failed_record_typeFieldUpdateOperationsInput | $Enums.sync_failed_record_type
   source_id?: Prisma.StringFieldUpdateOperationsInput | string
+  source_remote_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_code?: Prisma.StringFieldUpdateOperationsInput | string
   error_message?: Prisma.StringFieldUpdateOperationsInput | string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -652,7 +743,10 @@ export type FailedRecordUncheckedUpdateWithoutOrganisationInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   sync_run_id?: Prisma.StringFieldUpdateOperationsInput | string
   entity_type?: Prisma.Enumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type
+  record_type?: Prisma.Enumsync_failed_record_typeFieldUpdateOperationsInput | $Enums.sync_failed_record_type
   source_id?: Prisma.StringFieldUpdateOperationsInput | string
+  source_remote_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_code?: Prisma.StringFieldUpdateOperationsInput | string
   error_message?: Prisma.StringFieldUpdateOperationsInput | string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -664,7 +758,10 @@ export type FailedRecordUncheckedUpdateManyWithoutOrganisationInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   sync_run_id?: Prisma.StringFieldUpdateOperationsInput | string
   entity_type?: Prisma.Enumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type
+  record_type?: Prisma.Enumsync_failed_record_typeFieldUpdateOperationsInput | $Enums.sync_failed_record_type
   source_id?: Prisma.StringFieldUpdateOperationsInput | string
+  source_remote_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_code?: Prisma.StringFieldUpdateOperationsInput | string
   error_message?: Prisma.StringFieldUpdateOperationsInput | string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -676,7 +773,10 @@ export type FailedRecordCreateManySync_runInput = {
   clerk_org_id: string
   organisation_id: string
   entity_type: $Enums.xero_sync_entity_type
+  record_type: $Enums.sync_failed_record_type
   source_id: string
+  source_remote_id?: string | null
+  error_code?: string
   error_message: string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Date | string
@@ -687,7 +787,10 @@ export type FailedRecordUpdateWithoutSync_runInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   entity_type?: Prisma.Enumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type
+  record_type?: Prisma.Enumsync_failed_record_typeFieldUpdateOperationsInput | $Enums.sync_failed_record_type
   source_id?: Prisma.StringFieldUpdateOperationsInput | string
+  source_remote_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_code?: Prisma.StringFieldUpdateOperationsInput | string
   error_message?: Prisma.StringFieldUpdateOperationsInput | string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -700,7 +803,10 @@ export type FailedRecordUncheckedUpdateWithoutSync_runInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   entity_type?: Prisma.Enumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type
+  record_type?: Prisma.Enumsync_failed_record_typeFieldUpdateOperationsInput | $Enums.sync_failed_record_type
   source_id?: Prisma.StringFieldUpdateOperationsInput | string
+  source_remote_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_code?: Prisma.StringFieldUpdateOperationsInput | string
   error_message?: Prisma.StringFieldUpdateOperationsInput | string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -712,7 +818,10 @@ export type FailedRecordUncheckedUpdateManyWithoutSync_runInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   entity_type?: Prisma.Enumxero_sync_entity_typeFieldUpdateOperationsInput | $Enums.xero_sync_entity_type
+  record_type?: Prisma.Enumsync_failed_record_typeFieldUpdateOperationsInput | $Enums.sync_failed_record_type
   source_id?: Prisma.StringFieldUpdateOperationsInput | string
+  source_remote_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  error_code?: Prisma.StringFieldUpdateOperationsInput | string
   error_message?: Prisma.StringFieldUpdateOperationsInput | string
   raw_payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -727,7 +836,10 @@ export type FailedRecordSelect<ExtArgs extends runtime.Types.Extensions.Internal
   organisation_id?: boolean
   sync_run_id?: boolean
   entity_type?: boolean
+  record_type?: boolean
   source_id?: boolean
+  source_remote_id?: boolean
+  error_code?: boolean
   error_message?: boolean
   raw_payload?: boolean
   created_at?: boolean
@@ -742,7 +854,10 @@ export type FailedRecordSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   organisation_id?: boolean
   sync_run_id?: boolean
   entity_type?: boolean
+  record_type?: boolean
   source_id?: boolean
+  source_remote_id?: boolean
+  error_code?: boolean
   error_message?: boolean
   raw_payload?: boolean
   created_at?: boolean
@@ -757,7 +872,10 @@ export type FailedRecordSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   organisation_id?: boolean
   sync_run_id?: boolean
   entity_type?: boolean
+  record_type?: boolean
   source_id?: boolean
+  source_remote_id?: boolean
+  error_code?: boolean
   error_message?: boolean
   raw_payload?: boolean
   created_at?: boolean
@@ -772,14 +890,17 @@ export type FailedRecordSelectScalar = {
   organisation_id?: boolean
   sync_run_id?: boolean
   entity_type?: boolean
+  record_type?: boolean
   source_id?: boolean
+  source_remote_id?: boolean
+  error_code?: boolean
   error_message?: boolean
   raw_payload?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type FailedRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "sync_run_id" | "entity_type" | "source_id" | "error_message" | "raw_payload" | "created_at" | "updated_at", ExtArgs["result"]["failedRecord"]>
+export type FailedRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "sync_run_id" | "entity_type" | "record_type" | "source_id" | "source_remote_id" | "error_code" | "error_message" | "raw_payload" | "created_at" | "updated_at", ExtArgs["result"]["failedRecord"]>
 export type FailedRecordInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
   sync_run?: boolean | Prisma.SyncRunDefaultArgs<ExtArgs>
@@ -805,7 +926,10 @@ export type $FailedRecordPayload<ExtArgs extends runtime.Types.Extensions.Intern
     organisation_id: string
     sync_run_id: string
     entity_type: $Enums.xero_sync_entity_type
+    record_type: $Enums.sync_failed_record_type
     source_id: string
+    source_remote_id: string | null
+    error_code: string
     error_message: string
     raw_payload: runtime.JsonValue | null
     created_at: Date
@@ -1240,7 +1364,10 @@ export interface FailedRecordFieldRefs {
   readonly organisation_id: Prisma.FieldRef<"FailedRecord", 'String'>
   readonly sync_run_id: Prisma.FieldRef<"FailedRecord", 'String'>
   readonly entity_type: Prisma.FieldRef<"FailedRecord", 'xero_sync_entity_type'>
+  readonly record_type: Prisma.FieldRef<"FailedRecord", 'sync_failed_record_type'>
   readonly source_id: Prisma.FieldRef<"FailedRecord", 'String'>
+  readonly source_remote_id: Prisma.FieldRef<"FailedRecord", 'String'>
+  readonly error_code: Prisma.FieldRef<"FailedRecord", 'String'>
   readonly error_message: Prisma.FieldRef<"FailedRecord", 'String'>
   readonly raw_payload: Prisma.FieldRef<"FailedRecord", 'Json'>
   readonly created_at: Prisma.FieldRef<"FailedRecord", 'DateTime'>

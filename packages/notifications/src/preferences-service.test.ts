@@ -38,7 +38,7 @@ describe("preferences-service", () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value).toHaveLength(10);
+      expect(result.value).toHaveLength(11);
       expect(result.value.every((row) => row.isDefault)).toBe(true);
     }
   });

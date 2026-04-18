@@ -39,6 +39,54 @@ enum xero_sync_entity_type {
   leave_balances
 }
 
+enum sync_run_status {
+  running
+  succeeded
+  partial_success
+  failed
+  cancelled
+}
+
+enum sync_run_type {
+  people
+  leave_records
+  leave_balances
+  approval_state_reconciliation
+}
+
+enum sync_trigger_type {
+  scheduled
+  manual
+  webhook
+}
+
+enum sync_failed_record_type {
+  people
+  leave_records
+  leave_balances
+  approval_state_reconciliation
+  leave
+  annual_leave
+  personal_leave
+  holiday
+  sick_leave
+  long_service_leave
+  unpaid_leave
+  public_holiday
+  wfh
+  travel
+  travelling
+  training
+  client_site
+  another_office
+  offsite_meeting
+  contractor_unavailable
+  limited_availability
+  alternative_contact
+  other
+  leave_request
+}
+
 enum availability_record_type {
   leave
   annual_leave
@@ -132,6 +180,7 @@ enum feed_token_status {
 
 enum notification_type {
   sync_failed
+  sync_reconciliation_complete @map("sync.reconciliation_complete")
   feed_token_rotated
   privacy_conflict
   missing_alternative_contact
@@ -337,6 +386,7 @@ model XeroConnection {
   access_token_encrypted  String
   refresh_token_encrypted String
   expires_at              DateTime
+  last_refreshed_at       DateTime?
   revoked_at              DateTime?
   created_at              DateTime  @default(now())
   updated_at              DateTime  @updatedAt
@@ -354,6 +404,7 @@ model XeroTenant {
   organisation_id    String         @db.Uuid
   xero_connection_id String         @unique @db.Uuid
   xero_tenant_id     String
+  tenant_name        String?
   payroll_region     payroll_region
   created_at         DateTime       @default(now())
   updated_at         DateTime       @updatedAt
@@ -362,6 +413,7 @@ model XeroTenant {
   xero_connection XeroConnection   @relation(fields: [xero_connection_id], references: [id])
   sync_cursors    XeroSyncCursor[]
   leave_balances  LeaveBalance[]
+  sync_runs       SyncRun[]
 
   @@index([clerk_org_id])
   @@index([organisation_id])
@@ -670,7 +722,7 @@ model Notification {
   updated_at          DateTime          @updatedAt
 
   organisation     Organisation             @relation(fields: [organisation_id], references: [id])
-  recipient_person Person?                   @relation(fields: [recipient_person_id], references: [id])
+  recipient_person Person?                  @relation(fields: [recipient_person_id], references: [id])
   email_queue      NotificationEmailQueue[]
 
   @@index([clerk_org_id])
@@ -736,40 +788,53 @@ model NotificationEmailQueue {
 }
 
 model SyncRun {
-  id              String                 @id @default(uuid()) @db.Uuid
-  clerk_org_id    String
-  organisation_id String                 @db.Uuid
-  xero_tenant_id  String?                @db.Uuid
-  status          String
-  entity_type     xero_sync_entity_type?
-  records_synced  Int                    @default(0)
-  records_failed  Int                    @default(0)
-  error_message   String?
-  started_at      DateTime
-  completed_at    DateTime?
-  created_at      DateTime               @default(now())
-  updated_at      DateTime               @updatedAt
+  id                   String                 @id @default(uuid()) @db.Uuid
+  clerk_org_id         String
+  organisation_id      String                 @db.Uuid
+  xero_tenant_id       String?                @db.Uuid
+  status               sync_run_status        @default(running)
+  run_type             sync_run_type
+  trigger_type         sync_trigger_type      @default(scheduled)
+  triggered_by_user_id String?
+  entity_type          xero_sync_entity_type?
+  records_fetched      Int                    @default(0)
+  records_upserted     Int                    @default(0)
+  records_skipped      Int                    @default(0)
+  records_synced       Int                    @default(0)
+  records_failed       Int                    @default(0)
+  error_message        String?
+  error_summary        String?
+  cancel_requested_at  DateTime?
+  started_at           DateTime
+  completed_at         DateTime?
+  created_at           DateTime               @default(now())
+  updated_at           DateTime               @updatedAt
 
   organisation   Organisation   @relation(fields: [organisation_id], references: [id])
+  xero_tenant    XeroTenant?    @relation(fields: [xero_tenant_id], references: [id])
   failed_records FailedRecord[]
 
   @@index([clerk_org_id])
   @@index([organisation_id])
   @@index([organisation_id, started_at])
+  @@index([clerk_org_id, organisation_id, xero_tenant_id, run_type, status, started_at])
   @@map("sync_runs")
 }
 
 model FailedRecord {
-  id              String                @id @default(uuid()) @db.Uuid
-  clerk_org_id    String
-  organisation_id String                @db.Uuid
-  sync_run_id     String                @db.Uuid
-  entity_type     xero_sync_entity_type
-  source_id       String
-  error_message   String
-  raw_payload     Json?
-  created_at      DateTime              @default(now())
-  updated_at      DateTime              @updatedAt
+  id               String                  @id @default(uuid()) @db.Uuid
+  clerk_org_id     String
+  organisation_id  String                  @db.Uuid
+  sync_run_id      String                  @db.Uuid
+  entity_type      xero_sync_entity_type
+  record_type      sync_failed_record_type
+  source_id        String
+  source_remote_id String?
+  error_code       String                  @default("unknown_error")
+  error_message    String
+  raw_payload      Json?
+  created_at       DateTime                @default(now())
+  updated_at       DateTime                @updatedAt
 
   organisation Organisation @relation(fields: [organisation_id], references: [id])
   sync_run     SyncRun      @relation(fields: [sync_run_id], references: [id])
@@ -777,6 +842,7 @@ model FailedRecord {
   @@index([clerk_org_id])
   @@index([organisation_id])
   @@index([sync_run_id])
+  @@index([sync_run_id, created_at])
   @@map("failed_records")
 }
 

@@ -32,6 +32,7 @@ export {
   listenerCount,
   type NotificationSseEvent,
   publishNotificationEvent,
+  publishOrganisationNotificationEvent,
   streamKey,
   subscribeToNotificationStream,
 } from "./src/sse/broker";

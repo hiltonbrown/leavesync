@@ -752,11 +752,62 @@ export type Enumnotification_email_statusWithAggregatesFilter<$PrismaModel = nev
   _max?: Prisma.NestedEnumnotification_email_statusFilter<$PrismaModel>
 }
 
+export type Enumsync_run_statusFilter<$PrismaModel = never> = {
+  equals?: $Enums.sync_run_status | Prisma.Enumsync_run_statusFieldRefInput<$PrismaModel>
+  in?: $Enums.sync_run_status[] | Prisma.ListEnumsync_run_statusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.sync_run_status[] | Prisma.ListEnumsync_run_statusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumsync_run_statusFilter<$PrismaModel> | $Enums.sync_run_status
+}
+
+export type Enumsync_run_typeFilter<$PrismaModel = never> = {
+  equals?: $Enums.sync_run_type | Prisma.Enumsync_run_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.sync_run_type[] | Prisma.ListEnumsync_run_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.sync_run_type[] | Prisma.ListEnumsync_run_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumsync_run_typeFilter<$PrismaModel> | $Enums.sync_run_type
+}
+
+export type Enumsync_trigger_typeFilter<$PrismaModel = never> = {
+  equals?: $Enums.sync_trigger_type | Prisma.Enumsync_trigger_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.sync_trigger_type[] | Prisma.ListEnumsync_trigger_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.sync_trigger_type[] | Prisma.ListEnumsync_trigger_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumsync_trigger_typeFilter<$PrismaModel> | $Enums.sync_trigger_type
+}
+
 export type Enumxero_sync_entity_typeNullableFilter<$PrismaModel = never> = {
   equals?: $Enums.xero_sync_entity_type | Prisma.Enumxero_sync_entity_typeFieldRefInput<$PrismaModel> | null
   in?: $Enums.xero_sync_entity_type[] | Prisma.ListEnumxero_sync_entity_typeFieldRefInput<$PrismaModel> | null
   notIn?: $Enums.xero_sync_entity_type[] | Prisma.ListEnumxero_sync_entity_typeFieldRefInput<$PrismaModel> | null
   not?: Prisma.NestedEnumxero_sync_entity_typeNullableFilter<$PrismaModel> | $Enums.xero_sync_entity_type | null
+}
+
+export type Enumsync_run_statusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.sync_run_status | Prisma.Enumsync_run_statusFieldRefInput<$PrismaModel>
+  in?: $Enums.sync_run_status[] | Prisma.ListEnumsync_run_statusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.sync_run_status[] | Prisma.ListEnumsync_run_statusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumsync_run_statusWithAggregatesFilter<$PrismaModel> | $Enums.sync_run_status
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumsync_run_statusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumsync_run_statusFilter<$PrismaModel>
+}
+
+export type Enumsync_run_typeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.sync_run_type | Prisma.Enumsync_run_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.sync_run_type[] | Prisma.ListEnumsync_run_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.sync_run_type[] | Prisma.ListEnumsync_run_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumsync_run_typeWithAggregatesFilter<$PrismaModel> | $Enums.sync_run_type
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumsync_run_typeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumsync_run_typeFilter<$PrismaModel>
+}
+
+export type Enumsync_trigger_typeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.sync_trigger_type | Prisma.Enumsync_trigger_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.sync_trigger_type[] | Prisma.ListEnumsync_trigger_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.sync_trigger_type[] | Prisma.ListEnumsync_trigger_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumsync_trigger_typeWithAggregatesFilter<$PrismaModel> | $Enums.sync_trigger_type
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumsync_trigger_typeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumsync_trigger_typeFilter<$PrismaModel>
 }
 
 export type Enumxero_sync_entity_typeNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -767,6 +818,23 @@ export type Enumxero_sync_entity_typeNullableWithAggregatesFilter<$PrismaModel =
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumxero_sync_entity_typeNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumxero_sync_entity_typeNullableFilter<$PrismaModel>
+}
+
+export type Enumsync_failed_record_typeFilter<$PrismaModel = never> = {
+  equals?: $Enums.sync_failed_record_type | Prisma.Enumsync_failed_record_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.sync_failed_record_type[] | Prisma.ListEnumsync_failed_record_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.sync_failed_record_type[] | Prisma.ListEnumsync_failed_record_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumsync_failed_record_typeFilter<$PrismaModel> | $Enums.sync_failed_record_type
+}
+
+export type Enumsync_failed_record_typeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.sync_failed_record_type | Prisma.Enumsync_failed_record_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.sync_failed_record_type[] | Prisma.ListEnumsync_failed_record_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.sync_failed_record_type[] | Prisma.ListEnumsync_failed_record_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumsync_failed_record_typeWithAggregatesFilter<$PrismaModel> | $Enums.sync_failed_record_type
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumsync_failed_record_typeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumsync_failed_record_typeFilter<$PrismaModel>
 }
 
 export type NestedUuidFilter<$PrismaModel = never> = {
@@ -1489,11 +1557,62 @@ export type NestedEnumnotification_email_statusWithAggregatesFilter<$PrismaModel
   _max?: Prisma.NestedEnumnotification_email_statusFilter<$PrismaModel>
 }
 
+export type NestedEnumsync_run_statusFilter<$PrismaModel = never> = {
+  equals?: $Enums.sync_run_status | Prisma.Enumsync_run_statusFieldRefInput<$PrismaModel>
+  in?: $Enums.sync_run_status[] | Prisma.ListEnumsync_run_statusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.sync_run_status[] | Prisma.ListEnumsync_run_statusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumsync_run_statusFilter<$PrismaModel> | $Enums.sync_run_status
+}
+
+export type NestedEnumsync_run_typeFilter<$PrismaModel = never> = {
+  equals?: $Enums.sync_run_type | Prisma.Enumsync_run_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.sync_run_type[] | Prisma.ListEnumsync_run_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.sync_run_type[] | Prisma.ListEnumsync_run_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumsync_run_typeFilter<$PrismaModel> | $Enums.sync_run_type
+}
+
+export type NestedEnumsync_trigger_typeFilter<$PrismaModel = never> = {
+  equals?: $Enums.sync_trigger_type | Prisma.Enumsync_trigger_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.sync_trigger_type[] | Prisma.ListEnumsync_trigger_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.sync_trigger_type[] | Prisma.ListEnumsync_trigger_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumsync_trigger_typeFilter<$PrismaModel> | $Enums.sync_trigger_type
+}
+
 export type NestedEnumxero_sync_entity_typeNullableFilter<$PrismaModel = never> = {
   equals?: $Enums.xero_sync_entity_type | Prisma.Enumxero_sync_entity_typeFieldRefInput<$PrismaModel> | null
   in?: $Enums.xero_sync_entity_type[] | Prisma.ListEnumxero_sync_entity_typeFieldRefInput<$PrismaModel> | null
   notIn?: $Enums.xero_sync_entity_type[] | Prisma.ListEnumxero_sync_entity_typeFieldRefInput<$PrismaModel> | null
   not?: Prisma.NestedEnumxero_sync_entity_typeNullableFilter<$PrismaModel> | $Enums.xero_sync_entity_type | null
+}
+
+export type NestedEnumsync_run_statusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.sync_run_status | Prisma.Enumsync_run_statusFieldRefInput<$PrismaModel>
+  in?: $Enums.sync_run_status[] | Prisma.ListEnumsync_run_statusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.sync_run_status[] | Prisma.ListEnumsync_run_statusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumsync_run_statusWithAggregatesFilter<$PrismaModel> | $Enums.sync_run_status
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumsync_run_statusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumsync_run_statusFilter<$PrismaModel>
+}
+
+export type NestedEnumsync_run_typeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.sync_run_type | Prisma.Enumsync_run_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.sync_run_type[] | Prisma.ListEnumsync_run_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.sync_run_type[] | Prisma.ListEnumsync_run_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumsync_run_typeWithAggregatesFilter<$PrismaModel> | $Enums.sync_run_type
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumsync_run_typeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumsync_run_typeFilter<$PrismaModel>
+}
+
+export type NestedEnumsync_trigger_typeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.sync_trigger_type | Prisma.Enumsync_trigger_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.sync_trigger_type[] | Prisma.ListEnumsync_trigger_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.sync_trigger_type[] | Prisma.ListEnumsync_trigger_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumsync_trigger_typeWithAggregatesFilter<$PrismaModel> | $Enums.sync_trigger_type
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumsync_trigger_typeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumsync_trigger_typeFilter<$PrismaModel>
 }
 
 export type NestedEnumxero_sync_entity_typeNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -1504,6 +1623,23 @@ export type NestedEnumxero_sync_entity_typeNullableWithAggregatesFilter<$PrismaM
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumxero_sync_entity_typeNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumxero_sync_entity_typeNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumsync_failed_record_typeFilter<$PrismaModel = never> = {
+  equals?: $Enums.sync_failed_record_type | Prisma.Enumsync_failed_record_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.sync_failed_record_type[] | Prisma.ListEnumsync_failed_record_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.sync_failed_record_type[] | Prisma.ListEnumsync_failed_record_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumsync_failed_record_typeFilter<$PrismaModel> | $Enums.sync_failed_record_type
+}
+
+export type NestedEnumsync_failed_record_typeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.sync_failed_record_type | Prisma.Enumsync_failed_record_typeFieldRefInput<$PrismaModel>
+  in?: $Enums.sync_failed_record_type[] | Prisma.ListEnumsync_failed_record_typeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.sync_failed_record_type[] | Prisma.ListEnumsync_failed_record_typeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumsync_failed_record_typeWithAggregatesFilter<$PrismaModel> | $Enums.sync_failed_record_type
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumsync_failed_record_typeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumsync_failed_record_typeFilter<$PrismaModel>
 }
 
 

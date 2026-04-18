@@ -30,6 +30,7 @@ export type XeroTenantMinAggregateOutputType = {
   organisation_id: string | null
   xero_connection_id: string | null
   xero_tenant_id: string | null
+  tenant_name: string | null
   payroll_region: $Enums.payroll_region | null
   created_at: Date | null
   updated_at: Date | null
@@ -41,6 +42,7 @@ export type XeroTenantMaxAggregateOutputType = {
   organisation_id: string | null
   xero_connection_id: string | null
   xero_tenant_id: string | null
+  tenant_name: string | null
   payroll_region: $Enums.payroll_region | null
   created_at: Date | null
   updated_at: Date | null
@@ -52,6 +54,7 @@ export type XeroTenantCountAggregateOutputType = {
   organisation_id: number
   xero_connection_id: number
   xero_tenant_id: number
+  tenant_name: number
   payroll_region: number
   created_at: number
   updated_at: number
@@ -65,6 +68,7 @@ export type XeroTenantMinAggregateInputType = {
   organisation_id?: true
   xero_connection_id?: true
   xero_tenant_id?: true
+  tenant_name?: true
   payroll_region?: true
   created_at?: true
   updated_at?: true
@@ -76,6 +80,7 @@ export type XeroTenantMaxAggregateInputType = {
   organisation_id?: true
   xero_connection_id?: true
   xero_tenant_id?: true
+  tenant_name?: true
   payroll_region?: true
   created_at?: true
   updated_at?: true
@@ -87,6 +92,7 @@ export type XeroTenantCountAggregateInputType = {
   organisation_id?: true
   xero_connection_id?: true
   xero_tenant_id?: true
+  tenant_name?: true
   payroll_region?: true
   created_at?: true
   updated_at?: true
@@ -171,6 +177,7 @@ export type XeroTenantGroupByOutputType = {
   organisation_id: string
   xero_connection_id: string
   xero_tenant_id: string
+  tenant_name: string | null
   payroll_region: $Enums.payroll_region
   created_at: Date
   updated_at: Date
@@ -203,6 +210,7 @@ export type XeroTenantWhereInput = {
   organisation_id?: Prisma.UuidFilter<"XeroTenant"> | string
   xero_connection_id?: Prisma.UuidFilter<"XeroTenant"> | string
   xero_tenant_id?: Prisma.StringFilter<"XeroTenant"> | string
+  tenant_name?: Prisma.StringNullableFilter<"XeroTenant"> | string | null
   payroll_region?: Prisma.Enumpayroll_regionFilter<"XeroTenant"> | $Enums.payroll_region
   created_at?: Prisma.DateTimeFilter<"XeroTenant"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"XeroTenant"> | Date | string
@@ -210,6 +218,7 @@ export type XeroTenantWhereInput = {
   xero_connection?: Prisma.XOR<Prisma.XeroConnectionScalarRelationFilter, Prisma.XeroConnectionWhereInput>
   sync_cursors?: Prisma.XeroSyncCursorListRelationFilter
   leave_balances?: Prisma.LeaveBalanceListRelationFilter
+  sync_runs?: Prisma.SyncRunListRelationFilter
 }
 
 export type XeroTenantOrderByWithRelationInput = {
@@ -218,6 +227,7 @@ export type XeroTenantOrderByWithRelationInput = {
   organisation_id?: Prisma.SortOrder
   xero_connection_id?: Prisma.SortOrder
   xero_tenant_id?: Prisma.SortOrder
+  tenant_name?: Prisma.SortOrderInput | Prisma.SortOrder
   payroll_region?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -225,6 +235,7 @@ export type XeroTenantOrderByWithRelationInput = {
   xero_connection?: Prisma.XeroConnectionOrderByWithRelationInput
   sync_cursors?: Prisma.XeroSyncCursorOrderByRelationAggregateInput
   leave_balances?: Prisma.LeaveBalanceOrderByRelationAggregateInput
+  sync_runs?: Prisma.SyncRunOrderByRelationAggregateInput
 }
 
 export type XeroTenantWhereUniqueInput = Prisma.AtLeast<{
@@ -236,6 +247,7 @@ export type XeroTenantWhereUniqueInput = Prisma.AtLeast<{
   clerk_org_id?: Prisma.StringFilter<"XeroTenant"> | string
   organisation_id?: Prisma.UuidFilter<"XeroTenant"> | string
   xero_tenant_id?: Prisma.StringFilter<"XeroTenant"> | string
+  tenant_name?: Prisma.StringNullableFilter<"XeroTenant"> | string | null
   payroll_region?: Prisma.Enumpayroll_regionFilter<"XeroTenant"> | $Enums.payroll_region
   created_at?: Prisma.DateTimeFilter<"XeroTenant"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"XeroTenant"> | Date | string
@@ -243,6 +255,7 @@ export type XeroTenantWhereUniqueInput = Prisma.AtLeast<{
   xero_connection?: Prisma.XOR<Prisma.XeroConnectionScalarRelationFilter, Prisma.XeroConnectionWhereInput>
   sync_cursors?: Prisma.XeroSyncCursorListRelationFilter
   leave_balances?: Prisma.LeaveBalanceListRelationFilter
+  sync_runs?: Prisma.SyncRunListRelationFilter
 }, "id" | "xero_connection_id">
 
 export type XeroTenantOrderByWithAggregationInput = {
@@ -251,6 +264,7 @@ export type XeroTenantOrderByWithAggregationInput = {
   organisation_id?: Prisma.SortOrder
   xero_connection_id?: Prisma.SortOrder
   xero_tenant_id?: Prisma.SortOrder
+  tenant_name?: Prisma.SortOrderInput | Prisma.SortOrder
   payroll_region?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -268,6 +282,7 @@ export type XeroTenantScalarWhereWithAggregatesInput = {
   organisation_id?: Prisma.UuidWithAggregatesFilter<"XeroTenant"> | string
   xero_connection_id?: Prisma.UuidWithAggregatesFilter<"XeroTenant"> | string
   xero_tenant_id?: Prisma.StringWithAggregatesFilter<"XeroTenant"> | string
+  tenant_name?: Prisma.StringNullableWithAggregatesFilter<"XeroTenant"> | string | null
   payroll_region?: Prisma.Enumpayroll_regionWithAggregatesFilter<"XeroTenant"> | $Enums.payroll_region
   created_at?: Prisma.DateTimeWithAggregatesFilter<"XeroTenant"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"XeroTenant"> | Date | string
@@ -277,6 +292,7 @@ export type XeroTenantCreateInput = {
   id?: string
   clerk_org_id: string
   xero_tenant_id: string
+  tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   created_at?: Date | string
   updated_at?: Date | string
@@ -284,6 +300,7 @@ export type XeroTenantCreateInput = {
   xero_connection: Prisma.XeroConnectionCreateNestedOneWithoutXero_tenantInput
   sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutXero_tenantInput
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutXero_tenantInput
+  sync_runs?: Prisma.SyncRunCreateNestedManyWithoutXero_tenantInput
 }
 
 export type XeroTenantUncheckedCreateInput = {
@@ -292,17 +309,20 @@ export type XeroTenantUncheckedCreateInput = {
   organisation_id: string
   xero_connection_id: string
   xero_tenant_id: string
+  tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   created_at?: Date | string
   updated_at?: Date | string
   sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutXero_tenantInput
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutXero_tenantInput
+  sync_runs?: Prisma.SyncRunUncheckedCreateNestedManyWithoutXero_tenantInput
 }
 
 export type XeroTenantUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -310,6 +330,7 @@ export type XeroTenantUpdateInput = {
   xero_connection?: Prisma.XeroConnectionUpdateOneRequiredWithoutXero_tenantNestedInput
   sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutXero_tenantNestedInput
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutXero_tenantNestedInput
+  sync_runs?: Prisma.SyncRunUpdateManyWithoutXero_tenantNestedInput
 }
 
 export type XeroTenantUncheckedUpdateInput = {
@@ -318,11 +339,13 @@ export type XeroTenantUncheckedUpdateInput = {
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_connection_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutXero_tenantNestedInput
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutXero_tenantNestedInput
+  sync_runs?: Prisma.SyncRunUncheckedUpdateManyWithoutXero_tenantNestedInput
 }
 
 export type XeroTenantCreateManyInput = {
@@ -331,6 +354,7 @@ export type XeroTenantCreateManyInput = {
   organisation_id: string
   xero_connection_id: string
   xero_tenant_id: string
+  tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   created_at?: Date | string
   updated_at?: Date | string
@@ -340,6 +364,7 @@ export type XeroTenantUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -351,6 +376,7 @@ export type XeroTenantUncheckedUpdateManyInput = {
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_connection_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -377,6 +403,7 @@ export type XeroTenantCountOrderByAggregateInput = {
   organisation_id?: Prisma.SortOrder
   xero_connection_id?: Prisma.SortOrder
   xero_tenant_id?: Prisma.SortOrder
+  tenant_name?: Prisma.SortOrder
   payroll_region?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -388,6 +415,7 @@ export type XeroTenantMaxOrderByAggregateInput = {
   organisation_id?: Prisma.SortOrder
   xero_connection_id?: Prisma.SortOrder
   xero_tenant_id?: Prisma.SortOrder
+  tenant_name?: Prisma.SortOrder
   payroll_region?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -399,6 +427,7 @@ export type XeroTenantMinOrderByAggregateInput = {
   organisation_id?: Prisma.SortOrder
   xero_connection_id?: Prisma.SortOrder
   xero_tenant_id?: Prisma.SortOrder
+  tenant_name?: Prisma.SortOrder
   payroll_region?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
@@ -515,16 +544,34 @@ export type XeroTenantUpdateOneRequiredWithoutLeave_balancesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.XeroTenantUpdateToOneWithWhereWithoutLeave_balancesInput, Prisma.XeroTenantUpdateWithoutLeave_balancesInput>, Prisma.XeroTenantUncheckedUpdateWithoutLeave_balancesInput>
 }
 
+export type XeroTenantCreateNestedOneWithoutSync_runsInput = {
+  create?: Prisma.XOR<Prisma.XeroTenantCreateWithoutSync_runsInput, Prisma.XeroTenantUncheckedCreateWithoutSync_runsInput>
+  connectOrCreate?: Prisma.XeroTenantCreateOrConnectWithoutSync_runsInput
+  connect?: Prisma.XeroTenantWhereUniqueInput
+}
+
+export type XeroTenantUpdateOneWithoutSync_runsNestedInput = {
+  create?: Prisma.XOR<Prisma.XeroTenantCreateWithoutSync_runsInput, Prisma.XeroTenantUncheckedCreateWithoutSync_runsInput>
+  connectOrCreate?: Prisma.XeroTenantCreateOrConnectWithoutSync_runsInput
+  upsert?: Prisma.XeroTenantUpsertWithoutSync_runsInput
+  disconnect?: Prisma.XeroTenantWhereInput | boolean
+  delete?: Prisma.XeroTenantWhereInput | boolean
+  connect?: Prisma.XeroTenantWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.XeroTenantUpdateToOneWithWhereWithoutSync_runsInput, Prisma.XeroTenantUpdateWithoutSync_runsInput>, Prisma.XeroTenantUncheckedUpdateWithoutSync_runsInput>
+}
+
 export type XeroTenantCreateWithoutOrganisationInput = {
   id?: string
   clerk_org_id: string
   xero_tenant_id: string
+  tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   created_at?: Date | string
   updated_at?: Date | string
   xero_connection: Prisma.XeroConnectionCreateNestedOneWithoutXero_tenantInput
   sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutXero_tenantInput
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutXero_tenantInput
+  sync_runs?: Prisma.SyncRunCreateNestedManyWithoutXero_tenantInput
 }
 
 export type XeroTenantUncheckedCreateWithoutOrganisationInput = {
@@ -532,11 +579,13 @@ export type XeroTenantUncheckedCreateWithoutOrganisationInput = {
   clerk_org_id: string
   xero_connection_id: string
   xero_tenant_id: string
+  tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   created_at?: Date | string
   updated_at?: Date | string
   sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutXero_tenantInput
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutXero_tenantInput
+  sync_runs?: Prisma.SyncRunUncheckedCreateNestedManyWithoutXero_tenantInput
 }
 
 export type XeroTenantCreateOrConnectWithoutOrganisationInput = {
@@ -574,6 +623,7 @@ export type XeroTenantScalarWhereInput = {
   organisation_id?: Prisma.UuidFilter<"XeroTenant"> | string
   xero_connection_id?: Prisma.UuidFilter<"XeroTenant"> | string
   xero_tenant_id?: Prisma.StringFilter<"XeroTenant"> | string
+  tenant_name?: Prisma.StringNullableFilter<"XeroTenant"> | string | null
   payroll_region?: Prisma.Enumpayroll_regionFilter<"XeroTenant"> | $Enums.payroll_region
   created_at?: Prisma.DateTimeFilter<"XeroTenant"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"XeroTenant"> | Date | string
@@ -583,12 +633,14 @@ export type XeroTenantCreateWithoutXero_connectionInput = {
   id?: string
   clerk_org_id: string
   xero_tenant_id: string
+  tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutXero_tenantsInput
   sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutXero_tenantInput
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutXero_tenantInput
+  sync_runs?: Prisma.SyncRunCreateNestedManyWithoutXero_tenantInput
 }
 
 export type XeroTenantUncheckedCreateWithoutXero_connectionInput = {
@@ -596,11 +648,13 @@ export type XeroTenantUncheckedCreateWithoutXero_connectionInput = {
   clerk_org_id: string
   organisation_id: string
   xero_tenant_id: string
+  tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   created_at?: Date | string
   updated_at?: Date | string
   sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutXero_tenantInput
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutXero_tenantInput
+  sync_runs?: Prisma.SyncRunUncheckedCreateNestedManyWithoutXero_tenantInput
 }
 
 export type XeroTenantCreateOrConnectWithoutXero_connectionInput = {
@@ -623,12 +677,14 @@ export type XeroTenantUpdateWithoutXero_connectionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutXero_tenantsNestedInput
   sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutXero_tenantNestedInput
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutXero_tenantNestedInput
+  sync_runs?: Prisma.SyncRunUpdateManyWithoutXero_tenantNestedInput
 }
 
 export type XeroTenantUncheckedUpdateWithoutXero_connectionInput = {
@@ -636,23 +692,27 @@ export type XeroTenantUncheckedUpdateWithoutXero_connectionInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutXero_tenantNestedInput
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutXero_tenantNestedInput
+  sync_runs?: Prisma.SyncRunUncheckedUpdateManyWithoutXero_tenantNestedInput
 }
 
 export type XeroTenantCreateWithoutSync_cursorsInput = {
   id?: string
   clerk_org_id: string
   xero_tenant_id: string
+  tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutXero_tenantsInput
   xero_connection: Prisma.XeroConnectionCreateNestedOneWithoutXero_tenantInput
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutXero_tenantInput
+  sync_runs?: Prisma.SyncRunCreateNestedManyWithoutXero_tenantInput
 }
 
 export type XeroTenantUncheckedCreateWithoutSync_cursorsInput = {
@@ -661,10 +721,12 @@ export type XeroTenantUncheckedCreateWithoutSync_cursorsInput = {
   organisation_id: string
   xero_connection_id: string
   xero_tenant_id: string
+  tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   created_at?: Date | string
   updated_at?: Date | string
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutXero_tenantInput
+  sync_runs?: Prisma.SyncRunUncheckedCreateNestedManyWithoutXero_tenantInput
 }
 
 export type XeroTenantCreateOrConnectWithoutSync_cursorsInput = {
@@ -687,12 +749,14 @@ export type XeroTenantUpdateWithoutSync_cursorsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutXero_tenantsNestedInput
   xero_connection?: Prisma.XeroConnectionUpdateOneRequiredWithoutXero_tenantNestedInput
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutXero_tenantNestedInput
+  sync_runs?: Prisma.SyncRunUpdateManyWithoutXero_tenantNestedInput
 }
 
 export type XeroTenantUncheckedUpdateWithoutSync_cursorsInput = {
@@ -701,22 +765,26 @@ export type XeroTenantUncheckedUpdateWithoutSync_cursorsInput = {
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_connection_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutXero_tenantNestedInput
+  sync_runs?: Prisma.SyncRunUncheckedUpdateManyWithoutXero_tenantNestedInput
 }
 
 export type XeroTenantCreateWithoutLeave_balancesInput = {
   id?: string
   clerk_org_id: string
   xero_tenant_id: string
+  tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutXero_tenantsInput
   xero_connection: Prisma.XeroConnectionCreateNestedOneWithoutXero_tenantInput
   sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutXero_tenantInput
+  sync_runs?: Prisma.SyncRunCreateNestedManyWithoutXero_tenantInput
 }
 
 export type XeroTenantUncheckedCreateWithoutLeave_balancesInput = {
@@ -725,10 +793,12 @@ export type XeroTenantUncheckedCreateWithoutLeave_balancesInput = {
   organisation_id: string
   xero_connection_id: string
   xero_tenant_id: string
+  tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   created_at?: Date | string
   updated_at?: Date | string
   sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutXero_tenantInput
+  sync_runs?: Prisma.SyncRunUncheckedCreateNestedManyWithoutXero_tenantInput
 }
 
 export type XeroTenantCreateOrConnectWithoutLeave_balancesInput = {
@@ -751,12 +821,14 @@ export type XeroTenantUpdateWithoutLeave_balancesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutXero_tenantsNestedInput
   xero_connection?: Prisma.XeroConnectionUpdateOneRequiredWithoutXero_tenantNestedInput
   sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutXero_tenantNestedInput
+  sync_runs?: Prisma.SyncRunUpdateManyWithoutXero_tenantNestedInput
 }
 
 export type XeroTenantUncheckedUpdateWithoutLeave_balancesInput = {
@@ -765,10 +837,84 @@ export type XeroTenantUncheckedUpdateWithoutLeave_balancesInput = {
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_connection_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutXero_tenantNestedInput
+  sync_runs?: Prisma.SyncRunUncheckedUpdateManyWithoutXero_tenantNestedInput
+}
+
+export type XeroTenantCreateWithoutSync_runsInput = {
+  id?: string
+  clerk_org_id: string
+  xero_tenant_id: string
+  tenant_name?: string | null
+  payroll_region: $Enums.payroll_region
+  created_at?: Date | string
+  updated_at?: Date | string
+  organisation: Prisma.OrganisationCreateNestedOneWithoutXero_tenantsInput
+  xero_connection: Prisma.XeroConnectionCreateNestedOneWithoutXero_tenantInput
+  sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutXero_tenantInput
+  leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutXero_tenantInput
+}
+
+export type XeroTenantUncheckedCreateWithoutSync_runsInput = {
+  id?: string
+  clerk_org_id: string
+  organisation_id: string
+  xero_connection_id: string
+  xero_tenant_id: string
+  tenant_name?: string | null
+  payroll_region: $Enums.payroll_region
+  created_at?: Date | string
+  updated_at?: Date | string
+  sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutXero_tenantInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutXero_tenantInput
+}
+
+export type XeroTenantCreateOrConnectWithoutSync_runsInput = {
+  where: Prisma.XeroTenantWhereUniqueInput
+  create: Prisma.XOR<Prisma.XeroTenantCreateWithoutSync_runsInput, Prisma.XeroTenantUncheckedCreateWithoutSync_runsInput>
+}
+
+export type XeroTenantUpsertWithoutSync_runsInput = {
+  update: Prisma.XOR<Prisma.XeroTenantUpdateWithoutSync_runsInput, Prisma.XeroTenantUncheckedUpdateWithoutSync_runsInput>
+  create: Prisma.XOR<Prisma.XeroTenantCreateWithoutSync_runsInput, Prisma.XeroTenantUncheckedCreateWithoutSync_runsInput>
+  where?: Prisma.XeroTenantWhereInput
+}
+
+export type XeroTenantUpdateToOneWithWhereWithoutSync_runsInput = {
+  where?: Prisma.XeroTenantWhereInput
+  data: Prisma.XOR<Prisma.XeroTenantUpdateWithoutSync_runsInput, Prisma.XeroTenantUncheckedUpdateWithoutSync_runsInput>
+}
+
+export type XeroTenantUpdateWithoutSync_runsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organisation?: Prisma.OrganisationUpdateOneRequiredWithoutXero_tenantsNestedInput
+  xero_connection?: Prisma.XeroConnectionUpdateOneRequiredWithoutXero_tenantNestedInput
+  sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutXero_tenantNestedInput
+  leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutXero_tenantNestedInput
+}
+
+export type XeroTenantUncheckedUpdateWithoutSync_runsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_connection_id?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutXero_tenantNestedInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutXero_tenantNestedInput
 }
 
 export type XeroTenantCreateManyOrganisationInput = {
@@ -776,6 +922,7 @@ export type XeroTenantCreateManyOrganisationInput = {
   clerk_org_id: string
   xero_connection_id: string
   xero_tenant_id: string
+  tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   created_at?: Date | string
   updated_at?: Date | string
@@ -785,12 +932,14 @@ export type XeroTenantUpdateWithoutOrganisationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   xero_connection?: Prisma.XeroConnectionUpdateOneRequiredWithoutXero_tenantNestedInput
   sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutXero_tenantNestedInput
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutXero_tenantNestedInput
+  sync_runs?: Prisma.SyncRunUpdateManyWithoutXero_tenantNestedInput
 }
 
 export type XeroTenantUncheckedUpdateWithoutOrganisationInput = {
@@ -798,11 +947,13 @@ export type XeroTenantUncheckedUpdateWithoutOrganisationInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_connection_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutXero_tenantNestedInput
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutXero_tenantNestedInput
+  sync_runs?: Prisma.SyncRunUncheckedUpdateManyWithoutXero_tenantNestedInput
 }
 
 export type XeroTenantUncheckedUpdateManyWithoutOrganisationInput = {
@@ -810,6 +961,7 @@ export type XeroTenantUncheckedUpdateManyWithoutOrganisationInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_connection_id?: Prisma.StringFieldUpdateOperationsInput | string
   xero_tenant_id?: Prisma.StringFieldUpdateOperationsInput | string
+  tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -823,11 +975,13 @@ export type XeroTenantUncheckedUpdateManyWithoutOrganisationInput = {
 export type XeroTenantCountOutputType = {
   sync_cursors: number
   leave_balances: number
+  sync_runs: number
 }
 
 export type XeroTenantCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sync_cursors?: boolean | XeroTenantCountOutputTypeCountSync_cursorsArgs
   leave_balances?: boolean | XeroTenantCountOutputTypeCountLeave_balancesArgs
+  sync_runs?: boolean | XeroTenantCountOutputTypeCountSync_runsArgs
 }
 
 /**
@@ -854,6 +1008,13 @@ export type XeroTenantCountOutputTypeCountLeave_balancesArgs<ExtArgs extends run
   where?: Prisma.LeaveBalanceWhereInput
 }
 
+/**
+ * XeroTenantCountOutputType without action
+ */
+export type XeroTenantCountOutputTypeCountSync_runsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SyncRunWhereInput
+}
+
 
 export type XeroTenantSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -861,6 +1022,7 @@ export type XeroTenantSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   organisation_id?: boolean
   xero_connection_id?: boolean
   xero_tenant_id?: boolean
+  tenant_name?: boolean
   payroll_region?: boolean
   created_at?: boolean
   updated_at?: boolean
@@ -868,6 +1030,7 @@ export type XeroTenantSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   xero_connection?: boolean | Prisma.XeroConnectionDefaultArgs<ExtArgs>
   sync_cursors?: boolean | Prisma.XeroTenant$sync_cursorsArgs<ExtArgs>
   leave_balances?: boolean | Prisma.XeroTenant$leave_balancesArgs<ExtArgs>
+  sync_runs?: boolean | Prisma.XeroTenant$sync_runsArgs<ExtArgs>
   _count?: boolean | Prisma.XeroTenantCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["xeroTenant"]>
 
@@ -877,6 +1040,7 @@ export type XeroTenantSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   organisation_id?: boolean
   xero_connection_id?: boolean
   xero_tenant_id?: boolean
+  tenant_name?: boolean
   payroll_region?: boolean
   created_at?: boolean
   updated_at?: boolean
@@ -890,6 +1054,7 @@ export type XeroTenantSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   organisation_id?: boolean
   xero_connection_id?: boolean
   xero_tenant_id?: boolean
+  tenant_name?: boolean
   payroll_region?: boolean
   created_at?: boolean
   updated_at?: boolean
@@ -903,17 +1068,19 @@ export type XeroTenantSelectScalar = {
   organisation_id?: boolean
   xero_connection_id?: boolean
   xero_tenant_id?: boolean
+  tenant_name?: boolean
   payroll_region?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type XeroTenantOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "xero_connection_id" | "xero_tenant_id" | "payroll_region" | "created_at" | "updated_at", ExtArgs["result"]["xeroTenant"]>
+export type XeroTenantOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "xero_connection_id" | "xero_tenant_id" | "tenant_name" | "payroll_region" | "created_at" | "updated_at", ExtArgs["result"]["xeroTenant"]>
 export type XeroTenantInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
   xero_connection?: boolean | Prisma.XeroConnectionDefaultArgs<ExtArgs>
   sync_cursors?: boolean | Prisma.XeroTenant$sync_cursorsArgs<ExtArgs>
   leave_balances?: boolean | Prisma.XeroTenant$leave_balancesArgs<ExtArgs>
+  sync_runs?: boolean | Prisma.XeroTenant$sync_runsArgs<ExtArgs>
   _count?: boolean | Prisma.XeroTenantCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type XeroTenantIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -932,6 +1099,7 @@ export type $XeroTenantPayload<ExtArgs extends runtime.Types.Extensions.Internal
     xero_connection: Prisma.$XeroConnectionPayload<ExtArgs>
     sync_cursors: Prisma.$XeroSyncCursorPayload<ExtArgs>[]
     leave_balances: Prisma.$LeaveBalancePayload<ExtArgs>[]
+    sync_runs: Prisma.$SyncRunPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -939,6 +1107,7 @@ export type $XeroTenantPayload<ExtArgs extends runtime.Types.Extensions.Internal
     organisation_id: string
     xero_connection_id: string
     xero_tenant_id: string
+    tenant_name: string | null
     payroll_region: $Enums.payroll_region
     created_at: Date
     updated_at: Date
@@ -1340,6 +1509,7 @@ export interface Prisma__XeroTenantClient<T, Null = never, ExtArgs extends runti
   xero_connection<T extends Prisma.XeroConnectionDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroConnectionDefaultArgs<ExtArgs>>): Prisma.Prisma__XeroConnectionClient<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   sync_cursors<T extends Prisma.XeroTenant$sync_cursorsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroTenant$sync_cursorsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroSyncCursorPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   leave_balances<T extends Prisma.XeroTenant$leave_balancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroTenant$leave_balancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeaveBalancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  sync_runs<T extends Prisma.XeroTenant$sync_runsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroTenant$sync_runsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SyncRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1374,6 +1544,7 @@ export interface XeroTenantFieldRefs {
   readonly organisation_id: Prisma.FieldRef<"XeroTenant", 'String'>
   readonly xero_connection_id: Prisma.FieldRef<"XeroTenant", 'String'>
   readonly xero_tenant_id: Prisma.FieldRef<"XeroTenant", 'String'>
+  readonly tenant_name: Prisma.FieldRef<"XeroTenant", 'String'>
   readonly payroll_region: Prisma.FieldRef<"XeroTenant", 'payroll_region'>
   readonly created_at: Prisma.FieldRef<"XeroTenant", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"XeroTenant", 'DateTime'>
@@ -1823,6 +1994,30 @@ export type XeroTenant$leave_balancesArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.LeaveBalanceScalarFieldEnum | Prisma.LeaveBalanceScalarFieldEnum[]
+}
+
+/**
+ * XeroTenant.sync_runs
+ */
+export type XeroTenant$sync_runsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SyncRun
+   */
+  select?: Prisma.SyncRunSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SyncRun
+   */
+  omit?: Prisma.SyncRunOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SyncRunInclude<ExtArgs> | null
+  where?: Prisma.SyncRunWhereInput
+  orderBy?: Prisma.SyncRunOrderByWithRelationInput | Prisma.SyncRunOrderByWithRelationInput[]
+  cursor?: Prisma.SyncRunWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SyncRunScalarFieldEnum | Prisma.SyncRunScalarFieldEnum[]
 }
 
 /**

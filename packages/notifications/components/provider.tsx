@@ -88,6 +88,7 @@ export const NotificationsProvider = ({
         "notification.created",
         "notification.read",
         "notification.all_read",
+        "sync.run_status_changed",
       ] as const) {
         eventSource.addEventListener(eventType, (message) => {
           const parsed = parseEvent(eventType, message);
