@@ -3,7 +3,7 @@ import { listPeopleForOrganisation } from "@repo/database/src/queries";
 import { notFound } from "next/navigation";
 import { loadFeedDetailData } from "@/lib/server/load-feed-detail-data";
 import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
-import { RouteModal } from "../../../components/route-modal";
+import { InterceptingModalShell } from "../../../../components/modals/intercepting-modal-shell";
 import { FeedDetailClient } from "./feed-detail-client";
 
 interface FeedDetailModalPageProperties {
@@ -39,7 +39,7 @@ const FeedDetailModalPage = async ({
   );
 
   return (
-    <RouteModal>
+    <InterceptingModalShell size="wide" title="Feed details">
       <FeedDetailClient
         feed={{
           activeTokenHint: feedResult.value.feed.activeTokenHint,
@@ -68,7 +68,7 @@ const FeedDetailModalPage = async ({
           })
         )}
       />
-    </RouteModal>
+    </InterceptingModalShell>
   );
 };
 

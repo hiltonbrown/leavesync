@@ -1,4 +1,4 @@
-import { RouteModal } from "../../../components/route-modal";
+import { InterceptingModalShell } from "../../../../components/modals/intercepting-modal-shell";
 import { PersonProfileClient } from "./person-profile-client";
 
 interface PersonProfileModalPageProperties {
@@ -11,9 +11,9 @@ const PersonProfileModalPage = async ({
   const { personId } = await params;
 
   return (
-    <RouteModal>
+    <InterceptingModalShell size="wide">
       <PersonProfileClient personId={personId} />
-    </RouteModal>
+    </InterceptingModalShell>
   );
 };
 

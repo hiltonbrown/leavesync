@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { loadAvailabilityRecordDetailData } from "@/lib/server/load-availability-record-detail-data";
 import { loadManualAvailabilityPageData } from "@/lib/server/load-manual-availability-page-data";
 import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
-import { RouteModal } from "../../../../components/route-modal";
+import { InterceptingModalShell } from "../../../../../components/modals/intercepting-modal-shell";
 import { EditPlanClient } from "./edit-plan-client";
 
 interface EditPlanModalPageProperties {
@@ -36,7 +36,7 @@ const EditPlanModalPage = async ({
   const { record } = recordResult.value;
 
   return (
-    <RouteModal>
+    <InterceptingModalShell title="Edit availability">
       <EditPlanClient
         organisationId={organisationId}
         orgQueryValue={orgQueryValue}
@@ -56,7 +56,7 @@ const EditPlanModalPage = async ({
           workingLocation: record.workingLocation ?? "",
         }}
       />
-    </RouteModal>
+    </InterceptingModalShell>
   );
 };
 
