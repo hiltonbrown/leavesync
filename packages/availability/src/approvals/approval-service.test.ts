@@ -9,10 +9,9 @@ const mocks = vi.hoisted(() => ({
   approveLeaveApplicationForRegion: vi.fn(),
   computeWorkingDays: vi.fn(),
   declineLeaveApplicationForRegion: vi.fn(),
+  dispatchNotification: vi.fn(),
   hasActiveXeroConnection: vi.fn(),
   leaveBalanceFindFirst: vi.fn(),
-  notificationCreate: vi.fn(),
-  notificationPreferenceFindUnique: vi.fn(),
   resolveXeroEmployeeId: vi.fn(),
   xeroTenantFindFirst: vi.fn(),
 }));
@@ -24,10 +23,6 @@ vi.mock("@repo/database", () => ({
       await callback({
         auditEvent: { create: mocks.auditCreate },
         availabilityRecord: { updateMany: mocks.availabilityUpdateMany },
-        notification: { create: mocks.notificationCreate },
-        notificationPreference: {
-          findUnique: mocks.notificationPreferenceFindUnique,
-        },
       }),
     auditEvent: { findMany: mocks.auditCreate },
     availabilityRecord: {
@@ -51,6 +46,9 @@ vi.mock("@repo/xero", () => ({
   resolveXeroEmployeeId: mocks.resolveXeroEmployeeId,
   toPlainLanguageMessage: () =>
     "This leave overlaps an existing record in Xero. Review the dates and try again.",
+}));
+vi.mock("@repo/notifications", () => ({
+  dispatchNotification: mocks.dispatchNotification,
 }));
 
 const {
@@ -129,7 +127,10 @@ describe("approval-service", () => {
       balance_unit: "days",
       updated_at: new Date("2026-04-01T00:00:00.000Z"),
     });
-    mocks.notificationPreferenceFindUnique.mockResolvedValue(null);
+    mocks.dispatchNotification.mockResolvedValue({
+      ok: true,
+      value: { emailQueued: false, inAppDelivered: true },
+    });
     mocks.resolveXeroEmployeeId.mockResolvedValue({
       ok: true,
       value: "employee-1",
@@ -166,13 +167,12 @@ describe("approval-service", () => {
         }),
       })
     );
-    expect(mocks.notificationCreate).toHaveBeenCalledWith(
+    expect(mocks.dispatchNotification).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({
-          recipient_user_id: "employee_1",
-          type: "leave_approved",
-        }),
-      })
+        recipientUserId: "employee_1",
+        type: "leave_approved",
+      }),
+      expect.anything()
     );
     expect(mocks.auditCreate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -216,7 +216,7 @@ describe("approval-service", () => {
     expect(
       JSON.stringify(mocks.availabilityUpdateMany.mock.calls[0])
     ).not.toContain("approved_by_person_id");
-    expect(mocks.notificationCreate).toHaveBeenCalledTimes(2);
+    expect(mocks.dispatchNotification).toHaveBeenCalledTimes(2);
     expect(JSON.stringify(mocks.auditCreate.mock.calls[0])).not.toContain(
       "rawPayload"
     );

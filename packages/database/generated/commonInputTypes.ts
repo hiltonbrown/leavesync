@@ -725,30 +725,6 @@ export type Enumnotification_typeFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumnotification_typeFilter<$PrismaModel> | $Enums.notification_type
 }
 
-export type JsonFilter<$PrismaModel = never> =
-| Prisma.PatchUndefined<
-    Prisma.Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
-    Required<JsonFilterBase<$PrismaModel>>
-  >
-| Prisma.OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
-
-export type JsonFilterBase<$PrismaModel = never> = {
-  equals?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
-  path?: string[]
-  mode?: Prisma.QueryMode | Prisma.EnumQueryModeFieldRefInput<$PrismaModel>
-  string_contains?: string | Prisma.StringFieldRefInput<$PrismaModel>
-  string_starts_with?: string | Prisma.StringFieldRefInput<$PrismaModel>
-  string_ends_with?: string | Prisma.StringFieldRefInput<$PrismaModel>
-  array_starts_with?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
-  array_ends_with?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
-  array_contains?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
-  lt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
-  lte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
-  gt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
-  gte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
-  not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
-}
-
 export type Enumnotification_typeWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.notification_type | Prisma.Enumnotification_typeFieldRefInput<$PrismaModel>
   in?: $Enums.notification_type[] | Prisma.ListEnumnotification_typeFieldRefInput<$PrismaModel>
@@ -759,31 +735,21 @@ export type Enumnotification_typeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumnotification_typeFilter<$PrismaModel>
 }
 
-export type JsonWithAggregatesFilter<$PrismaModel = never> =
-| Prisma.PatchUndefined<
-    Prisma.Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
-    Required<JsonWithAggregatesFilterBase<$PrismaModel>>
-  >
-| Prisma.OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+export type Enumnotification_email_statusFilter<$PrismaModel = never> = {
+  equals?: $Enums.notification_email_status | Prisma.Enumnotification_email_statusFieldRefInput<$PrismaModel>
+  in?: $Enums.notification_email_status[] | Prisma.ListEnumnotification_email_statusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.notification_email_status[] | Prisma.ListEnumnotification_email_statusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumnotification_email_statusFilter<$PrismaModel> | $Enums.notification_email_status
+}
 
-export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
-  equals?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
-  path?: string[]
-  mode?: Prisma.QueryMode | Prisma.EnumQueryModeFieldRefInput<$PrismaModel>
-  string_contains?: string | Prisma.StringFieldRefInput<$PrismaModel>
-  string_starts_with?: string | Prisma.StringFieldRefInput<$PrismaModel>
-  string_ends_with?: string | Prisma.StringFieldRefInput<$PrismaModel>
-  array_starts_with?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
-  array_ends_with?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
-  array_contains?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
-  lt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
-  lte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
-  gt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
-  gte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
-  not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
+export type Enumnotification_email_statusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.notification_email_status | Prisma.Enumnotification_email_statusFieldRefInput<$PrismaModel>
+  in?: $Enums.notification_email_status[] | Prisma.ListEnumnotification_email_statusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.notification_email_status[] | Prisma.ListEnumnotification_email_statusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumnotification_email_statusWithAggregatesFilter<$PrismaModel> | $Enums.notification_email_status
   _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedJsonFilter<$PrismaModel>
-  _max?: Prisma.NestedJsonFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumnotification_email_statusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumnotification_email_statusFilter<$PrismaModel>
 }
 
 export type Enumxero_sync_entity_typeNullableFilter<$PrismaModel = never> = {
@@ -1506,28 +1472,21 @@ export type NestedEnumnotification_typeWithAggregatesFilter<$PrismaModel = never
   _max?: Prisma.NestedEnumnotification_typeFilter<$PrismaModel>
 }
 
-export type NestedJsonFilter<$PrismaModel = never> =
-| Prisma.PatchUndefined<
-    Prisma.Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
-    Required<NestedJsonFilterBase<$PrismaModel>>
-  >
-| Prisma.OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
+export type NestedEnumnotification_email_statusFilter<$PrismaModel = never> = {
+  equals?: $Enums.notification_email_status | Prisma.Enumnotification_email_statusFieldRefInput<$PrismaModel>
+  in?: $Enums.notification_email_status[] | Prisma.ListEnumnotification_email_statusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.notification_email_status[] | Prisma.ListEnumnotification_email_statusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumnotification_email_statusFilter<$PrismaModel> | $Enums.notification_email_status
+}
 
-export type NestedJsonFilterBase<$PrismaModel = never> = {
-  equals?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
-  path?: string[]
-  mode?: Prisma.QueryMode | Prisma.EnumQueryModeFieldRefInput<$PrismaModel>
-  string_contains?: string | Prisma.StringFieldRefInput<$PrismaModel>
-  string_starts_with?: string | Prisma.StringFieldRefInput<$PrismaModel>
-  string_ends_with?: string | Prisma.StringFieldRefInput<$PrismaModel>
-  array_starts_with?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
-  array_ends_with?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
-  array_contains?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | null
-  lt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
-  lte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
-  gt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
-  gte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
-  not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
+export type NestedEnumnotification_email_statusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.notification_email_status | Prisma.Enumnotification_email_statusFieldRefInput<$PrismaModel>
+  in?: $Enums.notification_email_status[] | Prisma.ListEnumnotification_email_statusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.notification_email_status[] | Prisma.ListEnumnotification_email_statusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumnotification_email_statusWithAggregatesFilter<$PrismaModel> | $Enums.notification_email_status
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumnotification_email_statusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumnotification_email_statusFilter<$PrismaModel>
 }
 
 export type NestedEnumxero_sync_entity_typeNullableFilter<$PrismaModel = never> = {

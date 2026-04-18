@@ -403,6 +403,7 @@ export const ModelName = {
   FeedToken: 'FeedToken',
   Notification: 'Notification',
   NotificationPreference: 'NotificationPreference',
+  NotificationEmailQueue: 'NotificationEmailQueue',
   SyncRun: 'SyncRun',
   FailedRecord: 'FailedRecord',
   AuditEvent: 'AuditEvent'
@@ -421,7 +422,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "organisation" | "team" | "location" | "person" | "alternativeContact" | "xeroConnection" | "xeroTenant" | "xeroSyncCursor" | "availabilityRecord" | "availabilityPublication" | "leaveBalance" | "publicHolidayJurisdiction" | "publicHoliday" | "publicHolidayAssignment" | "feed" | "feedScope" | "feedToken" | "notification" | "notificationPreference" | "syncRun" | "failedRecord" | "auditEvent"
+    modelProps: "organisation" | "team" | "location" | "person" | "alternativeContact" | "xeroConnection" | "xeroTenant" | "xeroSyncCursor" | "availabilityRecord" | "availabilityPublication" | "leaveBalance" | "publicHolidayJurisdiction" | "publicHoliday" | "publicHolidayAssignment" | "feed" | "feedScope" | "feedToken" | "notification" | "notificationPreference" | "notificationEmailQueue" | "syncRun" | "failedRecord" | "auditEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1831,6 +1832,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    NotificationEmailQueue: {
+      payload: Prisma.$NotificationEmailQueuePayload<ExtArgs>
+      fields: Prisma.NotificationEmailQueueFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.NotificationEmailQueueFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationEmailQueuePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.NotificationEmailQueueFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationEmailQueuePayload>
+        }
+        findFirst: {
+          args: Prisma.NotificationEmailQueueFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationEmailQueuePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.NotificationEmailQueueFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationEmailQueuePayload>
+        }
+        findMany: {
+          args: Prisma.NotificationEmailQueueFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationEmailQueuePayload>[]
+        }
+        create: {
+          args: Prisma.NotificationEmailQueueCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationEmailQueuePayload>
+        }
+        createMany: {
+          args: Prisma.NotificationEmailQueueCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.NotificationEmailQueueCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationEmailQueuePayload>[]
+        }
+        delete: {
+          args: Prisma.NotificationEmailQueueDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationEmailQueuePayload>
+        }
+        update: {
+          args: Prisma.NotificationEmailQueueUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationEmailQueuePayload>
+        }
+        deleteMany: {
+          args: Prisma.NotificationEmailQueueDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.NotificationEmailQueueUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.NotificationEmailQueueUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationEmailQueuePayload>[]
+        }
+        upsert: {
+          args: Prisma.NotificationEmailQueueUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationEmailQueuePayload>
+        }
+        aggregate: {
+          args: Prisma.NotificationEmailQueueAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNotificationEmailQueue>
+        }
+        groupBy: {
+          args: Prisma.NotificationEmailQueueGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NotificationEmailQueueGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.NotificationEmailQueueCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NotificationEmailQueueCountAggregateOutputType> | number
+        }
+      }
+    }
     SyncRun: {
       payload: Prisma.$SyncRunPayload<ExtArgs>
       fields: Prisma.SyncRunFieldRefs
@@ -2434,10 +2509,18 @@ export type FeedTokenScalarFieldEnum = (typeof FeedTokenScalarFieldEnum)[keyof t
 export const NotificationScalarFieldEnum = {
   id: 'id',
   clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
   recipient_user_id: 'recipient_user_id',
+  recipient_person_id: 'recipient_person_id',
   type: 'type',
+  title: 'title',
+  body: 'body',
+  action_url: 'action_url',
+  object_type: 'object_type',
+  object_id: 'object_id',
+  actor_user_id: 'actor_user_id',
   payload: 'payload',
-  is_read: 'is_read',
+  read_at: 'read_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -2449,6 +2532,7 @@ export const NotificationPreferenceScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
   clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
   notification_type: 'notification_type',
   in_app_enabled: 'in_app_enabled',
   email_enabled: 'email_enabled',
@@ -2457,6 +2541,32 @@ export const NotificationPreferenceScalarFieldEnum = {
 } as const
 
 export type NotificationPreferenceScalarFieldEnum = (typeof NotificationPreferenceScalarFieldEnum)[keyof typeof NotificationPreferenceScalarFieldEnum]
+
+
+export const NotificationEmailQueueScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  notification_id: 'notification_id',
+  recipient_user_id: 'recipient_user_id',
+  notification_type: 'notification_type',
+  email_template: 'email_template',
+  recipient_email: 'recipient_email',
+  title: 'title',
+  body: 'body',
+  action_url: 'action_url',
+  unsubscribe_url: 'unsubscribe_url',
+  merge_data: 'merge_data',
+  status: 'status',
+  attempts: 'attempts',
+  last_error: 'last_error',
+  queued_at: 'queued_at',
+  sent_at: 'sent_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type NotificationEmailQueueScalarFieldEnum = (typeof NotificationEmailQueueScalarFieldEnum)[keyof typeof NotificationEmailQueueScalarFieldEnum]
 
 
 export const SyncRunScalarFieldEnum = {
@@ -2523,13 +2633,6 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
-
-
-export const JsonNullValueInput = {
-  JsonNull: JsonNull
-} as const
-
-export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -2935,6 +3038,20 @@ export type ListEnumnotification_typeFieldRefInput<$PrismaModel> = FieldRefInput
 
 
 /**
+ * Reference to a field of type 'notification_email_status'
+ */
+export type Enumnotification_email_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'notification_email_status'>
+    
+
+
+/**
+ * Reference to a field of type 'notification_email_status[]'
+ */
+export type ListEnumnotification_email_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'notification_email_status[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -3061,6 +3178,7 @@ export type GlobalOmitConfig = {
   feedToken?: Prisma.FeedTokenOmit
   notification?: Prisma.NotificationOmit
   notificationPreference?: Prisma.NotificationPreferenceOmit
+  notificationEmailQueue?: Prisma.NotificationEmailQueueOmit
   syncRun?: Prisma.SyncRunOmit
   failedRecord?: Prisma.FailedRecordOmit
   auditEvent?: Prisma.AuditEventOmit

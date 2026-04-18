@@ -4,22 +4,24 @@
   "private": true,
   "scripts": {
     "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "test": "NODE_ENV=test vitest run",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "@knocklabs/node": "^1.29.1",
-    "@knocklabs/react": "^0.11.12",
     "@repo/core": "*",
     "@repo/database": "*",
+    "@repo/email": "*",
     "@t3-oss/env-nextjs": "^0.13.11",
     "react": "19.2.4",
+    "server-only": "^0.0.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
-    "typescript": "^6.0.2",
     "@types/node": "25.5.2",
     "@types/react": "19.2.14",
-    "@types/react-dom": "19.2.3"
+    "@types/react-dom": "19.2.3",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.2"
   }
 }

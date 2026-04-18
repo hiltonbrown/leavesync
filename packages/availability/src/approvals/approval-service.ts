@@ -8,7 +8,10 @@ import type {
   availability_failed_action,
   availability_record_type,
 } from "@repo/database/generated/enums";
-import { createNotification } from "@repo/notifications";
+import {
+  dispatchNotification,
+  type NotificationDispatchDatabase,
+} from "@repo/notifications";
 import {
   approveLeaveApplicationForRegion,
   declineLeaveApplicationForRegion,
@@ -1031,12 +1034,13 @@ function canUseApprovals(role: ApprovalRole): boolean {
 }
 
 async function notifyUser(
-  tx: NonNullable<Parameters<typeof createNotification>[1]>,
+  tx: NotificationDispatchDatabase,
   input: CommandInput,
   record: LoadedApprovalRecord,
   options: {
     actionUrl: string;
     payload?: Record<string, string | number | boolean | null>;
+    recipientPersonId?: string | null;
     recipientUserId: string | null;
     type:
       | "leave_approved"
@@ -1048,15 +1052,18 @@ async function notifyUser(
   if (!options.recipientUserId) {
     return;
   }
-  const result = await createNotification(
+  const result = await dispatchNotification(
     {
       actionUrl: options.actionUrl,
       actorUserId: input.actingUserId,
+      body: notificationBody(record, options.type, options.payload?.body),
       clerkOrgId: input.clerkOrgId,
+      organisationId: input.organisationId,
       objectId: record.id,
       objectType: "availability_record",
-      payload: options.payload,
+      recipientPersonId: options.recipientPersonId ?? record.person.id,
       recipientUserId: options.recipientUserId,
+      title: notificationTitle(options.type),
       type: options.type,
     },
     tx
@@ -1067,22 +1074,78 @@ async function notifyUser(
 }
 
 async function notifyOwnerAndApprover(
-  tx: NonNullable<Parameters<typeof createNotification>[1]>,
+  tx: NotificationDispatchDatabase,
   input: CommandInput,
   record: LoadedApprovalRecord,
   options: { actionUrl: string }
 ) {
-  const recipientUserIds = new Set(
-    [record.person.clerk_user_id, input.actingUserId].filter(
-      (value): value is string => Boolean(value)
-    )
+  const recipientUserIds = [
+    { personId: record.person.id, userId: record.person.clerk_user_id },
+    { personId: input.actingPersonId, userId: input.actingUserId },
+  ].filter(
+    (recipient): recipient is { personId: string | null; userId: string } =>
+      Boolean(recipient.userId)
   );
-  for (const recipientUserId of recipientUserIds) {
+  const seen = new Set<string>();
+  for (const recipient of recipientUserIds) {
+    if (seen.has(recipient.userId)) {
+      continue;
+    }
+    seen.add(recipient.userId);
     await notifyUser(tx, input, record, {
       actionUrl: options.actionUrl,
-      recipientUserId,
+      recipientPersonId: recipient.personId,
+      recipientUserId: recipient.userId,
       type: "leave_xero_sync_failed",
     });
+  }
+}
+
+function notificationTitle(
+  type:
+    | "leave_approved"
+    | "leave_declined"
+    | "leave_info_requested"
+    | "leave_xero_sync_failed"
+): string {
+  switch (type) {
+    case "leave_approved":
+      return "Leave approved";
+    case "leave_declined":
+      return "Leave declined";
+    case "leave_info_requested":
+      return "More information requested";
+    case "leave_xero_sync_failed":
+      return "Xero sync failed";
+    default:
+      return "Leave updated";
+  }
+}
+
+function notificationBody(
+  record: LoadedApprovalRecord,
+  type:
+    | "leave_approved"
+    | "leave_declined"
+    | "leave_info_requested"
+    | "leave_xero_sync_failed",
+  detail?: string | number | boolean | null
+): string {
+  const personName = `${record.person.first_name} ${record.person.last_name}`;
+  if (typeof detail === "string" && detail.trim().length > 0) {
+    return detail;
+  }
+  switch (type) {
+    case "leave_approved":
+      return `Your leave request for ${personName} has been approved.`;
+    case "leave_declined":
+      return `Your leave request for ${personName} has been declined.`;
+    case "leave_info_requested":
+      return "A manager requested more information about this leave request.";
+    case "leave_xero_sync_failed":
+      return "Xero could not sync this leave action. Review the record and try again.";
+    default:
+      return "This leave request has been updated.";
   }
 }
 

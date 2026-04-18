@@ -7,7 +7,10 @@ import {
   Prisma,
 } from "@repo/database/generated/client";
 import type { availability_approval_status } from "@repo/database/generated/enums";
-import { createNotification } from "@repo/notifications";
+import {
+  dispatchNotification,
+  type NotificationDispatchDatabase,
+} from "@repo/notifications";
 import {
   type ResolutionError,
   resolveXeroEmployeeId,
@@ -578,7 +581,7 @@ async function loadAndAuthorise(
 }
 
 async function notifyManager(
-  tx: NonNullable<Parameters<typeof createNotification>[1]>,
+  tx: NotificationDispatchDatabase,
   input: RecordActionInput,
   record: LoadedRecord,
   type: "leave_submitted" | "leave_withdrawn",
@@ -588,14 +591,24 @@ async function notifyManager(
   if (!recipientUserId) {
     return;
   }
-  const result = await createNotification(
+  const result = await dispatchNotification(
     {
       actionUrl: options.actionUrl,
       actorUserId: input.actingUserId,
       clerkOrgId: input.clerkOrgId,
+      organisationId: input.organisationId,
       objectId: record.id,
       objectType: "availability_record",
+      body:
+        type === "leave_submitted"
+          ? `${record.person.first_name} ${record.person.last_name} submitted leave for approval.`
+          : `${record.person.first_name} ${record.person.last_name} withdrew a submitted leave request.`,
+      recipientPersonId: record.person.manager?.id ?? null,
       recipientUserId,
+      title:
+        type === "leave_submitted"
+          ? "Leave submitted for approval"
+          : "Leave withdrawn",
       type,
     },
     tx
@@ -606,27 +619,44 @@ async function notifyManager(
 }
 
 async function notifyOwnerAndManager(
-  tx: NonNullable<Parameters<typeof createNotification>[1]>,
+  tx: NotificationDispatchDatabase,
   input: RecordActionInput,
   record: LoadedRecord,
   type: "leave_xero_sync_failed",
   options: { actionUrl: string }
 ) {
-  const recipientUserIds = new Set(
-    [record.person.clerk_user_id, record.person.manager?.clerk_user_id].filter(
-      (value): value is string => Boolean(value)
-    )
+  const recipients = [
+    {
+      personId: record.person.id,
+      userId: record.person.clerk_user_id,
+    },
+    {
+      personId: record.person.manager?.id ?? null,
+      userId: record.person.manager?.clerk_user_id ?? null,
+    },
+  ].filter(
+    (recipient): recipient is { personId: string | null; userId: string } =>
+      Boolean(recipient.userId)
   );
+  const seen = new Set<string>();
 
-  for (const recipientUserId of recipientUserIds) {
-    const result = await createNotification(
+  for (const recipient of recipients) {
+    if (seen.has(recipient.userId)) {
+      continue;
+    }
+    seen.add(recipient.userId);
+    const result = await dispatchNotification(
       {
         actionUrl: options.actionUrl,
         actorUserId: input.actingUserId,
         clerkOrgId: input.clerkOrgId,
+        organisationId: input.organisationId,
         objectId: record.id,
         objectType: "availability_record",
-        recipientUserId,
+        body: "Xero could not sync this leave action. Review the record and try again.",
+        recipientPersonId: recipient.personId,
+        recipientUserId: recipient.userId,
+        title: "Xero sync failed",
         type,
       },
       tx

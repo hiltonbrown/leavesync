@@ -1,67 +1,63 @@
 import { currentUser, requireOrg } from "@repo/auth/helpers";
-import type { ClerkOrgId } from "@repo/core";
-import { markNotificationRead } from "@repo/database/src/queries";
+import { markAsRead } from "@repo/notifications";
+import { z } from "zod";
+
+const BodySchema = z.object({
+  organisationId: z.string().uuid(),
+});
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ notificationId: string }> }
 ): Promise<Response> {
+  let clerkOrgId: string;
   try {
-    const { notificationId } = await params;
-
-    // Get authenticated user and organisation
-    let clerkOrgId: string;
-    try {
-      clerkOrgId = await requireOrg();
-    } catch {
-      return Response.json(
-        {
-          ok: false,
-          error: { code: "unauthorised", message: "Not authenticated" },
-        },
-        { status: 401 }
-      );
-    }
-
-    // Get current user
-    const user = await currentUser();
-
-    if (!user) {
-      return Response.json(
-        {
-          ok: false,
-          error: { code: "unauthorised", message: "User not found" },
-        },
-        { status: 401 }
-      );
-    }
-
-    // Mark notification as read
-    const result = await markNotificationRead(
-      clerkOrgId as ClerkOrgId,
-      user.id,
-      notificationId
-    );
-
-    if (!result.ok) {
-      return Response.json(
-        { ok: false, error: result.error },
-        { status: result.error.code === "not_found" ? 404 : 500 }
-      );
-    }
-
-    return new Response(null, { status: 204 });
-  } catch (error) {
-    console.error("Error marking notification as read:", error);
+    clerkOrgId = await requireOrg();
+  } catch {
     return Response.json(
       {
         ok: false,
-        error: {
-          code: "internal",
-          message: "Failed to mark notification as read",
-        },
+        error: { code: "unauthorised", message: "Not authenticated" },
       },
-      { status: 500 }
+      { status: 401 }
     );
   }
+
+  const user = await currentUser();
+  if (!user) {
+    return Response.json(
+      { ok: false, error: { code: "unauthorised", message: "User not found" } },
+      { status: 401 }
+    );
+  }
+
+  const [{ notificationId }, body] = await Promise.all([
+    params,
+    request.json().catch(() => null),
+  ]);
+  const parsed = BodySchema.extend({
+    notificationId: z.string().uuid(),
+  }).safeParse({ ...body, notificationId });
+  if (!parsed.success) {
+    return Response.json(
+      {
+        ok: false,
+        error: { code: "bad_request", message: "Invalid notification" },
+      },
+      { status: 400 }
+    );
+  }
+
+  const result = await markAsRead({
+    clerkOrgId,
+    organisationId: parsed.data.organisationId,
+    notificationId: parsed.data.notificationId,
+    userId: user.id,
+  });
+  if (!result.ok) {
+    const status = result.error.code === "not_recipient" ? 403 : 404;
+    return Response.json({ ok: false, error: result.error }, { status });
+  }
+
+  return Response.json({ ok: true, value: result.value });
 }

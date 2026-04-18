@@ -1,15 +1,18 @@
-import type { ClerkOrgId, Result } from "@repo/core";
+import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
 import { appError } from "@repo/core";
 import type { notification_type } from "../../generated/enums";
 import { database } from "../client";
 
 export interface NotificationData {
+  actionUrl: string | null;
+  body: string;
   clerkOrgId: string;
   createdAt: Date;
   id: string;
-  isRead: boolean;
-  payload: unknown;
+  organisationId: string;
+  readAt: Date | null;
   recipientUserId: string;
+  title: string;
   type: string;
   updatedAt: Date;
 }
@@ -21,42 +24,42 @@ export interface NotificationPreferenceData {
   id: string;
   inAppEnabled: boolean;
   notificationType: string;
+  organisationId: string;
   updatedAt: Date;
   userId: string;
 }
 
 interface NotificationFilters {
   isRead?: boolean;
-  types?: string[];
+  types?: notification_type[];
 }
 
 export async function listNotificationsForUser(
   clerkOrgId: ClerkOrgId,
+  organisationId: OrganisationId,
   userId: string,
   filters?: NotificationFilters
 ): Promise<Result<NotificationData[]>> {
   try {
-    const whereConditions: Record<string, unknown> = {
-      clerk_org_id: clerkOrgId,
-      recipient_user_id: userId,
-    };
-
-    if (filters?.isRead !== undefined) {
-      whereConditions.is_read = filters.isRead;
-    }
-    if (filters?.types && filters.types.length > 0) {
-      whereConditions.type = { in: filters.types };
-    }
-
     const notifications = await database.notification.findMany({
-      where: whereConditions,
+      where: {
+        clerk_org_id: clerkOrgId,
+        organisation_id: organisationId,
+        recipient_user_id: userId,
+        ...(filters?.isRead === true ? { read_at: { not: null } } : {}),
+        ...(filters?.isRead === false ? { read_at: null } : {}),
+        ...(filters?.types?.length ? { type: { in: filters.types } } : {}),
+      },
       select: {
         id: true,
         clerk_org_id: true,
+        organisation_id: true,
         recipient_user_id: true,
         type: true,
-        payload: true,
-        is_read: true,
+        title: true,
+        body: true,
+        action_url: true,
+        read_at: true,
         created_at: true,
         updated_at: true,
       },
@@ -65,15 +68,18 @@ export async function listNotificationsForUser(
 
     return {
       ok: true,
-      value: notifications.map((n) => ({
-        id: n.id,
-        clerkOrgId: n.clerk_org_id,
-        recipientUserId: n.recipient_user_id,
-        type: n.type,
-        payload: n.payload,
-        isRead: n.is_read,
-        createdAt: n.created_at,
-        updatedAt: n.updated_at,
+      value: notifications.map((notification) => ({
+        id: notification.id,
+        clerkOrgId: notification.clerk_org_id,
+        organisationId: notification.organisation_id,
+        recipientUserId: notification.recipient_user_id,
+        type: notification.type,
+        title: notification.title,
+        body: notification.body,
+        actionUrl: notification.action_url,
+        readAt: notification.read_at,
+        createdAt: notification.created_at,
+        updatedAt: notification.updated_at,
       })),
     };
   } catch {
@@ -86,22 +92,20 @@ export async function listNotificationsForUser(
 
 export async function countUnreadNotifications(
   clerkOrgId: ClerkOrgId,
+  organisationId: OrganisationId,
   userId: string
 ): Promise<Result<number>> {
   try {
     const count = await database.notification.count({
       where: {
         clerk_org_id: clerkOrgId,
+        organisation_id: organisationId,
         recipient_user_id: userId,
-        is_read: false,
+        read_at: null,
       },
     });
-
-    return {
-      ok: true,
-      value: count,
-    };
-  } catch (_error) {
+    return { ok: true, value: count };
+  } catch {
     return {
       ok: false,
       error: appError("internal", "Failed to count unread notifications"),
@@ -111,6 +115,7 @@ export async function countUnreadNotifications(
 
 export async function markNotificationRead(
   clerkOrgId: ClerkOrgId,
+  organisationId: OrganisationId,
   userId: string,
   notificationId: string
 ): Promise<Result<void>> {
@@ -119,17 +124,13 @@ export async function markNotificationRead(
       where: {
         id: notificationId,
         clerk_org_id: clerkOrgId,
+        organisation_id: organisationId,
         recipient_user_id: userId,
+        read_at: null,
       },
-      data: {
-        is_read: true,
-      },
+      data: { read_at: new Date() },
     });
-
-    return {
-      ok: true,
-      value: undefined,
-    };
+    return { ok: true, value: undefined };
   } catch {
     return {
       ok: false,
@@ -140,24 +141,20 @@ export async function markNotificationRead(
 
 export async function markAllNotificationsRead(
   clerkOrgId: ClerkOrgId,
+  organisationId: OrganisationId,
   userId: string
 ): Promise<Result<{ updatedCount: number }>> {
   try {
     const result = await database.notification.updateMany({
       where: {
         clerk_org_id: clerkOrgId,
+        organisation_id: organisationId,
         recipient_user_id: userId,
-        is_read: false,
+        read_at: null,
       },
-      data: {
-        is_read: true,
-      },
+      data: { read_at: new Date() },
     });
-
-    return {
-      ok: true,
-      value: { updatedCount: result.count },
-    };
+    return { ok: true, value: { updatedCount: result.count } };
   } catch {
     return {
       ok: false,
@@ -168,18 +165,21 @@ export async function markAllNotificationsRead(
 
 export async function listNotificationPreferencesForUser(
   clerkOrgId: ClerkOrgId,
+  organisationId: OrganisationId,
   userId: string
 ): Promise<Result<NotificationPreferenceData[]>> {
   try {
     const preferences = await database.notificationPreference.findMany({
       where: {
         clerk_org_id: clerkOrgId,
+        organisation_id: organisationId,
         user_id: userId,
       },
       select: {
         id: true,
         user_id: true,
         clerk_org_id: true,
+        organisation_id: true,
         notification_type: true,
         in_app_enabled: true,
         email_enabled: true,
@@ -195,6 +195,7 @@ export async function listNotificationPreferencesForUser(
         id: preference.id,
         userId: preference.user_id,
         clerkOrgId: preference.clerk_org_id,
+        organisationId: preference.organisation_id,
         notificationType: preference.notification_type,
         inAppEnabled: preference.in_app_enabled,
         emailEnabled: preference.email_enabled,
@@ -212,6 +213,7 @@ export async function listNotificationPreferencesForUser(
 
 export async function upsertNotificationPreference(
   clerkOrgId: ClerkOrgId,
+  organisationId: OrganisationId,
   userId: string,
   input: {
     emailEnabled: boolean;
@@ -222,15 +224,16 @@ export async function upsertNotificationPreference(
   try {
     const preference = await database.notificationPreference.upsert({
       where: {
-        user_id_clerk_org_id_notification_type: {
+        user_id_organisation_id_notification_type: {
           user_id: userId,
-          clerk_org_id: clerkOrgId,
+          organisation_id: organisationId,
           notification_type: input.notificationType,
         },
       },
       create: {
         user_id: userId,
         clerk_org_id: clerkOrgId,
+        organisation_id: organisationId,
         notification_type: input.notificationType,
         in_app_enabled: input.inAppEnabled,
         email_enabled: input.emailEnabled,
@@ -243,6 +246,7 @@ export async function upsertNotificationPreference(
         id: true,
         user_id: true,
         clerk_org_id: true,
+        organisation_id: true,
         notification_type: true,
         in_app_enabled: true,
         email_enabled: true,
@@ -257,6 +261,7 @@ export async function upsertNotificationPreference(
         id: preference.id,
         userId: preference.user_id,
         clerkOrgId: preference.clerk_org_id,
+        organisationId: preference.organisation_id,
         notificationType: preference.notification_type,
         inAppEnabled: preference.in_app_enabled,
         emailEnabled: preference.email_enabled,

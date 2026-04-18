@@ -195,6 +195,15 @@ export const notification_type = {
 export type notification_type = (typeof notification_type)[keyof typeof notification_type]
 
 
+export const notification_email_status = {
+  queued: 'queued',
+  sent: 'sent',
+  failed: 'failed'
+} as const
+
+export type notification_email_status = (typeof notification_email_status)[keyof typeof notification_email_status]
+
+
 export const public_holiday_source = {
   nager: 'nager',
   manual: 'manual'

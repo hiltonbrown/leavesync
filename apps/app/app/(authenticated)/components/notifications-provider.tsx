@@ -1,25 +1,24 @@
 "use client";
 
 import { NotificationsProvider as RawNotificationsProvider } from "@repo/notifications/components/provider";
-import { useTheme } from "next-themes";
 import type { ReactNode } from "react";
 
 interface NotificationsProviderProperties {
   children: ReactNode;
-  userId: string;
+  organisationId: string | null;
 }
 
 export const NotificationsProvider = ({
   children,
-  userId,
+  organisationId,
 }: NotificationsProviderProperties) => {
-  const { resolvedTheme } = useTheme();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "";
+  const streamUrl = organisationId
+    ? `${apiUrl}/api/notifications/stream?organisationId=${organisationId}`
+    : null;
 
   return (
-    <RawNotificationsProvider
-      theme={resolvedTheme as "light" | "dark"}
-      userId={userId}
-    >
+    <RawNotificationsProvider streamUrl={streamUrl}>
       {children}
     </RawNotificationsProvider>
   );
