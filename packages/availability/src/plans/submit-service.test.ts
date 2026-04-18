@@ -48,9 +48,12 @@ vi.mock("@repo/xero", () => ({
   withdrawLeaveApplicationForRegion: mocks.withdrawLeaveApplicationForRegion,
 }));
 
-const { revertToDraft, submitDraftRecord, withdrawSubmission } = await import(
-  "./submit-service"
-);
+const {
+  retrySubmission,
+  revertToDraft,
+  submitDraftRecord,
+  withdrawSubmission,
+} = await import("./submit-service");
 
 const input = {
   actingOrgRole: "org:viewer",
@@ -66,6 +69,7 @@ const record = {
   clerk_org_id: input.clerkOrgId,
   derived_sequence: 2,
   ends_at: new Date("2026-05-05T23:59:59.999Z"),
+  failed_action: null,
   id: input.recordId,
   organisation_id: input.organisationId,
   person: {
@@ -146,6 +150,7 @@ describe("submit-service", () => {
       expect.objectContaining({
         data: expect.objectContaining({
           approval_status: "submitted",
+          failed_action: null,
           source_remote_id: "xero-leave-1",
         }),
         where: expect.objectContaining({
@@ -195,6 +200,7 @@ describe("submit-service", () => {
       expect.objectContaining({
         data: expect.objectContaining({
           approval_status: "xero_sync_failed",
+          failed_action: "submit",
           xero_write_error:
             "This leave overlaps an existing record in Xero. Review the dates and try again.",
         }),
@@ -229,7 +235,11 @@ describe("submit-service", () => {
 
   it("reverts only failed records to draft", async () => {
     mocks.availabilityFindFirst
-      .mockResolvedValueOnce({ ...record, approval_status: "xero_sync_failed" })
+      .mockResolvedValueOnce({
+        ...record,
+        approval_status: "xero_sync_failed",
+        failed_action: "submit",
+      })
       .mockResolvedValueOnce({ ...record, approval_status: "draft" });
 
     const result = await revertToDraft(input);
@@ -239,6 +249,7 @@ describe("submit-service", () => {
       expect.objectContaining({
         data: expect.objectContaining({
           approval_status: "draft",
+          failed_action: null,
         }),
       })
     );
@@ -268,6 +279,85 @@ describe("submit-service", () => {
     expect(mocks.notificationCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ type: "leave_withdrawn" }),
+      })
+    );
+  });
+
+  it("sets failed_action on withdraw failure and clears it on retry success", async () => {
+    mocks.availabilityFindFirst
+      .mockResolvedValueOnce({
+        ...record,
+        approval_status: "submitted",
+        source_remote_id: "xero-leave-1",
+      })
+      .mockResolvedValueOnce({
+        ...record,
+        approval_status: "xero_sync_failed",
+        failed_action: "withdraw",
+      });
+    mocks.withdrawLeaveApplicationForRegion.mockResolvedValue({
+      ok: false,
+      error: { code: "network_error", message: "offline" },
+    });
+
+    const failedWithdraw = await withdrawSubmission(input);
+
+    expect(failedWithdraw.ok).toBe(true);
+    expect(mocks.availabilityUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          approval_status: "xero_sync_failed",
+          failed_action: "withdraw",
+        }),
+      })
+    );
+
+    vi.clearAllMocks();
+    mocks.availabilityFindFirst
+      .mockResolvedValueOnce({
+        ...record,
+        approval_status: "xero_sync_failed",
+        failed_action: "submit",
+      })
+      .mockResolvedValueOnce({
+        ...record,
+        approval_status: "submitted",
+        failed_action: null,
+        source_remote_id: "xero-leave-1",
+      });
+    mocks.availabilityUpdateMany.mockResolvedValue({ count: 1 });
+    mocks.computeWorkingDays.mockResolvedValue({ ok: true, value: 2 });
+    mocks.hasActiveXeroConnection.mockResolvedValue(true);
+    mocks.notificationPreferenceFindUnique.mockResolvedValue(null);
+    mocks.personFindFirst.mockResolvedValue({ id: record.person.id });
+    mocks.resolveXeroEmployeeId.mockResolvedValue({
+      ok: true,
+      value: "employee-1",
+    });
+    mocks.resolveXeroLeaveTypeId.mockResolvedValue({
+      ok: true,
+      value: "type-1",
+    });
+    mocks.xeroTenantFindFirst.mockResolvedValue(xeroTenant);
+    mocks.submitLeaveApplicationForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        rawResponse: {
+          LeaveApplications: [{ LeaveApplicationID: "xero-leave-1" }],
+        },
+        xeroLeaveApplicationId: "xero-leave-1",
+      },
+    });
+
+    const retried = await retrySubmission(input);
+
+    expect(retried.ok).toBe(true);
+    expect(mocks.availabilityUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          approval_status: "submitted",
+          failed_action: null,
+        }),
       })
     );
   });

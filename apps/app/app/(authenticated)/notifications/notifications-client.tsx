@@ -20,6 +20,12 @@ import {
 
 type NotificationType =
   | "feed_token_rotated"
+  | "leave_approved"
+  | "leave_declined"
+  | "leave_info_requested"
+  | "leave_submitted"
+  | "leave_withdrawn"
+  | "leave_xero_sync_failed"
   | "missing_alternative_contact"
   | "privacy_conflict"
   | "sync_failed";
@@ -50,6 +56,12 @@ const NOTIFICATION_TYPES: NotificationType[] = [
   "feed_token_rotated",
   "privacy_conflict",
   "missing_alternative_contact",
+  "leave_submitted",
+  "leave_approved",
+  "leave_declined",
+  "leave_info_requested",
+  "leave_xero_sync_failed",
+  "leave_withdrawn",
 ];
 
 export function NotificationsClient({
@@ -429,6 +441,18 @@ function descriptionForType(type: NotificationType): string {
       return "Availability records that need privacy review.";
     case "missing_alternative_contact":
       return "Records that need a backup contact before publishing.";
+    case "leave_submitted":
+      return "Leave requests submitted for manager approval.";
+    case "leave_approved":
+      return "Leave requests approved by a manager.";
+    case "leave_declined":
+      return "Leave requests declined by a manager.";
+    case "leave_info_requested":
+      return "Manager questions about submitted leave requests.";
+    case "leave_xero_sync_failed":
+      return "Leave actions that could not be written to Xero.";
+    case "leave_withdrawn":
+      return "Leave requests withdrawn before approval.";
     default:
       return "Operational notifications for this workspace.";
   }

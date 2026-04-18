@@ -104,6 +104,16 @@ export const availability_approval_status = {
 export type availability_approval_status = (typeof availability_approval_status)[keyof typeof availability_approval_status]
 
 
+export const availability_failed_action = {
+  submit: 'submit',
+  approve: 'approve',
+  decline: 'decline',
+  withdraw: 'withdraw'
+} as const
+
+export type availability_failed_action = (typeof availability_failed_action)[keyof typeof availability_failed_action]
+
+
 export const availability_privacy_mode = {
   named: 'named',
   masked: 'masked',
@@ -174,6 +184,9 @@ export const notification_type = {
   privacy_conflict: 'privacy_conflict',
   missing_alternative_contact: 'missing_alternative_contact',
   leave_submitted: 'leave_submitted',
+  leave_approved: 'leave_approved',
+  leave_declined: 'leave_declined',
+  leave_info_requested: 'leave_info_requested',
   leave_xero_sync_failed: 'leave_xero_sync_failed',
   leave_withdrawn: 'leave_withdrawn'
 } as const

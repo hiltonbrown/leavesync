@@ -219,6 +219,7 @@ export const AvailabilityRecordScalarFieldEnum = {
   starts_at: 'starts_at',
   ends_at: 'ends_at',
   approval_status: 'approval_status',
+  failed_action: 'failed_action',
   privacy_mode: 'privacy_mode',
   contactability: 'contactability',
   include_in_feed: 'include_in_feed',

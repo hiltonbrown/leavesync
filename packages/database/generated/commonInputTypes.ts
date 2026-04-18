@@ -396,6 +396,13 @@ export type Enumavailability_approval_statusFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumavailability_approval_statusFilter<$PrismaModel> | $Enums.availability_approval_status
 }
 
+export type Enumavailability_failed_actionNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.availability_failed_action | Prisma.Enumavailability_failed_actionFieldRefInput<$PrismaModel> | null
+  in?: $Enums.availability_failed_action[] | Prisma.ListEnumavailability_failed_actionFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.availability_failed_action[] | Prisma.ListEnumavailability_failed_actionFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumavailability_failed_actionNullableFilter<$PrismaModel> | $Enums.availability_failed_action | null
+}
+
 export type Enumavailability_publish_statusFilter<$PrismaModel = never> = {
   equals?: $Enums.availability_publish_status | Prisma.Enumavailability_publish_statusFieldRefInput<$PrismaModel>
   in?: $Enums.availability_publish_status[] | Prisma.ListEnumavailability_publish_statusFieldRefInput<$PrismaModel>
@@ -466,6 +473,16 @@ export type Enumavailability_approval_statusWithAggregatesFilter<$PrismaModel = 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumavailability_approval_statusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumavailability_approval_statusFilter<$PrismaModel>
+}
+
+export type Enumavailability_failed_actionNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.availability_failed_action | Prisma.Enumavailability_failed_actionFieldRefInput<$PrismaModel> | null
+  in?: $Enums.availability_failed_action[] | Prisma.ListEnumavailability_failed_actionFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.availability_failed_action[] | Prisma.ListEnumavailability_failed_actionFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumavailability_failed_actionNullableWithAggregatesFilter<$PrismaModel> | $Enums.availability_failed_action | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumavailability_failed_actionNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumavailability_failed_actionNullableFilter<$PrismaModel>
 }
 
 export type Enumavailability_publish_statusWithAggregatesFilter<$PrismaModel = never> = {
@@ -1177,6 +1194,13 @@ export type NestedEnumavailability_approval_statusFilter<$PrismaModel = never> =
   not?: Prisma.NestedEnumavailability_approval_statusFilter<$PrismaModel> | $Enums.availability_approval_status
 }
 
+export type NestedEnumavailability_failed_actionNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.availability_failed_action | Prisma.Enumavailability_failed_actionFieldRefInput<$PrismaModel> | null
+  in?: $Enums.availability_failed_action[] | Prisma.ListEnumavailability_failed_actionFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.availability_failed_action[] | Prisma.ListEnumavailability_failed_actionFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumavailability_failed_actionNullableFilter<$PrismaModel> | $Enums.availability_failed_action | null
+}
+
 export type NestedEnumavailability_publish_statusFilter<$PrismaModel = never> = {
   equals?: $Enums.availability_publish_status | Prisma.Enumavailability_publish_statusFieldRefInput<$PrismaModel>
   in?: $Enums.availability_publish_status[] | Prisma.ListEnumavailability_publish_statusFieldRefInput<$PrismaModel>
@@ -1212,6 +1236,16 @@ export type NestedEnumavailability_approval_statusWithAggregatesFilter<$PrismaMo
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumavailability_approval_statusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumavailability_approval_statusFilter<$PrismaModel>
+}
+
+export type NestedEnumavailability_failed_actionNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.availability_failed_action | Prisma.Enumavailability_failed_actionFieldRefInput<$PrismaModel> | null
+  in?: $Enums.availability_failed_action[] | Prisma.ListEnumavailability_failed_actionFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.availability_failed_action[] | Prisma.ListEnumavailability_failed_actionFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumavailability_failed_actionNullableWithAggregatesFilter<$PrismaModel> | $Enums.availability_failed_action | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumavailability_failed_actionNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumavailability_failed_actionNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumavailability_publish_statusWithAggregatesFilter<$PrismaModel = never> = {

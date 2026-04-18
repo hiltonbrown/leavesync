@@ -79,6 +79,13 @@ enum availability_approval_status {
   xero_sync_failed
 }
 
+enum availability_failed_action {
+  submit
+  approve
+  decline
+  withdraw
+}
+
 enum availability_privacy_mode {
   named
   masked
@@ -128,6 +135,9 @@ enum notification_type {
   privacy_conflict
   missing_alternative_contact
   leave_submitted
+  leave_approved
+  leave_declined
+  leave_info_requested
   leave_xero_sync_failed
   leave_withdrawn
 }
@@ -347,6 +357,7 @@ model AvailabilityRecord {
   starts_at                DateTime
   ends_at                  DateTime
   approval_status          availability_approval_status
+  failed_action            availability_failed_action?
   privacy_mode             availability_privacy_mode
   contactability           availability_contactability
   include_in_feed          Boolean                      @default(true)

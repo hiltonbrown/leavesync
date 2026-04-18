@@ -45,6 +45,7 @@ export type AvailabilityRecordMinAggregateOutputType = {
   starts_at: Date | null
   ends_at: Date | null
   approval_status: $Enums.availability_approval_status | null
+  failed_action: $Enums.availability_failed_action | null
   privacy_mode: $Enums.availability_privacy_mode | null
   contactability: $Enums.availability_contactability | null
   include_in_feed: boolean | null
@@ -83,6 +84,7 @@ export type AvailabilityRecordMaxAggregateOutputType = {
   starts_at: Date | null
   ends_at: Date | null
   approval_status: $Enums.availability_approval_status | null
+  failed_action: $Enums.availability_failed_action | null
   privacy_mode: $Enums.availability_privacy_mode | null
   contactability: $Enums.availability_contactability | null
   include_in_feed: boolean | null
@@ -121,6 +123,7 @@ export type AvailabilityRecordCountAggregateOutputType = {
   starts_at: number
   ends_at: number
   approval_status: number
+  failed_action: number
   privacy_mode: number
   contactability: number
   include_in_feed: number
@@ -171,6 +174,7 @@ export type AvailabilityRecordMinAggregateInputType = {
   starts_at?: true
   ends_at?: true
   approval_status?: true
+  failed_action?: true
   privacy_mode?: true
   contactability?: true
   include_in_feed?: true
@@ -209,6 +213,7 @@ export type AvailabilityRecordMaxAggregateInputType = {
   starts_at?: true
   ends_at?: true
   approval_status?: true
+  failed_action?: true
   privacy_mode?: true
   contactability?: true
   include_in_feed?: true
@@ -247,6 +252,7 @@ export type AvailabilityRecordCountAggregateInputType = {
   starts_at?: true
   ends_at?: true
   approval_status?: true
+  failed_action?: true
   privacy_mode?: true
   contactability?: true
   include_in_feed?: true
@@ -374,6 +380,7 @@ export type AvailabilityRecordGroupByOutputType = {
   starts_at: Date
   ends_at: Date
   approval_status: $Enums.availability_approval_status
+  failed_action: $Enums.availability_failed_action | null
   privacy_mode: $Enums.availability_privacy_mode
   contactability: $Enums.availability_contactability
   include_in_feed: boolean
@@ -437,6 +444,7 @@ export type AvailabilityRecordWhereInput = {
   starts_at?: Prisma.DateTimeFilter<"AvailabilityRecord"> | Date | string
   ends_at?: Prisma.DateTimeFilter<"AvailabilityRecord"> | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusFilter<"AvailabilityRecord"> | $Enums.availability_approval_status
+  failed_action?: Prisma.Enumavailability_failed_actionNullableFilter<"AvailabilityRecord"> | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeFilter<"AvailabilityRecord"> | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityFilter<"AvailabilityRecord"> | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolFilter<"AvailabilityRecord"> | boolean
@@ -481,6 +489,7 @@ export type AvailabilityRecordOrderByWithRelationInput = {
   starts_at?: Prisma.SortOrder
   ends_at?: Prisma.SortOrder
   approval_status?: Prisma.SortOrder
+  failed_action?: Prisma.SortOrderInput | Prisma.SortOrder
   privacy_mode?: Prisma.SortOrder
   contactability?: Prisma.SortOrder
   include_in_feed?: Prisma.SortOrder
@@ -529,6 +538,7 @@ export type AvailabilityRecordWhereUniqueInput = Prisma.AtLeast<{
   starts_at?: Prisma.DateTimeFilter<"AvailabilityRecord"> | Date | string
   ends_at?: Prisma.DateTimeFilter<"AvailabilityRecord"> | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusFilter<"AvailabilityRecord"> | $Enums.availability_approval_status
+  failed_action?: Prisma.Enumavailability_failed_actionNullableFilter<"AvailabilityRecord"> | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeFilter<"AvailabilityRecord"> | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityFilter<"AvailabilityRecord"> | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolFilter<"AvailabilityRecord"> | boolean
@@ -573,6 +583,7 @@ export type AvailabilityRecordOrderByWithAggregationInput = {
   starts_at?: Prisma.SortOrder
   ends_at?: Prisma.SortOrder
   approval_status?: Prisma.SortOrder
+  failed_action?: Prisma.SortOrderInput | Prisma.SortOrder
   privacy_mode?: Prisma.SortOrder
   contactability?: Prisma.SortOrder
   include_in_feed?: Prisma.SortOrder
@@ -621,6 +632,7 @@ export type AvailabilityRecordScalarWhereWithAggregatesInput = {
   starts_at?: Prisma.DateTimeWithAggregatesFilter<"AvailabilityRecord"> | Date | string
   ends_at?: Prisma.DateTimeWithAggregatesFilter<"AvailabilityRecord"> | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusWithAggregatesFilter<"AvailabilityRecord"> | $Enums.availability_approval_status
+  failed_action?: Prisma.Enumavailability_failed_actionNullableWithAggregatesFilter<"AvailabilityRecord"> | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeWithAggregatesFilter<"AvailabilityRecord"> | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityWithAggregatesFilter<"AvailabilityRecord"> | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolWithAggregatesFilter<"AvailabilityRecord"> | boolean
@@ -659,6 +671,7 @@ export type AvailabilityRecordCreateInput = {
   starts_at: Date | string
   ends_at: Date | string
   approval_status: $Enums.availability_approval_status
+  failed_action?: $Enums.availability_failed_action | null
   privacy_mode: $Enums.availability_privacy_mode
   contactability: $Enums.availability_contactability
   include_in_feed?: boolean
@@ -702,6 +715,7 @@ export type AvailabilityRecordUncheckedCreateInput = {
   starts_at: Date | string
   ends_at: Date | string
   approval_status: $Enums.availability_approval_status
+  failed_action?: $Enums.availability_failed_action | null
   privacy_mode: $Enums.availability_privacy_mode
   contactability: $Enums.availability_contactability
   include_in_feed?: boolean
@@ -741,6 +755,7 @@ export type AvailabilityRecordUpdateInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusFieldUpdateOperationsInput | $Enums.availability_approval_status
+  failed_action?: Prisma.NullableEnumavailability_failed_actionFieldUpdateOperationsInput | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -784,6 +799,7 @@ export type AvailabilityRecordUncheckedUpdateInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusFieldUpdateOperationsInput | $Enums.availability_approval_status
+  failed_action?: Prisma.NullableEnumavailability_failed_actionFieldUpdateOperationsInput | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -825,6 +841,7 @@ export type AvailabilityRecordCreateManyInput = {
   starts_at: Date | string
   ends_at: Date | string
   approval_status: $Enums.availability_approval_status
+  failed_action?: $Enums.availability_failed_action | null
   privacy_mode: $Enums.availability_privacy_mode
   contactability: $Enums.availability_contactability
   include_in_feed?: boolean
@@ -863,6 +880,7 @@ export type AvailabilityRecordUpdateManyMutationInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusFieldUpdateOperationsInput | $Enums.availability_approval_status
+  failed_action?: Prisma.NullableEnumavailability_failed_actionFieldUpdateOperationsInput | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -902,6 +920,7 @@ export type AvailabilityRecordUncheckedUpdateManyInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusFieldUpdateOperationsInput | $Enums.availability_approval_status
+  failed_action?: Prisma.NullableEnumavailability_failed_actionFieldUpdateOperationsInput | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -958,6 +977,7 @@ export type AvailabilityRecordCountOrderByAggregateInput = {
   starts_at?: Prisma.SortOrder
   ends_at?: Prisma.SortOrder
   approval_status?: Prisma.SortOrder
+  failed_action?: Prisma.SortOrder
   privacy_mode?: Prisma.SortOrder
   contactability?: Prisma.SortOrder
   include_in_feed?: Prisma.SortOrder
@@ -1002,6 +1022,7 @@ export type AvailabilityRecordMaxOrderByAggregateInput = {
   starts_at?: Prisma.SortOrder
   ends_at?: Prisma.SortOrder
   approval_status?: Prisma.SortOrder
+  failed_action?: Prisma.SortOrder
   privacy_mode?: Prisma.SortOrder
   contactability?: Prisma.SortOrder
   include_in_feed?: Prisma.SortOrder
@@ -1040,6 +1061,7 @@ export type AvailabilityRecordMinOrderByAggregateInput = {
   starts_at?: Prisma.SortOrder
   ends_at?: Prisma.SortOrder
   approval_status?: Prisma.SortOrder
+  failed_action?: Prisma.SortOrder
   privacy_mode?: Prisma.SortOrder
   contactability?: Prisma.SortOrder
   include_in_feed?: Prisma.SortOrder
@@ -1214,6 +1236,10 @@ export type Enumavailability_approval_statusFieldUpdateOperationsInput = {
   set?: $Enums.availability_approval_status
 }
 
+export type NullableEnumavailability_failed_actionFieldUpdateOperationsInput = {
+  set?: $Enums.availability_failed_action | null
+}
+
 export type Enumavailability_publish_statusFieldUpdateOperationsInput = {
   set?: $Enums.availability_publish_status
 }
@@ -1249,6 +1275,7 @@ export type AvailabilityRecordCreateWithoutOrganisationInput = {
   starts_at: Date | string
   ends_at: Date | string
   approval_status: $Enums.availability_approval_status
+  failed_action?: $Enums.availability_failed_action | null
   privacy_mode: $Enums.availability_privacy_mode
   contactability: $Enums.availability_contactability
   include_in_feed?: boolean
@@ -1290,6 +1317,7 @@ export type AvailabilityRecordUncheckedCreateWithoutOrganisationInput = {
   starts_at: Date | string
   ends_at: Date | string
   approval_status: $Enums.availability_approval_status
+  failed_action?: $Enums.availability_failed_action | null
   privacy_mode: $Enums.availability_privacy_mode
   contactability: $Enums.availability_contactability
   include_in_feed?: boolean
@@ -1360,6 +1388,7 @@ export type AvailabilityRecordScalarWhereInput = {
   starts_at?: Prisma.DateTimeFilter<"AvailabilityRecord"> | Date | string
   ends_at?: Prisma.DateTimeFilter<"AvailabilityRecord"> | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusFilter<"AvailabilityRecord"> | $Enums.availability_approval_status
+  failed_action?: Prisma.Enumavailability_failed_actionNullableFilter<"AvailabilityRecord"> | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeFilter<"AvailabilityRecord"> | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityFilter<"AvailabilityRecord"> | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolFilter<"AvailabilityRecord"> | boolean
@@ -1398,6 +1427,7 @@ export type AvailabilityRecordCreateWithoutPersonInput = {
   starts_at: Date | string
   ends_at: Date | string
   approval_status: $Enums.availability_approval_status
+  failed_action?: $Enums.availability_failed_action | null
   privacy_mode: $Enums.availability_privacy_mode
   contactability: $Enums.availability_contactability
   include_in_feed?: boolean
@@ -1439,6 +1469,7 @@ export type AvailabilityRecordUncheckedCreateWithoutPersonInput = {
   starts_at: Date | string
   ends_at: Date | string
   approval_status: $Enums.availability_approval_status
+  failed_action?: $Enums.availability_failed_action | null
   privacy_mode: $Enums.availability_privacy_mode
   contactability: $Enums.availability_contactability
   include_in_feed?: boolean
@@ -1488,6 +1519,7 @@ export type AvailabilityRecordCreateWithoutApproved_byInput = {
   starts_at: Date | string
   ends_at: Date | string
   approval_status: $Enums.availability_approval_status
+  failed_action?: $Enums.availability_failed_action | null
   privacy_mode: $Enums.availability_privacy_mode
   contactability: $Enums.availability_contactability
   include_in_feed?: boolean
@@ -1530,6 +1562,7 @@ export type AvailabilityRecordUncheckedCreateWithoutApproved_byInput = {
   starts_at: Date | string
   ends_at: Date | string
   approval_status: $Enums.availability_approval_status
+  failed_action?: $Enums.availability_failed_action | null
   privacy_mode: $Enums.availability_privacy_mode
   contactability: $Enums.availability_contactability
   include_in_feed?: boolean
@@ -1610,6 +1643,7 @@ export type AvailabilityRecordCreateWithoutPublicationInput = {
   starts_at: Date | string
   ends_at: Date | string
   approval_status: $Enums.availability_approval_status
+  failed_action?: $Enums.availability_failed_action | null
   privacy_mode: $Enums.availability_privacy_mode
   contactability: $Enums.availability_contactability
   include_in_feed?: boolean
@@ -1652,6 +1686,7 @@ export type AvailabilityRecordUncheckedCreateWithoutPublicationInput = {
   starts_at: Date | string
   ends_at: Date | string
   approval_status: $Enums.availability_approval_status
+  failed_action?: $Enums.availability_failed_action | null
   privacy_mode: $Enums.availability_privacy_mode
   contactability: $Enums.availability_contactability
   include_in_feed?: boolean
@@ -1706,6 +1741,7 @@ export type AvailabilityRecordUpdateWithoutPublicationInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusFieldUpdateOperationsInput | $Enums.availability_approval_status
+  failed_action?: Prisma.NullableEnumavailability_failed_actionFieldUpdateOperationsInput | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1748,6 +1784,7 @@ export type AvailabilityRecordUncheckedUpdateWithoutPublicationInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusFieldUpdateOperationsInput | $Enums.availability_approval_status
+  failed_action?: Prisma.NullableEnumavailability_failed_actionFieldUpdateOperationsInput | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1787,6 +1824,7 @@ export type AvailabilityRecordCreateManyOrganisationInput = {
   starts_at: Date | string
   ends_at: Date | string
   approval_status: $Enums.availability_approval_status
+  failed_action?: $Enums.availability_failed_action | null
   privacy_mode: $Enums.availability_privacy_mode
   contactability: $Enums.availability_contactability
   include_in_feed?: boolean
@@ -1825,6 +1863,7 @@ export type AvailabilityRecordUpdateWithoutOrganisationInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusFieldUpdateOperationsInput | $Enums.availability_approval_status
+  failed_action?: Prisma.NullableEnumavailability_failed_actionFieldUpdateOperationsInput | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1866,6 +1905,7 @@ export type AvailabilityRecordUncheckedUpdateWithoutOrganisationInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusFieldUpdateOperationsInput | $Enums.availability_approval_status
+  failed_action?: Prisma.NullableEnumavailability_failed_actionFieldUpdateOperationsInput | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1906,6 +1946,7 @@ export type AvailabilityRecordUncheckedUpdateManyWithoutOrganisationInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusFieldUpdateOperationsInput | $Enums.availability_approval_status
+  failed_action?: Prisma.NullableEnumavailability_failed_actionFieldUpdateOperationsInput | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1945,6 +1986,7 @@ export type AvailabilityRecordCreateManyPersonInput = {
   starts_at: Date | string
   ends_at: Date | string
   approval_status: $Enums.availability_approval_status
+  failed_action?: $Enums.availability_failed_action | null
   privacy_mode: $Enums.availability_privacy_mode
   contactability: $Enums.availability_contactability
   include_in_feed?: boolean
@@ -1985,6 +2027,7 @@ export type AvailabilityRecordCreateManyApproved_byInput = {
   starts_at: Date | string
   ends_at: Date | string
   approval_status: $Enums.availability_approval_status
+  failed_action?: $Enums.availability_failed_action | null
   privacy_mode: $Enums.availability_privacy_mode
   contactability: $Enums.availability_contactability
   include_in_feed?: boolean
@@ -2022,6 +2065,7 @@ export type AvailabilityRecordUpdateWithoutPersonInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusFieldUpdateOperationsInput | $Enums.availability_approval_status
+  failed_action?: Prisma.NullableEnumavailability_failed_actionFieldUpdateOperationsInput | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2063,6 +2107,7 @@ export type AvailabilityRecordUncheckedUpdateWithoutPersonInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusFieldUpdateOperationsInput | $Enums.availability_approval_status
+  failed_action?: Prisma.NullableEnumavailability_failed_actionFieldUpdateOperationsInput | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2103,6 +2148,7 @@ export type AvailabilityRecordUncheckedUpdateManyWithoutPersonInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusFieldUpdateOperationsInput | $Enums.availability_approval_status
+  failed_action?: Prisma.NullableEnumavailability_failed_actionFieldUpdateOperationsInput | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2141,6 +2187,7 @@ export type AvailabilityRecordUpdateWithoutApproved_byInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusFieldUpdateOperationsInput | $Enums.availability_approval_status
+  failed_action?: Prisma.NullableEnumavailability_failed_actionFieldUpdateOperationsInput | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2183,6 +2230,7 @@ export type AvailabilityRecordUncheckedUpdateWithoutApproved_byInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusFieldUpdateOperationsInput | $Enums.availability_approval_status
+  failed_action?: Prisma.NullableEnumavailability_failed_actionFieldUpdateOperationsInput | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2223,6 +2271,7 @@ export type AvailabilityRecordUncheckedUpdateManyWithoutApproved_byInput = {
   starts_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ends_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   approval_status?: Prisma.Enumavailability_approval_statusFieldUpdateOperationsInput | $Enums.availability_approval_status
+  failed_action?: Prisma.NullableEnumavailability_failed_actionFieldUpdateOperationsInput | $Enums.availability_failed_action | null
   privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   include_in_feed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2264,6 +2313,7 @@ export type AvailabilityRecordSelect<ExtArgs extends runtime.Types.Extensions.In
   starts_at?: boolean
   ends_at?: boolean
   approval_status?: boolean
+  failed_action?: boolean
   privacy_mode?: boolean
   contactability?: boolean
   include_in_feed?: boolean
@@ -2308,6 +2358,7 @@ export type AvailabilityRecordSelectCreateManyAndReturn<ExtArgs extends runtime.
   starts_at?: boolean
   ends_at?: boolean
   approval_status?: boolean
+  failed_action?: boolean
   privacy_mode?: boolean
   contactability?: boolean
   include_in_feed?: boolean
@@ -2351,6 +2402,7 @@ export type AvailabilityRecordSelectUpdateManyAndReturn<ExtArgs extends runtime.
   starts_at?: boolean
   ends_at?: boolean
   approval_status?: boolean
+  failed_action?: boolean
   privacy_mode?: boolean
   contactability?: boolean
   include_in_feed?: boolean
@@ -2394,6 +2446,7 @@ export type AvailabilityRecordSelectScalar = {
   starts_at?: boolean
   ends_at?: boolean
   approval_status?: boolean
+  failed_action?: boolean
   privacy_mode?: boolean
   contactability?: boolean
   include_in_feed?: boolean
@@ -2423,7 +2476,7 @@ export type AvailabilityRecordSelectScalar = {
   updated_at?: boolean
 }
 
-export type AvailabilityRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "person_id" | "record_type" | "source_type" | "source_remote_id" | "starts_at" | "ends_at" | "approval_status" | "privacy_mode" | "contactability" | "include_in_feed" | "publish_status" | "source_payload_json" | "source_remote_hash" | "source_remote_version" | "source_last_modified_at" | "derived_uid_key" | "derived_sequence" | "title" | "all_day" | "notes_internal" | "working_location" | "preferred_contact_method" | "created_by_user_id" | "updated_by_user_id" | "archived_at" | "approval_note" | "approved_by_person_id" | "approved_at" | "xero_write_error" | "xero_write_error_raw" | "submitted_at" | "withdrawn_at" | "created_at" | "updated_at", ExtArgs["result"]["availabilityRecord"]>
+export type AvailabilityRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "person_id" | "record_type" | "source_type" | "source_remote_id" | "starts_at" | "ends_at" | "approval_status" | "failed_action" | "privacy_mode" | "contactability" | "include_in_feed" | "publish_status" | "source_payload_json" | "source_remote_hash" | "source_remote_version" | "source_last_modified_at" | "derived_uid_key" | "derived_sequence" | "title" | "all_day" | "notes_internal" | "working_location" | "preferred_contact_method" | "created_by_user_id" | "updated_by_user_id" | "archived_at" | "approval_note" | "approved_by_person_id" | "approved_at" | "xero_write_error" | "xero_write_error_raw" | "submitted_at" | "withdrawn_at" | "created_at" | "updated_at", ExtArgs["result"]["availabilityRecord"]>
 export type AvailabilityRecordInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
   person?: boolean | Prisma.PersonDefaultArgs<ExtArgs>
@@ -2460,6 +2513,7 @@ export type $AvailabilityRecordPayload<ExtArgs extends runtime.Types.Extensions.
     starts_at: Date
     ends_at: Date
     approval_status: $Enums.availability_approval_status
+    failed_action: $Enums.availability_failed_action | null
     privacy_mode: $Enums.availability_privacy_mode
     contactability: $Enums.availability_contactability
     include_in_feed: boolean
@@ -2924,6 +2978,7 @@ export interface AvailabilityRecordFieldRefs {
   readonly starts_at: Prisma.FieldRef<"AvailabilityRecord", 'DateTime'>
   readonly ends_at: Prisma.FieldRef<"AvailabilityRecord", 'DateTime'>
   readonly approval_status: Prisma.FieldRef<"AvailabilityRecord", 'availability_approval_status'>
+  readonly failed_action: Prisma.FieldRef<"AvailabilityRecord", 'availability_failed_action'>
   readonly privacy_mode: Prisma.FieldRef<"AvailabilityRecord", 'availability_privacy_mode'>
   readonly contactability: Prisma.FieldRef<"AvailabilityRecord", 'availability_contactability'>
   readonly include_in_feed: Prisma.FieldRef<"AvailabilityRecord", 'Boolean'>

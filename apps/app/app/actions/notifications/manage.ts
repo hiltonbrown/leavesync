@@ -16,6 +16,12 @@ const NotificationTypeSchema = z.enum([
   "feed_token_rotated",
   "privacy_conflict",
   "missing_alternative_contact",
+  "leave_submitted",
+  "leave_approved",
+  "leave_declined",
+  "leave_info_requested",
+  "leave_xero_sync_failed",
+  "leave_withdrawn",
 ]);
 
 const MarkNotificationReadSchema = z.object({

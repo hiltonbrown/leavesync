@@ -97,7 +97,10 @@ export async function revertToDraft(
       return authorised;
     }
 
-    if (authorised.value.approval_status !== "xero_sync_failed") {
+    if (
+      authorised.value.approval_status !== "xero_sync_failed" ||
+      authorised.value.failed_action !== "submit"
+    ) {
       return invalidState("invalid_state_for_revert");
     }
 
@@ -105,6 +108,7 @@ export async function revertToDraft(
       const update = await tx.availabilityRecord.updateMany({
         data: {
           approval_status: "draft",
+          failed_action: null,
           updated_by_user_id: parsed.data.actingUserId,
           xero_write_error: null,
           xero_write_error_raw: Prisma.DbNull,
@@ -185,6 +189,7 @@ export async function withdrawSubmission(
         input: parsed.data,
         record,
         xeroError: response.error,
+        failedAction: "withdraw",
       });
     }
 
@@ -193,6 +198,7 @@ export async function withdrawSubmission(
         data: {
           approval_status: "withdrawn",
           derived_sequence: { increment: 1 },
+          failed_action: null,
           updated_by_user_id: parsed.data.actingUserId,
           withdrawn_at: new Date(),
           xero_write_error: null,
@@ -252,7 +258,9 @@ async function performSubmission(
 
     if (
       record.source_type !== "leavesync_leave" ||
-      record.approval_status !== options.validStatus
+      record.approval_status !== options.validStatus ||
+      (options.validStatus === "xero_sync_failed" &&
+        record.failed_action !== "submit")
     ) {
       return invalidState(options.invalidStateCode);
     }
@@ -292,6 +300,7 @@ async function performSubmission(
         input: parsed.data,
         record,
         xeroError: submission.error,
+        failedAction: "submit",
       });
     }
 
@@ -300,6 +309,7 @@ async function performSubmission(
         data: {
           approval_status: "submitted",
           derived_sequence: { increment: 1 },
+          failed_action: null,
           source_payload_json: toPrismaJsonValue(submission.value.rawResponse),
           source_remote_id: submission.value.xeroLeaveApplicationId,
           submitted_at: new Date(),
@@ -420,6 +430,7 @@ async function persistXeroFailure(input: {
   actionUrl: string;
   auditAction: string;
   expectedStatus: availability_approval_status;
+  failedAction: "submit" | "withdraw";
   input: RecordActionInput;
   record: LoadedRecord;
   xeroError: XeroWriteError;
@@ -429,6 +440,7 @@ async function persistXeroFailure(input: {
     const update = await tx.availabilityRecord.updateMany({
       data: {
         approval_status: "xero_sync_failed",
+        failed_action: input.failedAction,
         updated_by_user_id: input.input.actingUserId,
         xero_write_error: plainMessage,
         xero_write_error_raw: {
