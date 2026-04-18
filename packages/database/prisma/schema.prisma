@@ -190,6 +190,7 @@ model Organisation {
   locations                    Location[]
   people                       Person[]
   leave_balances               LeaveBalance[]
+  alternative_contacts         AlternativeContact[]
   availability_records         AvailabilityRecord[]
   availability_publications    AvailabilityPublication[]
   feeds                        Feed[]
@@ -255,11 +256,15 @@ model Person {
   first_name                  String
   last_name                   String
   email                       String
+  xero_employee_id            String?
   employment_type             employment_type
   is_active                   Boolean                     @default(true)
   display_name                String?
   clerk_user_id               String?
   job_title                   String?
+  start_date                  DateTime?
+  avatar_url                  String?
+  status_note                 String?
   default_contactability      availability_contactability @default(contactable)
   default_privacy_mode        availability_privacy_mode   @default(named)
   include_in_feeds_by_default Boolean                     @default(true)
@@ -273,11 +278,13 @@ model Person {
   manager              Person?              @relation("PersonManager", fields: [manager_person_id], references: [id])
   direct_reports       Person[]             @relation("PersonManager")
   leave_balances       LeaveBalance[]
+  alternative_contacts AlternativeContact[]
   availability_records AvailabilityRecord[]
   approved_records     AvailabilityRecord[] @relation("ApprovedBy")
 
   @@unique([organisation_id, source_system, source_person_key])
   @@unique([organisation_id, clerk_user_id])
+  @@unique([organisation_id, xero_employee_id])
   @@index([clerk_org_id])
   @@index([organisation_id])
   @@index([organisation_id, team_id])
@@ -285,6 +292,30 @@ model Person {
   @@index([team_id])
   @@index([location_id])
   @@map("people")
+}
+
+model AlternativeContact {
+  id              String   @id @default(uuid()) @db.Uuid
+  clerk_org_id    String
+  organisation_id String   @db.Uuid
+  person_id       String   @db.Uuid
+  name            String
+  role            String?
+  email           String?
+  phone           String?
+  notes           String?
+  display_order   Int
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  organisation Organisation @relation(fields: [organisation_id], references: [id])
+  person       Person       @relation(fields: [person_id], references: [id])
+
+  @@index([clerk_org_id])
+  @@index([organisation_id])
+  @@index([person_id])
+  @@index([person_id, display_order])
+  @@map("alternative_contacts")
 }
 
 model XeroConnection {
@@ -437,6 +468,7 @@ model LeaveBalance {
   balance            Decimal                   @db.Decimal(12, 4)
   balance_unit       leave_balance_unit?
   as_at              DateTime?
+  last_fetched_at    DateTime?
   created_at         DateTime                  @default(now())
   updated_at         DateTime                  @updatedAt
 

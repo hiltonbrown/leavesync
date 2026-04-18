@@ -37,11 +37,15 @@ export type PersonMinAggregateOutputType = {
   first_name: string | null
   last_name: string | null
   email: string | null
+  xero_employee_id: string | null
   employment_type: $Enums.employment_type | null
   is_active: boolean | null
   display_name: string | null
   clerk_user_id: string | null
   job_title: string | null
+  start_date: Date | null
+  avatar_url: string | null
+  status_note: string | null
   default_contactability: $Enums.availability_contactability | null
   default_privacy_mode: $Enums.availability_privacy_mode | null
   include_in_feeds_by_default: boolean | null
@@ -63,11 +67,15 @@ export type PersonMaxAggregateOutputType = {
   first_name: string | null
   last_name: string | null
   email: string | null
+  xero_employee_id: string | null
   employment_type: $Enums.employment_type | null
   is_active: boolean | null
   display_name: string | null
   clerk_user_id: string | null
   job_title: string | null
+  start_date: Date | null
+  avatar_url: string | null
+  status_note: string | null
   default_contactability: $Enums.availability_contactability | null
   default_privacy_mode: $Enums.availability_privacy_mode | null
   include_in_feeds_by_default: boolean | null
@@ -89,11 +97,15 @@ export type PersonCountAggregateOutputType = {
   first_name: number
   last_name: number
   email: number
+  xero_employee_id: number
   employment_type: number
   is_active: number
   display_name: number
   clerk_user_id: number
   job_title: number
+  start_date: number
+  avatar_url: number
+  status_note: number
   default_contactability: number
   default_privacy_mode: number
   include_in_feeds_by_default: number
@@ -117,11 +129,15 @@ export type PersonMinAggregateInputType = {
   first_name?: true
   last_name?: true
   email?: true
+  xero_employee_id?: true
   employment_type?: true
   is_active?: true
   display_name?: true
   clerk_user_id?: true
   job_title?: true
+  start_date?: true
+  avatar_url?: true
+  status_note?: true
   default_contactability?: true
   default_privacy_mode?: true
   include_in_feeds_by_default?: true
@@ -143,11 +159,15 @@ export type PersonMaxAggregateInputType = {
   first_name?: true
   last_name?: true
   email?: true
+  xero_employee_id?: true
   employment_type?: true
   is_active?: true
   display_name?: true
   clerk_user_id?: true
   job_title?: true
+  start_date?: true
+  avatar_url?: true
+  status_note?: true
   default_contactability?: true
   default_privacy_mode?: true
   include_in_feeds_by_default?: true
@@ -169,11 +189,15 @@ export type PersonCountAggregateInputType = {
   first_name?: true
   last_name?: true
   email?: true
+  xero_employee_id?: true
   employment_type?: true
   is_active?: true
   display_name?: true
   clerk_user_id?: true
   job_title?: true
+  start_date?: true
+  avatar_url?: true
+  status_note?: true
   default_contactability?: true
   default_privacy_mode?: true
   include_in_feeds_by_default?: true
@@ -268,11 +292,15 @@ export type PersonGroupByOutputType = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id: string | null
   employment_type: $Enums.employment_type
   is_active: boolean
   display_name: string | null
   clerk_user_id: string | null
   job_title: string | null
+  start_date: Date | null
+  avatar_url: string | null
+  status_note: string | null
   default_contactability: $Enums.availability_contactability
   default_privacy_mode: $Enums.availability_privacy_mode
   include_in_feeds_by_default: boolean
@@ -315,11 +343,15 @@ export type PersonWhereInput = {
   first_name?: Prisma.StringFilter<"Person"> | string
   last_name?: Prisma.StringFilter<"Person"> | string
   email?: Prisma.StringFilter<"Person"> | string
+  xero_employee_id?: Prisma.StringNullableFilter<"Person"> | string | null
   employment_type?: Prisma.Enumemployment_typeFilter<"Person"> | $Enums.employment_type
   is_active?: Prisma.BoolFilter<"Person"> | boolean
   display_name?: Prisma.StringNullableFilter<"Person"> | string | null
   clerk_user_id?: Prisma.StringNullableFilter<"Person"> | string | null
   job_title?: Prisma.StringNullableFilter<"Person"> | string | null
+  start_date?: Prisma.DateTimeNullableFilter<"Person"> | Date | string | null
+  avatar_url?: Prisma.StringNullableFilter<"Person"> | string | null
+  status_note?: Prisma.StringNullableFilter<"Person"> | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFilter<"Person"> | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFilter<"Person"> | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFilter<"Person"> | boolean
@@ -332,6 +364,7 @@ export type PersonWhereInput = {
   manager?: Prisma.XOR<Prisma.PersonNullableScalarRelationFilter, Prisma.PersonWhereInput> | null
   direct_reports?: Prisma.PersonListRelationFilter
   leave_balances?: Prisma.LeaveBalanceListRelationFilter
+  alternative_contacts?: Prisma.AlternativeContactListRelationFilter
   availability_records?: Prisma.AvailabilityRecordListRelationFilter
   approved_records?: Prisma.AvailabilityRecordListRelationFilter
 }
@@ -349,11 +382,15 @@ export type PersonOrderByWithRelationInput = {
   first_name?: Prisma.SortOrder
   last_name?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  xero_employee_id?: Prisma.SortOrderInput | Prisma.SortOrder
   employment_type?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   display_name?: Prisma.SortOrderInput | Prisma.SortOrder
   clerk_user_id?: Prisma.SortOrderInput | Prisma.SortOrder
   job_title?: Prisma.SortOrderInput | Prisma.SortOrder
+  start_date?: Prisma.SortOrderInput | Prisma.SortOrder
+  avatar_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  status_note?: Prisma.SortOrderInput | Prisma.SortOrder
   default_contactability?: Prisma.SortOrder
   default_privacy_mode?: Prisma.SortOrder
   include_in_feeds_by_default?: Prisma.SortOrder
@@ -366,6 +403,7 @@ export type PersonOrderByWithRelationInput = {
   manager?: Prisma.PersonOrderByWithRelationInput
   direct_reports?: Prisma.PersonOrderByRelationAggregateInput
   leave_balances?: Prisma.LeaveBalanceOrderByRelationAggregateInput
+  alternative_contacts?: Prisma.AlternativeContactOrderByRelationAggregateInput
   availability_records?: Prisma.AvailabilityRecordOrderByRelationAggregateInput
   approved_records?: Prisma.AvailabilityRecordOrderByRelationAggregateInput
 }
@@ -374,6 +412,7 @@ export type PersonWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   organisation_id_source_system_source_person_key?: Prisma.PersonOrganisation_idSource_systemSource_person_keyCompoundUniqueInput
   organisation_id_clerk_user_id?: Prisma.PersonOrganisation_idClerk_user_idCompoundUniqueInput
+  organisation_id_xero_employee_id?: Prisma.PersonOrganisation_idXero_employee_idCompoundUniqueInput
   AND?: Prisma.PersonWhereInput | Prisma.PersonWhereInput[]
   OR?: Prisma.PersonWhereInput[]
   NOT?: Prisma.PersonWhereInput | Prisma.PersonWhereInput[]
@@ -388,11 +427,15 @@ export type PersonWhereUniqueInput = Prisma.AtLeast<{
   first_name?: Prisma.StringFilter<"Person"> | string
   last_name?: Prisma.StringFilter<"Person"> | string
   email?: Prisma.StringFilter<"Person"> | string
+  xero_employee_id?: Prisma.StringNullableFilter<"Person"> | string | null
   employment_type?: Prisma.Enumemployment_typeFilter<"Person"> | $Enums.employment_type
   is_active?: Prisma.BoolFilter<"Person"> | boolean
   display_name?: Prisma.StringNullableFilter<"Person"> | string | null
   clerk_user_id?: Prisma.StringNullableFilter<"Person"> | string | null
   job_title?: Prisma.StringNullableFilter<"Person"> | string | null
+  start_date?: Prisma.DateTimeNullableFilter<"Person"> | Date | string | null
+  avatar_url?: Prisma.StringNullableFilter<"Person"> | string | null
+  status_note?: Prisma.StringNullableFilter<"Person"> | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFilter<"Person"> | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFilter<"Person"> | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFilter<"Person"> | boolean
@@ -405,9 +448,10 @@ export type PersonWhereUniqueInput = Prisma.AtLeast<{
   manager?: Prisma.XOR<Prisma.PersonNullableScalarRelationFilter, Prisma.PersonWhereInput> | null
   direct_reports?: Prisma.PersonListRelationFilter
   leave_balances?: Prisma.LeaveBalanceListRelationFilter
+  alternative_contacts?: Prisma.AlternativeContactListRelationFilter
   availability_records?: Prisma.AvailabilityRecordListRelationFilter
   approved_records?: Prisma.AvailabilityRecordListRelationFilter
-}, "id" | "organisation_id_source_system_source_person_key" | "organisation_id_clerk_user_id">
+}, "id" | "organisation_id_source_system_source_person_key" | "organisation_id_clerk_user_id" | "organisation_id_xero_employee_id">
 
 export type PersonOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -422,11 +466,15 @@ export type PersonOrderByWithAggregationInput = {
   first_name?: Prisma.SortOrder
   last_name?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  xero_employee_id?: Prisma.SortOrderInput | Prisma.SortOrder
   employment_type?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   display_name?: Prisma.SortOrderInput | Prisma.SortOrder
   clerk_user_id?: Prisma.SortOrderInput | Prisma.SortOrder
   job_title?: Prisma.SortOrderInput | Prisma.SortOrder
+  start_date?: Prisma.SortOrderInput | Prisma.SortOrder
+  avatar_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  status_note?: Prisma.SortOrderInput | Prisma.SortOrder
   default_contactability?: Prisma.SortOrder
   default_privacy_mode?: Prisma.SortOrder
   include_in_feeds_by_default?: Prisma.SortOrder
@@ -454,11 +502,15 @@ export type PersonScalarWhereWithAggregatesInput = {
   first_name?: Prisma.StringWithAggregatesFilter<"Person"> | string
   last_name?: Prisma.StringWithAggregatesFilter<"Person"> | string
   email?: Prisma.StringWithAggregatesFilter<"Person"> | string
+  xero_employee_id?: Prisma.StringNullableWithAggregatesFilter<"Person"> | string | null
   employment_type?: Prisma.Enumemployment_typeWithAggregatesFilter<"Person"> | $Enums.employment_type
   is_active?: Prisma.BoolWithAggregatesFilter<"Person"> | boolean
   display_name?: Prisma.StringNullableWithAggregatesFilter<"Person"> | string | null
   clerk_user_id?: Prisma.StringNullableWithAggregatesFilter<"Person"> | string | null
   job_title?: Prisma.StringNullableWithAggregatesFilter<"Person"> | string | null
+  start_date?: Prisma.DateTimeNullableWithAggregatesFilter<"Person"> | Date | string | null
+  avatar_url?: Prisma.StringNullableWithAggregatesFilter<"Person"> | string | null
+  status_note?: Prisma.StringNullableWithAggregatesFilter<"Person"> | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityWithAggregatesFilter<"Person"> | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeWithAggregatesFilter<"Person"> | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolWithAggregatesFilter<"Person"> | boolean
@@ -476,11 +528,15 @@ export type PersonCreateInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -493,6 +549,7 @@ export type PersonCreateInput = {
   manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
   direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
 }
@@ -510,11 +567,15 @@ export type PersonUncheckedCreateInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -523,6 +584,7 @@ export type PersonUncheckedCreateInput = {
   updated_at?: Date | string
   direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
 }
@@ -536,11 +598,15 @@ export type PersonUpdateInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -553,6 +619,7 @@ export type PersonUpdateInput = {
   manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
   direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
 }
@@ -570,11 +637,15 @@ export type PersonUncheckedUpdateInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -583,6 +654,7 @@ export type PersonUncheckedUpdateInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
 }
@@ -600,11 +672,15 @@ export type PersonCreateManyInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -622,11 +698,15 @@ export type PersonUpdateManyMutationInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -648,11 +728,15 @@ export type PersonUncheckedUpdateManyInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -687,6 +771,11 @@ export type PersonOrganisation_idClerk_user_idCompoundUniqueInput = {
   clerk_user_id: string
 }
 
+export type PersonOrganisation_idXero_employee_idCompoundUniqueInput = {
+  organisation_id: string
+  xero_employee_id: string
+}
+
 export type PersonCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   clerk_org_id?: Prisma.SortOrder
@@ -700,11 +789,15 @@ export type PersonCountOrderByAggregateInput = {
   first_name?: Prisma.SortOrder
   last_name?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  xero_employee_id?: Prisma.SortOrder
   employment_type?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   display_name?: Prisma.SortOrder
   clerk_user_id?: Prisma.SortOrder
   job_title?: Prisma.SortOrder
+  start_date?: Prisma.SortOrder
+  avatar_url?: Prisma.SortOrder
+  status_note?: Prisma.SortOrder
   default_contactability?: Prisma.SortOrder
   default_privacy_mode?: Prisma.SortOrder
   include_in_feeds_by_default?: Prisma.SortOrder
@@ -726,11 +819,15 @@ export type PersonMaxOrderByAggregateInput = {
   first_name?: Prisma.SortOrder
   last_name?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  xero_employee_id?: Prisma.SortOrder
   employment_type?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   display_name?: Prisma.SortOrder
   clerk_user_id?: Prisma.SortOrder
   job_title?: Prisma.SortOrder
+  start_date?: Prisma.SortOrder
+  avatar_url?: Prisma.SortOrder
+  status_note?: Prisma.SortOrder
   default_contactability?: Prisma.SortOrder
   default_privacy_mode?: Prisma.SortOrder
   include_in_feeds_by_default?: Prisma.SortOrder
@@ -752,11 +849,15 @@ export type PersonMinOrderByAggregateInput = {
   first_name?: Prisma.SortOrder
   last_name?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  xero_employee_id?: Prisma.SortOrder
   employment_type?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   display_name?: Prisma.SortOrder
   clerk_user_id?: Prisma.SortOrder
   job_title?: Prisma.SortOrder
+  start_date?: Prisma.SortOrder
+  avatar_url?: Prisma.SortOrder
+  status_note?: Prisma.SortOrder
   default_contactability?: Prisma.SortOrder
   default_privacy_mode?: Prisma.SortOrder
   include_in_feeds_by_default?: Prisma.SortOrder
@@ -974,6 +1075,20 @@ export type PersonUncheckedUpdateManyWithoutManagerNestedInput = {
   deleteMany?: Prisma.PersonScalarWhereInput | Prisma.PersonScalarWhereInput[]
 }
 
+export type PersonCreateNestedOneWithoutAlternative_contactsInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutAlternative_contactsInput, Prisma.PersonUncheckedCreateWithoutAlternative_contactsInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutAlternative_contactsInput
+  connect?: Prisma.PersonWhereUniqueInput
+}
+
+export type PersonUpdateOneRequiredWithoutAlternative_contactsNestedInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutAlternative_contactsInput, Prisma.PersonUncheckedCreateWithoutAlternative_contactsInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutAlternative_contactsInput
+  upsert?: Prisma.PersonUpsertWithoutAlternative_contactsInput
+  connect?: Prisma.PersonWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PersonUpdateToOneWithWhereWithoutAlternative_contactsInput, Prisma.PersonUpdateWithoutAlternative_contactsInput>, Prisma.PersonUncheckedUpdateWithoutAlternative_contactsInput>
+}
+
 export type PersonCreateNestedOneWithoutAvailability_recordsInput = {
   create?: Prisma.XOR<Prisma.PersonCreateWithoutAvailability_recordsInput, Prisma.PersonUncheckedCreateWithoutAvailability_recordsInput>
   connectOrCreate?: Prisma.PersonCreateOrConnectWithoutAvailability_recordsInput
@@ -1027,11 +1142,15 @@ export type PersonCreateWithoutOrganisationInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -1043,6 +1162,7 @@ export type PersonCreateWithoutOrganisationInput = {
   manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
   direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
 }
@@ -1059,11 +1179,15 @@ export type PersonUncheckedCreateWithoutOrganisationInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -1072,6 +1196,7 @@ export type PersonUncheckedCreateWithoutOrganisationInput = {
   updated_at?: Date | string
   direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
 }
@@ -1118,11 +1243,15 @@ export type PersonScalarWhereInput = {
   first_name?: Prisma.StringFilter<"Person"> | string
   last_name?: Prisma.StringFilter<"Person"> | string
   email?: Prisma.StringFilter<"Person"> | string
+  xero_employee_id?: Prisma.StringNullableFilter<"Person"> | string | null
   employment_type?: Prisma.Enumemployment_typeFilter<"Person"> | $Enums.employment_type
   is_active?: Prisma.BoolFilter<"Person"> | boolean
   display_name?: Prisma.StringNullableFilter<"Person"> | string | null
   clerk_user_id?: Prisma.StringNullableFilter<"Person"> | string | null
   job_title?: Prisma.StringNullableFilter<"Person"> | string | null
+  start_date?: Prisma.DateTimeNullableFilter<"Person"> | Date | string | null
+  avatar_url?: Prisma.StringNullableFilter<"Person"> | string | null
+  status_note?: Prisma.StringNullableFilter<"Person"> | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFilter<"Person"> | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFilter<"Person"> | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFilter<"Person"> | boolean
@@ -1140,11 +1269,15 @@ export type PersonCreateWithoutTeamInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -1156,6 +1289,7 @@ export type PersonCreateWithoutTeamInput = {
   manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
   direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
 }
@@ -1172,11 +1306,15 @@ export type PersonUncheckedCreateWithoutTeamInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -1185,6 +1323,7 @@ export type PersonUncheckedCreateWithoutTeamInput = {
   updated_at?: Date | string
   direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
 }
@@ -1224,11 +1363,15 @@ export type PersonCreateWithoutLocationInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -1240,6 +1383,7 @@ export type PersonCreateWithoutLocationInput = {
   manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
   direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
 }
@@ -1256,11 +1400,15 @@ export type PersonUncheckedCreateWithoutLocationInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -1269,6 +1417,7 @@ export type PersonUncheckedCreateWithoutLocationInput = {
   updated_at?: Date | string
   direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
 }
@@ -1308,11 +1457,15 @@ export type PersonCreateWithoutDirect_reportsInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -1324,6 +1477,7 @@ export type PersonCreateWithoutDirect_reportsInput = {
   location?: Prisma.LocationCreateNestedOneWithoutPeopleInput
   manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
 }
@@ -1341,11 +1495,15 @@ export type PersonUncheckedCreateWithoutDirect_reportsInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -1353,6 +1511,7 @@ export type PersonUncheckedCreateWithoutDirect_reportsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
 }
@@ -1371,11 +1530,15 @@ export type PersonCreateWithoutManagerInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -1387,6 +1550,7 @@ export type PersonCreateWithoutManagerInput = {
   location?: Prisma.LocationCreateNestedOneWithoutPeopleInput
   direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
 }
@@ -1403,11 +1567,15 @@ export type PersonUncheckedCreateWithoutManagerInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -1416,6 +1584,7 @@ export type PersonUncheckedCreateWithoutManagerInput = {
   updated_at?: Date | string
   direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
 }
@@ -1450,11 +1619,15 @@ export type PersonUpdateWithoutDirect_reportsInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1466,6 +1639,7 @@ export type PersonUpdateWithoutDirect_reportsInput = {
   location?: Prisma.LocationUpdateOneWithoutPeopleNestedInput
   manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
 }
@@ -1483,11 +1657,15 @@ export type PersonUncheckedUpdateWithoutDirect_reportsInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1495,6 +1673,7 @@ export type PersonUncheckedUpdateWithoutDirect_reportsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
 }
@@ -1515,7 +1694,7 @@ export type PersonUpdateManyWithWhereWithoutManagerInput = {
   data: Prisma.XOR<Prisma.PersonUpdateManyMutationInput, Prisma.PersonUncheckedUpdateManyWithoutManagerInput>
 }
 
-export type PersonCreateWithoutAvailability_recordsInput = {
+export type PersonCreateWithoutAlternative_contactsInput = {
   id?: string
   clerk_org_id: string
   person_type?: $Enums.person_type | null
@@ -1524,11 +1703,15 @@ export type PersonCreateWithoutAvailability_recordsInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -1541,6 +1724,159 @@ export type PersonCreateWithoutAvailability_recordsInput = {
   manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
   direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
+  availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+}
+
+export type PersonUncheckedCreateWithoutAlternative_contactsInput = {
+  id?: string
+  clerk_org_id: string
+  organisation_id: string
+  team_id?: string | null
+  manager_person_id?: string | null
+  location_id?: string | null
+  person_type?: $Enums.person_type | null
+  source_system: $Enums.source_system
+  source_person_key?: string | null
+  first_name: string
+  last_name: string
+  email: string
+  xero_employee_id?: string | null
+  employment_type: $Enums.employment_type
+  is_active?: boolean
+  display_name?: string | null
+  clerk_user_id?: string | null
+  job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
+  default_contactability?: $Enums.availability_contactability
+  default_privacy_mode?: $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: boolean
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+}
+
+export type PersonCreateOrConnectWithoutAlternative_contactsInput = {
+  where: Prisma.PersonWhereUniqueInput
+  create: Prisma.XOR<Prisma.PersonCreateWithoutAlternative_contactsInput, Prisma.PersonUncheckedCreateWithoutAlternative_contactsInput>
+}
+
+export type PersonUpsertWithoutAlternative_contactsInput = {
+  update: Prisma.XOR<Prisma.PersonUpdateWithoutAlternative_contactsInput, Prisma.PersonUncheckedUpdateWithoutAlternative_contactsInput>
+  create: Prisma.XOR<Prisma.PersonCreateWithoutAlternative_contactsInput, Prisma.PersonUncheckedCreateWithoutAlternative_contactsInput>
+  where?: Prisma.PersonWhereInput
+}
+
+export type PersonUpdateToOneWithWhereWithoutAlternative_contactsInput = {
+  where?: Prisma.PersonWhereInput
+  data: Prisma.XOR<Prisma.PersonUpdateWithoutAlternative_contactsInput, Prisma.PersonUncheckedUpdateWithoutAlternative_contactsInput>
+}
+
+export type PersonUpdateWithoutAlternative_contactsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
+  source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
+  source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
+  default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organisation?: Prisma.OrganisationUpdateOneRequiredWithoutPeopleNestedInput
+  team?: Prisma.TeamUpdateOneWithoutPeopleNestedInput
+  location?: Prisma.LocationUpdateOneWithoutPeopleNestedInput
+  manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
+  direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
+  leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
+  availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+}
+
+export type PersonUncheckedUpdateWithoutAlternative_contactsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  team_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_person_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
+  source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
+  source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
+  default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+}
+
+export type PersonCreateWithoutAvailability_recordsInput = {
+  id?: string
+  clerk_org_id: string
+  person_type?: $Enums.person_type | null
+  source_system: $Enums.source_system
+  source_person_key?: string | null
+  first_name: string
+  last_name: string
+  email: string
+  xero_employee_id?: string | null
+  employment_type: $Enums.employment_type
+  is_active?: boolean
+  display_name?: string | null
+  clerk_user_id?: string | null
+  job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
+  default_contactability?: $Enums.availability_contactability
+  default_privacy_mode?: $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: boolean
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  organisation: Prisma.OrganisationCreateNestedOneWithoutPeopleInput
+  team?: Prisma.TeamCreateNestedOneWithoutPeopleInput
+  location?: Prisma.LocationCreateNestedOneWithoutPeopleInput
+  manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
+  direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
+  leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
 }
 
@@ -1557,11 +1893,15 @@ export type PersonUncheckedCreateWithoutAvailability_recordsInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -1570,6 +1910,7 @@ export type PersonUncheckedCreateWithoutAvailability_recordsInput = {
   updated_at?: Date | string
   direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
 }
 
@@ -1587,11 +1928,15 @@ export type PersonCreateWithoutApproved_recordsInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -1604,6 +1949,7 @@ export type PersonCreateWithoutApproved_recordsInput = {
   manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
   direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
 }
 
@@ -1620,11 +1966,15 @@ export type PersonUncheckedCreateWithoutApproved_recordsInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -1633,6 +1983,7 @@ export type PersonUncheckedCreateWithoutApproved_recordsInput = {
   updated_at?: Date | string
   direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
 }
 
@@ -1661,11 +2012,15 @@ export type PersonUpdateWithoutAvailability_recordsInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1678,6 +2033,7 @@ export type PersonUpdateWithoutAvailability_recordsInput = {
   manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
   direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
 }
 
@@ -1694,11 +2050,15 @@ export type PersonUncheckedUpdateWithoutAvailability_recordsInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1707,6 +2067,7 @@ export type PersonUncheckedUpdateWithoutAvailability_recordsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
 }
 
@@ -1730,11 +2091,15 @@ export type PersonUpdateWithoutApproved_recordsInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1747,6 +2112,7 @@ export type PersonUpdateWithoutApproved_recordsInput = {
   manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
   direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
 }
 
@@ -1763,11 +2129,15 @@ export type PersonUncheckedUpdateWithoutApproved_recordsInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1776,6 +2146,7 @@ export type PersonUncheckedUpdateWithoutApproved_recordsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
 }
 
@@ -1788,11 +2159,15 @@ export type PersonCreateWithoutLeave_balancesInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -1804,6 +2179,7 @@ export type PersonCreateWithoutLeave_balancesInput = {
   location?: Prisma.LocationCreateNestedOneWithoutPeopleInput
   manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
   direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
+  alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
 }
@@ -1821,11 +2197,15 @@ export type PersonUncheckedCreateWithoutLeave_balancesInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -1833,6 +2213,7 @@ export type PersonUncheckedCreateWithoutLeave_balancesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
 }
@@ -1862,11 +2243,15 @@ export type PersonUpdateWithoutLeave_balancesInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1878,6 +2263,7 @@ export type PersonUpdateWithoutLeave_balancesInput = {
   location?: Prisma.LocationUpdateOneWithoutPeopleNestedInput
   manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
   direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
 }
@@ -1895,11 +2281,15 @@ export type PersonUncheckedUpdateWithoutLeave_balancesInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1907,6 +2297,7 @@ export type PersonUncheckedUpdateWithoutLeave_balancesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
 }
@@ -1923,11 +2314,15 @@ export type PersonCreateManyOrganisationInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -1945,11 +2340,15 @@ export type PersonUpdateWithoutOrganisationInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1961,6 +2360,7 @@ export type PersonUpdateWithoutOrganisationInput = {
   manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
   direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
 }
@@ -1977,11 +2377,15 @@ export type PersonUncheckedUpdateWithoutOrganisationInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1990,6 +2394,7 @@ export type PersonUncheckedUpdateWithoutOrganisationInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
 }
@@ -2006,11 +2411,15 @@ export type PersonUncheckedUpdateManyWithoutOrganisationInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2031,11 +2440,15 @@ export type PersonCreateManyTeamInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -2053,11 +2466,15 @@ export type PersonUpdateWithoutTeamInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2069,6 +2486,7 @@ export type PersonUpdateWithoutTeamInput = {
   manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
   direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
 }
@@ -2085,11 +2503,15 @@ export type PersonUncheckedUpdateWithoutTeamInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2098,6 +2520,7 @@ export type PersonUncheckedUpdateWithoutTeamInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
 }
@@ -2114,11 +2537,15 @@ export type PersonUncheckedUpdateManyWithoutTeamInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2139,11 +2566,15 @@ export type PersonCreateManyLocationInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -2161,11 +2592,15 @@ export type PersonUpdateWithoutLocationInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2177,6 +2612,7 @@ export type PersonUpdateWithoutLocationInput = {
   manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
   direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
 }
@@ -2193,11 +2629,15 @@ export type PersonUncheckedUpdateWithoutLocationInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2206,6 +2646,7 @@ export type PersonUncheckedUpdateWithoutLocationInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
 }
@@ -2222,11 +2663,15 @@ export type PersonUncheckedUpdateManyWithoutLocationInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2247,11 +2692,15 @@ export type PersonCreateManyManagerInput = {
   first_name: string
   last_name: string
   email: string
+  xero_employee_id?: string | null
   employment_type: $Enums.employment_type
   is_active?: boolean
   display_name?: string | null
   clerk_user_id?: string | null
   job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
   default_contactability?: $Enums.availability_contactability
   default_privacy_mode?: $Enums.availability_privacy_mode
   include_in_feeds_by_default?: boolean
@@ -2269,11 +2718,15 @@ export type PersonUpdateWithoutManagerInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2285,6 +2738,7 @@ export type PersonUpdateWithoutManagerInput = {
   location?: Prisma.LocationUpdateOneWithoutPeopleNestedInput
   direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
 }
@@ -2301,11 +2755,15 @@ export type PersonUncheckedUpdateWithoutManagerInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2314,6 +2772,7 @@ export type PersonUncheckedUpdateWithoutManagerInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
 }
@@ -2330,11 +2789,15 @@ export type PersonUncheckedUpdateManyWithoutManagerInput = {
   first_name?: Prisma.StringFieldUpdateOperationsInput | string
   last_name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
   default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
   include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2351,6 +2814,7 @@ export type PersonUncheckedUpdateManyWithoutManagerInput = {
 export type PersonCountOutputType = {
   direct_reports: number
   leave_balances: number
+  alternative_contacts: number
   availability_records: number
   approved_records: number
 }
@@ -2358,6 +2822,7 @@ export type PersonCountOutputType = {
 export type PersonCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   direct_reports?: boolean | PersonCountOutputTypeCountDirect_reportsArgs
   leave_balances?: boolean | PersonCountOutputTypeCountLeave_balancesArgs
+  alternative_contacts?: boolean | PersonCountOutputTypeCountAlternative_contactsArgs
   availability_records?: boolean | PersonCountOutputTypeCountAvailability_recordsArgs
   approved_records?: boolean | PersonCountOutputTypeCountApproved_recordsArgs
 }
@@ -2389,6 +2854,13 @@ export type PersonCountOutputTypeCountLeave_balancesArgs<ExtArgs extends runtime
 /**
  * PersonCountOutputType without action
  */
+export type PersonCountOutputTypeCountAlternative_contactsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AlternativeContactWhereInput
+}
+
+/**
+ * PersonCountOutputType without action
+ */
 export type PersonCountOutputTypeCountAvailability_recordsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.AvailabilityRecordWhereInput
 }
@@ -2414,11 +2886,15 @@ export type PersonSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   first_name?: boolean
   last_name?: boolean
   email?: boolean
+  xero_employee_id?: boolean
   employment_type?: boolean
   is_active?: boolean
   display_name?: boolean
   clerk_user_id?: boolean
   job_title?: boolean
+  start_date?: boolean
+  avatar_url?: boolean
+  status_note?: boolean
   default_contactability?: boolean
   default_privacy_mode?: boolean
   include_in_feeds_by_default?: boolean
@@ -2431,6 +2907,7 @@ export type PersonSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   manager?: boolean | Prisma.Person$managerArgs<ExtArgs>
   direct_reports?: boolean | Prisma.Person$direct_reportsArgs<ExtArgs>
   leave_balances?: boolean | Prisma.Person$leave_balancesArgs<ExtArgs>
+  alternative_contacts?: boolean | Prisma.Person$alternative_contactsArgs<ExtArgs>
   availability_records?: boolean | Prisma.Person$availability_recordsArgs<ExtArgs>
   approved_records?: boolean | Prisma.Person$approved_recordsArgs<ExtArgs>
   _count?: boolean | Prisma.PersonCountOutputTypeDefaultArgs<ExtArgs>
@@ -2449,11 +2926,15 @@ export type PersonSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   first_name?: boolean
   last_name?: boolean
   email?: boolean
+  xero_employee_id?: boolean
   employment_type?: boolean
   is_active?: boolean
   display_name?: boolean
   clerk_user_id?: boolean
   job_title?: boolean
+  start_date?: boolean
+  avatar_url?: boolean
+  status_note?: boolean
   default_contactability?: boolean
   default_privacy_mode?: boolean
   include_in_feeds_by_default?: boolean
@@ -2479,11 +2960,15 @@ export type PersonSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   first_name?: boolean
   last_name?: boolean
   email?: boolean
+  xero_employee_id?: boolean
   employment_type?: boolean
   is_active?: boolean
   display_name?: boolean
   clerk_user_id?: boolean
   job_title?: boolean
+  start_date?: boolean
+  avatar_url?: boolean
+  status_note?: boolean
   default_contactability?: boolean
   default_privacy_mode?: boolean
   include_in_feeds_by_default?: boolean
@@ -2509,11 +2994,15 @@ export type PersonSelectScalar = {
   first_name?: boolean
   last_name?: boolean
   email?: boolean
+  xero_employee_id?: boolean
   employment_type?: boolean
   is_active?: boolean
   display_name?: boolean
   clerk_user_id?: boolean
   job_title?: boolean
+  start_date?: boolean
+  avatar_url?: boolean
+  status_note?: boolean
   default_contactability?: boolean
   default_privacy_mode?: boolean
   include_in_feeds_by_default?: boolean
@@ -2522,7 +3011,7 @@ export type PersonSelectScalar = {
   updated_at?: boolean
 }
 
-export type PersonOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "team_id" | "manager_person_id" | "location_id" | "person_type" | "source_system" | "source_person_key" | "first_name" | "last_name" | "email" | "employment_type" | "is_active" | "display_name" | "clerk_user_id" | "job_title" | "default_contactability" | "default_privacy_mode" | "include_in_feeds_by_default" | "archived_at" | "created_at" | "updated_at", ExtArgs["result"]["person"]>
+export type PersonOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "team_id" | "manager_person_id" | "location_id" | "person_type" | "source_system" | "source_person_key" | "first_name" | "last_name" | "email" | "xero_employee_id" | "employment_type" | "is_active" | "display_name" | "clerk_user_id" | "job_title" | "start_date" | "avatar_url" | "status_note" | "default_contactability" | "default_privacy_mode" | "include_in_feeds_by_default" | "archived_at" | "created_at" | "updated_at", ExtArgs["result"]["person"]>
 export type PersonInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
   team?: boolean | Prisma.Person$teamArgs<ExtArgs>
@@ -2530,6 +3019,7 @@ export type PersonInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   manager?: boolean | Prisma.Person$managerArgs<ExtArgs>
   direct_reports?: boolean | Prisma.Person$direct_reportsArgs<ExtArgs>
   leave_balances?: boolean | Prisma.Person$leave_balancesArgs<ExtArgs>
+  alternative_contacts?: boolean | Prisma.Person$alternative_contactsArgs<ExtArgs>
   availability_records?: boolean | Prisma.Person$availability_recordsArgs<ExtArgs>
   approved_records?: boolean | Prisma.Person$approved_recordsArgs<ExtArgs>
   _count?: boolean | Prisma.PersonCountOutputTypeDefaultArgs<ExtArgs>
@@ -2556,6 +3046,7 @@ export type $PersonPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     manager: Prisma.$PersonPayload<ExtArgs> | null
     direct_reports: Prisma.$PersonPayload<ExtArgs>[]
     leave_balances: Prisma.$LeaveBalancePayload<ExtArgs>[]
+    alternative_contacts: Prisma.$AlternativeContactPayload<ExtArgs>[]
     availability_records: Prisma.$AvailabilityRecordPayload<ExtArgs>[]
     approved_records: Prisma.$AvailabilityRecordPayload<ExtArgs>[]
   }
@@ -2572,11 +3063,15 @@ export type $PersonPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     first_name: string
     last_name: string
     email: string
+    xero_employee_id: string | null
     employment_type: $Enums.employment_type
     is_active: boolean
     display_name: string | null
     clerk_user_id: string | null
     job_title: string | null
+    start_date: Date | null
+    avatar_url: string | null
+    status_note: string | null
     default_contactability: $Enums.availability_contactability
     default_privacy_mode: $Enums.availability_privacy_mode
     include_in_feeds_by_default: boolean
@@ -2983,6 +3478,7 @@ export interface Prisma__PersonClient<T, Null = never, ExtArgs extends runtime.T
   manager<T extends Prisma.Person$managerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$managerArgs<ExtArgs>>): Prisma.Prisma__PersonClient<runtime.Types.Result.GetResult<Prisma.$PersonPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   direct_reports<T extends Prisma.Person$direct_reportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$direct_reportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PersonPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   leave_balances<T extends Prisma.Person$leave_balancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$leave_balancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeaveBalancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  alternative_contacts<T extends Prisma.Person$alternative_contactsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$alternative_contactsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AlternativeContactPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   availability_records<T extends Prisma.Person$availability_recordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$availability_recordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AvailabilityRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   approved_records<T extends Prisma.Person$approved_recordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$approved_recordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AvailabilityRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -3026,11 +3522,15 @@ export interface PersonFieldRefs {
   readonly first_name: Prisma.FieldRef<"Person", 'String'>
   readonly last_name: Prisma.FieldRef<"Person", 'String'>
   readonly email: Prisma.FieldRef<"Person", 'String'>
+  readonly xero_employee_id: Prisma.FieldRef<"Person", 'String'>
   readonly employment_type: Prisma.FieldRef<"Person", 'employment_type'>
   readonly is_active: Prisma.FieldRef<"Person", 'Boolean'>
   readonly display_name: Prisma.FieldRef<"Person", 'String'>
   readonly clerk_user_id: Prisma.FieldRef<"Person", 'String'>
   readonly job_title: Prisma.FieldRef<"Person", 'String'>
+  readonly start_date: Prisma.FieldRef<"Person", 'DateTime'>
+  readonly avatar_url: Prisma.FieldRef<"Person", 'String'>
+  readonly status_note: Prisma.FieldRef<"Person", 'String'>
   readonly default_contactability: Prisma.FieldRef<"Person", 'availability_contactability'>
   readonly default_privacy_mode: Prisma.FieldRef<"Person", 'availability_privacy_mode'>
   readonly include_in_feeds_by_default: Prisma.FieldRef<"Person", 'Boolean'>
@@ -3540,6 +4040,30 @@ export type Person$leave_balancesArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.LeaveBalanceScalarFieldEnum | Prisma.LeaveBalanceScalarFieldEnum[]
+}
+
+/**
+ * Person.alternative_contacts
+ */
+export type Person$alternative_contactsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AlternativeContact
+   */
+  select?: Prisma.AlternativeContactSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AlternativeContact
+   */
+  omit?: Prisma.AlternativeContactOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AlternativeContactInclude<ExtArgs> | null
+  where?: Prisma.AlternativeContactWhereInput
+  orderBy?: Prisma.AlternativeContactOrderByWithRelationInput | Prisma.AlternativeContactOrderByWithRelationInput[]
+  cursor?: Prisma.AlternativeContactWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AlternativeContactScalarFieldEnum | Prisma.AlternativeContactScalarFieldEnum[]
 }
 
 /**

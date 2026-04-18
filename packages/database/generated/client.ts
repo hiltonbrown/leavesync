@@ -62,6 +62,11 @@ export type Location = Prisma.LocationModel
  */
 export type Person = Prisma.PersonModel
 /**
+ * Model AlternativeContact
+ * 
+ */
+export type AlternativeContact = Prisma.AlternativeContactModel
+/**
  * Model XeroConnection
  * 
  */

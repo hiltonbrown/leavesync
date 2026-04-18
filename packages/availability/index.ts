@@ -250,7 +250,7 @@ export const ensureCurrentUserPerson = async (
   return mapPerson(person);
 };
 
-export const listPeople = async (
+export const listPersonViews = async (
   tenant: TenantContext
 ): Promise<PersonView[]> => {
   const people = await database.person.findMany({
@@ -467,6 +467,11 @@ export * from "./src/approvals/approval-service";
 export * from "./src/duration/working-days";
 export * from "./src/holidays/holiday-service";
 export * from "./src/holidays/nager-client";
+export * from "./src/people/alternative-contact-service";
+export * from "./src/people/balance-refresh";
+export * from "./src/people/current-status";
+export * from "./src/people/field-ownership";
+export * from "./src/people/people-service";
 export * from "./src/plans/plan-service";
 export * from "./src/plans/submit-service";
 export * from "./src/records/record-type-categories";

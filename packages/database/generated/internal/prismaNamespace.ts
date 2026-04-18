@@ -388,6 +388,7 @@ export const ModelName = {
   Team: 'Team',
   Location: 'Location',
   Person: 'Person',
+  AlternativeContact: 'AlternativeContact',
   XeroConnection: 'XeroConnection',
   XeroTenant: 'XeroTenant',
   XeroSyncCursor: 'XeroSyncCursor',
@@ -420,7 +421,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "organisation" | "team" | "location" | "person" | "xeroConnection" | "xeroTenant" | "xeroSyncCursor" | "availabilityRecord" | "availabilityPublication" | "leaveBalance" | "publicHolidayJurisdiction" | "publicHoliday" | "publicHolidayAssignment" | "feed" | "feedScope" | "feedToken" | "notification" | "notificationPreference" | "syncRun" | "failedRecord" | "auditEvent"
+    modelProps: "organisation" | "team" | "location" | "person" | "alternativeContact" | "xeroConnection" | "xeroTenant" | "xeroSyncCursor" | "availabilityRecord" | "availabilityPublication" | "leaveBalance" | "publicHolidayJurisdiction" | "publicHoliday" | "publicHolidayAssignment" | "feed" | "feedScope" | "feedToken" | "notification" | "notificationPreference" | "syncRun" | "failedRecord" | "auditEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -717,6 +718,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.PersonCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.PersonCountAggregateOutputType> | number
+        }
+      }
+    }
+    AlternativeContact: {
+      payload: Prisma.$AlternativeContactPayload<ExtArgs>
+      fields: Prisma.AlternativeContactFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AlternativeContactFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlternativeContactPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AlternativeContactFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlternativeContactPayload>
+        }
+        findFirst: {
+          args: Prisma.AlternativeContactFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlternativeContactPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AlternativeContactFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlternativeContactPayload>
+        }
+        findMany: {
+          args: Prisma.AlternativeContactFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlternativeContactPayload>[]
+        }
+        create: {
+          args: Prisma.AlternativeContactCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlternativeContactPayload>
+        }
+        createMany: {
+          args: Prisma.AlternativeContactCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AlternativeContactCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlternativeContactPayload>[]
+        }
+        delete: {
+          args: Prisma.AlternativeContactDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlternativeContactPayload>
+        }
+        update: {
+          args: Prisma.AlternativeContactUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlternativeContactPayload>
+        }
+        deleteMany: {
+          args: Prisma.AlternativeContactDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AlternativeContactUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AlternativeContactUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlternativeContactPayload>[]
+        }
+        upsert: {
+          args: Prisma.AlternativeContactUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlternativeContactPayload>
+        }
+        aggregate: {
+          args: Prisma.AlternativeContactAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAlternativeContact>
+        }
+        groupBy: {
+          args: Prisma.AlternativeContactGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AlternativeContactGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AlternativeContactCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AlternativeContactCountAggregateOutputType> | number
         }
       }
     }
@@ -2076,11 +2151,15 @@ export const PersonScalarFieldEnum = {
   first_name: 'first_name',
   last_name: 'last_name',
   email: 'email',
+  xero_employee_id: 'xero_employee_id',
   employment_type: 'employment_type',
   is_active: 'is_active',
   display_name: 'display_name',
   clerk_user_id: 'clerk_user_id',
   job_title: 'job_title',
+  start_date: 'start_date',
+  avatar_url: 'avatar_url',
+  status_note: 'status_note',
   default_contactability: 'default_contactability',
   default_privacy_mode: 'default_privacy_mode',
   include_in_feeds_by_default: 'include_in_feeds_by_default',
@@ -2090,6 +2169,24 @@ export const PersonScalarFieldEnum = {
 } as const
 
 export type PersonScalarFieldEnum = (typeof PersonScalarFieldEnum)[keyof typeof PersonScalarFieldEnum]
+
+
+export const AlternativeContactScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  person_id: 'person_id',
+  name: 'name',
+  role: 'role',
+  email: 'email',
+  phone: 'phone',
+  notes: 'notes',
+  display_order: 'display_order',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type AlternativeContactScalarFieldEnum = (typeof AlternativeContactScalarFieldEnum)[keyof typeof AlternativeContactScalarFieldEnum]
 
 
 export const XeroConnectionScalarFieldEnum = {
@@ -2209,6 +2306,7 @@ export const LeaveBalanceScalarFieldEnum = {
   balance: 'balance',
   balance_unit: 'balance_unit',
   as_at: 'as_at',
+  last_fetched_at: 'last_fetched_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -2940,6 +3038,7 @@ export type GlobalOmitConfig = {
   team?: Prisma.TeamOmit
   location?: Prisma.LocationOmit
   person?: Prisma.PersonOmit
+  alternativeContact?: Prisma.AlternativeContactOmit
   xeroConnection?: Prisma.XeroConnectionOmit
   xeroTenant?: Prisma.XeroTenantOmit
   xeroSyncCursor?: Prisma.XeroSyncCursorOmit

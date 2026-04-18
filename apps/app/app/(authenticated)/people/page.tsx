@@ -1,62 +1,95 @@
-import { endOfUtcDay, startOfUtcDay, toDateOnly } from "@repo/core";
-import {
-  listAvailabilityForCalendar,
-  listPeopleForOrganisation,
-} from "@repo/database/src/queries";
+import { auth } from "@repo/auth/server";
+import { listPeople } from "@repo/availability";
+import { database, scopedQuery } from "@repo/database";
 import type { Metadata } from "next";
+import { FetchErrorState } from "@/components/states/fetch-error-state";
+import { requirePageRole } from "@/lib/auth/require-page-role";
 import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
+import { parseFilterParams } from "@/lib/url-state/parse-filter-params";
 import { Header } from "../components/header";
+import { PeopleFilterSchema } from "./_schemas";
 import { PeopleClient } from "./people-client";
 
 export const metadata: Metadata = {
-  title: "People — LeaveSync",
-  description:
-    "Team directory with real-time availability and calendar status.",
+  description: "Team directory with live availability and Xero sync status.",
+  title: "People - LeaveSync",
 };
 
 interface PeoplePageProps {
-  searchParams: Promise<{
-    org?: string;
-  }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 const PeoplePage = async ({ searchParams }: PeoplePageProps) => {
-  const { org } = await searchParams;
+  await requirePageRole("org:viewer");
 
+  const params = await searchParams;
+  const { org, ...filterParams } = params;
+  const orgParam = Array.isArray(org) ? org[0] : org;
   const { clerkOrgId, organisationId, orgQueryValue } =
-    await requireActiveOrgPageContext(org);
+    await requireActiveOrgPageContext(orgParam);
+  const { orgRole } = await auth();
+  const canIncludeArchived = orgRole === "org:admin" || orgRole === "org:owner";
+  const parsedFilters = parseFilterParams(filterParams, PeopleFilterSchema) ?? {
+    includeArchived: false,
+    pageSize: 50,
+    personType: "all",
+    xeroLinked: "all",
+    xeroSyncFailedOnly: false,
+  };
+  const filters = {
+    ...parsedFilters,
+    includeArchived: canIncludeArchived ? parsedFilters.includeArchived : false,
+  };
 
-  // Load people and today's availability
-  const today = toDateOnly(new Date());
-  const todayStart = startOfUtcDay(today);
-  const todayEnd = endOfUtcDay(today);
-
-  const [peopleResult, availabilityResult] = await Promise.all([
-    listPeopleForOrganisation(clerkOrgId, organisationId),
-    listAvailabilityForCalendar(clerkOrgId, organisationId, {
-      startDate: todayStart,
-      endDate: todayEnd,
+  const [peopleResult, teams, locations] = await Promise.all([
+    listPeople({
+      clerkOrgId,
+      filters,
+      organisationId,
+      pagination: {
+        cursor: filters.cursor,
+        pageSize: filters.pageSize,
+      },
+    }),
+    database.team.findMany({
+      where: scopedQuery(clerkOrgId, organisationId),
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+    database.location.findMany({
+      where: scopedQuery(clerkOrgId, organisationId),
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
     }),
   ]);
 
   if (!peopleResult.ok) {
-    throw new Error(peopleResult.error.message);
-  }
-
-  if (!availabilityResult.ok) {
-    throw new Error(availabilityResult.error.message);
+    return (
+      <>
+        <Header page="People" />
+        <main className="flex flex-1 flex-col p-6 pt-0">
+          <FetchErrorState entityName="people" />
+        </main>
+      </>
+    );
   }
 
   return (
     <>
       <Header page="People" />
-      <div className="flex flex-1 flex-col p-6 pt-0">
+      <main className="flex flex-1 flex-col gap-6 p-6 pt-0">
         <PeopleClient
+          canIncludeArchived={canIncludeArchived}
+          filters={filters}
+          locations={locations}
+          nextCursor={peopleResult.value.nextCursor}
+          organisationId={organisationId}
           orgQueryValue={orgQueryValue}
-          people={peopleResult.value}
-          todayAvailability={availabilityResult.value}
+          people={peopleResult.value.people}
+          teams={teams}
+          totalCount={peopleResult.value.totalCount}
         />
-      </div>
+      </main>
     </>
   );
 };
