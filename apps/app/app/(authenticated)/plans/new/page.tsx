@@ -1,59 +1,14 @@
-import type { Metadata } from "next";
-import { loadManualAvailabilityPageData } from "@/lib/server/load-manual-availability-page-data";
-import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
-import { ManualAvailabilityForm } from "../../availability/manual-availability-form";
-import { Header } from "../../components/header";
+import { redirect } from "next/navigation";
+import { withOrg } from "@/lib/navigation/org-url";
 
-export const metadata: Metadata = {
-  title: "New Plan — LeaveSync",
-  description: "Create a new draft plan.",
-};
-
-interface NewPlanPageProps {
-  searchParams: Promise<{
-    org?: string;
-  }>;
+interface LegacyNewPlanPageProps {
+  searchParams: Promise<{ org?: string }>;
 }
 
-const NewPlanPage = async ({ searchParams }: NewPlanPageProps) => {
+const LegacyNewPlanPage = async ({ searchParams }: LegacyNewPlanPageProps) => {
   const { org } = await searchParams;
-
-  const { clerkOrgId, organisationId, orgQueryValue } =
-    await requireActiveOrgPageContext(org);
-
-  const dataResult = await loadManualAvailabilityPageData(
-    clerkOrgId,
-    organisationId
-  );
-
-  if (!dataResult.ok) {
-    throw new Error(dataResult.error.message);
-  }
-
-  return (
-    <>
-      <Header page="New Plan" />
-      <div className="flex flex-1 flex-col p-6 pt-0">
-        <div className="max-w-2xl rounded-2xl bg-muted p-6">
-          <h2 className="mb-4 font-semibold text-lg">Create plan</h2>
-          <p className="mb-6 text-muted-foreground text-sm">
-            Add a manual availability record for leave, travel, training,
-            working from home, or client site work.
-          </p>
-
-          <div className="rounded-2xl bg-background p-5">
-            <ManualAvailabilityForm
-              mode="create"
-              organisationId={organisationId}
-              orgQueryValue={orgQueryValue}
-              people={dataResult.value.people}
-              redirectTo="/plans"
-            />
-          </div>
-        </div>
-      </div>
-    </>
-  );
+  // Legacy route kept for existing links while the unified records route lands.
+  redirect(withOrg("/plans/records/new", org));
 };
 
-export default NewPlanPage;
+export default LegacyNewPlanPage;

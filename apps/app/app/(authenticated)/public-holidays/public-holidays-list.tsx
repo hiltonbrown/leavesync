@@ -13,7 +13,6 @@ import {
 import { cn } from "@repo/design-system/lib/utils";
 import { PlusIcon, RotateCcwIcon, TrashIcon, XIcon } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
 import {
@@ -22,19 +21,19 @@ import {
   suppressHolidayAction,
 } from "./_actions";
 
-type PublicHolidayFromDB = {
-  id: string;
-  organisation_id: string;
-  source: "nager" | "manual";
-  holiday_date: Date;
-  name: string;
-  holiday_type: string;
+interface PublicHolidayFromDB {
   archived_at: Date | null;
+  holiday_date: Date;
+  holiday_type: string;
+  id: string;
   jurisdiction?: {
     country_code: string;
     region_code: string | null;
   } | null;
-};
+  name: string;
+  organisation_id: string;
+  source: "nager" | "manual";
+}
 
 interface PublicHolidaysListProps {
   holidays: PublicHolidayFromDB[];
@@ -98,7 +97,6 @@ function formatDayOfWeek(date: Date): string {
 }
 
 export function PublicHolidaysList({ holidays }: PublicHolidaysListProps) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const handleSuppress = (id: string, orgId: string) => {

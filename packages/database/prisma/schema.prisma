@@ -234,6 +234,7 @@ model Person {
   clerk_org_id                String
   organisation_id             String                      @db.Uuid
   team_id                     String?                     @db.Uuid
+  manager_person_id           String?                     @db.Uuid
   location_id                 String?                     @db.Uuid
   person_type                 person_type?
   source_system               source_system
@@ -256,28 +257,33 @@ model Person {
   organisation         Organisation         @relation(fields: [organisation_id], references: [id])
   team                 Team?                @relation(fields: [team_id], references: [id])
   location             Location?            @relation(fields: [location_id], references: [id])
+  manager              Person?              @relation("PersonManager", fields: [manager_person_id], references: [id])
+  direct_reports       Person[]             @relation("PersonManager")
   leave_balances       LeaveBalance[]
   availability_records AvailabilityRecord[]
+  approved_records     AvailabilityRecord[] @relation("ApprovedBy")
 
   @@unique([organisation_id, source_system, source_person_key])
   @@unique([organisation_id, clerk_user_id])
   @@index([clerk_org_id])
   @@index([organisation_id])
   @@index([organisation_id, team_id])
+  @@index([organisation_id, manager_person_id])
   @@index([team_id])
   @@index([location_id])
   @@map("people")
 }
 
 model XeroConnection {
-  id                      String   @id @default(uuid()) @db.Uuid
+  id                      String    @id @default(uuid()) @db.Uuid
   clerk_org_id            String
-  organisation_id         String   @unique @db.Uuid
+  organisation_id         String    @unique @db.Uuid
   access_token_encrypted  String
   refresh_token_encrypted String
   expires_at              DateTime
-  created_at              DateTime @default(now())
-  updated_at              DateTime @updatedAt
+  revoked_at              DateTime?
+  created_at              DateTime  @default(now())
+  updated_at              DateTime  @updatedAt
 
   organisation Organisation @relation(fields: [organisation_id], references: [id])
   xero_tenant  XeroTenant?
@@ -347,6 +353,7 @@ model AvailabilityRecord {
   source_remote_version    String?
   source_last_modified_at  DateTime?
   derived_uid_key          String
+  derived_sequence         Int                          @default(0)
   title                    String?
   all_day                  Boolean                      @default(true)
   notes_internal           String?
@@ -356,6 +363,7 @@ model AvailabilityRecord {
   updated_by_user_id       String?
   archived_at              DateTime?
   approval_note            String?
+  approved_by_person_id    String?                      @db.Uuid
   approved_at              DateTime?
   xero_write_error         String?
   xero_write_error_raw     Json?
@@ -366,12 +374,14 @@ model AvailabilityRecord {
 
   organisation Organisation             @relation(fields: [organisation_id], references: [id])
   person       Person                   @relation(fields: [person_id], references: [id])
+  approved_by  Person?                  @relation("ApprovedBy", fields: [approved_by_person_id], references: [id])
   publication  AvailabilityPublication?
 
   @@unique([organisation_id, source_type, source_remote_id], map: "availability_records_source_identity_key")
   @@index([clerk_org_id])
   @@index([organisation_id])
   @@index([person_id, starts_at, ends_at])
+  @@index([approved_by_person_id])
   @@index([source_type, source_remote_id])
   @@index([organisation_id, publish_status, include_in_feed])
   @@index([source_type, source_last_modified_at])

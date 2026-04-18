@@ -31,7 +31,7 @@ export async function getPublicHolidays(
         return {
           ok: false,
           error: appError(
-            "NOT_FOUND",
+            "not_found",
             `No holidays found for country ${countryCode} in year ${year}`
           ),
         };
@@ -39,7 +39,7 @@ export async function getPublicHolidays(
       return {
         ok: false,
         error: appError(
-          "EXTERNAL_SERVICE_ERROR",
+          "internal",
           `Nager.Date API returned status ${response.status}`
         ),
       };
@@ -52,7 +52,7 @@ export async function getPublicHolidays(
       return {
         ok: false,
         error: appError(
-          "VALIDATION_ERROR",
+          "bad_request",
           "Failed to parse Nager.Date API response"
         ),
       };
@@ -62,13 +62,10 @@ export async function getPublicHolidays(
       ok: true,
       value: parsed.data,
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       ok: false,
-      error: appError(
-        "EXTERNAL_SERVICE_ERROR",
-        "Network error while calling Nager.Date API"
-      ),
+      error: appError("internal", "Network error while calling Nager.Date API"),
     };
   }
 }

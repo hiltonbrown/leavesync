@@ -2068,6 +2068,7 @@ export const PersonScalarFieldEnum = {
   clerk_org_id: 'clerk_org_id',
   organisation_id: 'organisation_id',
   team_id: 'team_id',
+  manager_person_id: 'manager_person_id',
   location_id: 'location_id',
   person_type: 'person_type',
   source_system: 'source_system',
@@ -2098,6 +2099,7 @@ export const XeroConnectionScalarFieldEnum = {
   access_token_encrypted: 'access_token_encrypted',
   refresh_token_encrypted: 'refresh_token_encrypted',
   expires_at: 'expires_at',
+  revoked_at: 'revoked_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -2153,6 +2155,7 @@ export const AvailabilityRecordScalarFieldEnum = {
   source_remote_version: 'source_remote_version',
   source_last_modified_at: 'source_last_modified_at',
   derived_uid_key: 'derived_uid_key',
+  derived_sequence: 'derived_sequence',
   title: 'title',
   all_day: 'all_day',
   notes_internal: 'notes_internal',
@@ -2162,6 +2165,7 @@ export const AvailabilityRecordScalarFieldEnum = {
   updated_by_user_id: 'updated_by_user_id',
   archived_at: 'archived_at',
   approval_note: 'approval_note',
+  approved_by_person_id: 'approved_by_person_id',
   approved_at: 'approved_at',
   xero_write_error: 'xero_write_error',
   xero_write_error_raw: 'xero_write_error_raw',
