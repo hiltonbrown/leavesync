@@ -1,20 +1,18 @@
-import { InterceptingModalShell } from "@/components/modals/intercepting-modal-shell";
-import { PersonProfileClient } from "./person-profile-client";
+import { redirect } from "next/navigation";
 
-interface PersonProfileModalPageProperties {
+interface LegacyPersonProfileModalPageProperties {
   readonly params: Promise<{ personId: string }>;
+  readonly searchParams: Promise<{ org?: string }>;
 }
 
-const PersonProfileModalPage = async ({
+const LegacyPersonProfileModalPage = async ({
   params,
-}: PersonProfileModalPageProperties) => {
+  searchParams,
+}: LegacyPersonProfileModalPageProperties) => {
   const { personId } = await params;
-
-  return (
-    <InterceptingModalShell size="wide">
-      <PersonProfileClient personId={personId} />
-    </InterceptingModalShell>
-  );
+  const { org } = await searchParams;
+  const query = org ? `?org=${encodeURIComponent(org)}` : "";
+  redirect(`/people/person/${personId}${query}`);
 };
 
-export default PersonProfileModalPage;
+export default LegacyPersonProfileModalPage;

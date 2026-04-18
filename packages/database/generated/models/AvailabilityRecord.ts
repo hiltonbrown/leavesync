@@ -1244,14 +1244,6 @@ export type Enumavailability_publish_statusFieldUpdateOperationsInput = {
   set?: $Enums.availability_publish_status
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type AvailabilityRecordCreateNestedOneWithoutPublicationInput = {
   create?: Prisma.XOR<Prisma.AvailabilityRecordCreateWithoutPublicationInput, Prisma.AvailabilityRecordUncheckedCreateWithoutPublicationInput>
   connectOrCreate?: Prisma.AvailabilityRecordCreateOrConnectWithoutPublicationInput

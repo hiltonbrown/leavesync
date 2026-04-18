@@ -55,6 +55,7 @@ export const ModelName = {
   Team: 'Team',
   Location: 'Location',
   Person: 'Person',
+  AlternativeContact: 'AlternativeContact',
   XeroConnection: 'XeroConnection',
   XeroTenant: 'XeroTenant',
   XeroSyncCursor: 'XeroSyncCursor',
@@ -149,11 +150,15 @@ export const PersonScalarFieldEnum = {
   first_name: 'first_name',
   last_name: 'last_name',
   email: 'email',
+  xero_employee_id: 'xero_employee_id',
   employment_type: 'employment_type',
   is_active: 'is_active',
   display_name: 'display_name',
   clerk_user_id: 'clerk_user_id',
   job_title: 'job_title',
+  start_date: 'start_date',
+  avatar_url: 'avatar_url',
+  status_note: 'status_note',
   default_contactability: 'default_contactability',
   default_privacy_mode: 'default_privacy_mode',
   include_in_feeds_by_default: 'include_in_feeds_by_default',
@@ -163,6 +168,24 @@ export const PersonScalarFieldEnum = {
 } as const
 
 export type PersonScalarFieldEnum = (typeof PersonScalarFieldEnum)[keyof typeof PersonScalarFieldEnum]
+
+
+export const AlternativeContactScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  person_id: 'person_id',
+  name: 'name',
+  role: 'role',
+  email: 'email',
+  phone: 'phone',
+  notes: 'notes',
+  display_order: 'display_order',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type AlternativeContactScalarFieldEnum = (typeof AlternativeContactScalarFieldEnum)[keyof typeof AlternativeContactScalarFieldEnum]
 
 
 export const XeroConnectionScalarFieldEnum = {
@@ -282,6 +305,7 @@ export const LeaveBalanceScalarFieldEnum = {
   balance: 'balance',
   balance_unit: 'balance_unit',
   as_at: 'as_at',
+  last_fetched_at: 'last_fetched_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const

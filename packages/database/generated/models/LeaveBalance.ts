@@ -46,6 +46,7 @@ export type LeaveBalanceMinAggregateOutputType = {
   balance: runtime.Decimal | null
   balance_unit: $Enums.leave_balance_unit | null
   as_at: Date | null
+  last_fetched_at: Date | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -62,6 +63,7 @@ export type LeaveBalanceMaxAggregateOutputType = {
   balance: runtime.Decimal | null
   balance_unit: $Enums.leave_balance_unit | null
   as_at: Date | null
+  last_fetched_at: Date | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -78,6 +80,7 @@ export type LeaveBalanceCountAggregateOutputType = {
   balance: number
   balance_unit: number
   as_at: number
+  last_fetched_at: number
   created_at: number
   updated_at: number
   _all: number
@@ -104,6 +107,7 @@ export type LeaveBalanceMinAggregateInputType = {
   balance?: true
   balance_unit?: true
   as_at?: true
+  last_fetched_at?: true
   created_at?: true
   updated_at?: true
 }
@@ -120,6 +124,7 @@ export type LeaveBalanceMaxAggregateInputType = {
   balance?: true
   balance_unit?: true
   as_at?: true
+  last_fetched_at?: true
   created_at?: true
   updated_at?: true
 }
@@ -136,6 +141,7 @@ export type LeaveBalanceCountAggregateInputType = {
   balance?: true
   balance_unit?: true
   as_at?: true
+  last_fetched_at?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -239,6 +245,7 @@ export type LeaveBalanceGroupByOutputType = {
   balance: runtime.Decimal
   balance_unit: $Enums.leave_balance_unit | null
   as_at: Date | null
+  last_fetched_at: Date | null
   created_at: Date
   updated_at: Date
   _count: LeaveBalanceCountAggregateOutputType | null
@@ -278,6 +285,7 @@ export type LeaveBalanceWhereInput = {
   balance?: Prisma.DecimalFilter<"LeaveBalance"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: Prisma.Enumleave_balance_unitNullableFilter<"LeaveBalance"> | $Enums.leave_balance_unit | null
   as_at?: Prisma.DateTimeNullableFilter<"LeaveBalance"> | Date | string | null
+  last_fetched_at?: Prisma.DateTimeNullableFilter<"LeaveBalance"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"LeaveBalance"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"LeaveBalance"> | Date | string
   organisation?: Prisma.XOR<Prisma.OrganisationScalarRelationFilter, Prisma.OrganisationWhereInput>
@@ -297,6 +305,7 @@ export type LeaveBalanceOrderByWithRelationInput = {
   balance?: Prisma.SortOrder
   balance_unit?: Prisma.SortOrderInput | Prisma.SortOrder
   as_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_fetched_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   organisation?: Prisma.OrganisationOrderByWithRelationInput
@@ -320,6 +329,7 @@ export type LeaveBalanceWhereUniqueInput = Prisma.AtLeast<{
   balance?: Prisma.DecimalFilter<"LeaveBalance"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: Prisma.Enumleave_balance_unitNullableFilter<"LeaveBalance"> | $Enums.leave_balance_unit | null
   as_at?: Prisma.DateTimeNullableFilter<"LeaveBalance"> | Date | string | null
+  last_fetched_at?: Prisma.DateTimeNullableFilter<"LeaveBalance"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"LeaveBalance"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"LeaveBalance"> | Date | string
   organisation?: Prisma.XOR<Prisma.OrganisationScalarRelationFilter, Prisma.OrganisationWhereInput>
@@ -339,6 +349,7 @@ export type LeaveBalanceOrderByWithAggregationInput = {
   balance?: Prisma.SortOrder
   balance_unit?: Prisma.SortOrderInput | Prisma.SortOrder
   as_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_fetched_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.LeaveBalanceCountOrderByAggregateInput
@@ -363,6 +374,7 @@ export type LeaveBalanceScalarWhereWithAggregatesInput = {
   balance?: Prisma.DecimalWithAggregatesFilter<"LeaveBalance"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: Prisma.Enumleave_balance_unitNullableWithAggregatesFilter<"LeaveBalance"> | $Enums.leave_balance_unit | null
   as_at?: Prisma.DateTimeNullableWithAggregatesFilter<"LeaveBalance"> | Date | string | null
+  last_fetched_at?: Prisma.DateTimeNullableWithAggregatesFilter<"LeaveBalance"> | Date | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"LeaveBalance"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"LeaveBalance"> | Date | string
 }
@@ -376,6 +388,7 @@ export type LeaveBalanceCreateInput = {
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: $Enums.leave_balance_unit | null
   as_at?: Date | string | null
+  last_fetched_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutLeave_balancesInput
@@ -395,6 +408,7 @@ export type LeaveBalanceUncheckedCreateInput = {
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: $Enums.leave_balance_unit | null
   as_at?: Date | string | null
+  last_fetched_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -408,6 +422,7 @@ export type LeaveBalanceUpdateInput = {
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
   as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_fetched_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutLeave_balancesNestedInput
@@ -427,6 +442,7 @@ export type LeaveBalanceUncheckedUpdateInput = {
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
   as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_fetched_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -443,6 +459,7 @@ export type LeaveBalanceCreateManyInput = {
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: $Enums.leave_balance_unit | null
   as_at?: Date | string | null
+  last_fetched_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -456,6 +473,7 @@ export type LeaveBalanceUpdateManyMutationInput = {
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
   as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_fetched_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -472,6 +490,7 @@ export type LeaveBalanceUncheckedUpdateManyInput = {
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
   as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_fetched_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -504,6 +523,7 @@ export type LeaveBalanceCountOrderByAggregateInput = {
   balance?: Prisma.SortOrder
   balance_unit?: Prisma.SortOrder
   as_at?: Prisma.SortOrder
+  last_fetched_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -524,6 +544,7 @@ export type LeaveBalanceMaxOrderByAggregateInput = {
   balance?: Prisma.SortOrder
   balance_unit?: Prisma.SortOrder
   as_at?: Prisma.SortOrder
+  last_fetched_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -540,6 +561,7 @@ export type LeaveBalanceMinOrderByAggregateInput = {
   balance?: Prisma.SortOrder
   balance_unit?: Prisma.SortOrder
   as_at?: Prisma.SortOrder
+  last_fetched_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -699,6 +721,7 @@ export type LeaveBalanceCreateWithoutOrganisationInput = {
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: $Enums.leave_balance_unit | null
   as_at?: Date | string | null
+  last_fetched_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   person: Prisma.PersonCreateNestedOneWithoutLeave_balancesInput
@@ -716,6 +739,7 @@ export type LeaveBalanceUncheckedCreateWithoutOrganisationInput = {
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: $Enums.leave_balance_unit | null
   as_at?: Date | string | null
+  last_fetched_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -761,6 +785,7 @@ export type LeaveBalanceScalarWhereInput = {
   balance?: Prisma.DecimalFilter<"LeaveBalance"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: Prisma.Enumleave_balance_unitNullableFilter<"LeaveBalance"> | $Enums.leave_balance_unit | null
   as_at?: Prisma.DateTimeNullableFilter<"LeaveBalance"> | Date | string | null
+  last_fetched_at?: Prisma.DateTimeNullableFilter<"LeaveBalance"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"LeaveBalance"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"LeaveBalance"> | Date | string
 }
@@ -774,6 +799,7 @@ export type LeaveBalanceCreateWithoutPersonInput = {
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: $Enums.leave_balance_unit | null
   as_at?: Date | string | null
+  last_fetched_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutLeave_balancesInput
@@ -791,6 +817,7 @@ export type LeaveBalanceUncheckedCreateWithoutPersonInput = {
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: $Enums.leave_balance_unit | null
   as_at?: Date | string | null
+  last_fetched_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -830,6 +857,7 @@ export type LeaveBalanceCreateWithoutXero_tenantInput = {
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: $Enums.leave_balance_unit | null
   as_at?: Date | string | null
+  last_fetched_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutLeave_balancesInput
@@ -847,6 +875,7 @@ export type LeaveBalanceUncheckedCreateWithoutXero_tenantInput = {
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: $Enums.leave_balance_unit | null
   as_at?: Date | string | null
+  last_fetched_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -888,6 +917,7 @@ export type LeaveBalanceCreateManyOrganisationInput = {
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: $Enums.leave_balance_unit | null
   as_at?: Date | string | null
+  last_fetched_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -901,6 +931,7 @@ export type LeaveBalanceUpdateWithoutOrganisationInput = {
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
   as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_fetched_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   person?: Prisma.PersonUpdateOneRequiredWithoutLeave_balancesNestedInput
@@ -918,6 +949,7 @@ export type LeaveBalanceUncheckedUpdateWithoutOrganisationInput = {
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
   as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_fetched_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -933,6 +965,7 @@ export type LeaveBalanceUncheckedUpdateManyWithoutOrganisationInput = {
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
   as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_fetched_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -948,6 +981,7 @@ export type LeaveBalanceCreateManyPersonInput = {
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: $Enums.leave_balance_unit | null
   as_at?: Date | string | null
+  last_fetched_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -961,6 +995,7 @@ export type LeaveBalanceUpdateWithoutPersonInput = {
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
   as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_fetched_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutLeave_balancesNestedInput
@@ -978,6 +1013,7 @@ export type LeaveBalanceUncheckedUpdateWithoutPersonInput = {
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
   as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_fetched_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -993,6 +1029,7 @@ export type LeaveBalanceUncheckedUpdateManyWithoutPersonInput = {
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
   as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_fetched_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1008,6 +1045,7 @@ export type LeaveBalanceCreateManyXero_tenantInput = {
   balance: runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: $Enums.leave_balance_unit | null
   as_at?: Date | string | null
+  last_fetched_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -1021,6 +1059,7 @@ export type LeaveBalanceUpdateWithoutXero_tenantInput = {
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
   as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_fetched_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutLeave_balancesNestedInput
@@ -1038,6 +1077,7 @@ export type LeaveBalanceUncheckedUpdateWithoutXero_tenantInput = {
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
   as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_fetched_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1053,6 +1093,7 @@ export type LeaveBalanceUncheckedUpdateManyWithoutXero_tenantInput = {
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   balance_unit?: Prisma.NullableEnumleave_balance_unitFieldUpdateOperationsInput | $Enums.leave_balance_unit | null
   as_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_fetched_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1071,6 +1112,7 @@ export type LeaveBalanceSelect<ExtArgs extends runtime.Types.Extensions.Internal
   balance?: boolean
   balance_unit?: boolean
   as_at?: boolean
+  last_fetched_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
@@ -1090,6 +1132,7 @@ export type LeaveBalanceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   balance?: boolean
   balance_unit?: boolean
   as_at?: boolean
+  last_fetched_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
@@ -1109,6 +1152,7 @@ export type LeaveBalanceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   balance?: boolean
   balance_unit?: boolean
   as_at?: boolean
+  last_fetched_at?: boolean
   created_at?: boolean
   updated_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
@@ -1128,11 +1172,12 @@ export type LeaveBalanceSelectScalar = {
   balance?: boolean
   balance_unit?: boolean
   as_at?: boolean
+  last_fetched_at?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type LeaveBalanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "person_id" | "xero_tenant_id" | "leave_type_xero_id" | "leave_type_name" | "record_type" | "balance" | "balance_unit" | "as_at" | "created_at" | "updated_at", ExtArgs["result"]["leaveBalance"]>
+export type LeaveBalanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "person_id" | "xero_tenant_id" | "leave_type_xero_id" | "leave_type_name" | "record_type" | "balance" | "balance_unit" | "as_at" | "last_fetched_at" | "created_at" | "updated_at", ExtArgs["result"]["leaveBalance"]>
 export type LeaveBalanceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
   person?: boolean | Prisma.PersonDefaultArgs<ExtArgs>
@@ -1168,6 +1213,7 @@ export type $LeaveBalancePayload<ExtArgs extends runtime.Types.Extensions.Intern
     balance: runtime.Decimal
     balance_unit: $Enums.leave_balance_unit | null
     as_at: Date | null
+    last_fetched_at: Date | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["leaveBalance"]>
@@ -1607,6 +1653,7 @@ export interface LeaveBalanceFieldRefs {
   readonly balance: Prisma.FieldRef<"LeaveBalance", 'Decimal'>
   readonly balance_unit: Prisma.FieldRef<"LeaveBalance", 'leave_balance_unit'>
   readonly as_at: Prisma.FieldRef<"LeaveBalance", 'DateTime'>
+  readonly last_fetched_at: Prisma.FieldRef<"LeaveBalance", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"LeaveBalance", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"LeaveBalance", 'DateTime'>
 }
