@@ -170,7 +170,7 @@ function ScopeSelect({
   teams,
 }: {
   filters: CalendarFilterInput;
-  people: CalendarPerson[];
+  people: readonly CalendarPerson[];
   setFilterParams: (patch: Partial<CalendarFilterInput>) => void;
   teams: Option[];
 }) {

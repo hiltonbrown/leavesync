@@ -7,7 +7,7 @@ export function parseFilterParams<T extends z.ZodTypeAny>(
   let paramsToParse: Record<string, unknown> = {};
 
   if (searchParams instanceof URLSearchParams) {
-    paramsToParse = Object.fromEntries(searchParams.entries());
+    paramsToParse = entriesToObject(searchParams.entries());
   } else {
     paramsToParse = searchParams;
   }
@@ -19,4 +19,21 @@ export function parseFilterParams<T extends z.ZodTypeAny>(
   }
 
   return null;
+}
+
+function entriesToObject(
+  entries: IterableIterator<[string, string]>
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of entries) {
+    const existing = result[key];
+    if (existing === undefined) {
+      result[key] = value;
+    } else if (Array.isArray(existing)) {
+      result[key] = [...existing, value];
+    } else {
+      result[key] = [existing, value];
+    }
+  }
+  return result;
 }

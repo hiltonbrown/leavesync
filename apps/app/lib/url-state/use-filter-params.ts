@@ -8,7 +8,7 @@ export function useFilterParams<T extends z.ZodTypeAny>(schema: T) {
   const searchParams = useSearchParams();
 
   const data = useMemo(() => {
-    const params = Object.fromEntries(searchParams.entries());
+    const params = entriesToObject(searchParams.entries());
     const parsed = schema.safeParse(params);
     return parsed.success ? (parsed.data as z.infer<T>) : null;
   }, [searchParams, schema]);
@@ -20,6 +20,11 @@ export function useFilterParams<T extends z.ZodTypeAny>(schema: T) {
       for (const [key, value] of Object.entries(newParams)) {
         if (value === null || value === undefined || value === "") {
           current.delete(key);
+        } else if (Array.isArray(value)) {
+          current.delete(key);
+          for (const item of value) {
+            current.append(key, String(item));
+          }
         } else {
           current.set(key, String(value));
         }
@@ -31,4 +36,21 @@ export function useFilterParams<T extends z.ZodTypeAny>(schema: T) {
   );
 
   return [data, setFilterParams] as const;
+}
+
+function entriesToObject(
+  entries: IterableIterator<[string, string]>
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of entries) {
+    const existing = result[key];
+    if (existing === undefined) {
+      result[key] = value;
+    } else if (Array.isArray(existing)) {
+      result[key] = [...existing, value];
+    } else {
+      result[key] = [existing, value];
+    }
+  }
+  return result;
 }

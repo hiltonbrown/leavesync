@@ -292,6 +292,7 @@ export type OrganisationWhereInput = {
   availability_records?: Prisma.AvailabilityRecordListRelationFilter
   availability_publications?: Prisma.AvailabilityPublicationListRelationFilter
   feeds?: Prisma.FeedListRelationFilter
+  feed_tokens?: Prisma.FeedTokenListRelationFilter
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionListRelationFilter
   public_holidays?: Prisma.PublicHolidayListRelationFilter
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentListRelationFilter
@@ -325,6 +326,7 @@ export type OrganisationOrderByWithRelationInput = {
   availability_records?: Prisma.AvailabilityRecordOrderByRelationAggregateInput
   availability_publications?: Prisma.AvailabilityPublicationOrderByRelationAggregateInput
   feeds?: Prisma.FeedOrderByRelationAggregateInput
+  feed_tokens?: Prisma.FeedTokenOrderByRelationAggregateInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionOrderByRelationAggregateInput
   public_holidays?: Prisma.PublicHolidayOrderByRelationAggregateInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentOrderByRelationAggregateInput
@@ -361,6 +363,7 @@ export type OrganisationWhereUniqueInput = Prisma.AtLeast<{
   availability_records?: Prisma.AvailabilityRecordListRelationFilter
   availability_publications?: Prisma.AvailabilityPublicationListRelationFilter
   feeds?: Prisma.FeedListRelationFilter
+  feed_tokens?: Prisma.FeedTokenListRelationFilter
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionListRelationFilter
   public_holidays?: Prisma.PublicHolidayListRelationFilter
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentListRelationFilter
@@ -434,6 +437,7 @@ export type OrganisationCreateInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
@@ -467,6 +471,7 @@ export type OrganisationUncheckedCreateInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
@@ -500,6 +505,7 @@ export type OrganisationUpdateInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
@@ -533,6 +539,7 @@ export type OrganisationUncheckedUpdateInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -653,11 +660,6 @@ export type OrganisationSumOrderByAggregateInput = {
 export type OrganisationScalarRelationFilter = {
   is?: Prisma.OrganisationWhereInput
   isNot?: Prisma.OrganisationWhereInput
-}
-
-export type OrganisationNullableScalarRelationFilter = {
-  is?: Prisma.OrganisationWhereInput | null
-  isNot?: Prisma.OrganisationWhereInput | null
 }
 
 export type StringFieldUpdateOperationsInput = {
@@ -884,14 +886,26 @@ export type OrganisationCreateNestedOneWithoutFeedsInput = {
   connect?: Prisma.OrganisationWhereUniqueInput
 }
 
-export type OrganisationUpdateOneWithoutFeedsNestedInput = {
+export type OrganisationUpdateOneRequiredWithoutFeedsNestedInput = {
   create?: Prisma.XOR<Prisma.OrganisationCreateWithoutFeedsInput, Prisma.OrganisationUncheckedCreateWithoutFeedsInput>
   connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutFeedsInput
   upsert?: Prisma.OrganisationUpsertWithoutFeedsInput
-  disconnect?: Prisma.OrganisationWhereInput | boolean
-  delete?: Prisma.OrganisationWhereInput | boolean
   connect?: Prisma.OrganisationWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganisationUpdateToOneWithWhereWithoutFeedsInput, Prisma.OrganisationUpdateWithoutFeedsInput>, Prisma.OrganisationUncheckedUpdateWithoutFeedsInput>
+}
+
+export type OrganisationCreateNestedOneWithoutFeed_tokensInput = {
+  create?: Prisma.XOR<Prisma.OrganisationCreateWithoutFeed_tokensInput, Prisma.OrganisationUncheckedCreateWithoutFeed_tokensInput>
+  connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutFeed_tokensInput
+  connect?: Prisma.OrganisationWhereUniqueInput
+}
+
+export type OrganisationUpdateOneRequiredWithoutFeed_tokensNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganisationCreateWithoutFeed_tokensInput, Prisma.OrganisationUncheckedCreateWithoutFeed_tokensInput>
+  connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutFeed_tokensInput
+  upsert?: Prisma.OrganisationUpsertWithoutFeed_tokensInput
+  connect?: Prisma.OrganisationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganisationUpdateToOneWithWhereWithoutFeed_tokensInput, Prisma.OrganisationUpdateWithoutFeed_tokensInput>, Prisma.OrganisationUncheckedUpdateWithoutFeed_tokensInput>
 }
 
 export type OrganisationCreateNestedOneWithoutSync_runsInput = {
@@ -957,6 +971,7 @@ export type OrganisationCreateWithoutTeamsInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
@@ -989,6 +1004,7 @@ export type OrganisationUncheckedCreateWithoutTeamsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
@@ -1037,6 +1053,7 @@ export type OrganisationUpdateWithoutTeamsInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
@@ -1069,6 +1086,7 @@ export type OrganisationUncheckedUpdateWithoutTeamsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -1101,6 +1119,7 @@ export type OrganisationCreateWithoutLocationsInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
@@ -1133,6 +1152,7 @@ export type OrganisationUncheckedCreateWithoutLocationsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
@@ -1181,6 +1201,7 @@ export type OrganisationUpdateWithoutLocationsInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
@@ -1213,6 +1234,7 @@ export type OrganisationUncheckedUpdateWithoutLocationsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -1245,6 +1267,7 @@ export type OrganisationCreateWithoutPeopleInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
@@ -1277,6 +1300,7 @@ export type OrganisationUncheckedCreateWithoutPeopleInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
@@ -1325,6 +1349,7 @@ export type OrganisationUpdateWithoutPeopleInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
@@ -1357,6 +1382,7 @@ export type OrganisationUncheckedUpdateWithoutPeopleInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -1389,6 +1415,7 @@ export type OrganisationCreateWithoutAlternative_contactsInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
@@ -1421,6 +1448,7 @@ export type OrganisationUncheckedCreateWithoutAlternative_contactsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
@@ -1469,6 +1497,7 @@ export type OrganisationUpdateWithoutAlternative_contactsInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
@@ -1501,6 +1530,7 @@ export type OrganisationUncheckedUpdateWithoutAlternative_contactsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -1534,6 +1564,7 @@ export type OrganisationCreateWithoutXero_connectionInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
@@ -1566,6 +1597,7 @@ export type OrganisationUncheckedCreateWithoutXero_connectionInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
@@ -1614,6 +1646,7 @@ export type OrganisationUpdateWithoutXero_connectionInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
@@ -1646,6 +1679,7 @@ export type OrganisationUncheckedUpdateWithoutXero_connectionInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -1678,6 +1712,7 @@ export type OrganisationCreateWithoutXero_tenantsInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
@@ -1710,6 +1745,7 @@ export type OrganisationUncheckedCreateWithoutXero_tenantsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
@@ -1758,6 +1794,7 @@ export type OrganisationUpdateWithoutXero_tenantsInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
@@ -1790,6 +1827,7 @@ export type OrganisationUncheckedUpdateWithoutXero_tenantsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -1822,6 +1860,7 @@ export type OrganisationCreateWithoutXero_sync_cursorsInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
@@ -1854,6 +1893,7 @@ export type OrganisationUncheckedCreateWithoutXero_sync_cursorsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
@@ -1902,6 +1942,7 @@ export type OrganisationUpdateWithoutXero_sync_cursorsInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
@@ -1934,6 +1975,7 @@ export type OrganisationUncheckedUpdateWithoutXero_sync_cursorsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -1965,6 +2007,7 @@ export type OrganisationCreateWithoutAvailability_recordsInput = {
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
@@ -1997,6 +2040,7 @@ export type OrganisationUncheckedCreateWithoutAvailability_recordsInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
@@ -2045,6 +2089,7 @@ export type OrganisationUpdateWithoutAvailability_recordsInput = {
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
@@ -2077,6 +2122,7 @@ export type OrganisationUncheckedUpdateWithoutAvailability_recordsInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -2109,6 +2155,7 @@ export type OrganisationCreateWithoutAvailability_publicationsInput = {
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutOrganisationInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
@@ -2141,6 +2188,7 @@ export type OrganisationUncheckedCreateWithoutAvailability_publicationsInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutOrganisationInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
@@ -2189,6 +2237,7 @@ export type OrganisationUpdateWithoutAvailability_publicationsInput = {
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutOrganisationNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
@@ -2221,6 +2270,7 @@ export type OrganisationUncheckedUpdateWithoutAvailability_publicationsInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -2253,6 +2303,7 @@ export type OrganisationCreateWithoutLeave_balancesInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
@@ -2285,6 +2336,7 @@ export type OrganisationUncheckedCreateWithoutLeave_balancesInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
@@ -2333,6 +2385,7 @@ export type OrganisationUpdateWithoutLeave_balancesInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
@@ -2365,6 +2418,7 @@ export type OrganisationUncheckedUpdateWithoutLeave_balancesInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -2398,6 +2452,7 @@ export type OrganisationCreateWithoutPublic_holiday_jurisdictionsInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
@@ -2430,6 +2485,7 @@ export type OrganisationUncheckedCreateWithoutPublic_holiday_jurisdictionsInput 
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
@@ -2478,6 +2534,7 @@ export type OrganisationUpdateWithoutPublic_holiday_jurisdictionsInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
@@ -2510,6 +2567,7 @@ export type OrganisationUncheckedUpdateWithoutPublic_holiday_jurisdictionsInput 
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
@@ -2542,6 +2600,7 @@ export type OrganisationCreateWithoutPublic_holidaysInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
@@ -2574,6 +2633,7 @@ export type OrganisationUncheckedCreateWithoutPublic_holidaysInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
@@ -2622,6 +2682,7 @@ export type OrganisationUpdateWithoutPublic_holidaysInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
@@ -2654,6 +2715,7 @@ export type OrganisationUncheckedUpdateWithoutPublic_holidaysInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
@@ -2686,6 +2748,7 @@ export type OrganisationCreateWithoutPublic_holiday_assignmentsInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
@@ -2718,6 +2781,7 @@ export type OrganisationUncheckedCreateWithoutPublic_holiday_assignmentsInput = 
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
   xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
@@ -2766,6 +2830,7 @@ export type OrganisationUpdateWithoutPublic_holiday_assignmentsInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
@@ -2798,6 +2863,7 @@ export type OrganisationUncheckedUpdateWithoutPublic_holiday_assignmentsInput = 
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
   xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
@@ -2829,6 +2895,7 @@ export type OrganisationCreateWithoutFeedsInput = {
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutOrganisationInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
@@ -2861,6 +2928,7 @@ export type OrganisationUncheckedCreateWithoutFeedsInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutOrganisationInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
@@ -2909,6 +2977,7 @@ export type OrganisationUpdateWithoutFeedsInput = {
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutOrganisationNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
@@ -2941,6 +3010,155 @@ export type OrganisationUncheckedUpdateWithoutFeedsInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
+  xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
+  xero_tenants?: Prisma.XeroTenantUncheckedUpdateManyWithoutOrganisationNestedInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutOrganisationNestedInput
+  sync_runs?: Prisma.SyncRunUncheckedUpdateManyWithoutOrganisationNestedInput
+  failed_records?: Prisma.FailedRecordUncheckedUpdateManyWithoutOrganisationNestedInput
+  audit_events?: Prisma.AuditEventUncheckedUpdateManyWithoutOrganisationNestedInput
+}
+
+export type OrganisationCreateWithoutFeed_tokensInput = {
+  id?: string
+  clerk_org_id: string
+  name: string
+  country_code: string
+  is_active?: boolean
+  timezone?: string | null
+  locale?: string | null
+  fiscal_year_start?: number | null
+  working_hours_per_day?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: string | null
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  teams?: Prisma.TeamCreateNestedManyWithoutOrganisationInput
+  locations?: Prisma.LocationCreateNestedManyWithoutOrganisationInput
+  people?: Prisma.PersonCreateNestedManyWithoutOrganisationInput
+  leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutOrganisationInput
+  alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutOrganisationInput
+  availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
+  availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
+  feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
+  xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
+  xero_tenants?: Prisma.XeroTenantCreateNestedManyWithoutOrganisationInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutOrganisationInput
+  sync_runs?: Prisma.SyncRunCreateNestedManyWithoutOrganisationInput
+  failed_records?: Prisma.FailedRecordCreateNestedManyWithoutOrganisationInput
+  audit_events?: Prisma.AuditEventCreateNestedManyWithoutOrganisationInput
+}
+
+export type OrganisationUncheckedCreateWithoutFeed_tokensInput = {
+  id?: string
+  clerk_org_id: string
+  name: string
+  country_code: string
+  is_active?: boolean
+  timezone?: string | null
+  locale?: string | null
+  fiscal_year_start?: number | null
+  working_hours_per_day?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: string | null
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  teams?: Prisma.TeamUncheckedCreateNestedManyWithoutOrganisationInput
+  locations?: Prisma.LocationUncheckedCreateNestedManyWithoutOrganisationInput
+  people?: Prisma.PersonUncheckedCreateNestedManyWithoutOrganisationInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutOrganisationInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutOrganisationInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
+  availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
+  feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
+  xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
+  xero_tenants?: Prisma.XeroTenantUncheckedCreateNestedManyWithoutOrganisationInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutOrganisationInput
+  sync_runs?: Prisma.SyncRunUncheckedCreateNestedManyWithoutOrganisationInput
+  failed_records?: Prisma.FailedRecordUncheckedCreateNestedManyWithoutOrganisationInput
+  audit_events?: Prisma.AuditEventUncheckedCreateNestedManyWithoutOrganisationInput
+}
+
+export type OrganisationCreateOrConnectWithoutFeed_tokensInput = {
+  where: Prisma.OrganisationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganisationCreateWithoutFeed_tokensInput, Prisma.OrganisationUncheckedCreateWithoutFeed_tokensInput>
+}
+
+export type OrganisationUpsertWithoutFeed_tokensInput = {
+  update: Prisma.XOR<Prisma.OrganisationUpdateWithoutFeed_tokensInput, Prisma.OrganisationUncheckedUpdateWithoutFeed_tokensInput>
+  create: Prisma.XOR<Prisma.OrganisationCreateWithoutFeed_tokensInput, Prisma.OrganisationUncheckedCreateWithoutFeed_tokensInput>
+  where?: Prisma.OrganisationWhereInput
+}
+
+export type OrganisationUpdateToOneWithWhereWithoutFeed_tokensInput = {
+  where?: Prisma.OrganisationWhereInput
+  data: Prisma.XOR<Prisma.OrganisationUpdateWithoutFeed_tokensInput, Prisma.OrganisationUncheckedUpdateWithoutFeed_tokensInput>
+}
+
+export type OrganisationUpdateWithoutFeed_tokensInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  working_hours_per_day?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teams?: Prisma.TeamUpdateManyWithoutOrganisationNestedInput
+  locations?: Prisma.LocationUpdateManyWithoutOrganisationNestedInput
+  people?: Prisma.PersonUpdateManyWithoutOrganisationNestedInput
+  leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutOrganisationNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutOrganisationNestedInput
+  availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
+  availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
+  feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
+  xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
+  xero_tenants?: Prisma.XeroTenantUpdateManyWithoutOrganisationNestedInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutOrganisationNestedInput
+  sync_runs?: Prisma.SyncRunUpdateManyWithoutOrganisationNestedInput
+  failed_records?: Prisma.FailedRecordUpdateManyWithoutOrganisationNestedInput
+  audit_events?: Prisma.AuditEventUpdateManyWithoutOrganisationNestedInput
+}
+
+export type OrganisationUncheckedUpdateWithoutFeed_tokensInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  working_hours_per_day?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teams?: Prisma.TeamUncheckedUpdateManyWithoutOrganisationNestedInput
+  locations?: Prisma.LocationUncheckedUpdateManyWithoutOrganisationNestedInput
+  people?: Prisma.PersonUncheckedUpdateManyWithoutOrganisationNestedInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutOrganisationNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutOrganisationNestedInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
+  availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
+  feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -2974,6 +3192,7 @@ export type OrganisationCreateWithoutSync_runsInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
@@ -3006,6 +3225,7 @@ export type OrganisationUncheckedCreateWithoutSync_runsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
@@ -3054,6 +3274,7 @@ export type OrganisationUpdateWithoutSync_runsInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
@@ -3086,6 +3307,7 @@ export type OrganisationUncheckedUpdateWithoutSync_runsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -3118,6 +3340,7 @@ export type OrganisationCreateWithoutFailed_recordsInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
@@ -3150,6 +3373,7 @@ export type OrganisationUncheckedCreateWithoutFailed_recordsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
@@ -3198,6 +3422,7 @@ export type OrganisationUpdateWithoutFailed_recordsInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
@@ -3230,6 +3455,7 @@ export type OrganisationUncheckedUpdateWithoutFailed_recordsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -3262,6 +3488,7 @@ export type OrganisationCreateWithoutAudit_eventsInput = {
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
@@ -3294,6 +3521,7 @@ export type OrganisationUncheckedCreateWithoutAudit_eventsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
   feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
   public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
@@ -3342,6 +3570,7 @@ export type OrganisationUpdateWithoutAudit_eventsInput = {
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
@@ -3374,6 +3603,7 @@ export type OrganisationUncheckedUpdateWithoutAudit_eventsInput = {
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
   availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
   feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
   public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -3398,6 +3628,7 @@ export type OrganisationCountOutputType = {
   availability_records: number
   availability_publications: number
   feeds: number
+  feed_tokens: number
   public_holiday_jurisdictions: number
   public_holidays: number
   public_holiday_assignments: number
@@ -3417,6 +3648,7 @@ export type OrganisationCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   availability_records?: boolean | OrganisationCountOutputTypeCountAvailability_recordsArgs
   availability_publications?: boolean | OrganisationCountOutputTypeCountAvailability_publicationsArgs
   feeds?: boolean | OrganisationCountOutputTypeCountFeedsArgs
+  feed_tokens?: boolean | OrganisationCountOutputTypeCountFeed_tokensArgs
   public_holiday_jurisdictions?: boolean | OrganisationCountOutputTypeCountPublic_holiday_jurisdictionsArgs
   public_holidays?: boolean | OrganisationCountOutputTypeCountPublic_holidaysArgs
   public_holiday_assignments?: boolean | OrganisationCountOutputTypeCountPublic_holiday_assignmentsArgs
@@ -3491,6 +3723,13 @@ export type OrganisationCountOutputTypeCountAvailability_publicationsArgs<ExtArg
  */
 export type OrganisationCountOutputTypeCountFeedsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.FeedWhereInput
+}
+
+/**
+ * OrganisationCountOutputType without action
+ */
+export type OrganisationCountOutputTypeCountFeed_tokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FeedTokenWhereInput
 }
 
 /**
@@ -3572,6 +3811,7 @@ export type OrganisationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   availability_records?: boolean | Prisma.Organisation$availability_recordsArgs<ExtArgs>
   availability_publications?: boolean | Prisma.Organisation$availability_publicationsArgs<ExtArgs>
   feeds?: boolean | Prisma.Organisation$feedsArgs<ExtArgs>
+  feed_tokens?: boolean | Prisma.Organisation$feed_tokensArgs<ExtArgs>
   public_holiday_jurisdictions?: boolean | Prisma.Organisation$public_holiday_jurisdictionsArgs<ExtArgs>
   public_holidays?: boolean | Prisma.Organisation$public_holidaysArgs<ExtArgs>
   public_holiday_assignments?: boolean | Prisma.Organisation$public_holiday_assignmentsArgs<ExtArgs>
@@ -3642,6 +3882,7 @@ export type OrganisationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   availability_records?: boolean | Prisma.Organisation$availability_recordsArgs<ExtArgs>
   availability_publications?: boolean | Prisma.Organisation$availability_publicationsArgs<ExtArgs>
   feeds?: boolean | Prisma.Organisation$feedsArgs<ExtArgs>
+  feed_tokens?: boolean | Prisma.Organisation$feed_tokensArgs<ExtArgs>
   public_holiday_jurisdictions?: boolean | Prisma.Organisation$public_holiday_jurisdictionsArgs<ExtArgs>
   public_holidays?: boolean | Prisma.Organisation$public_holidaysArgs<ExtArgs>
   public_holiday_assignments?: boolean | Prisma.Organisation$public_holiday_assignmentsArgs<ExtArgs>
@@ -3667,6 +3908,7 @@ export type $OrganisationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     availability_records: Prisma.$AvailabilityRecordPayload<ExtArgs>[]
     availability_publications: Prisma.$AvailabilityPublicationPayload<ExtArgs>[]
     feeds: Prisma.$FeedPayload<ExtArgs>[]
+    feed_tokens: Prisma.$FeedTokenPayload<ExtArgs>[]
     public_holiday_jurisdictions: Prisma.$PublicHolidayJurisdictionPayload<ExtArgs>[]
     public_holidays: Prisma.$PublicHolidayPayload<ExtArgs>[]
     public_holiday_assignments: Prisma.$PublicHolidayAssignmentPayload<ExtArgs>[]
@@ -4093,6 +4335,7 @@ export interface Prisma__OrganisationClient<T, Null = never, ExtArgs extends run
   availability_records<T extends Prisma.Organisation$availability_recordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$availability_recordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AvailabilityRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   availability_publications<T extends Prisma.Organisation$availability_publicationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$availability_publicationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AvailabilityPublicationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   feeds<T extends Prisma.Organisation$feedsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$feedsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FeedPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  feed_tokens<T extends Prisma.Organisation$feed_tokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$feed_tokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FeedTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   public_holiday_jurisdictions<T extends Prisma.Organisation$public_holiday_jurisdictionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$public_holiday_jurisdictionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PublicHolidayJurisdictionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   public_holidays<T extends Prisma.Organisation$public_holidaysArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$public_holidaysArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PublicHolidayPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   public_holiday_assignments<T extends Prisma.Organisation$public_holiday_assignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$public_holiday_assignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PublicHolidayAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -4726,6 +4969,30 @@ export type Organisation$feedsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.FeedScalarFieldEnum | Prisma.FeedScalarFieldEnum[]
+}
+
+/**
+ * Organisation.feed_tokens
+ */
+export type Organisation$feed_tokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FeedToken
+   */
+  select?: Prisma.FeedTokenSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FeedToken
+   */
+  omit?: Prisma.FeedTokenOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FeedTokenInclude<ExtArgs> | null
+  where?: Prisma.FeedTokenWhereInput
+  orderBy?: Prisma.FeedTokenOrderByWithRelationInput | Prisma.FeedTokenOrderByWithRelationInput[]
+  cursor?: Prisma.FeedTokenWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FeedTokenScalarFieldEnum | Prisma.FeedTokenScalarFieldEnum[]
 }
 
 /**
