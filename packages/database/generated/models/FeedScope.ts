@@ -27,31 +27,31 @@ export type AggregateFeedScope = {
 export type FeedScopeMinAggregateOutputType = {
   id: string | null
   clerk_org_id: string | null
+  organisation_id: string | null
   feed_id: string | null
-  rule_type: $Enums.feed_scope_rule_type | null
-  rule_value: string | null
+  scope_type: $Enums.feed_scope_rule_type | null
+  scope_value: string | null
   created_at: Date | null
-  updated_at: Date | null
 }
 
 export type FeedScopeMaxAggregateOutputType = {
   id: string | null
   clerk_org_id: string | null
+  organisation_id: string | null
   feed_id: string | null
-  rule_type: $Enums.feed_scope_rule_type | null
-  rule_value: string | null
+  scope_type: $Enums.feed_scope_rule_type | null
+  scope_value: string | null
   created_at: Date | null
-  updated_at: Date | null
 }
 
 export type FeedScopeCountAggregateOutputType = {
   id: number
   clerk_org_id: number
+  organisation_id: number
   feed_id: number
-  rule_type: number
-  rule_value: number
+  scope_type: number
+  scope_value: number
   created_at: number
-  updated_at: number
   _all: number
 }
 
@@ -59,31 +59,31 @@ export type FeedScopeCountAggregateOutputType = {
 export type FeedScopeMinAggregateInputType = {
   id?: true
   clerk_org_id?: true
+  organisation_id?: true
   feed_id?: true
-  rule_type?: true
-  rule_value?: true
+  scope_type?: true
+  scope_value?: true
   created_at?: true
-  updated_at?: true
 }
 
 export type FeedScopeMaxAggregateInputType = {
   id?: true
   clerk_org_id?: true
+  organisation_id?: true
   feed_id?: true
-  rule_type?: true
-  rule_value?: true
+  scope_type?: true
+  scope_value?: true
   created_at?: true
-  updated_at?: true
 }
 
 export type FeedScopeCountAggregateInputType = {
   id?: true
   clerk_org_id?: true
+  organisation_id?: true
   feed_id?: true
-  rule_type?: true
-  rule_value?: true
+  scope_type?: true
+  scope_value?: true
   created_at?: true
-  updated_at?: true
   _all?: true
 }
 
@@ -162,11 +162,11 @@ export type FeedScopeGroupByArgs<ExtArgs extends runtime.Types.Extensions.Intern
 export type FeedScopeGroupByOutputType = {
   id: string
   clerk_org_id: string
+  organisation_id: string
   feed_id: string
-  rule_type: $Enums.feed_scope_rule_type
-  rule_value: string
+  scope_type: $Enums.feed_scope_rule_type
+  scope_value: string | null
   created_at: Date
-  updated_at: Date
   _count: FeedScopeCountAggregateOutputType | null
   _min: FeedScopeMinAggregateOutputType | null
   _max: FeedScopeMaxAggregateOutputType | null
@@ -193,22 +193,22 @@ export type FeedScopeWhereInput = {
   NOT?: Prisma.FeedScopeWhereInput | Prisma.FeedScopeWhereInput[]
   id?: Prisma.UuidFilter<"FeedScope"> | string
   clerk_org_id?: Prisma.StringFilter<"FeedScope"> | string
+  organisation_id?: Prisma.UuidFilter<"FeedScope"> | string
   feed_id?: Prisma.UuidFilter<"FeedScope"> | string
-  rule_type?: Prisma.Enumfeed_scope_rule_typeFilter<"FeedScope"> | $Enums.feed_scope_rule_type
-  rule_value?: Prisma.StringFilter<"FeedScope"> | string
+  scope_type?: Prisma.Enumfeed_scope_rule_typeFilter<"FeedScope"> | $Enums.feed_scope_rule_type
+  scope_value?: Prisma.StringNullableFilter<"FeedScope"> | string | null
   created_at?: Prisma.DateTimeFilter<"FeedScope"> | Date | string
-  updated_at?: Prisma.DateTimeFilter<"FeedScope"> | Date | string
   feed?: Prisma.XOR<Prisma.FeedScalarRelationFilter, Prisma.FeedWhereInput>
 }
 
 export type FeedScopeOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   clerk_org_id?: Prisma.SortOrder
+  organisation_id?: Prisma.SortOrder
   feed_id?: Prisma.SortOrder
-  rule_type?: Prisma.SortOrder
-  rule_value?: Prisma.SortOrder
+  scope_type?: Prisma.SortOrder
+  scope_value?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
-  updated_at?: Prisma.SortOrder
   feed?: Prisma.FeedOrderByWithRelationInput
 }
 
@@ -218,22 +218,22 @@ export type FeedScopeWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.FeedScopeWhereInput[]
   NOT?: Prisma.FeedScopeWhereInput | Prisma.FeedScopeWhereInput[]
   clerk_org_id?: Prisma.StringFilter<"FeedScope"> | string
+  organisation_id?: Prisma.UuidFilter<"FeedScope"> | string
   feed_id?: Prisma.UuidFilter<"FeedScope"> | string
-  rule_type?: Prisma.Enumfeed_scope_rule_typeFilter<"FeedScope"> | $Enums.feed_scope_rule_type
-  rule_value?: Prisma.StringFilter<"FeedScope"> | string
+  scope_type?: Prisma.Enumfeed_scope_rule_typeFilter<"FeedScope"> | $Enums.feed_scope_rule_type
+  scope_value?: Prisma.StringNullableFilter<"FeedScope"> | string | null
   created_at?: Prisma.DateTimeFilter<"FeedScope"> | Date | string
-  updated_at?: Prisma.DateTimeFilter<"FeedScope"> | Date | string
   feed?: Prisma.XOR<Prisma.FeedScalarRelationFilter, Prisma.FeedWhereInput>
 }, "id">
 
 export type FeedScopeOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   clerk_org_id?: Prisma.SortOrder
+  organisation_id?: Prisma.SortOrder
   feed_id?: Prisma.SortOrder
-  rule_type?: Prisma.SortOrder
-  rule_value?: Prisma.SortOrder
+  scope_type?: Prisma.SortOrder
+  scope_value?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
-  updated_at?: Prisma.SortOrder
   _count?: Prisma.FeedScopeCountOrderByAggregateInput
   _max?: Prisma.FeedScopeMaxOrderByAggregateInput
   _min?: Prisma.FeedScopeMinOrderByAggregateInput
@@ -245,80 +245,80 @@ export type FeedScopeScalarWhereWithAggregatesInput = {
   NOT?: Prisma.FeedScopeScalarWhereWithAggregatesInput | Prisma.FeedScopeScalarWhereWithAggregatesInput[]
   id?: Prisma.UuidWithAggregatesFilter<"FeedScope"> | string
   clerk_org_id?: Prisma.StringWithAggregatesFilter<"FeedScope"> | string
+  organisation_id?: Prisma.UuidWithAggregatesFilter<"FeedScope"> | string
   feed_id?: Prisma.UuidWithAggregatesFilter<"FeedScope"> | string
-  rule_type?: Prisma.Enumfeed_scope_rule_typeWithAggregatesFilter<"FeedScope"> | $Enums.feed_scope_rule_type
-  rule_value?: Prisma.StringWithAggregatesFilter<"FeedScope"> | string
+  scope_type?: Prisma.Enumfeed_scope_rule_typeWithAggregatesFilter<"FeedScope"> | $Enums.feed_scope_rule_type
+  scope_value?: Prisma.StringNullableWithAggregatesFilter<"FeedScope"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"FeedScope"> | Date | string
-  updated_at?: Prisma.DateTimeWithAggregatesFilter<"FeedScope"> | Date | string
 }
 
 export type FeedScopeCreateInput = {
   id?: string
   clerk_org_id: string
-  rule_type: $Enums.feed_scope_rule_type
-  rule_value: string
+  organisation_id: string
+  scope_type: $Enums.feed_scope_rule_type
+  scope_value?: string | null
   created_at?: Date | string
-  updated_at?: Date | string
   feed: Prisma.FeedCreateNestedOneWithoutScopesInput
 }
 
 export type FeedScopeUncheckedCreateInput = {
   id?: string
   clerk_org_id: string
+  organisation_id: string
   feed_id: string
-  rule_type: $Enums.feed_scope_rule_type
-  rule_value: string
+  scope_type: $Enums.feed_scope_rule_type
+  scope_value?: string | null
   created_at?: Date | string
-  updated_at?: Date | string
 }
 
 export type FeedScopeUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
-  rule_type?: Prisma.Enumfeed_scope_rule_typeFieldUpdateOperationsInput | $Enums.feed_scope_rule_type
-  rule_value?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  scope_type?: Prisma.Enumfeed_scope_rule_typeFieldUpdateOperationsInput | $Enums.feed_scope_rule_type
+  scope_value?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   feed?: Prisma.FeedUpdateOneRequiredWithoutScopesNestedInput
 }
 
 export type FeedScopeUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   feed_id?: Prisma.StringFieldUpdateOperationsInput | string
-  rule_type?: Prisma.Enumfeed_scope_rule_typeFieldUpdateOperationsInput | $Enums.feed_scope_rule_type
-  rule_value?: Prisma.StringFieldUpdateOperationsInput | string
+  scope_type?: Prisma.Enumfeed_scope_rule_typeFieldUpdateOperationsInput | $Enums.feed_scope_rule_type
+  scope_value?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type FeedScopeCreateManyInput = {
   id?: string
   clerk_org_id: string
+  organisation_id: string
   feed_id: string
-  rule_type: $Enums.feed_scope_rule_type
-  rule_value: string
+  scope_type: $Enums.feed_scope_rule_type
+  scope_value?: string | null
   created_at?: Date | string
-  updated_at?: Date | string
 }
 
 export type FeedScopeUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
-  rule_type?: Prisma.Enumfeed_scope_rule_typeFieldUpdateOperationsInput | $Enums.feed_scope_rule_type
-  rule_value?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  scope_type?: Prisma.Enumfeed_scope_rule_typeFieldUpdateOperationsInput | $Enums.feed_scope_rule_type
+  scope_value?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type FeedScopeUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   feed_id?: Prisma.StringFieldUpdateOperationsInput | string
-  rule_type?: Prisma.Enumfeed_scope_rule_typeFieldUpdateOperationsInput | $Enums.feed_scope_rule_type
-  rule_value?: Prisma.StringFieldUpdateOperationsInput | string
+  scope_type?: Prisma.Enumfeed_scope_rule_typeFieldUpdateOperationsInput | $Enums.feed_scope_rule_type
+  scope_value?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type FeedScopeListRelationFilter = {
@@ -334,31 +334,31 @@ export type FeedScopeOrderByRelationAggregateInput = {
 export type FeedScopeCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   clerk_org_id?: Prisma.SortOrder
+  organisation_id?: Prisma.SortOrder
   feed_id?: Prisma.SortOrder
-  rule_type?: Prisma.SortOrder
-  rule_value?: Prisma.SortOrder
+  scope_type?: Prisma.SortOrder
+  scope_value?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
-  updated_at?: Prisma.SortOrder
 }
 
 export type FeedScopeMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   clerk_org_id?: Prisma.SortOrder
+  organisation_id?: Prisma.SortOrder
   feed_id?: Prisma.SortOrder
-  rule_type?: Prisma.SortOrder
-  rule_value?: Prisma.SortOrder
+  scope_type?: Prisma.SortOrder
+  scope_value?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
-  updated_at?: Prisma.SortOrder
 }
 
 export type FeedScopeMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   clerk_org_id?: Prisma.SortOrder
+  organisation_id?: Prisma.SortOrder
   feed_id?: Prisma.SortOrder
-  rule_type?: Prisma.SortOrder
-  rule_value?: Prisma.SortOrder
+  scope_type?: Prisma.SortOrder
+  scope_value?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
-  updated_at?: Prisma.SortOrder
 }
 
 export type FeedScopeCreateNestedManyWithoutFeedInput = {
@@ -410,19 +410,19 @@ export type Enumfeed_scope_rule_typeFieldUpdateOperationsInput = {
 export type FeedScopeCreateWithoutFeedInput = {
   id?: string
   clerk_org_id: string
-  rule_type: $Enums.feed_scope_rule_type
-  rule_value: string
+  organisation_id: string
+  scope_type: $Enums.feed_scope_rule_type
+  scope_value?: string | null
   created_at?: Date | string
-  updated_at?: Date | string
 }
 
 export type FeedScopeUncheckedCreateWithoutFeedInput = {
   id?: string
   clerk_org_id: string
-  rule_type: $Enums.feed_scope_rule_type
-  rule_value: string
+  organisation_id: string
+  scope_type: $Enums.feed_scope_rule_type
+  scope_value?: string | null
   created_at?: Date | string
-  updated_at?: Date | string
 }
 
 export type FeedScopeCreateOrConnectWithoutFeedInput = {
@@ -457,47 +457,47 @@ export type FeedScopeScalarWhereInput = {
   NOT?: Prisma.FeedScopeScalarWhereInput | Prisma.FeedScopeScalarWhereInput[]
   id?: Prisma.UuidFilter<"FeedScope"> | string
   clerk_org_id?: Prisma.StringFilter<"FeedScope"> | string
+  organisation_id?: Prisma.UuidFilter<"FeedScope"> | string
   feed_id?: Prisma.UuidFilter<"FeedScope"> | string
-  rule_type?: Prisma.Enumfeed_scope_rule_typeFilter<"FeedScope"> | $Enums.feed_scope_rule_type
-  rule_value?: Prisma.StringFilter<"FeedScope"> | string
+  scope_type?: Prisma.Enumfeed_scope_rule_typeFilter<"FeedScope"> | $Enums.feed_scope_rule_type
+  scope_value?: Prisma.StringNullableFilter<"FeedScope"> | string | null
   created_at?: Prisma.DateTimeFilter<"FeedScope"> | Date | string
-  updated_at?: Prisma.DateTimeFilter<"FeedScope"> | Date | string
 }
 
 export type FeedScopeCreateManyFeedInput = {
   id?: string
   clerk_org_id: string
-  rule_type: $Enums.feed_scope_rule_type
-  rule_value: string
+  organisation_id: string
+  scope_type: $Enums.feed_scope_rule_type
+  scope_value?: string | null
   created_at?: Date | string
-  updated_at?: Date | string
 }
 
 export type FeedScopeUpdateWithoutFeedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
-  rule_type?: Prisma.Enumfeed_scope_rule_typeFieldUpdateOperationsInput | $Enums.feed_scope_rule_type
-  rule_value?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  scope_type?: Prisma.Enumfeed_scope_rule_typeFieldUpdateOperationsInput | $Enums.feed_scope_rule_type
+  scope_value?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type FeedScopeUncheckedUpdateWithoutFeedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
-  rule_type?: Prisma.Enumfeed_scope_rule_typeFieldUpdateOperationsInput | $Enums.feed_scope_rule_type
-  rule_value?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  scope_type?: Prisma.Enumfeed_scope_rule_typeFieldUpdateOperationsInput | $Enums.feed_scope_rule_type
+  scope_value?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type FeedScopeUncheckedUpdateManyWithoutFeedInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
-  rule_type?: Prisma.Enumfeed_scope_rule_typeFieldUpdateOperationsInput | $Enums.feed_scope_rule_type
-  rule_value?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  scope_type?: Prisma.Enumfeed_scope_rule_typeFieldUpdateOperationsInput | $Enums.feed_scope_rule_type
+  scope_value?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -505,47 +505,47 @@ export type FeedScopeUncheckedUpdateManyWithoutFeedInput = {
 export type FeedScopeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   clerk_org_id?: boolean
+  organisation_id?: boolean
   feed_id?: boolean
-  rule_type?: boolean
-  rule_value?: boolean
+  scope_type?: boolean
+  scope_value?: boolean
   created_at?: boolean
-  updated_at?: boolean
   feed?: boolean | Prisma.FeedDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["feedScope"]>
 
 export type FeedScopeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   clerk_org_id?: boolean
+  organisation_id?: boolean
   feed_id?: boolean
-  rule_type?: boolean
-  rule_value?: boolean
+  scope_type?: boolean
+  scope_value?: boolean
   created_at?: boolean
-  updated_at?: boolean
   feed?: boolean | Prisma.FeedDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["feedScope"]>
 
 export type FeedScopeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   clerk_org_id?: boolean
+  organisation_id?: boolean
   feed_id?: boolean
-  rule_type?: boolean
-  rule_value?: boolean
+  scope_type?: boolean
+  scope_value?: boolean
   created_at?: boolean
-  updated_at?: boolean
   feed?: boolean | Prisma.FeedDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["feedScope"]>
 
 export type FeedScopeSelectScalar = {
   id?: boolean
   clerk_org_id?: boolean
+  organisation_id?: boolean
   feed_id?: boolean
-  rule_type?: boolean
-  rule_value?: boolean
+  scope_type?: boolean
+  scope_value?: boolean
   created_at?: boolean
-  updated_at?: boolean
 }
 
-export type FeedScopeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "feed_id" | "rule_type" | "rule_value" | "created_at" | "updated_at", ExtArgs["result"]["feedScope"]>
+export type FeedScopeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "feed_id" | "scope_type" | "scope_value" | "created_at", ExtArgs["result"]["feedScope"]>
 export type FeedScopeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   feed?: boolean | Prisma.FeedDefaultArgs<ExtArgs>
 }
@@ -564,11 +564,11 @@ export type $FeedScopePayload<ExtArgs extends runtime.Types.Extensions.InternalA
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     clerk_org_id: string
+    organisation_id: string
     feed_id: string
-    rule_type: $Enums.feed_scope_rule_type
-    rule_value: string
+    scope_type: $Enums.feed_scope_rule_type
+    scope_value: string | null
     created_at: Date
-    updated_at: Date
   }, ExtArgs["result"]["feedScope"]>
   composites: {}
 }
@@ -995,11 +995,11 @@ export interface Prisma__FeedScopeClient<T, Null = never, ExtArgs extends runtim
 export interface FeedScopeFieldRefs {
   readonly id: Prisma.FieldRef<"FeedScope", 'String'>
   readonly clerk_org_id: Prisma.FieldRef<"FeedScope", 'String'>
+  readonly organisation_id: Prisma.FieldRef<"FeedScope", 'String'>
   readonly feed_id: Prisma.FieldRef<"FeedScope", 'String'>
-  readonly rule_type: Prisma.FieldRef<"FeedScope", 'feed_scope_rule_type'>
-  readonly rule_value: Prisma.FieldRef<"FeedScope", 'String'>
+  readonly scope_type: Prisma.FieldRef<"FeedScope", 'feed_scope_rule_type'>
+  readonly scope_value: Prisma.FieldRef<"FeedScope", 'String'>
   readonly created_at: Prisma.FieldRef<"FeedScope", 'DateTime'>
-  readonly updated_at: Prisma.FieldRef<"FeedScope", 'DateTime'>
 }
     
 

@@ -9,7 +9,7 @@ export interface FeedData {
   createdAt: Date;
   id: FeedId;
   name: string;
-  organisationId: OrganisationId | null;
+  organisationId: OrganisationId;
   privacyDefault: string;
   scopeType: string;
   slug: string;
@@ -21,7 +21,7 @@ export interface FeedDetailData extends FeedData {
   scopes: Array<{
     id: string;
     ruleType: string;
-    ruleValue: string;
+    ruleValue: string | null;
   }>;
   tokens: Array<{
     id: string;
@@ -60,10 +60,15 @@ export async function listFeedsForOrganisation(
         name: true,
         slug: true,
         status: true,
-        privacy_default: true,
-        scope_type: true,
+        privacy_mode: true,
         created_at: true,
         updated_at: true,
+        scopes: {
+          select: {
+            scope_type: true,
+          },
+          take: 1,
+        },
         tokens: {
           orderBy: { created_at: "desc" },
           select: { status: true, token_hint: true },
@@ -82,9 +87,9 @@ export async function listFeedsForOrganisation(
           null,
         clerkOrgId: f.clerk_org_id,
         name: f.name,
-        organisationId: f.organisation_id as OrganisationId | null,
-        privacyDefault: f.privacy_default,
-        scopeType: f.scope_type,
+        organisationId: f.organisation_id as OrganisationId,
+        privacyDefault: f.privacy_mode,
+        scopeType: f.scopes[0]?.scope_type ?? "org",
         slug: f.slug,
         status: f.status,
         createdAt: f.created_at,
@@ -117,15 +122,14 @@ export async function getFeedDetail(
         name: true,
         slug: true,
         status: true,
-        privacy_default: true,
-        scope_type: true,
+        privacy_mode: true,
         created_at: true,
         updated_at: true,
         scopes: {
           select: {
             id: true,
-            rule_type: true,
-            rule_value: true,
+            scope_type: true,
+            scope_value: true,
           },
         },
         tokens: {
@@ -158,17 +162,17 @@ export async function getFeedDetail(
           null,
         clerkOrgId: feed.clerk_org_id,
         name: feed.name,
-        organisationId: feed.organisation_id as OrganisationId | null,
-        privacyDefault: feed.privacy_default,
-        scopeType: feed.scope_type,
+        organisationId: feed.organisation_id as OrganisationId,
+        privacyDefault: feed.privacy_mode,
+        scopeType: feed.scopes[0]?.scope_type ?? "org",
         slug: feed.slug,
         status: feed.status,
         createdAt: feed.created_at,
         updatedAt: feed.updated_at,
         scopes: feed.scopes.map((s) => ({
           id: s.id,
-          ruleType: s.rule_type,
-          ruleValue: s.rule_value,
+          ruleType: s.scope_type,
+          ruleValue: s.scope_value,
         })),
         tokens: feed.tokens.map((t) => ({
           id: t.id,

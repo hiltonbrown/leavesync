@@ -111,10 +111,11 @@ enum leave_balance_unit {
 }
 
 enum feed_scope_rule_type {
+  org
   person
   team
-  location
-  organisation
+  self
+  manager_team
 }
 
 enum feed_status {
@@ -140,6 +141,12 @@ enum notification_type {
   leave_info_requested
   leave_xero_sync_failed
   leave_withdrawn
+}
+
+enum notification_email_status {
+  queued
+  sent
+  failed
 }
 
 enum public_holiday_source {
@@ -194,6 +201,7 @@ model Organisation {
   availability_records         AvailabilityRecord[]
   availability_publications    AvailabilityPublication[]
   feeds                        Feed[]
+  feed_tokens                  FeedToken[]
   public_holiday_jurisdictions PublicHolidayJurisdiction[]
   public_holidays              PublicHoliday[]
   public_holiday_assignments   PublicHolidayAssignment[]
@@ -203,6 +211,9 @@ model Organisation {
   sync_runs                    SyncRun[]
   failed_records               FailedRecord[]
   audit_events                 AuditEvent[]
+  notifications                Notification[]
+  notification_preferences     NotificationPreference[]
+  notification_email_queue     NotificationEmailQueue[]
 
   @@index([clerk_org_id])
   @@map("organisations")
@@ -281,6 +292,7 @@ model Person {
   alternative_contacts AlternativeContact[]
   availability_records AvailabilityRecord[]
   approved_records     AvailabilityRecord[] @relation("ApprovedBy")
+  notifications        Notification[]
 
   @@unique([organisation_id, source_system, source_person_key])
   @@unique([organisation_id, clerk_user_id])
@@ -568,18 +580,23 @@ model PublicHolidayAssignment {
 }
 
 model Feed {
-  id              String      @id @default(uuid()) @db.Uuid
-  clerk_org_id    String
-  organisation_id String?     @db.Uuid
-  name            String
-  slug            String
-  status          feed_status @default(active)
-  privacy_default String      @default("named")
-  scope_type      String      @default("all_staff")
-  created_at      DateTime    @default(now())
-  updated_at      DateTime    @updatedAt
+  id                       String                    @id @default(uuid()) @db.Uuid
+  clerk_org_id             String
+  organisation_id          String                    @db.Uuid
+  name                     String
+  slug                     String
+  description              String?
+  status                   feed_status               @default(active)
+  privacy_mode             availability_privacy_mode @default(named)
+  includes_public_holidays Boolean                   @default(false)
+  last_rendered_at         DateTime?
+  last_etag                String?
+  created_by_user_id       String?
+  archived_at              DateTime?
+  created_at               DateTime                  @default(now())
+  updated_at               DateTime                  @updatedAt
 
-  organisation Organisation? @relation(fields: [organisation_id], references: [id])
+  organisation Organisation @relation(fields: [organisation_id], references: [id])
   scopes       FeedScope[]
   tokens       FeedToken[]
 
@@ -590,54 +607,78 @@ model Feed {
 }
 
 model FeedScope {
-  id           String               @id @default(uuid()) @db.Uuid
-  clerk_org_id String
-  feed_id      String               @db.Uuid
-  rule_type    feed_scope_rule_type
-  rule_value   String
-  created_at   DateTime             @default(now())
-  updated_at   DateTime             @updatedAt
+  id              String               @id @default(uuid()) @db.Uuid
+  clerk_org_id    String
+  organisation_id String               @db.Uuid
+  feed_id         String               @db.Uuid
+  scope_type      feed_scope_rule_type
+  scope_value     String?
+  created_at      DateTime             @default(now())
 
   feed Feed @relation(fields: [feed_id], references: [id])
 
   @@index([clerk_org_id])
+  @@index([organisation_id])
   @@index([feed_id])
-  @@index([rule_type, rule_value])
+  @@index([scope_type, scope_value])
   @@map("feed_scopes")
 }
 
 model FeedToken {
-  id           String            @id @default(uuid()) @db.Uuid
-  clerk_org_id String
-  feed_id      String            @db.Uuid
-  token_hash   String            @unique
-  token_hint   String
-  status       feed_token_status @default(active)
-  expires_at   DateTime?
-  revoked_at   DateTime?
-  created_at   DateTime          @default(now())
-  updated_at   DateTime          @updatedAt
+  id                    String            @id @default(uuid()) @db.Uuid
+  clerk_org_id          String
+  organisation_id       String            @db.Uuid
+  feed_id               String            @db.Uuid
+  token_hash            String            @unique
+  token_hint            String
+  status                feed_token_status @default(active)
+  expires_at            DateTime?
+  revoked_at            DateTime?
+  rotated_from_token_id String?           @db.Uuid
+  last_used_at          DateTime?
+  created_at            DateTime          @default(now())
+  updated_at            DateTime          @updatedAt
 
-  feed Feed @relation(fields: [feed_id], references: [id])
+  organisation       Organisation @relation(fields: [organisation_id], references: [id])
+  feed               Feed         @relation(fields: [feed_id], references: [id])
+  rotated_from_token FeedToken?   @relation("FeedTokenRotation", fields: [rotated_from_token_id], references: [id])
+  rotated_tokens     FeedToken[]  @relation("FeedTokenRotation")
 
   @@index([clerk_org_id])
+  @@index([organisation_id])
   @@index([feed_id])
+  @@index([rotated_from_token_id])
   @@map("feed_tokens")
 }
 
 model Notification {
-  id                String            @id @default(uuid()) @db.Uuid
-  clerk_org_id      String
-  recipient_user_id String
-  type              notification_type
-  payload           Json
-  is_read           Boolean           @default(false)
-  created_at        DateTime          @default(now())
-  updated_at        DateTime          @updatedAt
+  id                  String            @id @default(uuid()) @db.Uuid
+  clerk_org_id        String
+  organisation_id     String            @db.Uuid
+  recipient_user_id   String
+  recipient_person_id String?           @db.Uuid
+  type                notification_type
+  title               String
+  body                String
+  action_url          String?
+  object_type         String?
+  object_id           String?           @db.Uuid
+  actor_user_id       String?
+  payload             Json?
+  read_at             DateTime?
+  created_at          DateTime          @default(now())
+  updated_at          DateTime          @updatedAt
+
+  organisation     Organisation             @relation(fields: [organisation_id], references: [id])
+  recipient_person Person?                   @relation(fields: [recipient_person_id], references: [id])
+  email_queue      NotificationEmailQueue[]
 
   @@index([clerk_org_id])
-  @@index([recipient_user_id, is_read])
+  @@index([organisation_id])
+  @@index([recipient_person_id])
+  @@index([recipient_user_id, read_at])
   @@index([recipient_user_id, created_at])
+  @@index([organisation_id, recipient_user_id, created_at])
   @@map("notifications")
 }
 
@@ -645,16 +686,53 @@ model NotificationPreference {
   id                String            @id @default(uuid()) @db.Uuid
   user_id           String
   clerk_org_id      String
+  organisation_id   String            @db.Uuid
   notification_type notification_type
   in_app_enabled    Boolean           @default(true)
   email_enabled     Boolean           @default(true)
   created_at        DateTime          @default(now())
   updated_at        DateTime          @updatedAt
 
-  @@unique([user_id, clerk_org_id, notification_type])
+  organisation Organisation @relation(fields: [organisation_id], references: [id])
+
+  @@unique([user_id, organisation_id, notification_type])
   @@index([clerk_org_id])
+  @@index([organisation_id])
   @@index([user_id])
   @@map("notification_preferences")
+}
+
+model NotificationEmailQueue {
+  id                String                    @id @default(uuid()) @db.Uuid
+  clerk_org_id      String
+  organisation_id   String                    @db.Uuid
+  notification_id   String?                   @db.Uuid
+  recipient_user_id String
+  notification_type notification_type
+  email_template    String
+  recipient_email   String
+  title             String
+  body              String
+  action_url        String?
+  unsubscribe_url   String
+  merge_data        Json?
+  status            notification_email_status @default(queued)
+  attempts          Int                       @default(0)
+  last_error        String?
+  queued_at         DateTime                  @default(now())
+  sent_at           DateTime?
+  created_at        DateTime                  @default(now())
+  updated_at        DateTime                  @updatedAt
+
+  organisation Organisation  @relation(fields: [organisation_id], references: [id])
+  notification Notification? @relation(fields: [notification_id], references: [id])
+
+  @@index([clerk_org_id])
+  @@index([organisation_id])
+  @@index([notification_id])
+  @@index([recipient_user_id, status])
+  @@index([status, queued_at])
+  @@map("notification_email_queue")
 }
 
 model SyncRun {

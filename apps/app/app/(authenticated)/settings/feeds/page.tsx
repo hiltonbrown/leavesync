@@ -1,5 +1,6 @@
+import { auth, currentUser } from "@repo/auth/server";
+import { listFeeds, normaliseRole } from "@repo/feeds";
 import type { Metadata } from "next";
-import { loadFeedManagementData } from "@/lib/server/load-feed-management-data";
 import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
 import { FeedsClient } from "./feeds-client";
 
@@ -17,9 +18,23 @@ interface FeedsPageProps {
 
 const FeedsPage = async ({ searchParams }: FeedsPageProps) => {
   const { org } = await searchParams;
+  const [{ orgRole }, user] = await Promise.all([auth(), currentUser()]);
   const { clerkOrgId, organisationId } = await requireActiveOrgPageContext(org);
 
-  const feedsResult = await loadFeedManagementData(clerkOrgId, organisationId);
+  const feedsResult = user
+    ? await listFeeds({
+        actingRole: normaliseRole(orgRole),
+        actingUserId: user.id,
+        clerkOrgId,
+        organisationId,
+      })
+    : {
+        ok: false as const,
+        error: {
+          code: "not_authorised" as const,
+          message: "You must be signed in to view feeds.",
+        },
+      };
 
   if (!feedsResult.ok) {
     throw new Error(feedsResult.error.message);
@@ -28,10 +43,10 @@ const FeedsPage = async ({ searchParams }: FeedsPageProps) => {
   return (
     <FeedsClient
       channels={[]}
-      feeds={feedsResult.value.feeds.map((feed) => ({
+      feeds={feedsResult.value.map((feed) => ({
         id: feed.id,
         name: feed.name,
-        scope: feed.scopeType.replaceAll("_", " "),
+        scope: feed.scopeSummary,
         status: feed.status === "paused" ? "paused" : "active",
         type: "ics",
         url: null,

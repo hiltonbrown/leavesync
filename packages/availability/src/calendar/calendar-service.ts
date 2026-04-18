@@ -52,8 +52,8 @@ export interface CalendarPerson {
 
 export interface PublicHolidayCell {
   appliesToAllLocationsInView: boolean;
-  isSuppressed: false;
-  locationNames: string[];
+  isSuppressed: boolean;
+  locationNames: readonly string[];
   name: string;
 }
 
@@ -80,15 +80,15 @@ export interface CalendarEvent {
 export interface CalendarDay {
   date: Date;
   dayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6;
-  events: CalendarEvent[];
+  events: readonly CalendarEvent[];
   isToday: boolean;
-  publicHolidays: PublicHolidayCell[];
+  publicHolidays: readonly PublicHolidayCell[];
 }
 
 export interface CalendarRange {
-  days: CalendarDay[];
+  days: readonly CalendarDay[];
   hasActiveXeroConnection: boolean;
-  people: CalendarPerson[];
+  people: readonly CalendarPerson[];
   range: { end: Date; start: Date; timezone: string };
   totalPeopleInScope: number;
   truncated: boolean;

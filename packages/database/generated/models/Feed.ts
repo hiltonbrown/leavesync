@@ -30,9 +30,14 @@ export type FeedMinAggregateOutputType = {
   organisation_id: string | null
   name: string | null
   slug: string | null
+  description: string | null
   status: $Enums.feed_status | null
-  privacy_default: string | null
-  scope_type: string | null
+  privacy_mode: $Enums.availability_privacy_mode | null
+  includes_public_holidays: boolean | null
+  last_rendered_at: Date | null
+  last_etag: string | null
+  created_by_user_id: string | null
+  archived_at: Date | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -43,9 +48,14 @@ export type FeedMaxAggregateOutputType = {
   organisation_id: string | null
   name: string | null
   slug: string | null
+  description: string | null
   status: $Enums.feed_status | null
-  privacy_default: string | null
-  scope_type: string | null
+  privacy_mode: $Enums.availability_privacy_mode | null
+  includes_public_holidays: boolean | null
+  last_rendered_at: Date | null
+  last_etag: string | null
+  created_by_user_id: string | null
+  archived_at: Date | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -56,9 +66,14 @@ export type FeedCountAggregateOutputType = {
   organisation_id: number
   name: number
   slug: number
+  description: number
   status: number
-  privacy_default: number
-  scope_type: number
+  privacy_mode: number
+  includes_public_holidays: number
+  last_rendered_at: number
+  last_etag: number
+  created_by_user_id: number
+  archived_at: number
   created_at: number
   updated_at: number
   _all: number
@@ -71,9 +86,14 @@ export type FeedMinAggregateInputType = {
   organisation_id?: true
   name?: true
   slug?: true
+  description?: true
   status?: true
-  privacy_default?: true
-  scope_type?: true
+  privacy_mode?: true
+  includes_public_holidays?: true
+  last_rendered_at?: true
+  last_etag?: true
+  created_by_user_id?: true
+  archived_at?: true
   created_at?: true
   updated_at?: true
 }
@@ -84,9 +104,14 @@ export type FeedMaxAggregateInputType = {
   organisation_id?: true
   name?: true
   slug?: true
+  description?: true
   status?: true
-  privacy_default?: true
-  scope_type?: true
+  privacy_mode?: true
+  includes_public_holidays?: true
+  last_rendered_at?: true
+  last_etag?: true
+  created_by_user_id?: true
+  archived_at?: true
   created_at?: true
   updated_at?: true
 }
@@ -97,9 +122,14 @@ export type FeedCountAggregateInputType = {
   organisation_id?: true
   name?: true
   slug?: true
+  description?: true
   status?: true
-  privacy_default?: true
-  scope_type?: true
+  privacy_mode?: true
+  includes_public_holidays?: true
+  last_rendered_at?: true
+  last_etag?: true
+  created_by_user_id?: true
+  archived_at?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -180,12 +210,17 @@ export type FeedGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type FeedGroupByOutputType = {
   id: string
   clerk_org_id: string
-  organisation_id: string | null
+  organisation_id: string
   name: string
   slug: string
+  description: string | null
   status: $Enums.feed_status
-  privacy_default: string
-  scope_type: string
+  privacy_mode: $Enums.availability_privacy_mode
+  includes_public_holidays: boolean
+  last_rendered_at: Date | null
+  last_etag: string | null
+  created_by_user_id: string | null
+  archived_at: Date | null
   created_at: Date
   updated_at: Date
   _count: FeedCountAggregateOutputType | null
@@ -214,15 +249,20 @@ export type FeedWhereInput = {
   NOT?: Prisma.FeedWhereInput | Prisma.FeedWhereInput[]
   id?: Prisma.UuidFilter<"Feed"> | string
   clerk_org_id?: Prisma.StringFilter<"Feed"> | string
-  organisation_id?: Prisma.UuidNullableFilter<"Feed"> | string | null
+  organisation_id?: Prisma.UuidFilter<"Feed"> | string
   name?: Prisma.StringFilter<"Feed"> | string
   slug?: Prisma.StringFilter<"Feed"> | string
+  description?: Prisma.StringNullableFilter<"Feed"> | string | null
   status?: Prisma.Enumfeed_statusFilter<"Feed"> | $Enums.feed_status
-  privacy_default?: Prisma.StringFilter<"Feed"> | string
-  scope_type?: Prisma.StringFilter<"Feed"> | string
+  privacy_mode?: Prisma.Enumavailability_privacy_modeFilter<"Feed"> | $Enums.availability_privacy_mode
+  includes_public_holidays?: Prisma.BoolFilter<"Feed"> | boolean
+  last_rendered_at?: Prisma.DateTimeNullableFilter<"Feed"> | Date | string | null
+  last_etag?: Prisma.StringNullableFilter<"Feed"> | string | null
+  created_by_user_id?: Prisma.StringNullableFilter<"Feed"> | string | null
+  archived_at?: Prisma.DateTimeNullableFilter<"Feed"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"Feed"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Feed"> | Date | string
-  organisation?: Prisma.XOR<Prisma.OrganisationNullableScalarRelationFilter, Prisma.OrganisationWhereInput> | null
+  organisation?: Prisma.XOR<Prisma.OrganisationScalarRelationFilter, Prisma.OrganisationWhereInput>
   scopes?: Prisma.FeedScopeListRelationFilter
   tokens?: Prisma.FeedTokenListRelationFilter
 }
@@ -230,12 +270,17 @@ export type FeedWhereInput = {
 export type FeedOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   clerk_org_id?: Prisma.SortOrder
-  organisation_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  organisation_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
-  privacy_default?: Prisma.SortOrder
-  scope_type?: Prisma.SortOrder
+  privacy_mode?: Prisma.SortOrder
+  includes_public_holidays?: Prisma.SortOrder
+  last_rendered_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_etag?: Prisma.SortOrderInput | Prisma.SortOrder
+  created_by_user_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  archived_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   organisation?: Prisma.OrganisationOrderByWithRelationInput
@@ -250,15 +295,20 @@ export type FeedWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.FeedWhereInput[]
   NOT?: Prisma.FeedWhereInput | Prisma.FeedWhereInput[]
   clerk_org_id?: Prisma.StringFilter<"Feed"> | string
-  organisation_id?: Prisma.UuidNullableFilter<"Feed"> | string | null
+  organisation_id?: Prisma.UuidFilter<"Feed"> | string
   name?: Prisma.StringFilter<"Feed"> | string
   slug?: Prisma.StringFilter<"Feed"> | string
+  description?: Prisma.StringNullableFilter<"Feed"> | string | null
   status?: Prisma.Enumfeed_statusFilter<"Feed"> | $Enums.feed_status
-  privacy_default?: Prisma.StringFilter<"Feed"> | string
-  scope_type?: Prisma.StringFilter<"Feed"> | string
+  privacy_mode?: Prisma.Enumavailability_privacy_modeFilter<"Feed"> | $Enums.availability_privacy_mode
+  includes_public_holidays?: Prisma.BoolFilter<"Feed"> | boolean
+  last_rendered_at?: Prisma.DateTimeNullableFilter<"Feed"> | Date | string | null
+  last_etag?: Prisma.StringNullableFilter<"Feed"> | string | null
+  created_by_user_id?: Prisma.StringNullableFilter<"Feed"> | string | null
+  archived_at?: Prisma.DateTimeNullableFilter<"Feed"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"Feed"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Feed"> | Date | string
-  organisation?: Prisma.XOR<Prisma.OrganisationNullableScalarRelationFilter, Prisma.OrganisationWhereInput> | null
+  organisation?: Prisma.XOR<Prisma.OrganisationScalarRelationFilter, Prisma.OrganisationWhereInput>
   scopes?: Prisma.FeedScopeListRelationFilter
   tokens?: Prisma.FeedTokenListRelationFilter
 }, "id" | "clerk_org_id_slug">
@@ -266,12 +316,17 @@ export type FeedWhereUniqueInput = Prisma.AtLeast<{
 export type FeedOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   clerk_org_id?: Prisma.SortOrder
-  organisation_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  organisation_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
-  privacy_default?: Prisma.SortOrder
-  scope_type?: Prisma.SortOrder
+  privacy_mode?: Prisma.SortOrder
+  includes_public_holidays?: Prisma.SortOrder
+  last_rendered_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_etag?: Prisma.SortOrderInput | Prisma.SortOrder
+  created_by_user_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  archived_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.FeedCountOrderByAggregateInput
@@ -285,12 +340,17 @@ export type FeedScalarWhereWithAggregatesInput = {
   NOT?: Prisma.FeedScalarWhereWithAggregatesInput | Prisma.FeedScalarWhereWithAggregatesInput[]
   id?: Prisma.UuidWithAggregatesFilter<"Feed"> | string
   clerk_org_id?: Prisma.StringWithAggregatesFilter<"Feed"> | string
-  organisation_id?: Prisma.UuidNullableWithAggregatesFilter<"Feed"> | string | null
+  organisation_id?: Prisma.UuidWithAggregatesFilter<"Feed"> | string
   name?: Prisma.StringWithAggregatesFilter<"Feed"> | string
   slug?: Prisma.StringWithAggregatesFilter<"Feed"> | string
+  description?: Prisma.StringNullableWithAggregatesFilter<"Feed"> | string | null
   status?: Prisma.Enumfeed_statusWithAggregatesFilter<"Feed"> | $Enums.feed_status
-  privacy_default?: Prisma.StringWithAggregatesFilter<"Feed"> | string
-  scope_type?: Prisma.StringWithAggregatesFilter<"Feed"> | string
+  privacy_mode?: Prisma.Enumavailability_privacy_modeWithAggregatesFilter<"Feed"> | $Enums.availability_privacy_mode
+  includes_public_holidays?: Prisma.BoolWithAggregatesFilter<"Feed"> | boolean
+  last_rendered_at?: Prisma.DateTimeNullableWithAggregatesFilter<"Feed"> | Date | string | null
+  last_etag?: Prisma.StringNullableWithAggregatesFilter<"Feed"> | string | null
+  created_by_user_id?: Prisma.StringNullableWithAggregatesFilter<"Feed"> | string | null
+  archived_at?: Prisma.DateTimeNullableWithAggregatesFilter<"Feed"> | Date | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"Feed"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"Feed"> | Date | string
 }
@@ -300,12 +360,17 @@ export type FeedCreateInput = {
   clerk_org_id: string
   name: string
   slug: string
+  description?: string | null
   status?: $Enums.feed_status
-  privacy_default?: string
-  scope_type?: string
+  privacy_mode?: $Enums.availability_privacy_mode
+  includes_public_holidays?: boolean
+  last_rendered_at?: Date | string | null
+  last_etag?: string | null
+  created_by_user_id?: string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
-  organisation?: Prisma.OrganisationCreateNestedOneWithoutFeedsInput
+  organisation: Prisma.OrganisationCreateNestedOneWithoutFeedsInput
   scopes?: Prisma.FeedScopeCreateNestedManyWithoutFeedInput
   tokens?: Prisma.FeedTokenCreateNestedManyWithoutFeedInput
 }
@@ -313,12 +378,17 @@ export type FeedCreateInput = {
 export type FeedUncheckedCreateInput = {
   id?: string
   clerk_org_id: string
-  organisation_id?: string | null
+  organisation_id: string
   name: string
   slug: string
+  description?: string | null
   status?: $Enums.feed_status
-  privacy_default?: string
-  scope_type?: string
+  privacy_mode?: $Enums.availability_privacy_mode
+  includes_public_holidays?: boolean
+  last_rendered_at?: Date | string | null
+  last_etag?: string | null
+  created_by_user_id?: string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   scopes?: Prisma.FeedScopeUncheckedCreateNestedManyWithoutFeedInput
@@ -330,12 +400,17 @@ export type FeedUpdateInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.Enumfeed_statusFieldUpdateOperationsInput | $Enums.feed_status
-  privacy_default?: Prisma.StringFieldUpdateOperationsInput | string
-  scope_type?: Prisma.StringFieldUpdateOperationsInput | string
+  privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  includes_public_holidays?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  last_rendered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_etag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organisation?: Prisma.OrganisationUpdateOneWithoutFeedsNestedInput
+  organisation?: Prisma.OrganisationUpdateOneRequiredWithoutFeedsNestedInput
   scopes?: Prisma.FeedScopeUpdateManyWithoutFeedNestedInput
   tokens?: Prisma.FeedTokenUpdateManyWithoutFeedNestedInput
 }
@@ -343,12 +418,17 @@ export type FeedUpdateInput = {
 export type FeedUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
-  organisation_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.Enumfeed_statusFieldUpdateOperationsInput | $Enums.feed_status
-  privacy_default?: Prisma.StringFieldUpdateOperationsInput | string
-  scope_type?: Prisma.StringFieldUpdateOperationsInput | string
+  privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  includes_public_holidays?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  last_rendered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_etag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scopes?: Prisma.FeedScopeUncheckedUpdateManyWithoutFeedNestedInput
@@ -358,12 +438,17 @@ export type FeedUncheckedUpdateInput = {
 export type FeedCreateManyInput = {
   id?: string
   clerk_org_id: string
-  organisation_id?: string | null
+  organisation_id: string
   name: string
   slug: string
+  description?: string | null
   status?: $Enums.feed_status
-  privacy_default?: string
-  scope_type?: string
+  privacy_mode?: $Enums.availability_privacy_mode
+  includes_public_holidays?: boolean
+  last_rendered_at?: Date | string | null
+  last_etag?: string | null
+  created_by_user_id?: string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -373,9 +458,14 @@ export type FeedUpdateManyMutationInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.Enumfeed_statusFieldUpdateOperationsInput | $Enums.feed_status
-  privacy_default?: Prisma.StringFieldUpdateOperationsInput | string
-  scope_type?: Prisma.StringFieldUpdateOperationsInput | string
+  privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  includes_public_holidays?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  last_rendered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_etag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -383,12 +473,17 @@ export type FeedUpdateManyMutationInput = {
 export type FeedUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
-  organisation_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.Enumfeed_statusFieldUpdateOperationsInput | $Enums.feed_status
-  privacy_default?: Prisma.StringFieldUpdateOperationsInput | string
-  scope_type?: Prisma.StringFieldUpdateOperationsInput | string
+  privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  includes_public_holidays?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  last_rendered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_etag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -414,9 +509,14 @@ export type FeedCountOrderByAggregateInput = {
   organisation_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  privacy_default?: Prisma.SortOrder
-  scope_type?: Prisma.SortOrder
+  privacy_mode?: Prisma.SortOrder
+  includes_public_holidays?: Prisma.SortOrder
+  last_rendered_at?: Prisma.SortOrder
+  last_etag?: Prisma.SortOrder
+  created_by_user_id?: Prisma.SortOrder
+  archived_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -427,9 +527,14 @@ export type FeedMaxOrderByAggregateInput = {
   organisation_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  privacy_default?: Prisma.SortOrder
-  scope_type?: Prisma.SortOrder
+  privacy_mode?: Prisma.SortOrder
+  includes_public_holidays?: Prisma.SortOrder
+  last_rendered_at?: Prisma.SortOrder
+  last_etag?: Prisma.SortOrder
+  created_by_user_id?: Prisma.SortOrder
+  archived_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -440,9 +545,14 @@ export type FeedMinOrderByAggregateInput = {
   organisation_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   slug?: Prisma.SortOrder
+  description?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  privacy_default?: Prisma.SortOrder
-  scope_type?: Prisma.SortOrder
+  privacy_mode?: Prisma.SortOrder
+  includes_public_holidays?: Prisma.SortOrder
+  last_rendered_at?: Prisma.SortOrder
+  last_etag?: Prisma.SortOrder
+  created_by_user_id?: Prisma.SortOrder
+  archived_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -531,9 +641,14 @@ export type FeedCreateWithoutOrganisationInput = {
   clerk_org_id: string
   name: string
   slug: string
+  description?: string | null
   status?: $Enums.feed_status
-  privacy_default?: string
-  scope_type?: string
+  privacy_mode?: $Enums.availability_privacy_mode
+  includes_public_holidays?: boolean
+  last_rendered_at?: Date | string | null
+  last_etag?: string | null
+  created_by_user_id?: string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   scopes?: Prisma.FeedScopeCreateNestedManyWithoutFeedInput
@@ -545,9 +660,14 @@ export type FeedUncheckedCreateWithoutOrganisationInput = {
   clerk_org_id: string
   name: string
   slug: string
+  description?: string | null
   status?: $Enums.feed_status
-  privacy_default?: string
-  scope_type?: string
+  privacy_mode?: $Enums.availability_privacy_mode
+  includes_public_holidays?: boolean
+  last_rendered_at?: Date | string | null
+  last_etag?: string | null
+  created_by_user_id?: string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   scopes?: Prisma.FeedScopeUncheckedCreateNestedManyWithoutFeedInput
@@ -586,12 +706,17 @@ export type FeedScalarWhereInput = {
   NOT?: Prisma.FeedScalarWhereInput | Prisma.FeedScalarWhereInput[]
   id?: Prisma.UuidFilter<"Feed"> | string
   clerk_org_id?: Prisma.StringFilter<"Feed"> | string
-  organisation_id?: Prisma.UuidNullableFilter<"Feed"> | string | null
+  organisation_id?: Prisma.UuidFilter<"Feed"> | string
   name?: Prisma.StringFilter<"Feed"> | string
   slug?: Prisma.StringFilter<"Feed"> | string
+  description?: Prisma.StringNullableFilter<"Feed"> | string | null
   status?: Prisma.Enumfeed_statusFilter<"Feed"> | $Enums.feed_status
-  privacy_default?: Prisma.StringFilter<"Feed"> | string
-  scope_type?: Prisma.StringFilter<"Feed"> | string
+  privacy_mode?: Prisma.Enumavailability_privacy_modeFilter<"Feed"> | $Enums.availability_privacy_mode
+  includes_public_holidays?: Prisma.BoolFilter<"Feed"> | boolean
+  last_rendered_at?: Prisma.DateTimeNullableFilter<"Feed"> | Date | string | null
+  last_etag?: Prisma.StringNullableFilter<"Feed"> | string | null
+  created_by_user_id?: Prisma.StringNullableFilter<"Feed"> | string | null
+  archived_at?: Prisma.DateTimeNullableFilter<"Feed"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"Feed"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"Feed"> | Date | string
 }
@@ -601,24 +726,34 @@ export type FeedCreateWithoutScopesInput = {
   clerk_org_id: string
   name: string
   slug: string
+  description?: string | null
   status?: $Enums.feed_status
-  privacy_default?: string
-  scope_type?: string
+  privacy_mode?: $Enums.availability_privacy_mode
+  includes_public_holidays?: boolean
+  last_rendered_at?: Date | string | null
+  last_etag?: string | null
+  created_by_user_id?: string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
-  organisation?: Prisma.OrganisationCreateNestedOneWithoutFeedsInput
+  organisation: Prisma.OrganisationCreateNestedOneWithoutFeedsInput
   tokens?: Prisma.FeedTokenCreateNestedManyWithoutFeedInput
 }
 
 export type FeedUncheckedCreateWithoutScopesInput = {
   id?: string
   clerk_org_id: string
-  organisation_id?: string | null
+  organisation_id: string
   name: string
   slug: string
+  description?: string | null
   status?: $Enums.feed_status
-  privacy_default?: string
-  scope_type?: string
+  privacy_mode?: $Enums.availability_privacy_mode
+  includes_public_holidays?: boolean
+  last_rendered_at?: Date | string | null
+  last_etag?: string | null
+  created_by_user_id?: string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutFeedInput
@@ -645,24 +780,34 @@ export type FeedUpdateWithoutScopesInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.Enumfeed_statusFieldUpdateOperationsInput | $Enums.feed_status
-  privacy_default?: Prisma.StringFieldUpdateOperationsInput | string
-  scope_type?: Prisma.StringFieldUpdateOperationsInput | string
+  privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  includes_public_holidays?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  last_rendered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_etag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organisation?: Prisma.OrganisationUpdateOneWithoutFeedsNestedInput
+  organisation?: Prisma.OrganisationUpdateOneRequiredWithoutFeedsNestedInput
   tokens?: Prisma.FeedTokenUpdateManyWithoutFeedNestedInput
 }
 
 export type FeedUncheckedUpdateWithoutScopesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
-  organisation_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.Enumfeed_statusFieldUpdateOperationsInput | $Enums.feed_status
-  privacy_default?: Prisma.StringFieldUpdateOperationsInput | string
-  scope_type?: Prisma.StringFieldUpdateOperationsInput | string
+  privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  includes_public_holidays?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  last_rendered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_etag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutFeedNestedInput
@@ -673,24 +818,34 @@ export type FeedCreateWithoutTokensInput = {
   clerk_org_id: string
   name: string
   slug: string
+  description?: string | null
   status?: $Enums.feed_status
-  privacy_default?: string
-  scope_type?: string
+  privacy_mode?: $Enums.availability_privacy_mode
+  includes_public_holidays?: boolean
+  last_rendered_at?: Date | string | null
+  last_etag?: string | null
+  created_by_user_id?: string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
-  organisation?: Prisma.OrganisationCreateNestedOneWithoutFeedsInput
+  organisation: Prisma.OrganisationCreateNestedOneWithoutFeedsInput
   scopes?: Prisma.FeedScopeCreateNestedManyWithoutFeedInput
 }
 
 export type FeedUncheckedCreateWithoutTokensInput = {
   id?: string
   clerk_org_id: string
-  organisation_id?: string | null
+  organisation_id: string
   name: string
   slug: string
+  description?: string | null
   status?: $Enums.feed_status
-  privacy_default?: string
-  scope_type?: string
+  privacy_mode?: $Enums.availability_privacy_mode
+  includes_public_holidays?: boolean
+  last_rendered_at?: Date | string | null
+  last_etag?: string | null
+  created_by_user_id?: string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
   scopes?: Prisma.FeedScopeUncheckedCreateNestedManyWithoutFeedInput
@@ -717,24 +872,34 @@ export type FeedUpdateWithoutTokensInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.Enumfeed_statusFieldUpdateOperationsInput | $Enums.feed_status
-  privacy_default?: Prisma.StringFieldUpdateOperationsInput | string
-  scope_type?: Prisma.StringFieldUpdateOperationsInput | string
+  privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  includes_public_holidays?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  last_rendered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_etag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organisation?: Prisma.OrganisationUpdateOneWithoutFeedsNestedInput
+  organisation?: Prisma.OrganisationUpdateOneRequiredWithoutFeedsNestedInput
   scopes?: Prisma.FeedScopeUpdateManyWithoutFeedNestedInput
 }
 
 export type FeedUncheckedUpdateWithoutTokensInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
-  organisation_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.Enumfeed_statusFieldUpdateOperationsInput | $Enums.feed_status
-  privacy_default?: Prisma.StringFieldUpdateOperationsInput | string
-  scope_type?: Prisma.StringFieldUpdateOperationsInput | string
+  privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  includes_public_holidays?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  last_rendered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_etag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scopes?: Prisma.FeedScopeUncheckedUpdateManyWithoutFeedNestedInput
@@ -745,9 +910,14 @@ export type FeedCreateManyOrganisationInput = {
   clerk_org_id: string
   name: string
   slug: string
+  description?: string | null
   status?: $Enums.feed_status
-  privacy_default?: string
-  scope_type?: string
+  privacy_mode?: $Enums.availability_privacy_mode
+  includes_public_holidays?: boolean
+  last_rendered_at?: Date | string | null
+  last_etag?: string | null
+  created_by_user_id?: string | null
+  archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -757,9 +927,14 @@ export type FeedUpdateWithoutOrganisationInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.Enumfeed_statusFieldUpdateOperationsInput | $Enums.feed_status
-  privacy_default?: Prisma.StringFieldUpdateOperationsInput | string
-  scope_type?: Prisma.StringFieldUpdateOperationsInput | string
+  privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  includes_public_holidays?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  last_rendered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_etag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scopes?: Prisma.FeedScopeUpdateManyWithoutFeedNestedInput
@@ -771,9 +946,14 @@ export type FeedUncheckedUpdateWithoutOrganisationInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.Enumfeed_statusFieldUpdateOperationsInput | $Enums.feed_status
-  privacy_default?: Prisma.StringFieldUpdateOperationsInput | string
-  scope_type?: Prisma.StringFieldUpdateOperationsInput | string
+  privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  includes_public_holidays?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  last_rendered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_etag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   scopes?: Prisma.FeedScopeUncheckedUpdateManyWithoutFeedNestedInput
@@ -785,9 +965,14 @@ export type FeedUncheckedUpdateManyWithoutOrganisationInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.Enumfeed_statusFieldUpdateOperationsInput | $Enums.feed_status
-  privacy_default?: Prisma.StringFieldUpdateOperationsInput | string
-  scope_type?: Prisma.StringFieldUpdateOperationsInput | string
+  privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  includes_public_holidays?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  last_rendered_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_etag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -838,12 +1023,17 @@ export type FeedSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   organisation_id?: boolean
   name?: boolean
   slug?: boolean
+  description?: boolean
   status?: boolean
-  privacy_default?: boolean
-  scope_type?: boolean
+  privacy_mode?: boolean
+  includes_public_holidays?: boolean
+  last_rendered_at?: boolean
+  last_etag?: boolean
+  created_by_user_id?: boolean
+  archived_at?: boolean
   created_at?: boolean
   updated_at?: boolean
-  organisation?: boolean | Prisma.Feed$organisationArgs<ExtArgs>
+  organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
   scopes?: boolean | Prisma.Feed$scopesArgs<ExtArgs>
   tokens?: boolean | Prisma.Feed$tokensArgs<ExtArgs>
   _count?: boolean | Prisma.FeedCountOutputTypeDefaultArgs<ExtArgs>
@@ -855,12 +1045,17 @@ export type FeedSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   organisation_id?: boolean
   name?: boolean
   slug?: boolean
+  description?: boolean
   status?: boolean
-  privacy_default?: boolean
-  scope_type?: boolean
+  privacy_mode?: boolean
+  includes_public_holidays?: boolean
+  last_rendered_at?: boolean
+  last_etag?: boolean
+  created_by_user_id?: boolean
+  archived_at?: boolean
   created_at?: boolean
   updated_at?: boolean
-  organisation?: boolean | Prisma.Feed$organisationArgs<ExtArgs>
+  organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["feed"]>
 
 export type FeedSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -869,12 +1064,17 @@ export type FeedSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   organisation_id?: boolean
   name?: boolean
   slug?: boolean
+  description?: boolean
   status?: boolean
-  privacy_default?: boolean
-  scope_type?: boolean
+  privacy_mode?: boolean
+  includes_public_holidays?: boolean
+  last_rendered_at?: boolean
+  last_etag?: boolean
+  created_by_user_id?: boolean
+  archived_at?: boolean
   created_at?: boolean
   updated_at?: boolean
-  organisation?: boolean | Prisma.Feed$organisationArgs<ExtArgs>
+  organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["feed"]>
 
 export type FeedSelectScalar = {
@@ -883,43 +1083,53 @@ export type FeedSelectScalar = {
   organisation_id?: boolean
   name?: boolean
   slug?: boolean
+  description?: boolean
   status?: boolean
-  privacy_default?: boolean
-  scope_type?: boolean
+  privacy_mode?: boolean
+  includes_public_holidays?: boolean
+  last_rendered_at?: boolean
+  last_etag?: boolean
+  created_by_user_id?: boolean
+  archived_at?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type FeedOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "name" | "slug" | "status" | "privacy_default" | "scope_type" | "created_at" | "updated_at", ExtArgs["result"]["feed"]>
+export type FeedOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "name" | "slug" | "description" | "status" | "privacy_mode" | "includes_public_holidays" | "last_rendered_at" | "last_etag" | "created_by_user_id" | "archived_at" | "created_at" | "updated_at", ExtArgs["result"]["feed"]>
 export type FeedInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  organisation?: boolean | Prisma.Feed$organisationArgs<ExtArgs>
+  organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
   scopes?: boolean | Prisma.Feed$scopesArgs<ExtArgs>
   tokens?: boolean | Prisma.Feed$tokensArgs<ExtArgs>
   _count?: boolean | Prisma.FeedCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type FeedIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  organisation?: boolean | Prisma.Feed$organisationArgs<ExtArgs>
+  organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
 }
 export type FeedIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  organisation?: boolean | Prisma.Feed$organisationArgs<ExtArgs>
+  organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
 }
 
 export type $FeedPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Feed"
   objects: {
-    organisation: Prisma.$OrganisationPayload<ExtArgs> | null
+    organisation: Prisma.$OrganisationPayload<ExtArgs>
     scopes: Prisma.$FeedScopePayload<ExtArgs>[]
     tokens: Prisma.$FeedTokenPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     clerk_org_id: string
-    organisation_id: string | null
+    organisation_id: string
     name: string
     slug: string
+    description: string | null
     status: $Enums.feed_status
-    privacy_default: string
-    scope_type: string
+    privacy_mode: $Enums.availability_privacy_mode
+    includes_public_holidays: boolean
+    last_rendered_at: Date | null
+    last_etag: string | null
+    created_by_user_id: string | null
+    archived_at: Date | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["feed"]>
@@ -1316,7 +1526,7 @@ readonly fields: FeedFieldRefs;
  */
 export interface Prisma__FeedClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  organisation<T extends Prisma.Feed$organisationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Feed$organisationArgs<ExtArgs>>): Prisma.Prisma__OrganisationClient<runtime.Types.Result.GetResult<Prisma.$OrganisationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  organisation<T extends Prisma.OrganisationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganisationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganisationClient<runtime.Types.Result.GetResult<Prisma.$OrganisationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   scopes<T extends Prisma.Feed$scopesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Feed$scopesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FeedScopePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   tokens<T extends Prisma.Feed$tokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Feed$tokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FeedTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -1353,9 +1563,14 @@ export interface FeedFieldRefs {
   readonly organisation_id: Prisma.FieldRef<"Feed", 'String'>
   readonly name: Prisma.FieldRef<"Feed", 'String'>
   readonly slug: Prisma.FieldRef<"Feed", 'String'>
+  readonly description: Prisma.FieldRef<"Feed", 'String'>
   readonly status: Prisma.FieldRef<"Feed", 'feed_status'>
-  readonly privacy_default: Prisma.FieldRef<"Feed", 'String'>
-  readonly scope_type: Prisma.FieldRef<"Feed", 'String'>
+  readonly privacy_mode: Prisma.FieldRef<"Feed", 'availability_privacy_mode'>
+  readonly includes_public_holidays: Prisma.FieldRef<"Feed", 'Boolean'>
+  readonly last_rendered_at: Prisma.FieldRef<"Feed", 'DateTime'>
+  readonly last_etag: Prisma.FieldRef<"Feed", 'String'>
+  readonly created_by_user_id: Prisma.FieldRef<"Feed", 'String'>
+  readonly archived_at: Prisma.FieldRef<"Feed", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"Feed", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"Feed", 'DateTime'>
 }
@@ -1756,25 +1971,6 @@ export type FeedDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Limit how many Feeds to delete.
    */
   limit?: number
-}
-
-/**
- * Feed.organisation
- */
-export type Feed$organisationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Organisation
-   */
-  select?: Prisma.OrganisationSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Organisation
-   */
-  omit?: Prisma.OrganisationOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.OrganisationInclude<ExtArgs> | null
-  where?: Prisma.OrganisationWhereInput
 }
 
 /**

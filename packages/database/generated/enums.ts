@@ -151,10 +151,11 @@ export type leave_balance_unit = (typeof leave_balance_unit)[keyof typeof leave_
 
 
 export const feed_scope_rule_type = {
+  org: 'org',
   person: 'person',
   team: 'team',
-  location: 'location',
-  organisation: 'organisation'
+  self: 'self',
+  manager_team: 'manager_team'
 } as const
 
 export type feed_scope_rule_type = (typeof feed_scope_rule_type)[keyof typeof feed_scope_rule_type]

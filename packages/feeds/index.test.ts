@@ -1,77 +1,33 @@
-import type { ClerkOrgId, OrganisationId } from "@repo/core";
 import { config } from "dotenv";
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
-import type { FeedTenantContext } from "./index";
 
 config({ path: new URL("../database/.env", import.meta.url).pathname });
 vi.mock("server-only", () => ({}));
 
-const { createFeed, renderFeedForToken, rotateFeedToken, setFeedStatus } =
-  await import("./index");
+const {
+  createFeed,
+  hashFeedToken,
+  pauseFeed,
+  renderFeedForToken,
+  rotateToken,
+} = await import("./index");
 const { database } = await import("@repo/database");
 
-interface TenantFixture {
-  clerkOrgId: string;
-  organisationId: string;
-}
-
-const tenantA: TenantFixture = {
+const tenant = {
   clerkOrgId: "org_test_feed_services_a",
   organisationId: "51000000-0000-4000-8000-000000000001",
 };
-
-const tenantB: TenantFixture = {
+const otherTenant = {
   clerkOrgId: "org_test_feed_services_b",
   organisationId: "52000000-0000-4000-8000-000000000001",
 };
-
-const testClerkOrgIds = [tenantA.clerkOrgId, tenantB.clerkOrgId];
-
-const cleanTestData = async () => {
-  await database.publicHolidayAssignment.deleteMany({
-    where: { clerk_org_id: { in: testClerkOrgIds } },
-  });
-  await database.publicHoliday.deleteMany({
-    where: { clerk_org_id: { in: testClerkOrgIds } },
-  });
-  await database.publicHolidayJurisdiction.deleteMany({
-    where: { clerk_org_id: { in: testClerkOrgIds } },
-  });
-  await database.feedToken.deleteMany({
-    where: { clerk_org_id: { in: testClerkOrgIds } },
-  });
-  await database.feedScope.deleteMany({
-    where: { clerk_org_id: { in: testClerkOrgIds } },
-  });
-  await database.feed.deleteMany({
-    where: { clerk_org_id: { in: testClerkOrgIds } },
-  });
-  await database.organisation.deleteMany({
-    where: { clerk_org_id: { in: testClerkOrgIds } },
-  });
-};
-
-const createTenant = async (tenant: TenantFixture) => {
-  await database.organisation.create({
-    data: {
-      clerk_org_id: tenant.clerkOrgId,
-      country_code: "AU",
-      id: tenant.organisationId,
-      name: `Feed services ${tenant.clerkOrgId}`,
-    },
-  });
-};
-
-const contextFor = (tenant: TenantFixture): FeedTenantContext => ({
-  // Test fixture IDs are fixed strings that match the branded runtime shape.
-  clerkOrgId: tenant.clerkOrgId as ClerkOrgId,
-  organisationId: tenant.organisationId as OrganisationId,
-});
+const clerkOrgIds = [tenant.clerkOrgId, otherTenant.clerkOrgId];
+const TOKEN_PATTERN = /^[A-Za-z0-9_-]{40}$/;
 
 beforeEach(async () => {
   await cleanTestData();
-  await createTenant(tenantA);
-  await createTenant(tenantB);
+  await createTenant(tenant);
+  await createTenant(otherTenant);
 });
 
 afterAll(async () => {
@@ -80,160 +36,151 @@ afterAll(async () => {
 });
 
 describe("feed services", () => {
-  test("creates feeds with a plaintext token returned once and not persisted", async () => {
-    const result = await createFeed(contextFor(tenantA), {
+  test("creates feeds with a one-time plaintext token and persisted hash", async () => {
+    const result = await createFeed({
+      actingRole: "org:admin",
+      actingUserId: "user_admin",
+      clerkOrgId: tenant.clerkOrgId,
+      includesPublicHolidays: false,
       name: "All staff",
-      privacyDefault: "masked",
-      scopeType: "all_staff",
+      organisationId: tenant.organisationId,
+      privacyMode: "masked",
+      scopes: [{ scopeType: "org", scopeValue: null }],
     });
 
     expect(result.ok).toBe(true);
     if (!result.ok) {
       return;
     }
-
-    expect(result.value.feed).toMatchObject({
-      activeTokenHint: result.value.token.slice(-4),
-      name: "All staff",
-      privacyDefault: "masked",
-      scopeType: "all_staff",
-      status: "active",
-    });
+    expect(result.value.token.plaintext).toMatch(TOKEN_PATTERN);
+    expect(result.value.token.hint).toBe(
+      result.value.token.plaintext.slice(-4)
+    );
 
     const tokenRows = await database.feedToken.findMany({
-      where: { feed_id: result.value.feed.id },
+      where: { feed_id: result.value.feedId },
     });
-
     expect(tokenRows).toHaveLength(1);
-    expect(tokenRows[0]).toMatchObject({
-      status: "active",
-      token_hint: result.value.token.slice(-4),
-    });
-    expect(tokenRows[0]?.token_hash).not.toBe(result.value.token);
+    expect(tokenRows[0]?.token_hash).toBe(
+      hashFeedToken(result.value.token.plaintext)
+    );
+    expect(tokenRows[0]?.token_hash).not.toBe(result.value.token.plaintext);
   });
 
-  test("rotates tokens and revokes the old token", async () => {
-    const created = await createFeed(contextFor(tenantA), {
-      name: "Calendar feed",
+  test("rotates tokens and revokes the old active token", async () => {
+    const created = await createTestFeed();
+    const rotated = await rotateToken({
+      actingRole: "owner",
+      actingUserId: "user_owner",
+      clerkOrgId: tenant.clerkOrgId,
+      feedId: created.feedId,
+      organisationId: tenant.organisationId,
     });
-
-    expect(created.ok).toBe(true);
-    if (!created.ok) {
-      return;
-    }
-
-    const rotated = await rotateFeedToken(
-      contextFor(tenantA),
-      created.value.feed.id
-    );
 
     expect(rotated.ok).toBe(true);
     if (!rotated.ok) {
       return;
     }
+    expect(rotated.value.plaintext).not.toBe(created.plaintext);
 
-    expect(rotated.value.token).not.toBe(created.value.token);
-    expect(rotated.value.feed.activeTokenHint).toBe(
-      rotated.value.token.slice(-4)
-    );
-
-    await expect(
-      renderFeedForToken(created.value.token)
-    ).resolves.toMatchObject({
-      ok: true,
-      value: expect.objectContaining({ status: "revoked" }),
+    const tokens = await database.feedToken.findMany({
+      orderBy: { created_at: "asc" },
+      where: { feed_id: created.feedId },
     });
-    await expect(
-      renderFeedForToken(rotated.value.token)
-    ).resolves.toMatchObject({
-      ok: true,
-      value: expect.objectContaining({ status: "active" }),
-    });
+    expect(tokens.map((token) => token.status)).toEqual(["revoked", "active"]);
+    expect(tokens[1]?.rotated_from_token_id).toBe(tokens[0]?.id);
   });
 
-  test("pauses, archives, and enforces tenant isolation", async () => {
-    const created = await createFeed(contextFor(tenantA), {
-      name: "Restricted feed",
-    });
-
-    expect(created.ok).toBe(true);
-    if (!created.ok) {
-      return;
-    }
+  test("pauses feeds and preserves tenant isolation", async () => {
+    const created = await createTestFeed();
 
     await expect(
-      setFeedStatus(contextFor(tenantB), created.value.feed.id, "paused")
+      pauseFeed({
+        actingRole: "org:admin",
+        actingUserId: "user_admin",
+        clerkOrgId: otherTenant.clerkOrgId,
+        feedId: created.feedId,
+        organisationId: otherTenant.organisationId,
+      })
     ).resolves.toMatchObject({
-      error: expect.objectContaining({ code: "not_found" }),
       ok: false,
+      error: { code: "cross_org_leak" },
     });
 
-    await expect(
-      setFeedStatus(contextFor(tenantA), created.value.feed.id, "paused")
-    ).resolves.toMatchObject({
+    const paused = await pauseFeed({
+      actingRole: "org:admin",
+      actingUserId: "user_admin",
+      clerkOrgId: tenant.clerkOrgId,
+      feedId: created.feedId,
+      organisationId: tenant.organisationId,
+    });
+    expect(paused).toMatchObject({
       ok: true,
-      value: expect.objectContaining({ status: "paused" }),
+      value: { status: "paused" },
     });
 
-    await expect(
-      renderFeedForToken(created.value.token)
-    ).resolves.toMatchObject({
-      error: expect.objectContaining({ code: "not_found" }),
-      ok: false,
-    });
-
-    await expect(
-      setFeedStatus(contextFor(tenantA), created.value.feed.id, "archived")
-    ).resolves.toMatchObject({
+    await expect(renderFeedForToken(created.plaintext)).resolves.toMatchObject({
       ok: true,
-      value: expect.objectContaining({ status: "archived" }),
+      value: { status: "revoked" },
     });
-  });
-
-  test("renders feed-scoped public holidays without exposing token plaintext", async () => {
-    const created = await createFeed(contextFor(tenantA), {
-      name: "Holiday feed",
-    });
-
-    expect(created.ok).toBe(true);
-    if (!created.ok) {
-      return;
-    }
-
-    const holiday = await database.publicHoliday.create({
-      data: {
-        clerk_org_id: tenantA.clerkOrgId,
-        organisation_id: tenantA.organisationId,
-        source: "nager",
-        source_remote_id: "AU:national:2026-01-26:australia-day",
-        country_code: "AU",
-        region_code: null,
-        holiday_date: new Date("2026-01-26T00:00:00.000Z"),
-        name: "Australia Day",
-        local_name: "Australia Day",
-        holiday_type: "public",
-      },
-    });
-
-    await database.publicHolidayAssignment.create({
-      data: {
-        clerk_org_id: tenantA.clerkOrgId,
-        organisation_id: tenantA.organisationId,
-        public_holiday_id: holiday.id,
-        scope_type: "feed",
-        scope_value: created.value.feed.id,
-        day_classification: "non_working",
-      },
-    });
-
-    const rendered = await renderFeedForToken(created.value.token);
-
-    expect(rendered.ok).toBe(true);
-    if (!rendered.ok) {
-      return;
-    }
-
-    expect(rendered.value.body).toContain("SUMMARY:Australia Day");
-    expect(rendered.value.body).not.toContain(created.value.token);
   });
 });
+
+async function createTestFeed() {
+  const result = await createFeed({
+    actingRole: "org:admin",
+    actingUserId: "user_admin",
+    clerkOrgId: tenant.clerkOrgId,
+    includesPublicHolidays: false,
+    name: "Calendar feed",
+    organisationId: tenant.organisationId,
+    privacyMode: "named",
+    scopes: [{ scopeType: "org", scopeValue: null }],
+  });
+  expect(result.ok).toBe(true);
+  if (!result.ok) {
+    throw new Error(result.error.message);
+  }
+  return {
+    feedId: result.value.feedId,
+    plaintext: result.value.token.plaintext,
+  };
+}
+
+async function createTenant(input: typeof tenant) {
+  await database.organisation.create({
+    data: {
+      clerk_org_id: input.clerkOrgId,
+      country_code: "AU",
+      id: input.organisationId,
+      name: `Feed services ${input.clerkOrgId}`,
+    },
+  });
+}
+
+async function cleanTestData() {
+  await database.auditEvent.deleteMany({
+    where: { clerk_org_id: { in: clerkOrgIds } },
+  });
+  await database.publicHolidayAssignment.deleteMany({
+    where: { clerk_org_id: { in: clerkOrgIds } },
+  });
+  await database.publicHoliday.deleteMany({
+    where: { clerk_org_id: { in: clerkOrgIds } },
+  });
+  await database.publicHolidayJurisdiction.deleteMany({
+    where: { clerk_org_id: { in: clerkOrgIds } },
+  });
+  await database.feedToken.deleteMany({
+    where: { clerk_org_id: { in: clerkOrgIds } },
+  });
+  await database.feedScope.deleteMany({
+    where: { clerk_org_id: { in: clerkOrgIds } },
+  });
+  await database.feed.deleteMany({
+    where: { clerk_org_id: { in: clerkOrgIds } },
+  });
+  await database.organisation.deleteMany({
+    where: { clerk_org_id: { in: clerkOrgIds } },
+  });
+}

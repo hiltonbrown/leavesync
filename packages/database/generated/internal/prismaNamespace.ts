@@ -2384,9 +2384,14 @@ export const FeedScalarFieldEnum = {
   organisation_id: 'organisation_id',
   name: 'name',
   slug: 'slug',
+  description: 'description',
   status: 'status',
-  privacy_default: 'privacy_default',
-  scope_type: 'scope_type',
+  privacy_mode: 'privacy_mode',
+  includes_public_holidays: 'includes_public_holidays',
+  last_rendered_at: 'last_rendered_at',
+  last_etag: 'last_etag',
+  created_by_user_id: 'created_by_user_id',
+  archived_at: 'archived_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -2397,11 +2402,11 @@ export type FeedScalarFieldEnum = (typeof FeedScalarFieldEnum)[keyof typeof Feed
 export const FeedScopeScalarFieldEnum = {
   id: 'id',
   clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
   feed_id: 'feed_id',
-  rule_type: 'rule_type',
-  rule_value: 'rule_value',
-  created_at: 'created_at',
-  updated_at: 'updated_at'
+  scope_type: 'scope_type',
+  scope_value: 'scope_value',
+  created_at: 'created_at'
 } as const
 
 export type FeedScopeScalarFieldEnum = (typeof FeedScopeScalarFieldEnum)[keyof typeof FeedScopeScalarFieldEnum]
@@ -2410,12 +2415,15 @@ export type FeedScopeScalarFieldEnum = (typeof FeedScopeScalarFieldEnum)[keyof t
 export const FeedTokenScalarFieldEnum = {
   id: 'id',
   clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
   feed_id: 'feed_id',
   token_hash: 'token_hash',
   token_hint: 'token_hint',
   status: 'status',
   expires_at: 'expires_at',
   revoked_at: 'revoked_at',
+  rotated_from_token_id: 'rotated_from_token_id',
+  last_used_at: 'last_used_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
