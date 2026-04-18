@@ -57,6 +57,7 @@
     "apps/app": {
       "name": "app",
       "dependencies": {
+        "@hookform/resolvers": "^5.2.2",
         "@repo/analytics": "*",
         "@repo/auth": "*",
         "@repo/availability": "*",
@@ -64,6 +65,7 @@
         "@repo/core": "*",
         "@repo/database": "*",
         "@repo/design-system": "*",
+        "@repo/email": "*",
         "@repo/feature-flags": "*",
         "@repo/feeds": "*",
         "@repo/next-config": "*",
@@ -83,9 +85,11 @@
         "next-themes": "^0.4.6",
         "react": "19.2.4",
         "react-dom": "19.2.4",
+        "react-hook-form": "^7.72.1",
         "recharts": "^3.8.1",
         "require-in-the-middle": "8.0.1",
         "server-only": "^0.0.1",
+        "sonner": "^2.0.7",
         "zod": "^4.3.6",
       },
       "devDependencies": {
@@ -277,6 +281,7 @@
       "dependencies": {
         "@repo/core": "*",
         "@repo/database": "*",
+        "@repo/observability": "*",
         "server-only": "^0.0.1",
         "zod": "^4.3.6",
       },

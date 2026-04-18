@@ -596,14 +596,6 @@ export type AvailabilityPublicationUncheckedUpdateOneWithoutAvailability_recordN
   update?: Prisma.XOR<Prisma.XOR<Prisma.AvailabilityPublicationUpdateToOneWithWhereWithoutAvailability_recordInput, Prisma.AvailabilityPublicationUpdateWithoutAvailability_recordInput>, Prisma.AvailabilityPublicationUncheckedUpdateWithoutAvailability_recordInput>
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type AvailabilityPublicationCreateWithoutOrganisationInput = {
   id?: string
   clerk_org_id: string

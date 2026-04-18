@@ -89,7 +89,7 @@ describe("holiday-service", () => {
 
       expect(result.ok).toBe(false);
       if (!result.ok) {
-        expect(result.error.code).toBe("CONFLICT");
+        expect(result.error.code).toBe("conflict");
       }
     });
   });
@@ -130,7 +130,7 @@ describe("holiday-service", () => {
 
       expect(result.ok).toBe(false);
       if (!result.ok) {
-        expect(result.error.code).toBe("NOT_FOUND");
+        expect(result.error.code).toBe("not_found");
       }
     });
   });
@@ -193,7 +193,7 @@ describe("holiday-service", () => {
 
       expect(result.ok).toBe(false);
       if (!result.ok) {
-        expect(result.error.code).toBe("FORBIDDEN");
+        expect(result.error.code).toBe("forbidden");
       }
       expect(database.publicHoliday.delete).not.toHaveBeenCalled();
     });

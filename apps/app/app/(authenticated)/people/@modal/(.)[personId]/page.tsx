@@ -1,4 +1,4 @@
-import { InterceptingModalShell } from "../../../../components/modals/intercepting-modal-shell";
+import { InterceptingModalShell } from "@/components/modals/intercepting-modal-shell";
 import { PersonProfileClient } from "./person-profile-client";
 
 interface PersonProfileModalPageProperties {

@@ -29,6 +29,7 @@ export type PersonMinAggregateOutputType = {
   clerk_org_id: string | null
   organisation_id: string | null
   team_id: string | null
+  manager_person_id: string | null
   location_id: string | null
   person_type: $Enums.person_type | null
   source_system: $Enums.source_system | null
@@ -54,6 +55,7 @@ export type PersonMaxAggregateOutputType = {
   clerk_org_id: string | null
   organisation_id: string | null
   team_id: string | null
+  manager_person_id: string | null
   location_id: string | null
   person_type: $Enums.person_type | null
   source_system: $Enums.source_system | null
@@ -79,6 +81,7 @@ export type PersonCountAggregateOutputType = {
   clerk_org_id: number
   organisation_id: number
   team_id: number
+  manager_person_id: number
   location_id: number
   person_type: number
   source_system: number
@@ -106,6 +109,7 @@ export type PersonMinAggregateInputType = {
   clerk_org_id?: true
   organisation_id?: true
   team_id?: true
+  manager_person_id?: true
   location_id?: true
   person_type?: true
   source_system?: true
@@ -131,6 +135,7 @@ export type PersonMaxAggregateInputType = {
   clerk_org_id?: true
   organisation_id?: true
   team_id?: true
+  manager_person_id?: true
   location_id?: true
   person_type?: true
   source_system?: true
@@ -156,6 +161,7 @@ export type PersonCountAggregateInputType = {
   clerk_org_id?: true
   organisation_id?: true
   team_id?: true
+  manager_person_id?: true
   location_id?: true
   person_type?: true
   source_system?: true
@@ -254,6 +260,7 @@ export type PersonGroupByOutputType = {
   clerk_org_id: string
   organisation_id: string
   team_id: string | null
+  manager_person_id: string | null
   location_id: string | null
   person_type: $Enums.person_type | null
   source_system: $Enums.source_system
@@ -300,6 +307,7 @@ export type PersonWhereInput = {
   clerk_org_id?: Prisma.StringFilter<"Person"> | string
   organisation_id?: Prisma.UuidFilter<"Person"> | string
   team_id?: Prisma.UuidNullableFilter<"Person"> | string | null
+  manager_person_id?: Prisma.UuidNullableFilter<"Person"> | string | null
   location_id?: Prisma.UuidNullableFilter<"Person"> | string | null
   person_type?: Prisma.Enumperson_typeNullableFilter<"Person"> | $Enums.person_type | null
   source_system?: Prisma.Enumsource_systemFilter<"Person"> | $Enums.source_system
@@ -321,8 +329,11 @@ export type PersonWhereInput = {
   organisation?: Prisma.XOR<Prisma.OrganisationScalarRelationFilter, Prisma.OrganisationWhereInput>
   team?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
   location?: Prisma.XOR<Prisma.LocationNullableScalarRelationFilter, Prisma.LocationWhereInput> | null
+  manager?: Prisma.XOR<Prisma.PersonNullableScalarRelationFilter, Prisma.PersonWhereInput> | null
+  direct_reports?: Prisma.PersonListRelationFilter
   leave_balances?: Prisma.LeaveBalanceListRelationFilter
   availability_records?: Prisma.AvailabilityRecordListRelationFilter
+  approved_records?: Prisma.AvailabilityRecordListRelationFilter
 }
 
 export type PersonOrderByWithRelationInput = {
@@ -330,6 +341,7 @@ export type PersonOrderByWithRelationInput = {
   clerk_org_id?: Prisma.SortOrder
   organisation_id?: Prisma.SortOrder
   team_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  manager_person_id?: Prisma.SortOrderInput | Prisma.SortOrder
   location_id?: Prisma.SortOrderInput | Prisma.SortOrder
   person_type?: Prisma.SortOrderInput | Prisma.SortOrder
   source_system?: Prisma.SortOrder
@@ -351,8 +363,11 @@ export type PersonOrderByWithRelationInput = {
   organisation?: Prisma.OrganisationOrderByWithRelationInput
   team?: Prisma.TeamOrderByWithRelationInput
   location?: Prisma.LocationOrderByWithRelationInput
+  manager?: Prisma.PersonOrderByWithRelationInput
+  direct_reports?: Prisma.PersonOrderByRelationAggregateInput
   leave_balances?: Prisma.LeaveBalanceOrderByRelationAggregateInput
   availability_records?: Prisma.AvailabilityRecordOrderByRelationAggregateInput
+  approved_records?: Prisma.AvailabilityRecordOrderByRelationAggregateInput
 }
 
 export type PersonWhereUniqueInput = Prisma.AtLeast<{
@@ -365,6 +380,7 @@ export type PersonWhereUniqueInput = Prisma.AtLeast<{
   clerk_org_id?: Prisma.StringFilter<"Person"> | string
   organisation_id?: Prisma.UuidFilter<"Person"> | string
   team_id?: Prisma.UuidNullableFilter<"Person"> | string | null
+  manager_person_id?: Prisma.UuidNullableFilter<"Person"> | string | null
   location_id?: Prisma.UuidNullableFilter<"Person"> | string | null
   person_type?: Prisma.Enumperson_typeNullableFilter<"Person"> | $Enums.person_type | null
   source_system?: Prisma.Enumsource_systemFilter<"Person"> | $Enums.source_system
@@ -386,8 +402,11 @@ export type PersonWhereUniqueInput = Prisma.AtLeast<{
   organisation?: Prisma.XOR<Prisma.OrganisationScalarRelationFilter, Prisma.OrganisationWhereInput>
   team?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
   location?: Prisma.XOR<Prisma.LocationNullableScalarRelationFilter, Prisma.LocationWhereInput> | null
+  manager?: Prisma.XOR<Prisma.PersonNullableScalarRelationFilter, Prisma.PersonWhereInput> | null
+  direct_reports?: Prisma.PersonListRelationFilter
   leave_balances?: Prisma.LeaveBalanceListRelationFilter
   availability_records?: Prisma.AvailabilityRecordListRelationFilter
+  approved_records?: Prisma.AvailabilityRecordListRelationFilter
 }, "id" | "organisation_id_source_system_source_person_key" | "organisation_id_clerk_user_id">
 
 export type PersonOrderByWithAggregationInput = {
@@ -395,6 +414,7 @@ export type PersonOrderByWithAggregationInput = {
   clerk_org_id?: Prisma.SortOrder
   organisation_id?: Prisma.SortOrder
   team_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  manager_person_id?: Prisma.SortOrderInput | Prisma.SortOrder
   location_id?: Prisma.SortOrderInput | Prisma.SortOrder
   person_type?: Prisma.SortOrderInput | Prisma.SortOrder
   source_system?: Prisma.SortOrder
@@ -426,6 +446,7 @@ export type PersonScalarWhereWithAggregatesInput = {
   clerk_org_id?: Prisma.StringWithAggregatesFilter<"Person"> | string
   organisation_id?: Prisma.UuidWithAggregatesFilter<"Person"> | string
   team_id?: Prisma.UuidNullableWithAggregatesFilter<"Person"> | string | null
+  manager_person_id?: Prisma.UuidNullableWithAggregatesFilter<"Person"> | string | null
   location_id?: Prisma.UuidNullableWithAggregatesFilter<"Person"> | string | null
   person_type?: Prisma.Enumperson_typeNullableWithAggregatesFilter<"Person"> | $Enums.person_type | null
   source_system?: Prisma.Enumsource_systemWithAggregatesFilter<"Person"> | $Enums.source_system
@@ -469,8 +490,11 @@ export type PersonCreateInput = {
   organisation: Prisma.OrganisationCreateNestedOneWithoutPeopleInput
   team?: Prisma.TeamCreateNestedOneWithoutPeopleInput
   location?: Prisma.LocationCreateNestedOneWithoutPeopleInput
+  manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
+  direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
 }
 
 export type PersonUncheckedCreateInput = {
@@ -478,6 +502,7 @@ export type PersonUncheckedCreateInput = {
   clerk_org_id: string
   organisation_id: string
   team_id?: string | null
+  manager_person_id?: string | null
   location_id?: string | null
   person_type?: $Enums.person_type | null
   source_system: $Enums.source_system
@@ -496,8 +521,10 @@ export type PersonUncheckedCreateInput = {
   archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
+  direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
 }
 
 export type PersonUpdateInput = {
@@ -523,8 +550,11 @@ export type PersonUpdateInput = {
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutPeopleNestedInput
   team?: Prisma.TeamUpdateOneWithoutPeopleNestedInput
   location?: Prisma.LocationUpdateOneWithoutPeopleNestedInput
+  manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
+  direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
 }
 
 export type PersonUncheckedUpdateInput = {
@@ -532,6 +562,7 @@ export type PersonUncheckedUpdateInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   team_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_person_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
   source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
@@ -550,8 +581,10 @@ export type PersonUncheckedUpdateInput = {
   archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
 }
 
 export type PersonCreateManyInput = {
@@ -559,6 +592,7 @@ export type PersonCreateManyInput = {
   clerk_org_id: string
   organisation_id: string
   team_id?: string | null
+  manager_person_id?: string | null
   location_id?: string | null
   person_type?: $Enums.person_type | null
   source_system: $Enums.source_system
@@ -606,6 +640,7 @@ export type PersonUncheckedUpdateManyInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   team_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_person_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
   source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
@@ -636,6 +671,11 @@ export type PersonOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type PersonNullableScalarRelationFilter = {
+  is?: Prisma.PersonWhereInput | null
+  isNot?: Prisma.PersonWhereInput | null
+}
+
 export type PersonOrganisation_idSource_systemSource_person_keyCompoundUniqueInput = {
   organisation_id: string
   source_system: $Enums.source_system
@@ -652,6 +692,7 @@ export type PersonCountOrderByAggregateInput = {
   clerk_org_id?: Prisma.SortOrder
   organisation_id?: Prisma.SortOrder
   team_id?: Prisma.SortOrder
+  manager_person_id?: Prisma.SortOrder
   location_id?: Prisma.SortOrder
   person_type?: Prisma.SortOrder
   source_system?: Prisma.SortOrder
@@ -677,6 +718,7 @@ export type PersonMaxOrderByAggregateInput = {
   clerk_org_id?: Prisma.SortOrder
   organisation_id?: Prisma.SortOrder
   team_id?: Prisma.SortOrder
+  manager_person_id?: Prisma.SortOrder
   location_id?: Prisma.SortOrder
   person_type?: Prisma.SortOrder
   source_system?: Prisma.SortOrder
@@ -702,6 +744,7 @@ export type PersonMinOrderByAggregateInput = {
   clerk_org_id?: Prisma.SortOrder
   organisation_id?: Prisma.SortOrder
   team_id?: Prisma.SortOrder
+  manager_person_id?: Prisma.SortOrder
   location_id?: Prisma.SortOrder
   person_type?: Prisma.SortOrder
   source_system?: Prisma.SortOrder
@@ -853,6 +896,26 @@ export type PersonUncheckedUpdateManyWithoutLocationNestedInput = {
   deleteMany?: Prisma.PersonScalarWhereInput | Prisma.PersonScalarWhereInput[]
 }
 
+export type PersonCreateNestedOneWithoutDirect_reportsInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutDirect_reportsInput, Prisma.PersonUncheckedCreateWithoutDirect_reportsInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutDirect_reportsInput
+  connect?: Prisma.PersonWhereUniqueInput
+}
+
+export type PersonCreateNestedManyWithoutManagerInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutManagerInput, Prisma.PersonUncheckedCreateWithoutManagerInput> | Prisma.PersonCreateWithoutManagerInput[] | Prisma.PersonUncheckedCreateWithoutManagerInput[]
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutManagerInput | Prisma.PersonCreateOrConnectWithoutManagerInput[]
+  createMany?: Prisma.PersonCreateManyManagerInputEnvelope
+  connect?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+}
+
+export type PersonUncheckedCreateNestedManyWithoutManagerInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutManagerInput, Prisma.PersonUncheckedCreateWithoutManagerInput> | Prisma.PersonCreateWithoutManagerInput[] | Prisma.PersonUncheckedCreateWithoutManagerInput[]
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutManagerInput | Prisma.PersonCreateOrConnectWithoutManagerInput[]
+  createMany?: Prisma.PersonCreateManyManagerInputEnvelope
+  connect?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+}
+
 export type NullableEnumperson_typeFieldUpdateOperationsInput = {
   set?: $Enums.person_type | null
 }
@@ -873,9 +936,53 @@ export type Enumavailability_privacy_modeFieldUpdateOperationsInput = {
   set?: $Enums.availability_privacy_mode
 }
 
+export type PersonUpdateOneWithoutDirect_reportsNestedInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutDirect_reportsInput, Prisma.PersonUncheckedCreateWithoutDirect_reportsInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutDirect_reportsInput
+  upsert?: Prisma.PersonUpsertWithoutDirect_reportsInput
+  disconnect?: Prisma.PersonWhereInput | boolean
+  delete?: Prisma.PersonWhereInput | boolean
+  connect?: Prisma.PersonWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PersonUpdateToOneWithWhereWithoutDirect_reportsInput, Prisma.PersonUpdateWithoutDirect_reportsInput>, Prisma.PersonUncheckedUpdateWithoutDirect_reportsInput>
+}
+
+export type PersonUpdateManyWithoutManagerNestedInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutManagerInput, Prisma.PersonUncheckedCreateWithoutManagerInput> | Prisma.PersonCreateWithoutManagerInput[] | Prisma.PersonUncheckedCreateWithoutManagerInput[]
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutManagerInput | Prisma.PersonCreateOrConnectWithoutManagerInput[]
+  upsert?: Prisma.PersonUpsertWithWhereUniqueWithoutManagerInput | Prisma.PersonUpsertWithWhereUniqueWithoutManagerInput[]
+  createMany?: Prisma.PersonCreateManyManagerInputEnvelope
+  set?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+  disconnect?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+  delete?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+  connect?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+  update?: Prisma.PersonUpdateWithWhereUniqueWithoutManagerInput | Prisma.PersonUpdateWithWhereUniqueWithoutManagerInput[]
+  updateMany?: Prisma.PersonUpdateManyWithWhereWithoutManagerInput | Prisma.PersonUpdateManyWithWhereWithoutManagerInput[]
+  deleteMany?: Prisma.PersonScalarWhereInput | Prisma.PersonScalarWhereInput[]
+}
+
+export type PersonUncheckedUpdateManyWithoutManagerNestedInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutManagerInput, Prisma.PersonUncheckedCreateWithoutManagerInput> | Prisma.PersonCreateWithoutManagerInput[] | Prisma.PersonUncheckedCreateWithoutManagerInput[]
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutManagerInput | Prisma.PersonCreateOrConnectWithoutManagerInput[]
+  upsert?: Prisma.PersonUpsertWithWhereUniqueWithoutManagerInput | Prisma.PersonUpsertWithWhereUniqueWithoutManagerInput[]
+  createMany?: Prisma.PersonCreateManyManagerInputEnvelope
+  set?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+  disconnect?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+  delete?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+  connect?: Prisma.PersonWhereUniqueInput | Prisma.PersonWhereUniqueInput[]
+  update?: Prisma.PersonUpdateWithWhereUniqueWithoutManagerInput | Prisma.PersonUpdateWithWhereUniqueWithoutManagerInput[]
+  updateMany?: Prisma.PersonUpdateManyWithWhereWithoutManagerInput | Prisma.PersonUpdateManyWithWhereWithoutManagerInput[]
+  deleteMany?: Prisma.PersonScalarWhereInput | Prisma.PersonScalarWhereInput[]
+}
+
 export type PersonCreateNestedOneWithoutAvailability_recordsInput = {
   create?: Prisma.XOR<Prisma.PersonCreateWithoutAvailability_recordsInput, Prisma.PersonUncheckedCreateWithoutAvailability_recordsInput>
   connectOrCreate?: Prisma.PersonCreateOrConnectWithoutAvailability_recordsInput
+  connect?: Prisma.PersonWhereUniqueInput
+}
+
+export type PersonCreateNestedOneWithoutApproved_recordsInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutApproved_recordsInput, Prisma.PersonUncheckedCreateWithoutApproved_recordsInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutApproved_recordsInput
   connect?: Prisma.PersonWhereUniqueInput
 }
 
@@ -885,6 +992,16 @@ export type PersonUpdateOneRequiredWithoutAvailability_recordsNestedInput = {
   upsert?: Prisma.PersonUpsertWithoutAvailability_recordsInput
   connect?: Prisma.PersonWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.PersonUpdateToOneWithWhereWithoutAvailability_recordsInput, Prisma.PersonUpdateWithoutAvailability_recordsInput>, Prisma.PersonUncheckedUpdateWithoutAvailability_recordsInput>
+}
+
+export type PersonUpdateOneWithoutApproved_recordsNestedInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutApproved_recordsInput, Prisma.PersonUncheckedCreateWithoutApproved_recordsInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutApproved_recordsInput
+  upsert?: Prisma.PersonUpsertWithoutApproved_recordsInput
+  disconnect?: Prisma.PersonWhereInput | boolean
+  delete?: Prisma.PersonWhereInput | boolean
+  connect?: Prisma.PersonWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PersonUpdateToOneWithWhereWithoutApproved_recordsInput, Prisma.PersonUpdateWithoutApproved_recordsInput>, Prisma.PersonUncheckedUpdateWithoutApproved_recordsInput>
 }
 
 export type PersonCreateNestedOneWithoutLeave_balancesInput = {
@@ -923,14 +1040,18 @@ export type PersonCreateWithoutOrganisationInput = {
   updated_at?: Date | string
   team?: Prisma.TeamCreateNestedOneWithoutPeopleInput
   location?: Prisma.LocationCreateNestedOneWithoutPeopleInput
+  manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
+  direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
 }
 
 export type PersonUncheckedCreateWithoutOrganisationInput = {
   id?: string
   clerk_org_id: string
   team_id?: string | null
+  manager_person_id?: string | null
   location_id?: string | null
   person_type?: $Enums.person_type | null
   source_system: $Enums.source_system
@@ -949,8 +1070,10 @@ export type PersonUncheckedCreateWithoutOrganisationInput = {
   archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
+  direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
 }
 
 export type PersonCreateOrConnectWithoutOrganisationInput = {
@@ -987,6 +1110,7 @@ export type PersonScalarWhereInput = {
   clerk_org_id?: Prisma.StringFilter<"Person"> | string
   organisation_id?: Prisma.UuidFilter<"Person"> | string
   team_id?: Prisma.UuidNullableFilter<"Person"> | string | null
+  manager_person_id?: Prisma.UuidNullableFilter<"Person"> | string | null
   location_id?: Prisma.UuidNullableFilter<"Person"> | string | null
   person_type?: Prisma.Enumperson_typeNullableFilter<"Person"> | $Enums.person_type | null
   source_system?: Prisma.Enumsource_systemFilter<"Person"> | $Enums.source_system
@@ -1029,14 +1153,18 @@ export type PersonCreateWithoutTeamInput = {
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutPeopleInput
   location?: Prisma.LocationCreateNestedOneWithoutPeopleInput
+  manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
+  direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
 }
 
 export type PersonUncheckedCreateWithoutTeamInput = {
   id?: string
   clerk_org_id: string
   organisation_id: string
+  manager_person_id?: string | null
   location_id?: string | null
   person_type?: $Enums.person_type | null
   source_system: $Enums.source_system
@@ -1055,8 +1183,10 @@ export type PersonUncheckedCreateWithoutTeamInput = {
   archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
+  direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
 }
 
 export type PersonCreateOrConnectWithoutTeamInput = {
@@ -1107,8 +1237,11 @@ export type PersonCreateWithoutLocationInput = {
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutPeopleInput
   team?: Prisma.TeamCreateNestedOneWithoutPeopleInput
+  manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
+  direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
 }
 
 export type PersonUncheckedCreateWithoutLocationInput = {
@@ -1116,6 +1249,7 @@ export type PersonUncheckedCreateWithoutLocationInput = {
   clerk_org_id: string
   organisation_id: string
   team_id?: string | null
+  manager_person_id?: string | null
   person_type?: $Enums.person_type | null
   source_system: $Enums.source_system
   source_person_key?: string | null
@@ -1133,8 +1267,10 @@ export type PersonUncheckedCreateWithoutLocationInput = {
   archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
+  direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
 }
 
 export type PersonCreateOrConnectWithoutLocationInput = {
@@ -1163,6 +1299,222 @@ export type PersonUpdateManyWithWhereWithoutLocationInput = {
   data: Prisma.XOR<Prisma.PersonUpdateManyMutationInput, Prisma.PersonUncheckedUpdateManyWithoutLocationInput>
 }
 
+export type PersonCreateWithoutDirect_reportsInput = {
+  id?: string
+  clerk_org_id: string
+  person_type?: $Enums.person_type | null
+  source_system: $Enums.source_system
+  source_person_key?: string | null
+  first_name: string
+  last_name: string
+  email: string
+  employment_type: $Enums.employment_type
+  is_active?: boolean
+  display_name?: string | null
+  clerk_user_id?: string | null
+  job_title?: string | null
+  default_contactability?: $Enums.availability_contactability
+  default_privacy_mode?: $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: boolean
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  organisation: Prisma.OrganisationCreateNestedOneWithoutPeopleInput
+  team?: Prisma.TeamCreateNestedOneWithoutPeopleInput
+  location?: Prisma.LocationCreateNestedOneWithoutPeopleInput
+  manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
+  leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
+  availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+}
+
+export type PersonUncheckedCreateWithoutDirect_reportsInput = {
+  id?: string
+  clerk_org_id: string
+  organisation_id: string
+  team_id?: string | null
+  manager_person_id?: string | null
+  location_id?: string | null
+  person_type?: $Enums.person_type | null
+  source_system: $Enums.source_system
+  source_person_key?: string | null
+  first_name: string
+  last_name: string
+  email: string
+  employment_type: $Enums.employment_type
+  is_active?: boolean
+  display_name?: string | null
+  clerk_user_id?: string | null
+  job_title?: string | null
+  default_contactability?: $Enums.availability_contactability
+  default_privacy_mode?: $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: boolean
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+}
+
+export type PersonCreateOrConnectWithoutDirect_reportsInput = {
+  where: Prisma.PersonWhereUniqueInput
+  create: Prisma.XOR<Prisma.PersonCreateWithoutDirect_reportsInput, Prisma.PersonUncheckedCreateWithoutDirect_reportsInput>
+}
+
+export type PersonCreateWithoutManagerInput = {
+  id?: string
+  clerk_org_id: string
+  person_type?: $Enums.person_type | null
+  source_system: $Enums.source_system
+  source_person_key?: string | null
+  first_name: string
+  last_name: string
+  email: string
+  employment_type: $Enums.employment_type
+  is_active?: boolean
+  display_name?: string | null
+  clerk_user_id?: string | null
+  job_title?: string | null
+  default_contactability?: $Enums.availability_contactability
+  default_privacy_mode?: $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: boolean
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  organisation: Prisma.OrganisationCreateNestedOneWithoutPeopleInput
+  team?: Prisma.TeamCreateNestedOneWithoutPeopleInput
+  location?: Prisma.LocationCreateNestedOneWithoutPeopleInput
+  direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
+  leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
+  availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+}
+
+export type PersonUncheckedCreateWithoutManagerInput = {
+  id?: string
+  clerk_org_id: string
+  organisation_id: string
+  team_id?: string | null
+  location_id?: string | null
+  person_type?: $Enums.person_type | null
+  source_system: $Enums.source_system
+  source_person_key?: string | null
+  first_name: string
+  last_name: string
+  email: string
+  employment_type: $Enums.employment_type
+  is_active?: boolean
+  display_name?: string | null
+  clerk_user_id?: string | null
+  job_title?: string | null
+  default_contactability?: $Enums.availability_contactability
+  default_privacy_mode?: $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: boolean
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+}
+
+export type PersonCreateOrConnectWithoutManagerInput = {
+  where: Prisma.PersonWhereUniqueInput
+  create: Prisma.XOR<Prisma.PersonCreateWithoutManagerInput, Prisma.PersonUncheckedCreateWithoutManagerInput>
+}
+
+export type PersonCreateManyManagerInputEnvelope = {
+  data: Prisma.PersonCreateManyManagerInput | Prisma.PersonCreateManyManagerInput[]
+  skipDuplicates?: boolean
+}
+
+export type PersonUpsertWithoutDirect_reportsInput = {
+  update: Prisma.XOR<Prisma.PersonUpdateWithoutDirect_reportsInput, Prisma.PersonUncheckedUpdateWithoutDirect_reportsInput>
+  create: Prisma.XOR<Prisma.PersonCreateWithoutDirect_reportsInput, Prisma.PersonUncheckedCreateWithoutDirect_reportsInput>
+  where?: Prisma.PersonWhereInput
+}
+
+export type PersonUpdateToOneWithWhereWithoutDirect_reportsInput = {
+  where?: Prisma.PersonWhereInput
+  data: Prisma.XOR<Prisma.PersonUpdateWithoutDirect_reportsInput, Prisma.PersonUncheckedUpdateWithoutDirect_reportsInput>
+}
+
+export type PersonUpdateWithoutDirect_reportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
+  source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
+  source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
+  default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organisation?: Prisma.OrganisationUpdateOneRequiredWithoutPeopleNestedInput
+  team?: Prisma.TeamUpdateOneWithoutPeopleNestedInput
+  location?: Prisma.LocationUpdateOneWithoutPeopleNestedInput
+  manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
+  leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
+  availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+}
+
+export type PersonUncheckedUpdateWithoutDirect_reportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  team_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_person_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
+  source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
+  source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
+  default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+}
+
+export type PersonUpsertWithWhereUniqueWithoutManagerInput = {
+  where: Prisma.PersonWhereUniqueInput
+  update: Prisma.XOR<Prisma.PersonUpdateWithoutManagerInput, Prisma.PersonUncheckedUpdateWithoutManagerInput>
+  create: Prisma.XOR<Prisma.PersonCreateWithoutManagerInput, Prisma.PersonUncheckedCreateWithoutManagerInput>
+}
+
+export type PersonUpdateWithWhereUniqueWithoutManagerInput = {
+  where: Prisma.PersonWhereUniqueInput
+  data: Prisma.XOR<Prisma.PersonUpdateWithoutManagerInput, Prisma.PersonUncheckedUpdateWithoutManagerInput>
+}
+
+export type PersonUpdateManyWithWhereWithoutManagerInput = {
+  where: Prisma.PersonScalarWhereInput
+  data: Prisma.XOR<Prisma.PersonUpdateManyMutationInput, Prisma.PersonUncheckedUpdateManyWithoutManagerInput>
+}
+
 export type PersonCreateWithoutAvailability_recordsInput = {
   id?: string
   clerk_org_id: string
@@ -1186,7 +1538,10 @@ export type PersonCreateWithoutAvailability_recordsInput = {
   organisation: Prisma.OrganisationCreateNestedOneWithoutPeopleInput
   team?: Prisma.TeamCreateNestedOneWithoutPeopleInput
   location?: Prisma.LocationCreateNestedOneWithoutPeopleInput
+  manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
+  direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
 }
 
 export type PersonUncheckedCreateWithoutAvailability_recordsInput = {
@@ -1194,6 +1549,7 @@ export type PersonUncheckedCreateWithoutAvailability_recordsInput = {
   clerk_org_id: string
   organisation_id: string
   team_id?: string | null
+  manager_person_id?: string | null
   location_id?: string | null
   person_type?: $Enums.person_type | null
   source_system: $Enums.source_system
@@ -1212,12 +1568,77 @@ export type PersonUncheckedCreateWithoutAvailability_recordsInput = {
   archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
+  direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
 }
 
 export type PersonCreateOrConnectWithoutAvailability_recordsInput = {
   where: Prisma.PersonWhereUniqueInput
   create: Prisma.XOR<Prisma.PersonCreateWithoutAvailability_recordsInput, Prisma.PersonUncheckedCreateWithoutAvailability_recordsInput>
+}
+
+export type PersonCreateWithoutApproved_recordsInput = {
+  id?: string
+  clerk_org_id: string
+  person_type?: $Enums.person_type | null
+  source_system: $Enums.source_system
+  source_person_key?: string | null
+  first_name: string
+  last_name: string
+  email: string
+  employment_type: $Enums.employment_type
+  is_active?: boolean
+  display_name?: string | null
+  clerk_user_id?: string | null
+  job_title?: string | null
+  default_contactability?: $Enums.availability_contactability
+  default_privacy_mode?: $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: boolean
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  organisation: Prisma.OrganisationCreateNestedOneWithoutPeopleInput
+  team?: Prisma.TeamCreateNestedOneWithoutPeopleInput
+  location?: Prisma.LocationCreateNestedOneWithoutPeopleInput
+  manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
+  direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
+  leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
+  availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
+}
+
+export type PersonUncheckedCreateWithoutApproved_recordsInput = {
+  id?: string
+  clerk_org_id: string
+  organisation_id: string
+  team_id?: string | null
+  manager_person_id?: string | null
+  location_id?: string | null
+  person_type?: $Enums.person_type | null
+  source_system: $Enums.source_system
+  source_person_key?: string | null
+  first_name: string
+  last_name: string
+  email: string
+  employment_type: $Enums.employment_type
+  is_active?: boolean
+  display_name?: string | null
+  clerk_user_id?: string | null
+  job_title?: string | null
+  default_contactability?: $Enums.availability_contactability
+  default_privacy_mode?: $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: boolean
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
+}
+
+export type PersonCreateOrConnectWithoutApproved_recordsInput = {
+  where: Prisma.PersonWhereUniqueInput
+  create: Prisma.XOR<Prisma.PersonCreateWithoutApproved_recordsInput, Prisma.PersonUncheckedCreateWithoutApproved_recordsInput>
 }
 
 export type PersonUpsertWithoutAvailability_recordsInput = {
@@ -1254,7 +1675,10 @@ export type PersonUpdateWithoutAvailability_recordsInput = {
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutPeopleNestedInput
   team?: Prisma.TeamUpdateOneWithoutPeopleNestedInput
   location?: Prisma.LocationUpdateOneWithoutPeopleNestedInput
+  manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
+  direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
 }
 
 export type PersonUncheckedUpdateWithoutAvailability_recordsInput = {
@@ -1262,6 +1686,7 @@ export type PersonUncheckedUpdateWithoutAvailability_recordsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   team_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_person_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
   source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
@@ -1280,7 +1705,78 @@ export type PersonUncheckedUpdateWithoutAvailability_recordsInput = {
   archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+}
+
+export type PersonUpsertWithoutApproved_recordsInput = {
+  update: Prisma.XOR<Prisma.PersonUpdateWithoutApproved_recordsInput, Prisma.PersonUncheckedUpdateWithoutApproved_recordsInput>
+  create: Prisma.XOR<Prisma.PersonCreateWithoutApproved_recordsInput, Prisma.PersonUncheckedCreateWithoutApproved_recordsInput>
+  where?: Prisma.PersonWhereInput
+}
+
+export type PersonUpdateToOneWithWhereWithoutApproved_recordsInput = {
+  where?: Prisma.PersonWhereInput
+  data: Prisma.XOR<Prisma.PersonUpdateWithoutApproved_recordsInput, Prisma.PersonUncheckedUpdateWithoutApproved_recordsInput>
+}
+
+export type PersonUpdateWithoutApproved_recordsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
+  source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
+  source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
+  default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organisation?: Prisma.OrganisationUpdateOneRequiredWithoutPeopleNestedInput
+  team?: Prisma.TeamUpdateOneWithoutPeopleNestedInput
+  location?: Prisma.LocationUpdateOneWithoutPeopleNestedInput
+  manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
+  direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
+  leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
+  availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
+}
+
+export type PersonUncheckedUpdateWithoutApproved_recordsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  team_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_person_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
+  source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
+  source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
+  default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
 }
 
 export type PersonCreateWithoutLeave_balancesInput = {
@@ -1306,7 +1802,10 @@ export type PersonCreateWithoutLeave_balancesInput = {
   organisation: Prisma.OrganisationCreateNestedOneWithoutPeopleInput
   team?: Prisma.TeamCreateNestedOneWithoutPeopleInput
   location?: Prisma.LocationCreateNestedOneWithoutPeopleInput
+  manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
+  direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
 }
 
 export type PersonUncheckedCreateWithoutLeave_balancesInput = {
@@ -1314,6 +1813,7 @@ export type PersonUncheckedCreateWithoutLeave_balancesInput = {
   clerk_org_id: string
   organisation_id: string
   team_id?: string | null
+  manager_person_id?: string | null
   location_id?: string | null
   person_type?: $Enums.person_type | null
   source_system: $Enums.source_system
@@ -1332,7 +1832,9 @@ export type PersonUncheckedCreateWithoutLeave_balancesInput = {
   archived_at?: Date | string | null
   created_at?: Date | string
   updated_at?: Date | string
+  direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
 }
 
 export type PersonCreateOrConnectWithoutLeave_balancesInput = {
@@ -1374,7 +1876,10 @@ export type PersonUpdateWithoutLeave_balancesInput = {
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutPeopleNestedInput
   team?: Prisma.TeamUpdateOneWithoutPeopleNestedInput
   location?: Prisma.LocationUpdateOneWithoutPeopleNestedInput
+  manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
+  direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
 }
 
 export type PersonUncheckedUpdateWithoutLeave_balancesInput = {
@@ -1382,6 +1887,7 @@ export type PersonUncheckedUpdateWithoutLeave_balancesInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   team_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_person_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
   source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
@@ -1400,13 +1906,16 @@ export type PersonUncheckedUpdateWithoutLeave_balancesInput = {
   archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
 }
 
 export type PersonCreateManyOrganisationInput = {
   id?: string
   clerk_org_id: string
   team_id?: string | null
+  manager_person_id?: string | null
   location_id?: string | null
   person_type?: $Enums.person_type | null
   source_system: $Enums.source_system
@@ -1449,14 +1958,18 @@ export type PersonUpdateWithoutOrganisationInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   team?: Prisma.TeamUpdateOneWithoutPeopleNestedInput
   location?: Prisma.LocationUpdateOneWithoutPeopleNestedInput
+  manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
+  direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
 }
 
 export type PersonUncheckedUpdateWithoutOrganisationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   team_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_person_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
   source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
@@ -1475,14 +1988,17 @@ export type PersonUncheckedUpdateWithoutOrganisationInput = {
   archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
 }
 
 export type PersonUncheckedUpdateManyWithoutOrganisationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   team_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_person_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
   source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
@@ -1507,6 +2023,7 @@ export type PersonCreateManyTeamInput = {
   id?: string
   clerk_org_id: string
   organisation_id: string
+  manager_person_id?: string | null
   location_id?: string | null
   person_type?: $Enums.person_type | null
   source_system: $Enums.source_system
@@ -1549,14 +2066,18 @@ export type PersonUpdateWithoutTeamInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutPeopleNestedInput
   location?: Prisma.LocationUpdateOneWithoutPeopleNestedInput
+  manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
+  direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
 }
 
 export type PersonUncheckedUpdateWithoutTeamInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  manager_person_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
   source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
@@ -1575,14 +2096,17 @@ export type PersonUncheckedUpdateWithoutTeamInput = {
   archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
 }
 
 export type PersonUncheckedUpdateManyWithoutTeamInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  manager_person_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   location_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
   source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
@@ -1608,6 +2132,7 @@ export type PersonCreateManyLocationInput = {
   clerk_org_id: string
   organisation_id: string
   team_id?: string | null
+  manager_person_id?: string | null
   person_type?: $Enums.person_type | null
   source_system: $Enums.source_system
   source_person_key?: string | null
@@ -1649,8 +2174,11 @@ export type PersonUpdateWithoutLocationInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutPeopleNestedInput
   team?: Prisma.TeamUpdateOneWithoutPeopleNestedInput
+  manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
+  direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
 }
 
 export type PersonUncheckedUpdateWithoutLocationInput = {
@@ -1658,6 +2186,7 @@ export type PersonUncheckedUpdateWithoutLocationInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   team_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_person_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
   source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
   source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1675,8 +2204,10 @@ export type PersonUncheckedUpdateWithoutLocationInput = {
   archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
 }
 
 export type PersonUncheckedUpdateManyWithoutLocationInput = {
@@ -1684,6 +2215,115 @@ export type PersonUncheckedUpdateManyWithoutLocationInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   team_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_person_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
+  source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
+  source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
+  default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type PersonCreateManyManagerInput = {
+  id?: string
+  clerk_org_id: string
+  organisation_id: string
+  team_id?: string | null
+  location_id?: string | null
+  person_type?: $Enums.person_type | null
+  source_system: $Enums.source_system
+  source_person_key?: string | null
+  first_name: string
+  last_name: string
+  email: string
+  employment_type: $Enums.employment_type
+  is_active?: boolean
+  display_name?: string | null
+  clerk_user_id?: string | null
+  job_title?: string | null
+  default_contactability?: $Enums.availability_contactability
+  default_privacy_mode?: $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: boolean
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+}
+
+export type PersonUpdateWithoutManagerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
+  source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
+  source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
+  default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organisation?: Prisma.OrganisationUpdateOneRequiredWithoutPeopleNestedInput
+  team?: Prisma.TeamUpdateOneWithoutPeopleNestedInput
+  location?: Prisma.LocationUpdateOneWithoutPeopleNestedInput
+  direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
+  leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
+  availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+}
+
+export type PersonUncheckedUpdateWithoutManagerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  team_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
+  source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
+  source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
+  default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+}
+
+export type PersonUncheckedUpdateManyWithoutManagerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  team_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
   source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
   source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1709,13 +2349,17 @@ export type PersonUncheckedUpdateManyWithoutLocationInput = {
  */
 
 export type PersonCountOutputType = {
+  direct_reports: number
   leave_balances: number
   availability_records: number
+  approved_records: number
 }
 
 export type PersonCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  direct_reports?: boolean | PersonCountOutputTypeCountDirect_reportsArgs
   leave_balances?: boolean | PersonCountOutputTypeCountLeave_balancesArgs
   availability_records?: boolean | PersonCountOutputTypeCountAvailability_recordsArgs
+  approved_records?: boolean | PersonCountOutputTypeCountApproved_recordsArgs
 }
 
 /**
@@ -1726,6 +2370,13 @@ export type PersonCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exten
    * Select specific fields to fetch from the PersonCountOutputType
    */
   select?: Prisma.PersonCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * PersonCountOutputType without action
+ */
+export type PersonCountOutputTypeCountDirect_reportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PersonWhereInput
 }
 
 /**
@@ -1742,12 +2393,20 @@ export type PersonCountOutputTypeCountAvailability_recordsArgs<ExtArgs extends r
   where?: Prisma.AvailabilityRecordWhereInput
 }
 
+/**
+ * PersonCountOutputType without action
+ */
+export type PersonCountOutputTypeCountApproved_recordsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AvailabilityRecordWhereInput
+}
+
 
 export type PersonSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   clerk_org_id?: boolean
   organisation_id?: boolean
   team_id?: boolean
+  manager_person_id?: boolean
   location_id?: boolean
   person_type?: boolean
   source_system?: boolean
@@ -1769,8 +2428,11 @@ export type PersonSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
   team?: boolean | Prisma.Person$teamArgs<ExtArgs>
   location?: boolean | Prisma.Person$locationArgs<ExtArgs>
+  manager?: boolean | Prisma.Person$managerArgs<ExtArgs>
+  direct_reports?: boolean | Prisma.Person$direct_reportsArgs<ExtArgs>
   leave_balances?: boolean | Prisma.Person$leave_balancesArgs<ExtArgs>
   availability_records?: boolean | Prisma.Person$availability_recordsArgs<ExtArgs>
+  approved_records?: boolean | Prisma.Person$approved_recordsArgs<ExtArgs>
   _count?: boolean | Prisma.PersonCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["person"]>
 
@@ -1779,6 +2441,7 @@ export type PersonSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   clerk_org_id?: boolean
   organisation_id?: boolean
   team_id?: boolean
+  manager_person_id?: boolean
   location_id?: boolean
   person_type?: boolean
   source_system?: boolean
@@ -1800,6 +2463,7 @@ export type PersonSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
   team?: boolean | Prisma.Person$teamArgs<ExtArgs>
   location?: boolean | Prisma.Person$locationArgs<ExtArgs>
+  manager?: boolean | Prisma.Person$managerArgs<ExtArgs>
 }, ExtArgs["result"]["person"]>
 
 export type PersonSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1807,6 +2471,7 @@ export type PersonSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   clerk_org_id?: boolean
   organisation_id?: boolean
   team_id?: boolean
+  manager_person_id?: boolean
   location_id?: boolean
   person_type?: boolean
   source_system?: boolean
@@ -1828,6 +2493,7 @@ export type PersonSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
   team?: boolean | Prisma.Person$teamArgs<ExtArgs>
   location?: boolean | Prisma.Person$locationArgs<ExtArgs>
+  manager?: boolean | Prisma.Person$managerArgs<ExtArgs>
 }, ExtArgs["result"]["person"]>
 
 export type PersonSelectScalar = {
@@ -1835,6 +2501,7 @@ export type PersonSelectScalar = {
   clerk_org_id?: boolean
   organisation_id?: boolean
   team_id?: boolean
+  manager_person_id?: boolean
   location_id?: boolean
   person_type?: boolean
   source_system?: boolean
@@ -1855,24 +2522,29 @@ export type PersonSelectScalar = {
   updated_at?: boolean
 }
 
-export type PersonOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "team_id" | "location_id" | "person_type" | "source_system" | "source_person_key" | "first_name" | "last_name" | "email" | "employment_type" | "is_active" | "display_name" | "clerk_user_id" | "job_title" | "default_contactability" | "default_privacy_mode" | "include_in_feeds_by_default" | "archived_at" | "created_at" | "updated_at", ExtArgs["result"]["person"]>
+export type PersonOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "team_id" | "manager_person_id" | "location_id" | "person_type" | "source_system" | "source_person_key" | "first_name" | "last_name" | "email" | "employment_type" | "is_active" | "display_name" | "clerk_user_id" | "job_title" | "default_contactability" | "default_privacy_mode" | "include_in_feeds_by_default" | "archived_at" | "created_at" | "updated_at", ExtArgs["result"]["person"]>
 export type PersonInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
   team?: boolean | Prisma.Person$teamArgs<ExtArgs>
   location?: boolean | Prisma.Person$locationArgs<ExtArgs>
+  manager?: boolean | Prisma.Person$managerArgs<ExtArgs>
+  direct_reports?: boolean | Prisma.Person$direct_reportsArgs<ExtArgs>
   leave_balances?: boolean | Prisma.Person$leave_balancesArgs<ExtArgs>
   availability_records?: boolean | Prisma.Person$availability_recordsArgs<ExtArgs>
+  approved_records?: boolean | Prisma.Person$approved_recordsArgs<ExtArgs>
   _count?: boolean | Prisma.PersonCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PersonIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
   team?: boolean | Prisma.Person$teamArgs<ExtArgs>
   location?: boolean | Prisma.Person$locationArgs<ExtArgs>
+  manager?: boolean | Prisma.Person$managerArgs<ExtArgs>
 }
 export type PersonIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
   team?: boolean | Prisma.Person$teamArgs<ExtArgs>
   location?: boolean | Prisma.Person$locationArgs<ExtArgs>
+  manager?: boolean | Prisma.Person$managerArgs<ExtArgs>
 }
 
 export type $PersonPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1881,14 +2553,18 @@ export type $PersonPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     organisation: Prisma.$OrganisationPayload<ExtArgs>
     team: Prisma.$TeamPayload<ExtArgs> | null
     location: Prisma.$LocationPayload<ExtArgs> | null
+    manager: Prisma.$PersonPayload<ExtArgs> | null
+    direct_reports: Prisma.$PersonPayload<ExtArgs>[]
     leave_balances: Prisma.$LeaveBalancePayload<ExtArgs>[]
     availability_records: Prisma.$AvailabilityRecordPayload<ExtArgs>[]
+    approved_records: Prisma.$AvailabilityRecordPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     clerk_org_id: string
     organisation_id: string
     team_id: string | null
+    manager_person_id: string | null
     location_id: string | null
     person_type: $Enums.person_type | null
     source_system: $Enums.source_system
@@ -2304,8 +2980,11 @@ export interface Prisma__PersonClient<T, Null = never, ExtArgs extends runtime.T
   organisation<T extends Prisma.OrganisationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganisationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganisationClient<runtime.Types.Result.GetResult<Prisma.$OrganisationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   team<T extends Prisma.Person$teamArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$teamArgs<ExtArgs>>): Prisma.Prisma__TeamClient<runtime.Types.Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   location<T extends Prisma.Person$locationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$locationArgs<ExtArgs>>): Prisma.Prisma__LocationClient<runtime.Types.Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  manager<T extends Prisma.Person$managerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$managerArgs<ExtArgs>>): Prisma.Prisma__PersonClient<runtime.Types.Result.GetResult<Prisma.$PersonPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  direct_reports<T extends Prisma.Person$direct_reportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$direct_reportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PersonPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   leave_balances<T extends Prisma.Person$leave_balancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$leave_balancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeaveBalancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   availability_records<T extends Prisma.Person$availability_recordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$availability_recordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AvailabilityRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  approved_records<T extends Prisma.Person$approved_recordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$approved_recordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AvailabilityRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2339,6 +3018,7 @@ export interface PersonFieldRefs {
   readonly clerk_org_id: Prisma.FieldRef<"Person", 'String'>
   readonly organisation_id: Prisma.FieldRef<"Person", 'String'>
   readonly team_id: Prisma.FieldRef<"Person", 'String'>
+  readonly manager_person_id: Prisma.FieldRef<"Person", 'String'>
   readonly location_id: Prisma.FieldRef<"Person", 'String'>
   readonly person_type: Prisma.FieldRef<"Person", 'person_type'>
   readonly source_system: Prisma.FieldRef<"Person", 'source_system'>
@@ -2796,6 +3476,49 @@ export type Person$locationArgs<ExtArgs extends runtime.Types.Extensions.Interna
 }
 
 /**
+ * Person.manager
+ */
+export type Person$managerArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Person
+   */
+  select?: Prisma.PersonSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Person
+   */
+  omit?: Prisma.PersonOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PersonInclude<ExtArgs> | null
+  where?: Prisma.PersonWhereInput
+}
+
+/**
+ * Person.direct_reports
+ */
+export type Person$direct_reportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Person
+   */
+  select?: Prisma.PersonSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Person
+   */
+  omit?: Prisma.PersonOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PersonInclude<ExtArgs> | null
+  where?: Prisma.PersonWhereInput
+  orderBy?: Prisma.PersonOrderByWithRelationInput | Prisma.PersonOrderByWithRelationInput[]
+  cursor?: Prisma.PersonWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PersonScalarFieldEnum | Prisma.PersonScalarFieldEnum[]
+}
+
+/**
  * Person.leave_balances
  */
 export type Person$leave_balancesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2823,6 +3546,30 @@ export type Person$leave_balancesArgs<ExtArgs extends runtime.Types.Extensions.I
  * Person.availability_records
  */
 export type Person$availability_recordsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AvailabilityRecord
+   */
+  select?: Prisma.AvailabilityRecordSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AvailabilityRecord
+   */
+  omit?: Prisma.AvailabilityRecordOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AvailabilityRecordInclude<ExtArgs> | null
+  where?: Prisma.AvailabilityRecordWhereInput
+  orderBy?: Prisma.AvailabilityRecordOrderByWithRelationInput | Prisma.AvailabilityRecordOrderByWithRelationInput[]
+  cursor?: Prisma.AvailabilityRecordWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AvailabilityRecordScalarFieldEnum | Prisma.AvailabilityRecordScalarFieldEnum[]
+}
+
+/**
+ * Person.approved_records
+ */
+export type Person$approved_recordsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the AvailabilityRecord
    */

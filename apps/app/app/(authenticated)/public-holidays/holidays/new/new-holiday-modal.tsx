@@ -31,8 +31,8 @@ import { addCustomHolidayAction } from "../../_actions";
 const formSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
   date: z.string().min(1, "Date is required"),
-  recursAnnually: z.boolean().default(false),
-  appliesToAllJurisdictions: z.boolean().default(true),
+  recursAnnually: z.boolean(),
+  appliesToAllJurisdictions: z.boolean(),
 });
 
 export function NewHolidayModal() {

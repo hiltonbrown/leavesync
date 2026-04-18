@@ -1,9 +1,9 @@
 import type { FeedId } from "@repo/core";
 import { listPeopleForOrganisation } from "@repo/database/src/queries";
 import { notFound } from "next/navigation";
+import { InterceptingModalShell } from "@/components/modals/intercepting-modal-shell";
 import { loadFeedDetailData } from "@/lib/server/load-feed-detail-data";
 import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
-import { InterceptingModalShell } from "../../../../components/modals/intercepting-modal-shell";
 import { FeedDetailClient } from "./feed-detail-client";
 
 interface FeedDetailModalPageProperties {

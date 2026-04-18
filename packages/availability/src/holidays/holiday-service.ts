@@ -6,6 +6,7 @@ import {
   startOfUtcDay,
 } from "@repo/core";
 import { database, scopedQuery } from "@repo/database";
+import type { Prisma } from "@repo/database/generated/client";
 import type { public_holiday_type } from "@repo/database/generated/enums";
 import { getPublicHolidays } from "./nager-client";
 
@@ -178,10 +179,10 @@ export async function importForJurisdiction(
       ok: true,
       value: { importedCount, skippedCount },
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       ok: false,
-      error: appError("DATABASE_ERROR", "Failed to import holidays"),
+      error: appError("internal", "Failed to import holidays"),
     };
   }
 }
@@ -207,7 +208,7 @@ export async function addCustomHoliday(
       return {
         ok: false,
         error: appError(
-          "CONFLICT",
+          "conflict",
           "A custom holiday with this name and date already exists"
         ),
       };
@@ -236,10 +237,10 @@ export async function addCustomHoliday(
       ok: true,
       value: { id: holiday.id },
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       ok: false,
-      error: appError("DATABASE_ERROR", "Failed to add custom holiday"),
+      error: appError("internal", "Failed to add custom holiday"),
     };
   }
 }
@@ -259,7 +260,7 @@ export async function suppressHoliday(
     });
 
     if (!holiday) {
-      return { ok: false, error: appError("NOT_FOUND", "Holiday not found") };
+      return { ok: false, error: appError("not_found", "Holiday not found") };
     }
 
     await database.publicHoliday.update({
@@ -271,10 +272,10 @@ export async function suppressHoliday(
     });
 
     return { ok: true, value: { id: holidayId } };
-  } catch (error) {
+  } catch (_error) {
     return {
       ok: false,
-      error: appError("DATABASE_ERROR", "Failed to suppress holiday"),
+      error: appError("internal", "Failed to suppress holiday"),
     };
   }
 }
@@ -294,7 +295,7 @@ export async function restoreHoliday(
     });
 
     if (!holiday) {
-      return { ok: false, error: appError("NOT_FOUND", "Holiday not found") };
+      return { ok: false, error: appError("not_found", "Holiday not found") };
     }
 
     await database.publicHoliday.update({
@@ -306,10 +307,10 @@ export async function restoreHoliday(
     });
 
     return { ok: true, value: { id: holidayId } };
-  } catch (error) {
+  } catch (_error) {
     return {
       ok: false,
-      error: appError("DATABASE_ERROR", "Failed to restore holiday"),
+      error: appError("internal", "Failed to restore holiday"),
     };
   }
 }
@@ -328,14 +329,14 @@ export async function deleteCustomHoliday(
     });
 
     if (!holiday) {
-      return { ok: false, error: appError("NOT_FOUND", "Holiday not found") };
+      return { ok: false, error: appError("not_found", "Holiday not found") };
     }
 
     if (holiday.source !== "manual") {
       return {
         ok: false,
         error: appError(
-          "FORBIDDEN",
+          "forbidden",
           "Cannot delete a holiday imported from an external source"
         ),
       };
@@ -346,10 +347,10 @@ export async function deleteCustomHoliday(
     });
 
     return { ok: true, value: { id: holidayId } };
-  } catch (error) {
+  } catch (_error) {
     return {
       ok: false,
-      error: appError("DATABASE_ERROR", "Failed to delete custom holiday"),
+      error: appError("internal", "Failed to delete custom holiday"),
     };
   }
 }
@@ -363,12 +364,7 @@ export async function listForOrganisation(
   }
 ) {
   try {
-    type WhereClause = Parameters<
-      typeof database.publicHoliday.findMany
-    >[0] extends { where?: infer W }
-      ? NonNullable<W>
-      : never;
-    const whereClause: WhereClause = {
+    const whereClause: Prisma.PublicHolidayWhereInput = {
       ...scopedQuery(clerkOrgId, organisationId),
     };
 
@@ -391,15 +387,16 @@ export async function listForOrganisation(
       where: whereClause,
       orderBy: { holiday_date: "asc" },
       include: {
+        assignments: true,
         jurisdiction: true,
       },
     });
 
     return { ok: true as const, value: holidays };
-  } catch (error) {
+  } catch (_error) {
     return {
       ok: false as const,
-      error: appError("DATABASE_ERROR", "Failed to list holidays"),
+      error: appError("internal", "Failed to list holidays"),
     };
   }
 }
