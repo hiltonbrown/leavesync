@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
+import { toast } from "@repo/design-system/components/ui/sonner";
 import {
   Table,
   TableBody,
@@ -23,6 +24,8 @@ import { AlertCircleIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { SubmitConfirmationModal } from "@/components/plans/submit-confirmation-modal";
+import { XeroSyncFailedState } from "@/components/states/xero-sync-failed-state";
 import { withOrg } from "@/lib/navigation/org-url";
 import {
   archiveRecordAction,
@@ -110,10 +113,37 @@ export function PlansClient({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [inlineError, setInlineError] = useState<Record<string, string>>({});
+  const [submissionModal, setSubmissionModal] = useState<{
+    mode: "retry" | "submit";
+    record: PlansClientRecord;
+  } | null>(null);
+  const [confirmationAction, setConfirmationAction] = useState<{
+    action: "revert_to_draft" | "withdraw";
+    record: PlansClientRecord;
+  } | null>(null);
 
   const newRecordHref = withOrg("/plans/records/new", orgQueryValue);
 
   const runAction = (recordId: string, action: RunnableAction) => {
+    const record = records.find((candidate) => candidate.id === recordId);
+    if (!record) {
+      return;
+    }
+    if (action === "submit_for_approval" || action === "retry_submission") {
+      setSubmissionModal({
+        mode: action === "retry_submission" ? "retry" : "submit",
+        record,
+      });
+      return;
+    }
+    if (action === "revert_to_draft" || action === "withdraw") {
+      setConfirmationAction({ action, record });
+      return;
+    }
+    executeAction(recordId, action);
+  };
+
+  const executeAction = (recordId: string, action: RunnableAction) => {
     startTransition(async () => {
       setInlineError((current) => ({ ...current, [recordId]: "" }));
       const result = await runRecordAction(action, {
@@ -129,6 +159,10 @@ export function PlansClient({
         return;
       }
 
+      setConfirmationAction(null);
+      if (action === "withdraw") {
+        toast.success("Submission withdrawn.");
+      }
       router.refresh();
     });
   };
@@ -333,8 +367,38 @@ export function PlansClient({
                     )}
                     {record.approvalStatus === "xero_sync_failed" &&
                       record.xeroWriteError && (
-                        <div className="mt-3 text-amber-700 text-sm">
-                          {record.xeroWriteError}
+                        <div className="mt-3">
+                          <XeroSyncFailedState
+                            message={record.xeroWriteError}
+                            retrySlot={
+                              <Button
+                                disabled={isPending}
+                                onClick={() =>
+                                  setSubmissionModal({
+                                    mode: "retry",
+                                    record,
+                                  })
+                                }
+                                size="sm"
+                                type="button"
+                              >
+                                Retry
+                              </Button>
+                            }
+                            revertSlot={
+                              <Button
+                                disabled={isPending}
+                                onClick={() =>
+                                  runAction(record.id, "revert_to_draft")
+                                }
+                                size="sm"
+                                type="button"
+                                variant="secondary"
+                              >
+                                Revert to draft
+                              </Button>
+                            }
+                          />
                         </div>
                       )}
                   </TableCell>
@@ -349,6 +413,42 @@ export function PlansClient({
         <p className="text-muted-foreground text-sm">
           Leave records are saved as approved while Xero is disconnected.
         </p>
+      )}
+
+      {submissionModal && (
+        <SubmitConfirmationModal
+          mode={submissionModal.mode}
+          onClose={() => setSubmissionModal(null)}
+          onSuccess={() => {
+            setSubmissionModal(null);
+            toast.success("Leave submitted for approval.");
+            router.refresh();
+          }}
+          record={{
+            balanceAvailable:
+              submissionModal.record.balanceChip?.balanceAvailable ?? null,
+            endsAt: submissionModal.record.endsAt,
+            id: submissionModal.record.id,
+            organisationId,
+            recordType: submissionModal.record.recordType,
+            startsAt: submissionModal.record.startsAt,
+            workingDays: submissionModal.record.workingDays,
+          }}
+        />
+      )}
+
+      {confirmationAction && (
+        <ConfirmActionDialog
+          action={confirmationAction.action}
+          disabled={isPending}
+          onCancel={() => setConfirmationAction(null)}
+          onConfirm={() =>
+            executeAction(
+              confirmationAction.record.id,
+              confirmationAction.action
+            )
+          }
+        />
       )}
     </section>
   );
@@ -426,6 +526,7 @@ function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en-AU", {
     day: "numeric",
     month: "long",
+    timeZone: "UTC",
     year: "numeric",
   }).format(new Date(value));
 }
@@ -441,7 +542,7 @@ function actionLabel(action: EditableAction): string {
     case "retry_submission":
       return "Retry";
     case "revert_to_draft":
-      return "Revert";
+      return "Revert to draft";
     case "submit_for_approval":
       return "Submit for approval";
     case "withdraw":
@@ -453,6 +554,47 @@ function actionLabel(action: EditableAction): string {
     default:
       return action;
   }
+}
+
+function ConfirmActionDialog({
+  action,
+  disabled,
+  onCancel,
+  onConfirm,
+}: {
+  action: "revert_to_draft" | "withdraw";
+  disabled: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const isWithdraw = action === "withdraw";
+  return (
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
+      <section className="w-full max-w-[400px] rounded-2xl bg-background p-6 shadow-sm">
+        <h2 className="font-semibold text-xl">
+          {isWithdraw ? "Withdraw submission?" : "Revert to draft?"}
+        </h2>
+        <p className="mt-3 text-muted-foreground text-sm">
+          {isWithdraw
+            ? "This will withdraw the submitted leave record in Xero."
+            : "This will clear the Xero sync error so you can edit before retrying."}
+        </p>
+        <div className="mt-5 flex justify-end gap-3">
+          <Button
+            disabled={disabled}
+            onClick={onCancel}
+            type="button"
+            variant="secondary"
+          >
+            Cancel
+          </Button>
+          <Button disabled={disabled} onClick={onConfirm} type="button">
+            {isWithdraw ? "Withdraw" : "Revert to draft"}
+          </Button>
+        </div>
+      </section>
+    </div>
+  );
 }
 
 async function runRecordAction(

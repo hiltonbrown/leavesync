@@ -7,9 +7,13 @@ const mocks = vi.hoisted(() => ({
   currentUser: vi.fn(),
   deleteDraftRecord: vi.fn(),
   getActiveOrgContext: vi.fn(),
+  retrySubmission: vi.fn(),
+  revertToDraft: vi.fn(),
   restoreRecord: vi.fn(),
   revalidatePath: vi.fn(),
+  submitDraftRecord: vi.fn(),
   updateRecord: vi.fn(),
+  withdrawSubmission: vi.fn(),
 }));
 
 vi.mock("@repo/auth/server", () => ({
@@ -20,8 +24,12 @@ vi.mock("@repo/availability", () => ({
   archiveRecord: mocks.archiveRecord,
   createRecord: mocks.createRecord,
   deleteDraftRecord: mocks.deleteDraftRecord,
+  retrySubmission: mocks.retrySubmission,
+  revertToDraft: mocks.revertToDraft,
   restoreRecord: mocks.restoreRecord,
+  submitDraftRecord: mocks.submitDraftRecord,
   updateRecord: mocks.updateRecord,
+  withdrawSubmission: mocks.withdrawSubmission,
 }));
 vi.mock("next/cache", () => ({
   revalidatePath: mocks.revalidatePath,
@@ -30,8 +38,14 @@ vi.mock("@/lib/server/get-active-org-context", () => ({
   getActiveOrgContext: mocks.getActiveOrgContext,
 }));
 
-const { createRecordAction, submitForApprovalAction, updateRecordAction } =
-  await import("./_actions");
+const {
+  createRecordAction,
+  retrySubmissionAction,
+  revertToDraftAction,
+  submitForApprovalAction,
+  updateRecordAction,
+  withdrawSubmissionAction,
+} = await import("./_actions");
 
 const validInput = {
   allDay: true,
@@ -114,15 +128,77 @@ describe("plans actions", () => {
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/calendar");
   });
 
-  it("returns not_implemented for submission stubs", async () => {
+  it("revalidates expected paths on submit success", async () => {
+    mocks.submitDraftRecord.mockResolvedValue({
+      ok: true,
+      value: {
+        approval_status: "submitted",
+        id: "00000000-0000-4000-8000-000000000099",
+        xero_write_error: null,
+      },
+    });
+
     const result = await submitForApprovalAction({
       organisationId: validInput.organisationId,
       recordId: "00000000-0000-4000-8000-000000000099",
     });
 
+    expect(result.ok).toBe(true);
+    expect(mocks.submitDraftRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actingOrgRole: "org:viewer",
+        actingUserId: "user_1",
+        clerkOrgId: "org_1",
+      })
+    );
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/plans");
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/calendar");
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/leave-approvals");
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/notifications");
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/");
+  });
+
+  it("passes retry, revert and withdraw through typed service results", async () => {
+    const value = {
+      approval_status: "xero_sync_failed",
+      id: "00000000-0000-4000-8000-000000000099",
+      xero_write_error: "Could not reach Xero.",
+    };
+    mocks.retrySubmission.mockResolvedValue({ ok: true, value });
+    mocks.revertToDraft.mockResolvedValue({
+      ok: true,
+      value: { ...value, approval_status: "draft", xero_write_error: null },
+    });
+    mocks.withdrawSubmission.mockResolvedValue({
+      ok: true,
+      value: { ...value, approval_status: "withdrawn", xero_write_error: null },
+    });
+
+    const input = {
+      organisationId: validInput.organisationId,
+      recordId: "00000000-0000-4000-8000-000000000099",
+    };
+
+    await expect(retrySubmissionAction(input)).resolves.toMatchObject({
+      ok: true,
+    });
+    await expect(revertToDraftAction(input)).resolves.toMatchObject({
+      ok: true,
+    });
+    await expect(withdrawSubmissionAction(input)).resolves.toMatchObject({
+      ok: true,
+    });
+  });
+
+  it("returns validation errors for malformed submission action input", async () => {
+    const result = await submitForApprovalAction({
+      organisationId: validInput.organisationId,
+      recordId: "not-a-uuid",
+    });
+
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error.code).toBe("not_implemented");
+      expect(result.error.code).toBe("validation_error");
     }
   });
 });

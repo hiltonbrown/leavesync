@@ -172,7 +172,10 @@ export const notification_type = {
   sync_failed: 'sync_failed',
   feed_token_rotated: 'feed_token_rotated',
   privacy_conflict: 'privacy_conflict',
-  missing_alternative_contact: 'missing_alternative_contact'
+  missing_alternative_contact: 'missing_alternative_contact',
+  leave_submitted: 'leave_submitted',
+  leave_xero_sync_failed: 'leave_xero_sync_failed',
+  leave_withdrawn: 'leave_withdrawn'
 } as const
 
 export type notification_type = (typeof notification_type)[keyof typeof notification_type]

@@ -13,12 +13,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/design-system/components/ui/select";
+import { toast } from "@repo/design-system/components/ui/sonner";
 import { Textarea } from "@repo/design-system/components/ui/textarea";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
+import { SubmitConfirmationModal } from "@/components/plans/submit-confirmation-modal";
 import {
   createRecordAction,
-  submitForApprovalAction,
+  type PlanActionResult,
   updateRecordAction,
 } from "./_actions";
 import {
@@ -104,18 +106,19 @@ export function RecordForm({
     PlanRecordFormInput["privacyMode"]
   >(record?.privacyMode ?? "named");
   const [allDay, setAllDay] = useState(record?.allDay ?? true);
+  const [confirmationRecord, setConfirmationRecord] = useState<{
+    endsAt: string;
+    id: string;
+    recordType: string;
+    startsAt: string;
+    workingDays: number | null;
+  } | null>(null);
 
   const selectedPerson = people.find((person) => person.id === personId);
   const isXeroLeave = isOneOf(recordType, xeroLeaveRecordTypes);
   const isLocalOnly = isOneOf(recordType, localOnlyRecordTypes);
-  const showSubmitPath =
-    mode === "create" && isXeroLeave && hasActiveXeroConnection;
-  let primaryLabel = "Save";
-  if (mode === "edit") {
-    primaryLabel = "Save changes";
-  } else if (showSubmitPath) {
-    primaryLabel = "Save and submit";
-  }
+  const showSubmitPath = isXeroLeave && hasActiveXeroConnection;
+  const primaryLabel = primarySubmitLabel(showSubmitPath, mode);
 
   const dynamicPanel = useMemo(() => {
     if (isLocalOnly) {
@@ -150,10 +153,7 @@ export function RecordForm({
 
     startTransition(async () => {
       setError(null);
-      const result =
-        mode === "edit" && record
-          ? await updateRecordAction({ ...parsed.data, recordId: record.id })
-          : await createRecordAction(parsed.data);
+      const result = await saveRecord(mode, record, parsed.data);
 
       if (!result.ok) {
         setError(result.error.message);
@@ -161,14 +161,17 @@ export function RecordForm({
       }
 
       if (submitAfterSave) {
-        const submitResult = await submitForApprovalAction({
-          organisationId,
-          recordId: result.value.id,
+        setConfirmationRecord({
+          endsAt: parsed.data.endsAt,
+          id: result.value.id,
+          recordType: parsed.data.recordType,
+          startsAt: parsed.data.startsAt,
+          workingDays: estimateWorkingDays(
+            parsed.data.startsAt,
+            parsed.data.endsAt
+          ),
         });
-        if (!submitResult.ok) {
-          setError(submitResult.error.message);
-          return;
-        }
+        return;
       }
 
       router.push(closeHref);
@@ -185,7 +188,10 @@ export function RecordForm({
   }
 
   return (
-    <form action={(formData) => submit(formData, false)} className="space-y-5">
+    <form
+      action={(formData) => submit(formData, false)}
+      className="relative space-y-5"
+    >
       <div className="rounded-2xl bg-muted p-4 text-muted-foreground text-sm">
         <p>{dynamicPanel}</p>
         {isXeroLeave && hasActiveXeroConnection && (
@@ -359,7 +365,7 @@ export function RecordForm({
       <div className="flex flex-wrap justify-end gap-3">
         {showSubmitPath && (
           <Button disabled={isPending} type="submit" variant="secondary">
-            Save draft
+            {mode === "edit" ? "Save changes" : "Save draft"}
           </Button>
         )}
         <Button
@@ -372,6 +378,29 @@ export function RecordForm({
           {primaryLabel}
         </Button>
       </div>
+
+      {confirmationRecord && (
+        <SubmitConfirmationModal
+          inline
+          mode="submit"
+          onClose={() => setConfirmationRecord(null)}
+          onSuccess={() => {
+            setConfirmationRecord(null);
+            toast.success("Leave submitted for approval.");
+            router.push(closeHref);
+            router.refresh();
+          }}
+          record={{
+            balanceAvailable,
+            endsAt: confirmationRecord.endsAt,
+            id: confirmationRecord.id,
+            organisationId,
+            recordType: confirmationRecord.recordType,
+            startsAt: confirmationRecord.startsAt,
+            workingDays: confirmationRecord.workingDays,
+          }}
+        />
+      )}
     </form>
   );
 }
@@ -403,4 +432,74 @@ function isOneOf<T extends string>(
   values: readonly T[]
 ): value is T {
   return values.some((candidate) => candidate === value);
+}
+
+function isUnchanged(
+  record: EditablePlanRecord,
+  input: PlanRecordFormInput
+): boolean {
+  return (
+    record.allDay === input.allDay &&
+    record.contactabilityStatus === input.contactabilityStatus &&
+    record.endsAt === input.endsAt &&
+    record.endTime === (input.endTime ?? "") &&
+    record.notesInternal === (input.notesInternal ?? "") &&
+    record.personId === input.personId &&
+    record.privacyMode === input.privacyMode &&
+    record.recordType === input.recordType &&
+    record.startsAt === input.startsAt &&
+    record.startTime === (input.startTime ?? "")
+  );
+}
+
+function primarySubmitLabel(
+  showSubmitPath: boolean,
+  mode: RecordFormProps["mode"]
+): string {
+  if (showSubmitPath) {
+    return "Save and submit";
+  }
+  if (mode === "edit") {
+    return "Save changes";
+  }
+  return "Save";
+}
+
+async function saveRecord(
+  mode: RecordFormProps["mode"],
+  record: EditablePlanRecord | undefined,
+  input: PlanRecordFormInput
+): Promise<PlanActionResult<{ id: string }>> {
+  if (mode === "edit" && record) {
+    if (isUnchanged(record, input)) {
+      return { ok: true, value: { id: record.id } };
+    }
+    return await updateRecordAction({ ...input, recordId: record.id });
+  }
+  return await createRecordAction(input);
+}
+
+function estimateWorkingDays(startsAt: string, endsAt: string): number | null {
+  const start = new Date(`${startsAt}T00:00:00.000Z`);
+  const end = new Date(`${endsAt}T00:00:00.000Z`);
+  if (
+    Number.isNaN(start.getTime()) ||
+    Number.isNaN(end.getTime()) ||
+    end < start
+  ) {
+    return null;
+  }
+
+  let count = 0;
+  for (
+    let cursor = new Date(start);
+    cursor <= end;
+    cursor.setUTCDate(cursor.getUTCDate() + 1)
+  ) {
+    const day = cursor.getUTCDay();
+    if (day !== 0 && day !== 6) {
+      count += 1;
+    }
+  }
+  return count;
 }

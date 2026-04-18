@@ -7,7 +7,12 @@ import {
   deleteDraftRecord,
   type PlanServiceError,
   restoreRecord,
+  retrySubmission,
+  revertToDraft,
+  type SubmitServiceError,
+  submitDraftRecord,
   updateRecord,
+  withdrawSubmission,
 } from "@repo/availability";
 import type { Result } from "@repo/core";
 import { revalidatePath } from "next/cache";
@@ -24,8 +29,8 @@ import {
 
 export type PlanActionError =
   | PlanServiceError
+  | SubmitServiceError
   | { code: "not_authorised"; message: string }
-  | { code: "not_implemented"; message: string }
   | { code: "validation_error"; message: string };
 
 export type PlanActionResult<T = { id?: string }> = Result<T, PlanActionError>;
@@ -216,49 +221,80 @@ export async function restoreRecordAction(
 
 export async function submitForApprovalAction(
   input: PlanRecordActionInput
-): Promise<PlanActionResult<void>> {
-  return await stubSubmissionAction(input);
-}
-
-export async function withdrawSubmissionAction(
-  input: PlanRecordActionInput
-): Promise<PlanActionResult<void>> {
-  return await stubSubmissionAction(input);
-}
-
-export async function retrySubmissionAction(
-  input: PlanRecordActionInput
-): Promise<PlanActionResult<void>> {
-  return await stubSubmissionAction(input);
-}
-
-export async function revertToDraftAction(
-  input: PlanRecordActionInput
-): Promise<PlanActionResult<void>> {
-  return await stubSubmissionAction(input);
-}
-
-async function stubSubmissionAction(
-  input: PlanRecordActionInput
-): Promise<PlanActionResult<void>> {
-  const parsed = PlanRecordActionSchema.safeParse(input);
-  if (!parsed.success) {
-    return validationError("Invalid record");
-  }
-
-  const context = await resolveActionContext(parsed.data.organisationId);
+): Promise<PlanActionResult<SubmissionActionValue>> {
+  const context = await resolveRecordActionContext(input);
   if (!context.ok) {
     return context;
   }
 
-  // TODO(slice-04): implement in packages/availability/src/plans/submit-service.ts.
-  return {
-    ok: false,
-    error: {
-      code: "not_implemented",
-      message: "Submission is being enabled. Check back shortly.",
-    },
-  };
+  const result = await submitDraftRecord(context.value);
+  if (!result.ok) {
+    return result;
+  }
+
+  revalidateSubmissionPaths();
+  return submissionValue(result.value);
+}
+
+export async function withdrawSubmissionAction(
+  input: PlanRecordActionInput
+): Promise<PlanActionResult<SubmissionActionValue>> {
+  const context = await resolveRecordActionContext(input);
+  if (!context.ok) {
+    return context;
+  }
+
+  const result = await withdrawSubmission(context.value);
+  if (!result.ok) {
+    return result;
+  }
+
+  revalidatePath("/plans");
+  revalidatePath("/calendar");
+  revalidatePath("/leave-approvals");
+  revalidatePath("/notifications");
+  return submissionValue(result.value);
+}
+
+export async function retrySubmissionAction(
+  input: PlanRecordActionInput
+): Promise<PlanActionResult<SubmissionActionValue>> {
+  const context = await resolveRecordActionContext(input);
+  if (!context.ok) {
+    return context;
+  }
+
+  const result = await retrySubmission(context.value);
+  if (!result.ok) {
+    return result;
+  }
+
+  revalidateSubmissionPaths();
+  return submissionValue(result.value);
+}
+
+export async function revertToDraftAction(
+  input: PlanRecordActionInput
+): Promise<PlanActionResult<SubmissionActionValue>> {
+  const context = await resolveRecordActionContext(input);
+  if (!context.ok) {
+    return context;
+  }
+
+  const result = await revertToDraft(context.value);
+  if (!result.ok) {
+    return result;
+  }
+
+  revalidatePath("/plans");
+  revalidatePath("/calendar");
+  return submissionValue(result.value);
+}
+
+interface SubmissionActionValue {
+  approvalStatus: string;
+  id: string;
+  xeroWriteError: string | null;
 }
 
 async function resolveActionContext(organisationId: string): Promise<
@@ -313,6 +349,62 @@ function canUsePlans(role: string | null | undefined): boolean {
     role === "org:admin" ||
     role === "org:owner"
   );
+}
+
+async function resolveRecordActionContext(
+  input: PlanRecordActionInput
+): Promise<
+  PlanActionResult<{
+    actingOrgRole: string | null;
+    actingUserId: string;
+    clerkOrgId: string;
+    organisationId: string;
+    recordId: string;
+  }>
+> {
+  const parsed = PlanRecordActionSchema.safeParse(input);
+  if (!parsed.success) {
+    return validationError("Invalid record");
+  }
+
+  const context = await resolveActionContext(parsed.data.organisationId);
+  if (!context.ok) {
+    return context;
+  }
+
+  return {
+    ok: true,
+    value: {
+      actingOrgRole: context.value.orgRole,
+      actingUserId: context.value.userId,
+      clerkOrgId: context.value.clerkOrgId,
+      organisationId: context.value.organisationId,
+      recordId: parsed.data.recordId,
+    },
+  };
+}
+
+function revalidateSubmissionPaths() {
+  revalidatePath("/plans");
+  revalidatePath("/calendar");
+  revalidatePath("/leave-approvals");
+  revalidatePath("/notifications");
+  revalidatePath("/");
+}
+
+function submissionValue(record: {
+  approval_status: string;
+  id: string;
+  xero_write_error: string | null;
+}): PlanActionResult<SubmissionActionValue> {
+  return {
+    ok: true,
+    value: {
+      approvalStatus: record.approval_status,
+      id: record.id,
+      xeroWriteError: record.xero_write_error,
+    },
+  };
 }
 
 function validationError(message?: string): PlanActionResult<never> {
