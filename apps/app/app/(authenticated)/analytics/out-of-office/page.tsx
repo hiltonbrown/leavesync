@@ -1,151 +1,146 @@
-import { endOfUtcDay, startOfUtcDay } from "@repo/core";
+import { auth, currentUser } from "@repo/auth/server";
 import {
-  listAvailabilityForCalendar,
-  listPeopleForOrganisation,
-} from "@repo/database/src/queries";
+  type AnalyticsRole,
+  aggregateOutOfOffice,
+  createAggregationCache,
+  type LocalOnlyRecordType,
+  listOutOfOfficeRecordsForDrilldown,
+  type OutOfOfficeFilters,
+  resolveDateRange,
+} from "@repo/availability";
+import { LOCAL_ONLY_TYPES } from "@repo/availability/src/records/record-type-categories";
+import { database, scopedQuery } from "@repo/database";
 import { getOrganisationById } from "@repo/database/src/queries/organisations";
 import type { Metadata } from "next";
-import {
-  isRemoteRecordType,
-  isTravellingRecordType,
-} from "@/lib/availability-record-types";
+import { redirect } from "next/navigation";
+import { FetchErrorState } from "@/components/states/fetch-error-state";
+import { requirePageRole } from "@/lib/auth/require-page-role";
 import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
+import { parseFilterParams } from "@/lib/url-state/parse-filter-params";
 import { Header } from "../../components/header";
+import {
+  type OutOfOfficeFilterInput,
+  OutOfOfficeFilterSchema,
+} from "../_schemas";
+import { buildCalendarDrillDownUrl } from "../drill-down-url";
 import { OooClient } from "./ooo-client";
 
 export const metadata: Metadata = {
-  title: "Out Of Office Reports — LeaveSync",
   description:
-    "Team location and availability tracking: upcoming travel and work from home status.",
+    "Out-of-office analytics from approved manual availability records.",
+  title: "Out of office - LeaveSync",
 };
 
 interface OooReportsPageProps {
-  searchParams: Promise<{
-    org?: string;
-  }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 const OooReportsPage = async ({ searchParams }: OooReportsPageProps) => {
-  const { org } = await searchParams;
+  await requirePageRole("org:viewer");
 
-  const { clerkOrgId, organisationId } = await requireActiveOrgPageContext(org);
-
-  // Load out-of-office availability data for current quarter
-  const now = new Date();
-  const quarterStart = new Date(
-    now.getFullYear(),
-    Math.floor(now.getMonth() / 3) * 3,
-    1
-  );
-  const quarterEnd = new Date(
-    quarterStart.getFullYear(),
-    quarterStart.getMonth() + 3,
-    0
-  );
-
-  const [availabilityResult, peopleResult] = await Promise.all([
-    listAvailabilityForCalendar(clerkOrgId, organisationId, {
-      startDate: startOfUtcDay(quarterStart.toISOString().split("T")[0]),
-      endDate: endOfUtcDay(quarterEnd.toISOString().split("T")[0]),
-    }),
-    listPeopleForOrganisation(clerkOrgId, organisationId),
-  ]);
-  const organisationResult = await getOrganisationById(
-    clerkOrgId,
-    organisationId
-  );
-
-  if (!availabilityResult.ok) {
-    throw new Error(availabilityResult.error.message);
-  }
-  if (!peopleResult.ok) {
-    throw new Error(peopleResult.error.message);
+  const params = await searchParams;
+  const { org, ...filterParams } = params;
+  const orgParam = Array.isArray(org) ? org[0] : org;
+  const { clerkOrgId, organisationId, orgQueryValue } =
+    await requireActiveOrgPageContext(orgParam);
+  const [{ orgRole }, user, organisationResult, teams, locations] =
+    await Promise.all([
+      auth(),
+      currentUser(),
+      getOrganisationById(clerkOrgId, organisationId),
+      database.team.findMany({
+        orderBy: { name: "asc" },
+        select: { id: true, name: true },
+        where: scopedQuery(clerkOrgId, organisationId),
+      }),
+      database.location.findMany({
+        orderBy: { name: "asc" },
+        select: { id: true, name: true },
+        where: scopedQuery(clerkOrgId, organisationId),
+      }),
+    ]);
+  if (!user) {
+    redirect("/");
   }
   if (!organisationResult.ok) {
-    throw new Error(organisationResult.error.message);
+    return (
+      <>
+        <Header organisationId={organisationId} page="Out of office" />
+        <main className="flex flex-1 flex-col p-6 pt-0">
+          <FetchErrorState entityName="out-of-office reports" />
+        </main>
+      </>
+    );
   }
 
-  const reportingUnit = organisationResult.value.reportingUnit ?? "hours";
-  const workingHoursPerDay = organisationResult.value.workingHoursPerDay ?? 7.6;
-
-  const people = peopleResult.value;
-  const availability = availabilityResult.value;
-  const departments = [
-    "All Departments",
-    ...new Set(people.map((person) => person.employmentType)),
-  ];
-  const wfhDays = availability
-    .filter((record) => isRemoteRecordType(record.recordType))
-    .reduce(
-      (total, record) => total + countDays(record.startsAt, record.endsAt),
-      0
-    );
-  const travelDays = availability
-    .filter((record) => isTravellingRecordType(record.recordType))
-    .reduce(
-      (total, record) => total + countDays(record.startsAt, record.endsAt),
-      0
-    );
-  const oooTypes = [
-    {
-      bgFill: "color-mix(in srgb, var(--tertiary) 15%, transparent)",
-      color: "var(--tertiary)",
-      days: wfhDays,
-      icon: "home" as const,
-      id: "wfh",
-      label: "Working from home",
-      total: wfhDays,
-    },
-    {
-      bgFill: "color-mix(in srgb, var(--primary) 12%, transparent)",
-      color: "var(--primary)",
-      days: travelDays,
-      icon: "plane" as const,
-      id: "travelling",
-      label: "Travelling",
-      total: travelDays,
-    },
-  ];
-  const staffData = people.map((person, index) => {
-    const personRecords = availability.filter(
-      (record) => record.personId === person.id
-    );
-    return {
-      id: index + 1,
-      name: `${person.firstName} ${person.lastName}`,
-      team: person.employmentType,
-      travelDays: personRecords
-        .filter((record) => isTravellingRecordType(record.recordType))
-        .reduce(
-          (total, record) => total + countDays(record.startsAt, record.endsAt),
-          0
-        ),
-      wfhDays: personRecords
-        .filter((record) => isRemoteRecordType(record.recordType))
-        .reduce(
-          (total, record) => total + countDays(record.startsAt, record.endsAt),
-          0
-        ),
-    };
+  const role = effectiveRole(orgRole);
+  const filters = parseFilterParams(filterParams, OutOfOfficeFilterSchema) ?? {
+    includeArchivedPeople: false,
+    personType: "all",
+    preset: "this_quarter",
+  };
+  const dateRangeResult = resolveDateRange({
+    customEnd: filters.customEnd,
+    customStart: filters.customStart,
+    preset: filters.preset,
+    timezone: organisationResult.value.timezone ?? "UTC",
   });
-  const barChartData = staffData.slice(0, 8).map((person) => ({
-    name: person.name,
-    travelling: person.travelDays,
-    wfh: person.wfhDays,
-  }));
-  const timelineChartData = barChartData;
+  if (!dateRangeResult.ok) {
+    return (
+      <>
+        <Header organisationId={organisationId} page="Out of office" />
+        <main className="flex flex-1 flex-col p-6 pt-0">
+          <FetchErrorState entityName="date range" />
+        </main>
+      </>
+    );
+  }
+
+  const serviceFilters = oooServiceFilters(filters, role);
+  const cache = createAggregationCache();
+  const dataResult = await aggregateOutOfOffice({
+    actingUserId: user.id,
+    cache,
+    clerkOrgId,
+    dateRange: dateRangeResult.value,
+    filters: serviceFilters,
+    organisationId,
+    role,
+  });
+  if (!dataResult.ok) {
+    return (
+      <>
+        <Header organisationId={organisationId} page="Out of office" />
+        <main className="flex flex-1 flex-col p-6 pt-0">
+          <FetchErrorState entityName="out-of-office reports" />
+        </main>
+      </>
+    );
+  }
+
+  const drilldown = await loadDrilldown({
+    cache,
+    clerkOrgId,
+    dateRange: dateRangeResult.value,
+    filters,
+    organisationId,
+    orgQueryValue,
+    role,
+    userId: user.id,
+  });
 
   return (
     <>
-      <Header page="Out of Office" />
+      <Header organisationId={organisationId} page="Out of office" />
       <OooClient
-        barChartData={barChartData}
-        departments={departments}
-        oooTypes={oooTypes}
-        reportingUnit={reportingUnit}
-        staffData={staffData}
-        timelineChartData={timelineChartData}
-        workingHoursPerDay={workingHoursPerDay}
+        canIncludeArchived={role === "admin" || role === "owner"}
+        data={dataResult.value}
+        drilldown={drilldown}
+        exportInput={{ ...filters, organisationId }}
+        filters={filters}
+        locations={locations}
+        orgQueryValue={orgQueryValue}
+        teams={teams}
       />
     </>
   );
@@ -153,12 +148,114 @@ const OooReportsPage = async ({ searchParams }: OooReportsPageProps) => {
 
 export default OooReportsPage;
 
-function countDays(startsAt: Date, endsAt: Date): number {
-  const start = startOfUtcDay(startsAt.toISOString().slice(0, 10));
-  const end = startOfUtcDay(endsAt.toISOString().slice(0, 10));
-  const millisecondsPerDay = 24 * 60 * 60 * 1000;
-  return Math.max(
-    1,
-    Math.ceil((end.getTime() - start.getTime()) / millisecondsPerDay)
-  );
+function oooServiceFilters(
+  filters: OutOfOfficeFilterInput,
+  role: AnalyticsRole
+): OutOfOfficeFilters {
+  return {
+    includeArchivedPeople:
+      role === "admin" || role === "owner"
+        ? filters.includeArchivedPeople
+        : false,
+    locationId: filters.locationId,
+    personId: filters.personId,
+    personType: filters.personType,
+    recordType: filters.recordType?.filter(isLocalOnlyRecordType),
+    teamId: filters.teamId,
+  };
+}
+
+async function loadDrilldown({
+  cache,
+  clerkOrgId,
+  dateRange,
+  filters,
+  organisationId,
+  orgQueryValue,
+  role,
+  userId,
+}: {
+  cache: ReturnType<typeof createAggregationCache>;
+  clerkOrgId: string;
+  dateRange: { end: Date; label: string; start: Date };
+  filters: OutOfOfficeFilterInput;
+  organisationId: string;
+  orgQueryValue: string | null;
+  role: AnalyticsRole;
+  userId: string;
+}) {
+  if (!(filters.drilldownKind && filters.drilldownValue)) {
+    return null;
+  }
+  const adjusted = oooServiceFilters(filters, role);
+  if (filters.drilldownKind === "person") {
+    adjusted.personId = [filters.drilldownValue];
+  }
+  if (filters.drilldownKind === "record_type") {
+    adjusted.recordType = isLocalOnlyRecordType(filters.drilldownValue)
+      ? [filters.drilldownValue]
+      : adjusted.recordType;
+  }
+  const records = await listOutOfOfficeRecordsForDrilldown({
+    actingUserId: userId,
+    cache,
+    clerkOrgId,
+    dateRange,
+    filters: adjusted,
+    organisationId,
+    pageSize: 50,
+    role,
+  });
+  if (!records.ok) {
+    return null;
+  }
+  return {
+    calendarHref: buildCalendarDrillDownUrl({
+      customEnd: dateRange.end.toISOString().slice(0, 10),
+      customStart: dateRange.start.toISOString().slice(0, 10),
+      org: orgQueryValue,
+      personId: adjusted.personId?.[0],
+      preset: "custom",
+      recordType: adjusted.recordType?.[0],
+    }),
+    closeHref: closeHref("/analytics/out-of-office", filters, orgQueryValue),
+    records: records.value.records,
+    title: "Out-of-office records",
+  };
+}
+
+function closeHref(
+  path: string,
+  filters: OutOfOfficeFilterInput,
+  orgQueryValue: string | null
+): string {
+  const params = new URLSearchParams();
+  if (orgQueryValue) {
+    params.set("org", orgQueryValue);
+  }
+  params.set("preset", filters.preset);
+  if (filters.customStart) {
+    params.set("customStart", filters.customStart);
+  }
+  if (filters.customEnd) {
+    params.set("customEnd", filters.customEnd);
+  }
+  return `${path}?${params.toString()}`;
+}
+
+function effectiveRole(role: string | null | undefined): AnalyticsRole {
+  if (role === "org:owner") {
+    return "owner";
+  }
+  if (role === "org:admin") {
+    return "admin";
+  }
+  if (role === "org:manager") {
+    return "manager";
+  }
+  return "viewer";
+}
+
+function isLocalOnlyRecordType(value: string): value is LocalOnlyRecordType {
+  return LOCAL_ONLY_TYPES.some((recordType) => recordType === value);
 }

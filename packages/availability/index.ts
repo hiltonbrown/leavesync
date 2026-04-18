@@ -1,6 +1,38 @@
 import "server-only";
 
 export {
+  DATE_RANGE_PRESET_OPTIONS,
+  type DateRangeError,
+  type DateRangePreset,
+  type ResolvedDateRange,
+  resolveDateRange,
+  zonedStartOfDayToUtc,
+} from "./src/analytics/date-range";
+export {
+  type AnalyticsRecordListItem,
+  type AnalyticsRole,
+  type AnalyticsServiceError,
+  aggregateLeaveReports,
+  type LeaveReportsData,
+  type LeaveReportsFilters,
+  listLeaveReportRecordsForDrilldown,
+  type RecordListPage,
+  type XeroLeaveRecordType,
+} from "./src/analytics/leave-reports-service";
+export {
+  aggregateOutOfOffice,
+  type LocalOnlyRecordType,
+  listOutOfOfficeRecordsForDrilldown,
+  type OutOfOfficeData,
+  type OutOfOfficeFilters,
+} from "./src/analytics/out-of-office-service";
+export {
+  type AggregationCache,
+  aggregationFingerprint,
+  createAggregationCache,
+  stableStringify,
+} from "./src/analytics/request-cache";
+export {
   cancelRun,
   dispatchManualSync,
   exportFailedRecordsCsv,
