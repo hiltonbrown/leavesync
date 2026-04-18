@@ -37,9 +37,21 @@ describe("notification-type-registry", () => {
       "approval_flow",
       "sync",
       "sync",
+      "sync",
       "system",
       "system",
     ]);
+  });
+
+  it("registers approval reconciliation completion notifications", () => {
+    expect(getTypeConfig("sync_reconciliation_complete")).toMatchObject({
+      defaultChannels: { email: false, inApp: true },
+      emailTemplate: null,
+      iconKey: "refresh-check",
+      label: "Approval reconciliation complete",
+      supportsActionUrl: true,
+      userFacingCategory: "sync",
+    });
   });
 
   it("returns a fallback config without throwing", () => {

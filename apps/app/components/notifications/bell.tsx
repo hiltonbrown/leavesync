@@ -14,6 +14,7 @@ import {
   InboxIcon,
   KeyRoundIcon,
   MessageCircleIcon,
+  RefreshCwIcon,
   ReplyIcon,
   ShieldAlertIcon,
   UserPlusIcon,
@@ -236,6 +237,8 @@ function iconComponent(iconKey: string) {
       return MessageCircleIcon;
     case "reply":
       return ReplyIcon;
+    case "refresh-check":
+      return RefreshCwIcon;
     case "alert-triangle":
       return AlertTriangleIcon;
     case "key-round":
@@ -267,6 +270,8 @@ function iconForType(type: string): string {
       return "shield-alert";
     case "missing_alternative_contact":
       return "user-plus";
+    case "sync_reconciliation_complete":
+      return "refresh-check";
     default:
       return "alert-triangle";
   }

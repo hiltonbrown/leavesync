@@ -28,6 +28,16 @@ export type NotificationSseEvent =
       payload: {
         unreadCount: 0;
       };
+    }
+  | {
+      type: "sync.run_status_changed";
+      payload: {
+        organisationId: string;
+        runId: string;
+        runType: string;
+        status: string;
+        xeroTenantId: string | null;
+      };
     };
 
 type Listener = (event: NotificationSseEvent) => void;
@@ -72,6 +82,20 @@ export function publishNotificationEvent(
   }
   for (const listener of current) {
     listener(event);
+  }
+}
+
+export function publishOrganisationNotificationEvent(
+  input: { organisationId: string },
+  event: NotificationSseEvent
+): void {
+  for (const [key, current] of listeners.entries()) {
+    if (!key.endsWith(`:${input.organisationId}`)) {
+      continue;
+    }
+    for (const listener of current) {
+      listener(event);
+    }
   }
 }
 

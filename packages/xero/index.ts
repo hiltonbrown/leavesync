@@ -1,3 +1,8 @@
+export { fetchLeaveApplicationStatusForRegion } from "./src/read/dispatch";
+export type {
+  XeroLeaveApplicationStatus,
+  XeroLeaveApplicationStatusResult,
+} from "./src/read/leave-application-status";
 export {
   type ResolutionError,
   resolveXeroEmployeeId,

@@ -1,5 +1,24 @@
 import "server-only";
 
+export {
+  cancelRun,
+  dispatchManualSync,
+  exportFailedRecordsCsv,
+  getRunDetail,
+  listRuns,
+  listTenantSummaries,
+  type RunDetail,
+  type RunListItem,
+  type SyncMonitorError,
+  type SyncMonitorRole,
+  type SyncRunFilters,
+  type SyncRunStatus,
+  type SyncRunType,
+  type SyncTriggerType,
+  type TenantSummary,
+  type TimelineEvent,
+} from "./src/sync/sync-monitor-service";
+
 import { randomUUID } from "node:crypto";
 import {
   appError,

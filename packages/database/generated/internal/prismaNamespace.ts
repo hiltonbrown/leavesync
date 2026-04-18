@@ -2271,6 +2271,7 @@ export const XeroConnectionScalarFieldEnum = {
   access_token_encrypted: 'access_token_encrypted',
   refresh_token_encrypted: 'refresh_token_encrypted',
   expires_at: 'expires_at',
+  last_refreshed_at: 'last_refreshed_at',
   revoked_at: 'revoked_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
@@ -2285,6 +2286,7 @@ export const XeroTenantScalarFieldEnum = {
   organisation_id: 'organisation_id',
   xero_connection_id: 'xero_connection_id',
   xero_tenant_id: 'xero_tenant_id',
+  tenant_name: 'tenant_name',
   payroll_region: 'payroll_region',
   created_at: 'created_at',
   updated_at: 'updated_at'
@@ -2575,10 +2577,18 @@ export const SyncRunScalarFieldEnum = {
   organisation_id: 'organisation_id',
   xero_tenant_id: 'xero_tenant_id',
   status: 'status',
+  run_type: 'run_type',
+  trigger_type: 'trigger_type',
+  triggered_by_user_id: 'triggered_by_user_id',
   entity_type: 'entity_type',
+  records_fetched: 'records_fetched',
+  records_upserted: 'records_upserted',
+  records_skipped: 'records_skipped',
   records_synced: 'records_synced',
   records_failed: 'records_failed',
   error_message: 'error_message',
+  error_summary: 'error_summary',
+  cancel_requested_at: 'cancel_requested_at',
   started_at: 'started_at',
   completed_at: 'completed_at',
   created_at: 'created_at',
@@ -2594,7 +2604,10 @@ export const FailedRecordScalarFieldEnum = {
   organisation_id: 'organisation_id',
   sync_run_id: 'sync_run_id',
   entity_type: 'entity_type',
+  record_type: 'record_type',
   source_id: 'source_id',
+  source_remote_id: 'source_remote_id',
+  error_code: 'error_code',
   error_message: 'error_message',
   raw_payload: 'raw_payload',
   created_at: 'created_at',
@@ -3048,6 +3061,62 @@ export type Enumnotification_email_statusFieldRefInput<$PrismaModel> = FieldRefI
  * Reference to a field of type 'notification_email_status[]'
  */
 export type ListEnumnotification_email_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'notification_email_status[]'>
+    
+
+
+/**
+ * Reference to a field of type 'sync_run_status'
+ */
+export type Enumsync_run_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'sync_run_status'>
+    
+
+
+/**
+ * Reference to a field of type 'sync_run_status[]'
+ */
+export type ListEnumsync_run_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'sync_run_status[]'>
+    
+
+
+/**
+ * Reference to a field of type 'sync_run_type'
+ */
+export type Enumsync_run_typeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'sync_run_type'>
+    
+
+
+/**
+ * Reference to a field of type 'sync_run_type[]'
+ */
+export type ListEnumsync_run_typeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'sync_run_type[]'>
+    
+
+
+/**
+ * Reference to a field of type 'sync_trigger_type'
+ */
+export type Enumsync_trigger_typeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'sync_trigger_type'>
+    
+
+
+/**
+ * Reference to a field of type 'sync_trigger_type[]'
+ */
+export type ListEnumsync_trigger_typeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'sync_trigger_type[]'>
+    
+
+
+/**
+ * Reference to a field of type 'sync_failed_record_type'
+ */
+export type Enumsync_failed_record_typeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'sync_failed_record_type'>
+    
+
+
+/**
+ * Reference to a field of type 'sync_failed_record_type[]'
+ */
+export type ListEnumsync_failed_record_typeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'sync_failed_record_type[]'>
     
 
 
