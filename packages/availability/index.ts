@@ -467,5 +467,6 @@ export * from "./src/duration/working-days";
 export * from "./src/holidays/holiday-service";
 export * from "./src/holidays/nager-client";
 export * from "./src/plans/plan-service";
+export * from "./src/plans/submit-service";
 export * from "./src/records/record-type-categories";
 export * from "./src/xero-connection-state";

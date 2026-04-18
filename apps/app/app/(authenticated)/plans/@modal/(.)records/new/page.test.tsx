@@ -16,6 +16,8 @@ const mocks = vi.hoisted(() => ({
   createRecordAction: vi.fn(),
   push: vi.fn(),
   refresh: vi.fn(),
+  retrySubmissionAction: vi.fn(),
+  revertToDraftAction: vi.fn(),
   submitForApprovalAction: vi.fn(),
   updateRecordAction: vi.fn(),
 }));
@@ -42,6 +44,15 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("../../../_actions", () => ({
   createRecordAction: mocks.createRecordAction,
+  retrySubmissionAction: mocks.retrySubmissionAction,
+  revertToDraftAction: mocks.revertToDraftAction,
+  submitForApprovalAction: mocks.submitForApprovalAction,
+  updateRecordAction: mocks.updateRecordAction,
+}));
+vi.mock("@/app/(authenticated)/plans/_actions", () => ({
+  createRecordAction: mocks.createRecordAction,
+  retrySubmissionAction: mocks.retrySubmissionAction,
+  revertToDraftAction: mocks.revertToDraftAction,
   submitForApprovalAction: mocks.submitForApprovalAction,
   updateRecordAction: mocks.updateRecordAction,
 }));
@@ -77,10 +88,11 @@ describe("new record modal form", () => {
       value: { id: initialRecord.id },
     });
     mocks.submitForApprovalAction.mockResolvedValue({
-      ok: false,
-      error: {
-        code: "not_implemented",
-        message: "Submission is being enabled. Check back shortly.",
+      ok: true,
+      value: {
+        approvalStatus: "xero_sync_failed",
+        id: initialRecord.id,
+        xeroWriteError: "Could not reach Xero.",
       },
     });
   });
@@ -143,7 +155,7 @@ describe("new record modal form", () => {
     expect(screen.getByText(CALENDAR_IMMEDIATE_COPY)).toBeDefined();
   });
 
-  it("keeps values and shows the stub error after Save and submit", async () => {
+  it("keeps values and shows the Xero error after Save and submit", async () => {
     render(
       <RecordForm
         balanceAvailable={10}
@@ -158,11 +170,11 @@ describe("new record modal form", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Save and submit" }));
+    await screen.findByText("Submit for approval?");
+    fireEvent.click(screen.getByRole("button", { name: "Confirm and submit" }));
 
     await waitFor(() => {
-      expect(
-        screen.getByText("Submission is being enabled. Check back shortly.")
-      ).toBeDefined();
+      expect(screen.getByText("Could not reach Xero.")).toBeDefined();
     });
     expect(screen.getByDisplayValue("Keep me")).toBeDefined();
   });

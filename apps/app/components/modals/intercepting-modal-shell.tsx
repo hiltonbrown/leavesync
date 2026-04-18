@@ -12,12 +12,14 @@ import { type ReactNode, useEffect, useState } from "react";
 
 interface InterceptingModalShellProps {
   readonly children: ReactNode;
+  readonly onClose?: () => void;
   readonly size?: "narrow" | "default" | "wide";
   readonly title?: string;
 }
 
 export const InterceptingModalShell = ({
   children,
+  onClose,
   title,
   size = "default",
 }: InterceptingModalShellProps) => {
@@ -30,6 +32,10 @@ export const InterceptingModalShell = ({
 
   const handleOpenChange = (value: boolean) => {
     if (!value) {
+      if (onClose) {
+        onClose();
+        return;
+      }
       router.back();
     }
   };

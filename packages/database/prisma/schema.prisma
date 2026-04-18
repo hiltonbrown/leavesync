@@ -127,6 +127,9 @@ enum notification_type {
   feed_token_rotated
   privacy_conflict
   missing_alternative_contact
+  leave_submitted
+  leave_xero_sync_failed
+  leave_withdrawn
 }
 
 enum public_holiday_source {

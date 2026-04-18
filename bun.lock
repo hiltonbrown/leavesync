@@ -281,7 +281,9 @@
       "dependencies": {
         "@repo/core": "*",
         "@repo/database": "*",
+        "@repo/notifications": "*",
         "@repo/observability": "*",
+        "@repo/xero": "*",
         "server-only": "^0.0.1",
         "zod": "^4.3.6",
       },
@@ -503,6 +505,8 @@
       "dependencies": {
         "@knocklabs/node": "^1.29.1",
         "@knocklabs/react": "^0.11.12",
+        "@repo/core": "*",
+        "@repo/database": "*",
         "@t3-oss/env-nextjs": "^0.13.11",
         "react": "19.2.4",
         "zod": "^4.3.6",
@@ -623,6 +627,22 @@
       "devDependencies": {
         "@repo/typescript-config": "*",
         "typescript": "^6.0.2",
+      },
+    },
+    "packages/xero": {
+      "name": "@repo/xero",
+      "version": "0.0.0",
+      "dependencies": {
+        "@repo/core": "*",
+        "@repo/database": "*",
+        "@t3-oss/env-nextjs": "^0.13.11",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@repo/typescript-config": "*",
+        "@types/node": "25.5.2",
+        "typescript": "^6.0.2",
+        "vitest": "^4.1.2",
       },
     },
   },
@@ -1627,6 +1647,8 @@
     "@repo/typescript-config": ["@repo/typescript-config@workspace:packages/typescript-config"],
 
     "@repo/webhooks": ["@repo/webhooks@workspace:packages/webhooks"],
+
+    "@repo/xero": ["@repo/xero@workspace:packages/xero"],
 
     "@rescale/nemo": ["@rescale/nemo@2.2.0", "", { "dependencies": { "path-to-regexp": "^6.1.0" }, "peerDependencies": { "next": ">=13.0.0" } }, "sha512-AetzvHmtJ8Q0U1SEpBmWgCZfQZgBfr++Ok0AUMHGJVdaU1w+OB1/x/PMoskulL5xrnFLRdUlmMBhYl+JTgZMjA=="],
 

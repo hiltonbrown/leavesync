@@ -1,5 +1,5 @@
 {
-  "name": "@repo/availability",
+  "name": "@repo/xero",
   "version": "0.0.0",
   "main": "./index.ts",
   "types": "./index.ts",
@@ -11,15 +11,13 @@
   "dependencies": {
     "@repo/core": "*",
     "@repo/database": "*",
-    "@repo/notifications": "*",
-    "@repo/observability": "*",
-    "@repo/xero": "*",
-    "server-only": "^0.0.1",
+    "@t3-oss/env-nextjs": "^0.13.11",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
-    "dotenv": "^17.4.1",
-    "typescript": "^6.0.2"
+    "@types/node": "25.5.2",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.2"
   }
 }
