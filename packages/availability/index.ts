@@ -463,6 +463,7 @@ export const archiveManualAvailability = async (
   return { ok: true, value: undefined };
 };
 
+export * from "./src/approvals/approval-service";
 export * from "./src/duration/working-days";
 export * from "./src/holidays/holiday-service";
 export * from "./src/holidays/nager-client";
