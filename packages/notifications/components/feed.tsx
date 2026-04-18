@@ -1,20 +1,13 @@
 "use client";
 
-import { NotificationFeed } from "@knocklabs/react";
-import { keys } from "../keys";
+import type { ReactNode } from "react";
 
-// Required CSS import
-import "@knocklabs/react/dist/index.css";
-import "../styles.css";
+interface NotificationsFeedProperties {
+  children?: ReactNode;
+}
 
-export const NotificationsFeed = () => {
-  if (!keys().NEXT_PUBLIC_KNOCK_API_KEY) {
-    return (
-      <div className="flex flex-1 items-center justify-center p-8 text-muted-foreground">
-        Notifications are not configured.
-      </div>
-    );
-  }
-
-  return <NotificationFeed />;
+export const NotificationsFeed = ({
+  children,
+}: NotificationsFeedProperties) => {
+  return <>{children ?? null}</>;
 };

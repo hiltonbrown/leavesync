@@ -137,6 +137,11 @@ export type Notification = Prisma.NotificationModel
  */
 export type NotificationPreference = Prisma.NotificationPreferenceModel
 /**
+ * Model NotificationEmailQueue
+ * 
+ */
+export type NotificationEmailQueue = Prisma.NotificationEmailQueueModel
+/**
  * Model SyncRun
  * 
  */

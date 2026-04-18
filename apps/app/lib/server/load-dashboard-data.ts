@@ -75,7 +75,9 @@ export async function loadDashboardData(
       }),
       listFeedsForOrganisation(clerkOrgId, organisationId),
       user
-        ? listNotificationsForUser(clerkOrgId, user.id, { isRead: false })
+        ? listNotificationsForUser(clerkOrgId, organisationId, user.id, {
+            isRead: false,
+          })
         : Promise.resolve({ ok: true, value: [] } as const),
       listPendingApprovalRecords(clerkOrgId, organisationId),
     ]);

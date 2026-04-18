@@ -70,6 +70,7 @@ export const ModelName = {
   FeedToken: 'FeedToken',
   Notification: 'Notification',
   NotificationPreference: 'NotificationPreference',
+  NotificationEmailQueue: 'NotificationEmailQueue',
   SyncRun: 'SyncRun',
   FailedRecord: 'FailedRecord',
   AuditEvent: 'AuditEvent'
@@ -433,10 +434,18 @@ export type FeedTokenScalarFieldEnum = (typeof FeedTokenScalarFieldEnum)[keyof t
 export const NotificationScalarFieldEnum = {
   id: 'id',
   clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
   recipient_user_id: 'recipient_user_id',
+  recipient_person_id: 'recipient_person_id',
   type: 'type',
+  title: 'title',
+  body: 'body',
+  action_url: 'action_url',
+  object_type: 'object_type',
+  object_id: 'object_id',
+  actor_user_id: 'actor_user_id',
   payload: 'payload',
-  is_read: 'is_read',
+  read_at: 'read_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -448,6 +457,7 @@ export const NotificationPreferenceScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
   clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
   notification_type: 'notification_type',
   in_app_enabled: 'in_app_enabled',
   email_enabled: 'email_enabled',
@@ -456,6 +466,32 @@ export const NotificationPreferenceScalarFieldEnum = {
 } as const
 
 export type NotificationPreferenceScalarFieldEnum = (typeof NotificationPreferenceScalarFieldEnum)[keyof typeof NotificationPreferenceScalarFieldEnum]
+
+
+export const NotificationEmailQueueScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  notification_id: 'notification_id',
+  recipient_user_id: 'recipient_user_id',
+  notification_type: 'notification_type',
+  email_template: 'email_template',
+  recipient_email: 'recipient_email',
+  title: 'title',
+  body: 'body',
+  action_url: 'action_url',
+  unsubscribe_url: 'unsubscribe_url',
+  merge_data: 'merge_data',
+  status: 'status',
+  attempts: 'attempts',
+  last_error: 'last_error',
+  queued_at: 'queued_at',
+  sent_at: 'sent_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type NotificationEmailQueueScalarFieldEnum = (typeof NotificationEmailQueueScalarFieldEnum)[keyof typeof NotificationEmailQueueScalarFieldEnum]
 
 
 export const SyncRunScalarFieldEnum = {
@@ -522,13 +558,6 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
-
-
-export const JsonNullValueInput = {
-  JsonNull: JsonNull
-} as const
-
-export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

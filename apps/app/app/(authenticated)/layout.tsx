@@ -1,4 +1,7 @@
+import { requireOrg } from "@repo/auth/helpers";
 import { auth, currentUser } from "@repo/auth/server";
+import type { ClerkOrgId } from "@repo/core";
+import { listOrganisationsByClerkOrg } from "@repo/database/src/queries/organisations";
 import {
   SidebarInset,
   SidebarProvider,
@@ -27,8 +30,20 @@ const AppLayout = async ({ children }: AppLayoutProperties) => {
     return redirectToSignIn();
   }
 
+  let organisationId: string | null = null;
+  try {
+    // requireOrg guarantees this string is the active Clerk Organisation ID.
+    const clerkOrgId = (await requireOrg()) as ClerkOrgId;
+    const organisations = await listOrganisationsByClerkOrg(clerkOrgId);
+    organisationId = organisations.ok
+      ? (organisations.value[0]?.id ?? null)
+      : null;
+  } catch {
+    organisationId = null;
+  }
+
   return (
-    <NotificationsProvider userId={user.id}>
+    <NotificationsProvider organisationId={organisationId}>
       <SidebarProvider className="h-svh">
         <GlobalSidebar>
           <SidebarInset className="overflow-y-auto">

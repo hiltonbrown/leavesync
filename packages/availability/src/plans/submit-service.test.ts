@@ -5,9 +5,8 @@ const mocks = vi.hoisted(() => ({
   availabilityFindFirst: vi.fn(),
   availabilityUpdateMany: vi.fn(),
   computeWorkingDays: vi.fn(),
+  dispatchNotification: vi.fn(),
   hasActiveXeroConnection: vi.fn(),
-  notificationCreate: vi.fn(),
-  notificationPreferenceFindUnique: vi.fn(),
   personFindFirst: vi.fn(),
   resolveXeroEmployeeId: vi.fn(),
   resolveXeroLeaveTypeId: vi.fn(),
@@ -23,10 +22,6 @@ vi.mock("@repo/database", () => ({
       await callback({
         auditEvent: { create: mocks.auditCreate },
         availabilityRecord: { updateMany: mocks.availabilityUpdateMany },
-        notification: { create: mocks.notificationCreate },
-        notificationPreference: {
-          findUnique: mocks.notificationPreferenceFindUnique,
-        },
       }),
     availabilityRecord: { findFirst: mocks.availabilityFindFirst },
     person: { findFirst: mocks.personFindFirst },
@@ -46,6 +41,9 @@ vi.mock("@repo/xero", () => ({
   toPlainLanguageMessage: () =>
     "This leave overlaps an existing record in Xero. Review the dates and try again.",
   withdrawLeaveApplicationForRegion: mocks.withdrawLeaveApplicationForRegion,
+}));
+vi.mock("@repo/notifications", () => ({
+  dispatchNotification: mocks.dispatchNotification,
 }));
 
 const {
@@ -112,7 +110,10 @@ describe("submit-service", () => {
     mocks.availabilityUpdateMany.mockResolvedValue({ count: 1 });
     mocks.computeWorkingDays.mockResolvedValue({ ok: true, value: 2 });
     mocks.hasActiveXeroConnection.mockResolvedValue(true);
-    mocks.notificationPreferenceFindUnique.mockResolvedValue(null);
+    mocks.dispatchNotification.mockResolvedValue({
+      ok: true,
+      value: { emailQueued: false, inAppDelivered: true },
+    });
     mocks.personFindFirst.mockResolvedValue({ id: record.person.id });
     mocks.resolveXeroEmployeeId.mockResolvedValue({
       ok: true,
@@ -159,13 +160,12 @@ describe("submit-service", () => {
         }),
       })
     );
-    expect(mocks.notificationCreate).toHaveBeenCalledWith(
+    expect(mocks.dispatchNotification).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({
-          recipient_user_id: "manager_1",
-          type: "leave_submitted",
-        }),
-      })
+        recipientUserId: "manager_1",
+        type: "leave_submitted",
+      }),
+      expect.anything()
     );
     expect(mocks.auditCreate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -206,7 +206,7 @@ describe("submit-service", () => {
         }),
       })
     );
-    expect(mocks.notificationCreate).toHaveBeenCalledTimes(2);
+    expect(mocks.dispatchNotification).toHaveBeenCalledTimes(2);
     expect(mocks.auditCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -276,10 +276,11 @@ describe("submit-service", () => {
 
     expect(result.ok).toBe(true);
     expect(mocks.withdrawLeaveApplicationForRegion).toHaveBeenCalled();
-    expect(mocks.notificationCreate).toHaveBeenCalledWith(
+    expect(mocks.dispatchNotification).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ type: "leave_withdrawn" }),
-      })
+        type: "leave_withdrawn",
+      }),
+      expect.anything()
     );
   });
 
@@ -328,7 +329,10 @@ describe("submit-service", () => {
     mocks.availabilityUpdateMany.mockResolvedValue({ count: 1 });
     mocks.computeWorkingDays.mockResolvedValue({ ok: true, value: 2 });
     mocks.hasActiveXeroConnection.mockResolvedValue(true);
-    mocks.notificationPreferenceFindUnique.mockResolvedValue(null);
+    mocks.dispatchNotification.mockResolvedValue({
+      ok: true,
+      value: { emailQueued: false, inAppDelivered: true },
+    });
     mocks.personFindFirst.mockResolvedValue({ id: record.person.id });
     mocks.resolveXeroEmployeeId.mockResolvedValue({
       ok: true,

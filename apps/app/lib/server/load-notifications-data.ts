@@ -1,43 +1,29 @@
 import "server-only";
 
 import { currentUser } from "@repo/auth/server";
-import type { ClerkOrgId, Result } from "@repo/core";
+import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
 import { appError } from "@repo/core";
 import {
-  countUnreadNotifications,
-  listNotificationPreferencesForUser,
-  listNotificationsForUser,
-} from "@repo/database/src/queries/notifications";
+  listForUser,
+  listPreferences,
+  type NotificationFilters,
+  type NotificationListItem,
+  type NotificationPreferenceRow,
+} from "@repo/notifications";
 
-/**
- * Loads notifications data for the current authenticated user.
- * Includes all notifications and unread count.
- */
 export async function loadNotificationsData(
   clerkOrgId: ClerkOrgId,
-  filters?: {
-    isRead?: boolean;
-    types?: string[];
-  }
+  organisationId: OrganisationId,
+  filters?: NotificationFilters
 ): Promise<
   Result<{
-    notifications: Array<{
-      id: string;
-      type: string;
-      payload: unknown;
-      isRead: boolean;
-      createdAt: Date;
-    }>;
-    preferences: Array<{
-      emailEnabled: boolean;
-      inAppEnabled: boolean;
-      notificationType: string;
-    }>;
+    notifications: NotificationListItem[];
+    nextCursor: string | null;
+    preferences: NotificationPreferenceRow[];
     unreadCount: number;
   }>
 > {
   try {
-    // Get current user
     const user = await currentUser();
     if (!user) {
       return {
@@ -46,60 +32,42 @@ export async function loadNotificationsData(
       };
     }
 
-    const userId = user.id;
-
-    // Load notifications
-    const notificationsResult = await listNotificationsForUser(
-      clerkOrgId,
-      userId,
-      filters
-    );
-
+    const [notificationsResult, preferencesResult] = await Promise.all([
+      listForUser({
+        clerkOrgId,
+        organisationId,
+        userId: user.id,
+        filters,
+      }),
+      listPreferences({
+        clerkOrgId,
+        organisationId,
+        userId: user.id,
+      }),
+    ]);
     if (!notificationsResult.ok) {
       return {
         ok: false,
-        error: notificationsResult.error,
+        error: appError("internal", notificationsResult.error.message),
       };
     }
-
-    const [unreadResult, preferencesResult] = await Promise.all([
-      countUnreadNotifications(clerkOrgId, userId),
-      listNotificationPreferencesForUser(clerkOrgId, userId),
-    ]);
-
-    if (!unreadResult.ok) {
-      return {
-        ok: false,
-        error: unreadResult.error,
-      };
-    }
-
     if (!preferencesResult.ok) {
       return {
         ok: false,
-        error: preferencesResult.error,
+        error: appError("internal", preferencesResult.error.message),
       };
     }
 
     return {
       ok: true,
       value: {
-        notifications: notificationsResult.value.map((notification) => ({
-          id: notification.id,
-          type: notification.type,
-          payload: notification.payload,
-          isRead: notification.isRead,
-          createdAt: notification.createdAt,
-        })),
-        preferences: preferencesResult.value.map((preference) => ({
-          notificationType: preference.notificationType,
-          inAppEnabled: preference.inAppEnabled,
-          emailEnabled: preference.emailEnabled,
-        })),
-        unreadCount: unreadResult.value,
+        notifications: notificationsResult.value.notifications,
+        nextCursor: notificationsResult.value.nextCursor,
+        preferences: preferencesResult.value,
+        unreadCount: notificationsResult.value.unreadCount,
       },
     };
-  } catch (_error) {
+  } catch {
     return {
       ok: false,
       error: appError("internal", "Failed to load notifications"),

@@ -367,6 +367,7 @@ export type PersonWhereInput = {
   alternative_contacts?: Prisma.AlternativeContactListRelationFilter
   availability_records?: Prisma.AvailabilityRecordListRelationFilter
   approved_records?: Prisma.AvailabilityRecordListRelationFilter
+  notifications?: Prisma.NotificationListRelationFilter
 }
 
 export type PersonOrderByWithRelationInput = {
@@ -406,6 +407,7 @@ export type PersonOrderByWithRelationInput = {
   alternative_contacts?: Prisma.AlternativeContactOrderByRelationAggregateInput
   availability_records?: Prisma.AvailabilityRecordOrderByRelationAggregateInput
   approved_records?: Prisma.AvailabilityRecordOrderByRelationAggregateInput
+  notifications?: Prisma.NotificationOrderByRelationAggregateInput
 }
 
 export type PersonWhereUniqueInput = Prisma.AtLeast<{
@@ -451,6 +453,7 @@ export type PersonWhereUniqueInput = Prisma.AtLeast<{
   alternative_contacts?: Prisma.AlternativeContactListRelationFilter
   availability_records?: Prisma.AvailabilityRecordListRelationFilter
   approved_records?: Prisma.AvailabilityRecordListRelationFilter
+  notifications?: Prisma.NotificationListRelationFilter
 }, "id" | "organisation_id_source_system_source_person_key" | "organisation_id_clerk_user_id" | "organisation_id_xero_employee_id">
 
 export type PersonOrderByWithAggregationInput = {
@@ -552,6 +555,7 @@ export type PersonCreateInput = {
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonUncheckedCreateInput = {
@@ -587,6 +591,7 @@ export type PersonUncheckedCreateInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonUpdateInput = {
@@ -622,6 +627,7 @@ export type PersonUpdateInput = {
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonUncheckedUpdateInput = {
@@ -657,6 +663,7 @@ export type PersonUncheckedUpdateInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonCreateManyInput = {
@@ -1133,6 +1140,22 @@ export type PersonUpdateOneRequiredWithoutLeave_balancesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.PersonUpdateToOneWithWhereWithoutLeave_balancesInput, Prisma.PersonUpdateWithoutLeave_balancesInput>, Prisma.PersonUncheckedUpdateWithoutLeave_balancesInput>
 }
 
+export type PersonCreateNestedOneWithoutNotificationsInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutNotificationsInput, Prisma.PersonUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutNotificationsInput
+  connect?: Prisma.PersonWhereUniqueInput
+}
+
+export type PersonUpdateOneWithoutNotificationsNestedInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutNotificationsInput, Prisma.PersonUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutNotificationsInput
+  upsert?: Prisma.PersonUpsertWithoutNotificationsInput
+  disconnect?: Prisma.PersonWhereInput | boolean
+  delete?: Prisma.PersonWhereInput | boolean
+  connect?: Prisma.PersonWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PersonUpdateToOneWithWhereWithoutNotificationsInput, Prisma.PersonUpdateWithoutNotificationsInput>, Prisma.PersonUncheckedUpdateWithoutNotificationsInput>
+}
+
 export type PersonCreateWithoutOrganisationInput = {
   id?: string
   clerk_org_id: string
@@ -1165,6 +1188,7 @@ export type PersonCreateWithoutOrganisationInput = {
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonUncheckedCreateWithoutOrganisationInput = {
@@ -1199,6 +1223,7 @@ export type PersonUncheckedCreateWithoutOrganisationInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonCreateOrConnectWithoutOrganisationInput = {
@@ -1292,6 +1317,7 @@ export type PersonCreateWithoutTeamInput = {
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonUncheckedCreateWithoutTeamInput = {
@@ -1326,6 +1352,7 @@ export type PersonUncheckedCreateWithoutTeamInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonCreateOrConnectWithoutTeamInput = {
@@ -1386,6 +1413,7 @@ export type PersonCreateWithoutLocationInput = {
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonUncheckedCreateWithoutLocationInput = {
@@ -1420,6 +1448,7 @@ export type PersonUncheckedCreateWithoutLocationInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonCreateOrConnectWithoutLocationInput = {
@@ -1480,6 +1509,7 @@ export type PersonCreateWithoutDirect_reportsInput = {
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonUncheckedCreateWithoutDirect_reportsInput = {
@@ -1514,6 +1544,7 @@ export type PersonUncheckedCreateWithoutDirect_reportsInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonCreateOrConnectWithoutDirect_reportsInput = {
@@ -1553,6 +1584,7 @@ export type PersonCreateWithoutManagerInput = {
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonUncheckedCreateWithoutManagerInput = {
@@ -1587,6 +1619,7 @@ export type PersonUncheckedCreateWithoutManagerInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonCreateOrConnectWithoutManagerInput = {
@@ -1642,6 +1675,7 @@ export type PersonUpdateWithoutDirect_reportsInput = {
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonUncheckedUpdateWithoutDirect_reportsInput = {
@@ -1676,6 +1710,7 @@ export type PersonUncheckedUpdateWithoutDirect_reportsInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonUpsertWithWhereUniqueWithoutManagerInput = {
@@ -1726,6 +1761,7 @@ export type PersonCreateWithoutAlternative_contactsInput = {
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonUncheckedCreateWithoutAlternative_contactsInput = {
@@ -1760,6 +1796,7 @@ export type PersonUncheckedCreateWithoutAlternative_contactsInput = {
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonCreateOrConnectWithoutAlternative_contactsInput = {
@@ -1810,6 +1847,7 @@ export type PersonUpdateWithoutAlternative_contactsInput = {
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonUncheckedUpdateWithoutAlternative_contactsInput = {
@@ -1844,6 +1882,7 @@ export type PersonUncheckedUpdateWithoutAlternative_contactsInput = {
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonCreateWithoutAvailability_recordsInput = {
@@ -1878,6 +1917,7 @@ export type PersonCreateWithoutAvailability_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonUncheckedCreateWithoutAvailability_recordsInput = {
@@ -1912,6 +1952,7 @@ export type PersonUncheckedCreateWithoutAvailability_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonCreateOrConnectWithoutAvailability_recordsInput = {
@@ -1951,6 +1992,7 @@ export type PersonCreateWithoutApproved_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonUncheckedCreateWithoutApproved_recordsInput = {
@@ -1985,6 +2027,7 @@ export type PersonUncheckedCreateWithoutApproved_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonCreateOrConnectWithoutApproved_recordsInput = {
@@ -2035,6 +2078,7 @@ export type PersonUpdateWithoutAvailability_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonUncheckedUpdateWithoutAvailability_recordsInput = {
@@ -2069,6 +2113,7 @@ export type PersonUncheckedUpdateWithoutAvailability_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonUpsertWithoutApproved_recordsInput = {
@@ -2114,6 +2159,7 @@ export type PersonUpdateWithoutApproved_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonUncheckedUpdateWithoutApproved_recordsInput = {
@@ -2148,6 +2194,7 @@ export type PersonUncheckedUpdateWithoutApproved_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonCreateWithoutLeave_balancesInput = {
@@ -2182,6 +2229,7 @@ export type PersonCreateWithoutLeave_balancesInput = {
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonUncheckedCreateWithoutLeave_balancesInput = {
@@ -2216,6 +2264,7 @@ export type PersonUncheckedCreateWithoutLeave_balancesInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
 export type PersonCreateOrConnectWithoutLeave_balancesInput = {
@@ -2266,6 +2315,7 @@ export type PersonUpdateWithoutLeave_balancesInput = {
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonUncheckedUpdateWithoutLeave_balancesInput = {
@@ -2297,6 +2347,163 @@ export type PersonUncheckedUpdateWithoutLeave_balancesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
+}
+
+export type PersonCreateWithoutNotificationsInput = {
+  id?: string
+  clerk_org_id: string
+  person_type?: $Enums.person_type | null
+  source_system: $Enums.source_system
+  source_person_key?: string | null
+  first_name: string
+  last_name: string
+  email: string
+  xero_employee_id?: string | null
+  employment_type: $Enums.employment_type
+  is_active?: boolean
+  display_name?: string | null
+  clerk_user_id?: string | null
+  job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
+  default_contactability?: $Enums.availability_contactability
+  default_privacy_mode?: $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: boolean
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  organisation: Prisma.OrganisationCreateNestedOneWithoutPeopleInput
+  team?: Prisma.TeamCreateNestedOneWithoutPeopleInput
+  location?: Prisma.LocationCreateNestedOneWithoutPeopleInput
+  manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
+  direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
+  leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
+  availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+}
+
+export type PersonUncheckedCreateWithoutNotificationsInput = {
+  id?: string
+  clerk_org_id: string
+  organisation_id: string
+  team_id?: string | null
+  manager_person_id?: string | null
+  location_id?: string | null
+  person_type?: $Enums.person_type | null
+  source_system: $Enums.source_system
+  source_person_key?: string | null
+  first_name: string
+  last_name: string
+  email: string
+  xero_employee_id?: string | null
+  employment_type: $Enums.employment_type
+  is_active?: boolean
+  display_name?: string | null
+  clerk_user_id?: string | null
+  job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
+  default_contactability?: $Enums.availability_contactability
+  default_privacy_mode?: $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: boolean
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+}
+
+export type PersonCreateOrConnectWithoutNotificationsInput = {
+  where: Prisma.PersonWhereUniqueInput
+  create: Prisma.XOR<Prisma.PersonCreateWithoutNotificationsInput, Prisma.PersonUncheckedCreateWithoutNotificationsInput>
+}
+
+export type PersonUpsertWithoutNotificationsInput = {
+  update: Prisma.XOR<Prisma.PersonUpdateWithoutNotificationsInput, Prisma.PersonUncheckedUpdateWithoutNotificationsInput>
+  create: Prisma.XOR<Prisma.PersonCreateWithoutNotificationsInput, Prisma.PersonUncheckedCreateWithoutNotificationsInput>
+  where?: Prisma.PersonWhereInput
+}
+
+export type PersonUpdateToOneWithWhereWithoutNotificationsInput = {
+  where?: Prisma.PersonWhereInput
+  data: Prisma.XOR<Prisma.PersonUpdateWithoutNotificationsInput, Prisma.PersonUncheckedUpdateWithoutNotificationsInput>
+}
+
+export type PersonUpdateWithoutNotificationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
+  source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
+  source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
+  default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organisation?: Prisma.OrganisationUpdateOneRequiredWithoutPeopleNestedInput
+  team?: Prisma.TeamUpdateOneWithoutPeopleNestedInput
+  location?: Prisma.LocationUpdateOneWithoutPeopleNestedInput
+  manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
+  direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
+  leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
+  availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+}
+
+export type PersonUncheckedUpdateWithoutNotificationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  team_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_person_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
+  source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
+  source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
+  default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
@@ -2363,6 +2570,7 @@ export type PersonUpdateWithoutOrganisationInput = {
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonUncheckedUpdateWithoutOrganisationInput = {
@@ -2397,6 +2605,7 @@ export type PersonUncheckedUpdateWithoutOrganisationInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonUncheckedUpdateManyWithoutOrganisationInput = {
@@ -2489,6 +2698,7 @@ export type PersonUpdateWithoutTeamInput = {
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonUncheckedUpdateWithoutTeamInput = {
@@ -2523,6 +2733,7 @@ export type PersonUncheckedUpdateWithoutTeamInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonUncheckedUpdateManyWithoutTeamInput = {
@@ -2615,6 +2826,7 @@ export type PersonUpdateWithoutLocationInput = {
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonUncheckedUpdateWithoutLocationInput = {
@@ -2649,6 +2861,7 @@ export type PersonUncheckedUpdateWithoutLocationInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonUncheckedUpdateManyWithoutLocationInput = {
@@ -2741,6 +2954,7 @@ export type PersonUpdateWithoutManagerInput = {
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonUncheckedUpdateWithoutManagerInput = {
@@ -2775,6 +2989,7 @@ export type PersonUncheckedUpdateWithoutManagerInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
 export type PersonUncheckedUpdateManyWithoutManagerInput = {
@@ -2817,6 +3032,7 @@ export type PersonCountOutputType = {
   alternative_contacts: number
   availability_records: number
   approved_records: number
+  notifications: number
 }
 
 export type PersonCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2825,6 +3041,7 @@ export type PersonCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   alternative_contacts?: boolean | PersonCountOutputTypeCountAlternative_contactsArgs
   availability_records?: boolean | PersonCountOutputTypeCountAvailability_recordsArgs
   approved_records?: boolean | PersonCountOutputTypeCountApproved_recordsArgs
+  notifications?: boolean | PersonCountOutputTypeCountNotificationsArgs
 }
 
 /**
@@ -2872,6 +3089,13 @@ export type PersonCountOutputTypeCountApproved_recordsArgs<ExtArgs extends runti
   where?: Prisma.AvailabilityRecordWhereInput
 }
 
+/**
+ * PersonCountOutputType without action
+ */
+export type PersonCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.NotificationWhereInput
+}
+
 
 export type PersonSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2910,6 +3134,7 @@ export type PersonSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   alternative_contacts?: boolean | Prisma.Person$alternative_contactsArgs<ExtArgs>
   availability_records?: boolean | Prisma.Person$availability_recordsArgs<ExtArgs>
   approved_records?: boolean | Prisma.Person$approved_recordsArgs<ExtArgs>
+  notifications?: boolean | Prisma.Person$notificationsArgs<ExtArgs>
   _count?: boolean | Prisma.PersonCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["person"]>
 
@@ -3022,6 +3247,7 @@ export type PersonInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   alternative_contacts?: boolean | Prisma.Person$alternative_contactsArgs<ExtArgs>
   availability_records?: boolean | Prisma.Person$availability_recordsArgs<ExtArgs>
   approved_records?: boolean | Prisma.Person$approved_recordsArgs<ExtArgs>
+  notifications?: boolean | Prisma.Person$notificationsArgs<ExtArgs>
   _count?: boolean | Prisma.PersonCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PersonIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3049,6 +3275,7 @@ export type $PersonPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     alternative_contacts: Prisma.$AlternativeContactPayload<ExtArgs>[]
     availability_records: Prisma.$AvailabilityRecordPayload<ExtArgs>[]
     approved_records: Prisma.$AvailabilityRecordPayload<ExtArgs>[]
+    notifications: Prisma.$NotificationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3481,6 +3708,7 @@ export interface Prisma__PersonClient<T, Null = never, ExtArgs extends runtime.T
   alternative_contacts<T extends Prisma.Person$alternative_contactsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$alternative_contactsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AlternativeContactPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   availability_records<T extends Prisma.Person$availability_recordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$availability_recordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AvailabilityRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   approved_records<T extends Prisma.Person$approved_recordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$approved_recordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AvailabilityRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  notifications<T extends Prisma.Person$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4112,6 +4340,30 @@ export type Person$approved_recordsArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.AvailabilityRecordScalarFieldEnum | Prisma.AvailabilityRecordScalarFieldEnum[]
+}
+
+/**
+ * Person.notifications
+ */
+export type Person$notificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Notification
+   */
+  select?: Prisma.NotificationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Notification
+   */
+  omit?: Prisma.NotificationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NotificationInclude<ExtArgs> | null
+  where?: Prisma.NotificationWhereInput
+  orderBy?: Prisma.NotificationOrderByWithRelationInput | Prisma.NotificationOrderByWithRelationInput[]
+  cursor?: Prisma.NotificationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[]
 }
 
 /**
