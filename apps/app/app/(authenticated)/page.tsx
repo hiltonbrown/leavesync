@@ -11,6 +11,7 @@ import type { Metadata } from "next";
 import { AdminView } from "@/components/dashboard/admin-view";
 import { DashboardLiveUpdates } from "@/components/dashboard/dashboard-live-updates";
 import { EmployeeView } from "@/components/dashboard/employee-view";
+import { GettingStartedView } from "@/components/dashboard/getting-started-view";
 import { ManagerView } from "@/components/dashboard/manager-view";
 import { ViewerView } from "@/components/dashboard/viewer-view";
 import { FetchErrorState } from "@/components/states/fetch-error-state";
@@ -122,7 +123,14 @@ async function renderDashboard({
   orgQueryValue,
   userId,
 }: RenderDashboardInput) {
-  if (!(actingPersonId && role !== "viewer")) {
+  if (!actingPersonId) {
+    if (role === "owner" || role === "admin") {
+      return <GettingStartedView orgQueryValue={orgQueryValue} />;
+    }
+    return <ViewerView />;
+  }
+
+  if (role === "viewer") {
     return <ViewerView />;
   }
 

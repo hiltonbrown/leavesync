@@ -61,6 +61,40 @@ const statusLabels: Record<string, string> = {
   wfh: "Working from home",
 };
 
+function renderEmptyState({
+  canIncludeArchived,
+  orgQueryValue,
+  totalCount,
+}: {
+  canIncludeArchived: boolean;
+  orgQueryValue: string | null;
+  totalCount: number;
+}) {
+  if (totalCount === 0) {
+    return (
+      <EmptyState
+        actionSlot={
+          canIncludeArchived ? (
+            <Button asChild variant="outline">
+              <Link href={withOrg("/people/new", orgQueryValue)}>
+                Add person manually
+              </Link>
+            </Button>
+          ) : undefined
+        }
+        description="No people have been added yet. Connect Xero to sync your employees, or add someone manually."
+        title="No people yet"
+      />
+    );
+  }
+  return (
+    <EmptyState
+      description="No people match the current filters."
+      title="No people found"
+    />
+  );
+}
+
 export function PeopleClient({
   canIncludeArchived,
   filters,
@@ -106,8 +140,17 @@ export function PeopleClient({
               {totalCount} {totalCount === 1 ? "member" : "members"}
             </p>
           </div>
-          <div className="text-muted-foreground text-sm">
-            Profiles, balances and availability status for this organisation.
+          <div className="flex items-center gap-4">
+            <p className="text-muted-foreground text-sm">
+              Profiles, balances and availability status for this organisation.
+            </p>
+            {canIncludeArchived && (
+              <Button asChild size="sm" variant="outline">
+                <Link href={withOrg("/people/new", orgQueryValue)}>
+                  Add person
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -234,10 +277,7 @@ export function PeopleClient({
       </form>
 
       {people.length === 0 ? (
-        <EmptyState
-          description="No people match the current filters."
-          title="No people found"
-        />
+        renderEmptyState({ canIncludeArchived, orgQueryValue, totalCount })
       ) : (
         <div className="overflow-hidden rounded-2xl bg-muted">
           <Table>
