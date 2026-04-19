@@ -1,6 +1,7 @@
+// This file has been automatically migrated to valid ESM format by Storybook.
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
-import type { StorybookConfig } from "@storybook/nextjs";
+import type { StorybookConfig } from "@storybook/nextjs-vite";
 
 const require = createRequire(import.meta.url);
 
@@ -22,7 +23,7 @@ const config: StorybookConfig = {
     getAbsolutePath("@storybook/addon-themes"),
   ],
   framework: {
-    name: getAbsolutePath("@storybook/nextjs"),
+    name: getAbsolutePath("@storybook/nextjs-vite"),
     options: {},
   },
   staticDirs: ["../public"],

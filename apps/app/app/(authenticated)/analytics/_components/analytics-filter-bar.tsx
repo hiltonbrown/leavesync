@@ -50,9 +50,9 @@ export function AnalyticsFilterBar({
 }: AnalyticsFilterBarProps) {
   const recordTypeName = filterType === "leave" ? "leaveType" : "recordType";
   const selectedRecordType =
-    "leaveType" in filters
-      ? (filters.leaveType?.[0] ?? "all")
-      : (filters.recordType?.[0] ?? "all");
+    filterType === "leave"
+      ? ((filters as LeaveReportsFilterInput).leaveType?.[0] ?? "all")
+      : ((filters as OutOfOfficeFilterInput).recordType?.[0] ?? "all");
   const includePublicHolidays =
     "includePublicHolidays" in filters ? filters.includePublicHolidays : false;
   return (

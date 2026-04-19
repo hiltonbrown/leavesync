@@ -28,7 +28,7 @@ const arrayParam = <T extends z.ZodTypeAny>(schema: T) =>
         .split(",")
         .filter((item) => item !== "all" && item.length > 0);
     }
-    return undefined;
+    return;
   }, z.array(schema).optional());
 
 const boolParam = z.preprocess(

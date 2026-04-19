@@ -29,9 +29,14 @@ export type AuditEventMinAggregateOutputType = {
   clerk_org_id: string | null
   organisation_id: string | null
   actor_user_id: string | null
+  actor_display: string | null
   action: string | null
+  entity_type: string | null
+  entity_id: string | null
   resource_type: string | null
   resource_id: string | null
+  ip_address: string | null
+  user_agent: string | null
   created_at: Date | null
 }
 
@@ -40,9 +45,14 @@ export type AuditEventMaxAggregateOutputType = {
   clerk_org_id: string | null
   organisation_id: string | null
   actor_user_id: string | null
+  actor_display: string | null
   action: string | null
+  entity_type: string | null
+  entity_id: string | null
   resource_type: string | null
   resource_id: string | null
+  ip_address: string | null
+  user_agent: string | null
   created_at: Date | null
 }
 
@@ -51,10 +61,18 @@ export type AuditEventCountAggregateOutputType = {
   clerk_org_id: number
   organisation_id: number
   actor_user_id: number
+  actor_display: number
   action: number
+  entity_type: number
+  entity_id: number
   resource_type: number
   resource_id: number
+  metadata: number
   payload: number
+  before_value: number
+  after_value: number
+  ip_address: number
+  user_agent: number
   created_at: number
   _all: number
 }
@@ -65,9 +83,14 @@ export type AuditEventMinAggregateInputType = {
   clerk_org_id?: true
   organisation_id?: true
   actor_user_id?: true
+  actor_display?: true
   action?: true
+  entity_type?: true
+  entity_id?: true
   resource_type?: true
   resource_id?: true
+  ip_address?: true
+  user_agent?: true
   created_at?: true
 }
 
@@ -76,9 +99,14 @@ export type AuditEventMaxAggregateInputType = {
   clerk_org_id?: true
   organisation_id?: true
   actor_user_id?: true
+  actor_display?: true
   action?: true
+  entity_type?: true
+  entity_id?: true
   resource_type?: true
   resource_id?: true
+  ip_address?: true
+  user_agent?: true
   created_at?: true
 }
 
@@ -87,10 +115,18 @@ export type AuditEventCountAggregateInputType = {
   clerk_org_id?: true
   organisation_id?: true
   actor_user_id?: true
+  actor_display?: true
   action?: true
+  entity_type?: true
+  entity_id?: true
   resource_type?: true
   resource_id?: true
+  metadata?: true
   payload?: true
+  before_value?: true
+  after_value?: true
+  ip_address?: true
+  user_agent?: true
   created_at?: true
   _all?: true
 }
@@ -172,10 +208,18 @@ export type AuditEventGroupByOutputType = {
   clerk_org_id: string
   organisation_id: string
   actor_user_id: string | null
+  actor_display: string | null
   action: string
+  entity_type: string | null
+  entity_id: string | null
   resource_type: string
   resource_id: string | null
+  metadata: runtime.JsonValue | null
   payload: runtime.JsonValue | null
+  before_value: runtime.JsonValue | null
+  after_value: runtime.JsonValue | null
+  ip_address: string | null
+  user_agent: string | null
   created_at: Date
   _count: AuditEventCountAggregateOutputType | null
   _min: AuditEventMinAggregateOutputType | null
@@ -205,10 +249,18 @@ export type AuditEventWhereInput = {
   clerk_org_id?: Prisma.StringFilter<"AuditEvent"> | string
   organisation_id?: Prisma.UuidFilter<"AuditEvent"> | string
   actor_user_id?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
+  actor_display?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
   action?: Prisma.StringFilter<"AuditEvent"> | string
+  entity_type?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
+  entity_id?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
   resource_type?: Prisma.StringFilter<"AuditEvent"> | string
   resource_id?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
+  metadata?: Prisma.JsonNullableFilter<"AuditEvent">
   payload?: Prisma.JsonNullableFilter<"AuditEvent">
+  before_value?: Prisma.JsonNullableFilter<"AuditEvent">
+  after_value?: Prisma.JsonNullableFilter<"AuditEvent">
+  ip_address?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
+  user_agent?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
   created_at?: Prisma.DateTimeFilter<"AuditEvent"> | Date | string
   organisation?: Prisma.XOR<Prisma.OrganisationScalarRelationFilter, Prisma.OrganisationWhereInput>
 }
@@ -218,10 +270,18 @@ export type AuditEventOrderByWithRelationInput = {
   clerk_org_id?: Prisma.SortOrder
   organisation_id?: Prisma.SortOrder
   actor_user_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  actor_display?: Prisma.SortOrderInput | Prisma.SortOrder
   action?: Prisma.SortOrder
+  entity_type?: Prisma.SortOrderInput | Prisma.SortOrder
+  entity_id?: Prisma.SortOrderInput | Prisma.SortOrder
   resource_type?: Prisma.SortOrder
   resource_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  metadata?: Prisma.SortOrderInput | Prisma.SortOrder
   payload?: Prisma.SortOrderInput | Prisma.SortOrder
+  before_value?: Prisma.SortOrderInput | Prisma.SortOrder
+  after_value?: Prisma.SortOrderInput | Prisma.SortOrder
+  ip_address?: Prisma.SortOrderInput | Prisma.SortOrder
+  user_agent?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   organisation?: Prisma.OrganisationOrderByWithRelationInput
 }
@@ -234,10 +294,18 @@ export type AuditEventWhereUniqueInput = Prisma.AtLeast<{
   clerk_org_id?: Prisma.StringFilter<"AuditEvent"> | string
   organisation_id?: Prisma.UuidFilter<"AuditEvent"> | string
   actor_user_id?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
+  actor_display?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
   action?: Prisma.StringFilter<"AuditEvent"> | string
+  entity_type?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
+  entity_id?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
   resource_type?: Prisma.StringFilter<"AuditEvent"> | string
   resource_id?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
+  metadata?: Prisma.JsonNullableFilter<"AuditEvent">
   payload?: Prisma.JsonNullableFilter<"AuditEvent">
+  before_value?: Prisma.JsonNullableFilter<"AuditEvent">
+  after_value?: Prisma.JsonNullableFilter<"AuditEvent">
+  ip_address?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
+  user_agent?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
   created_at?: Prisma.DateTimeFilter<"AuditEvent"> | Date | string
   organisation?: Prisma.XOR<Prisma.OrganisationScalarRelationFilter, Prisma.OrganisationWhereInput>
 }, "id">
@@ -247,10 +315,18 @@ export type AuditEventOrderByWithAggregationInput = {
   clerk_org_id?: Prisma.SortOrder
   organisation_id?: Prisma.SortOrder
   actor_user_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  actor_display?: Prisma.SortOrderInput | Prisma.SortOrder
   action?: Prisma.SortOrder
+  entity_type?: Prisma.SortOrderInput | Prisma.SortOrder
+  entity_id?: Prisma.SortOrderInput | Prisma.SortOrder
   resource_type?: Prisma.SortOrder
   resource_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  metadata?: Prisma.SortOrderInput | Prisma.SortOrder
   payload?: Prisma.SortOrderInput | Prisma.SortOrder
+  before_value?: Prisma.SortOrderInput | Prisma.SortOrder
+  after_value?: Prisma.SortOrderInput | Prisma.SortOrder
+  ip_address?: Prisma.SortOrderInput | Prisma.SortOrder
+  user_agent?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   _count?: Prisma.AuditEventCountOrderByAggregateInput
   _max?: Prisma.AuditEventMaxOrderByAggregateInput
@@ -265,10 +341,18 @@ export type AuditEventScalarWhereWithAggregatesInput = {
   clerk_org_id?: Prisma.StringWithAggregatesFilter<"AuditEvent"> | string
   organisation_id?: Prisma.UuidWithAggregatesFilter<"AuditEvent"> | string
   actor_user_id?: Prisma.StringNullableWithAggregatesFilter<"AuditEvent"> | string | null
+  actor_display?: Prisma.StringNullableWithAggregatesFilter<"AuditEvent"> | string | null
   action?: Prisma.StringWithAggregatesFilter<"AuditEvent"> | string
+  entity_type?: Prisma.StringNullableWithAggregatesFilter<"AuditEvent"> | string | null
+  entity_id?: Prisma.StringNullableWithAggregatesFilter<"AuditEvent"> | string | null
   resource_type?: Prisma.StringWithAggregatesFilter<"AuditEvent"> | string
   resource_id?: Prisma.StringNullableWithAggregatesFilter<"AuditEvent"> | string | null
+  metadata?: Prisma.JsonNullableWithAggregatesFilter<"AuditEvent">
   payload?: Prisma.JsonNullableWithAggregatesFilter<"AuditEvent">
+  before_value?: Prisma.JsonNullableWithAggregatesFilter<"AuditEvent">
+  after_value?: Prisma.JsonNullableWithAggregatesFilter<"AuditEvent">
+  ip_address?: Prisma.StringNullableWithAggregatesFilter<"AuditEvent"> | string | null
+  user_agent?: Prisma.StringNullableWithAggregatesFilter<"AuditEvent"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"AuditEvent"> | Date | string
 }
 
@@ -276,10 +360,18 @@ export type AuditEventCreateInput = {
   id?: string
   clerk_org_id: string
   actor_user_id?: string | null
+  actor_display?: string | null
   action: string
+  entity_type?: string | null
+  entity_id?: string | null
   resource_type: string
   resource_id?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  before_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  after_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  ip_address?: string | null
+  user_agent?: string | null
   created_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutAudit_eventsInput
 }
@@ -289,10 +381,18 @@ export type AuditEventUncheckedCreateInput = {
   clerk_org_id: string
   organisation_id: string
   actor_user_id?: string | null
+  actor_display?: string | null
   action: string
+  entity_type?: string | null
+  entity_id?: string | null
   resource_type: string
   resource_id?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  before_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  after_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  ip_address?: string | null
+  user_agent?: string | null
   created_at?: Date | string
 }
 
@@ -300,10 +400,18 @@ export type AuditEventUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   actor_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actor_display?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   action?: Prisma.StringFieldUpdateOperationsInput | string
+  entity_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resource_type?: Prisma.StringFieldUpdateOperationsInput | string
   resource_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  before_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  after_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  user_agent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutAudit_eventsNestedInput
 }
@@ -313,10 +421,18 @@ export type AuditEventUncheckedUpdateInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   actor_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actor_display?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   action?: Prisma.StringFieldUpdateOperationsInput | string
+  entity_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resource_type?: Prisma.StringFieldUpdateOperationsInput | string
   resource_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  before_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  after_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  user_agent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -325,10 +441,18 @@ export type AuditEventCreateManyInput = {
   clerk_org_id: string
   organisation_id: string
   actor_user_id?: string | null
+  actor_display?: string | null
   action: string
+  entity_type?: string | null
+  entity_id?: string | null
   resource_type: string
   resource_id?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  before_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  after_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  ip_address?: string | null
+  user_agent?: string | null
   created_at?: Date | string
 }
 
@@ -336,10 +460,18 @@ export type AuditEventUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   actor_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actor_display?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   action?: Prisma.StringFieldUpdateOperationsInput | string
+  entity_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resource_type?: Prisma.StringFieldUpdateOperationsInput | string
   resource_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  before_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  after_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  user_agent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -348,10 +480,18 @@ export type AuditEventUncheckedUpdateManyInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
   actor_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actor_display?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   action?: Prisma.StringFieldUpdateOperationsInput | string
+  entity_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resource_type?: Prisma.StringFieldUpdateOperationsInput | string
   resource_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  before_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  after_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  user_agent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -370,10 +510,18 @@ export type AuditEventCountOrderByAggregateInput = {
   clerk_org_id?: Prisma.SortOrder
   organisation_id?: Prisma.SortOrder
   actor_user_id?: Prisma.SortOrder
+  actor_display?: Prisma.SortOrder
   action?: Prisma.SortOrder
+  entity_type?: Prisma.SortOrder
+  entity_id?: Prisma.SortOrder
   resource_type?: Prisma.SortOrder
   resource_id?: Prisma.SortOrder
+  metadata?: Prisma.SortOrder
   payload?: Prisma.SortOrder
+  before_value?: Prisma.SortOrder
+  after_value?: Prisma.SortOrder
+  ip_address?: Prisma.SortOrder
+  user_agent?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
 
@@ -382,9 +530,14 @@ export type AuditEventMaxOrderByAggregateInput = {
   clerk_org_id?: Prisma.SortOrder
   organisation_id?: Prisma.SortOrder
   actor_user_id?: Prisma.SortOrder
+  actor_display?: Prisma.SortOrder
   action?: Prisma.SortOrder
+  entity_type?: Prisma.SortOrder
+  entity_id?: Prisma.SortOrder
   resource_type?: Prisma.SortOrder
   resource_id?: Prisma.SortOrder
+  ip_address?: Prisma.SortOrder
+  user_agent?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
 
@@ -393,9 +546,14 @@ export type AuditEventMinOrderByAggregateInput = {
   clerk_org_id?: Prisma.SortOrder
   organisation_id?: Prisma.SortOrder
   actor_user_id?: Prisma.SortOrder
+  actor_display?: Prisma.SortOrder
   action?: Prisma.SortOrder
+  entity_type?: Prisma.SortOrder
+  entity_id?: Prisma.SortOrder
   resource_type?: Prisma.SortOrder
   resource_id?: Prisma.SortOrder
+  ip_address?: Prisma.SortOrder
+  user_agent?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
 
@@ -445,10 +603,18 @@ export type AuditEventCreateWithoutOrganisationInput = {
   id?: string
   clerk_org_id: string
   actor_user_id?: string | null
+  actor_display?: string | null
   action: string
+  entity_type?: string | null
+  entity_id?: string | null
   resource_type: string
   resource_id?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  before_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  after_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  ip_address?: string | null
+  user_agent?: string | null
   created_at?: Date | string
 }
 
@@ -456,10 +622,18 @@ export type AuditEventUncheckedCreateWithoutOrganisationInput = {
   id?: string
   clerk_org_id: string
   actor_user_id?: string | null
+  actor_display?: string | null
   action: string
+  entity_type?: string | null
+  entity_id?: string | null
   resource_type: string
   resource_id?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  before_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  after_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  ip_address?: string | null
+  user_agent?: string | null
   created_at?: Date | string
 }
 
@@ -497,10 +671,18 @@ export type AuditEventScalarWhereInput = {
   clerk_org_id?: Prisma.StringFilter<"AuditEvent"> | string
   organisation_id?: Prisma.UuidFilter<"AuditEvent"> | string
   actor_user_id?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
+  actor_display?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
   action?: Prisma.StringFilter<"AuditEvent"> | string
+  entity_type?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
+  entity_id?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
   resource_type?: Prisma.StringFilter<"AuditEvent"> | string
   resource_id?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
+  metadata?: Prisma.JsonNullableFilter<"AuditEvent">
   payload?: Prisma.JsonNullableFilter<"AuditEvent">
+  before_value?: Prisma.JsonNullableFilter<"AuditEvent">
+  after_value?: Prisma.JsonNullableFilter<"AuditEvent">
+  ip_address?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
+  user_agent?: Prisma.StringNullableFilter<"AuditEvent"> | string | null
   created_at?: Prisma.DateTimeFilter<"AuditEvent"> | Date | string
 }
 
@@ -508,10 +690,18 @@ export type AuditEventCreateManyOrganisationInput = {
   id?: string
   clerk_org_id: string
   actor_user_id?: string | null
+  actor_display?: string | null
   action: string
+  entity_type?: string | null
+  entity_id?: string | null
   resource_type: string
   resource_id?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  before_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  after_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  ip_address?: string | null
+  user_agent?: string | null
   created_at?: Date | string
 }
 
@@ -519,10 +709,18 @@ export type AuditEventUpdateWithoutOrganisationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   actor_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actor_display?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   action?: Prisma.StringFieldUpdateOperationsInput | string
+  entity_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resource_type?: Prisma.StringFieldUpdateOperationsInput | string
   resource_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  before_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  after_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  user_agent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -530,10 +728,18 @@ export type AuditEventUncheckedUpdateWithoutOrganisationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   actor_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actor_display?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   action?: Prisma.StringFieldUpdateOperationsInput | string
+  entity_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resource_type?: Prisma.StringFieldUpdateOperationsInput | string
   resource_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  before_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  after_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  user_agent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -541,10 +747,18 @@ export type AuditEventUncheckedUpdateManyWithoutOrganisationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   actor_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  actor_display?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   action?: Prisma.StringFieldUpdateOperationsInput | string
+  entity_type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resource_type?: Prisma.StringFieldUpdateOperationsInput | string
   resource_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   payload?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  before_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  after_value?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  ip_address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  user_agent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -555,10 +769,18 @@ export type AuditEventSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   clerk_org_id?: boolean
   organisation_id?: boolean
   actor_user_id?: boolean
+  actor_display?: boolean
   action?: boolean
+  entity_type?: boolean
+  entity_id?: boolean
   resource_type?: boolean
   resource_id?: boolean
+  metadata?: boolean
   payload?: boolean
+  before_value?: boolean
+  after_value?: boolean
+  ip_address?: boolean
+  user_agent?: boolean
   created_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["auditEvent"]>
@@ -568,10 +790,18 @@ export type AuditEventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   clerk_org_id?: boolean
   organisation_id?: boolean
   actor_user_id?: boolean
+  actor_display?: boolean
   action?: boolean
+  entity_type?: boolean
+  entity_id?: boolean
   resource_type?: boolean
   resource_id?: boolean
+  metadata?: boolean
   payload?: boolean
+  before_value?: boolean
+  after_value?: boolean
+  ip_address?: boolean
+  user_agent?: boolean
   created_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["auditEvent"]>
@@ -581,10 +811,18 @@ export type AuditEventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   clerk_org_id?: boolean
   organisation_id?: boolean
   actor_user_id?: boolean
+  actor_display?: boolean
   action?: boolean
+  entity_type?: boolean
+  entity_id?: boolean
   resource_type?: boolean
   resource_id?: boolean
+  metadata?: boolean
   payload?: boolean
+  before_value?: boolean
+  after_value?: boolean
+  ip_address?: boolean
+  user_agent?: boolean
   created_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["auditEvent"]>
@@ -594,14 +832,22 @@ export type AuditEventSelectScalar = {
   clerk_org_id?: boolean
   organisation_id?: boolean
   actor_user_id?: boolean
+  actor_display?: boolean
   action?: boolean
+  entity_type?: boolean
+  entity_id?: boolean
   resource_type?: boolean
   resource_id?: boolean
+  metadata?: boolean
   payload?: boolean
+  before_value?: boolean
+  after_value?: boolean
+  ip_address?: boolean
+  user_agent?: boolean
   created_at?: boolean
 }
 
-export type AuditEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "actor_user_id" | "action" | "resource_type" | "resource_id" | "payload" | "created_at", ExtArgs["result"]["auditEvent"]>
+export type AuditEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "actor_user_id" | "actor_display" | "action" | "entity_type" | "entity_id" | "resource_type" | "resource_id" | "metadata" | "payload" | "before_value" | "after_value" | "ip_address" | "user_agent" | "created_at", ExtArgs["result"]["auditEvent"]>
 export type AuditEventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
 }
@@ -622,10 +868,18 @@ export type $AuditEventPayload<ExtArgs extends runtime.Types.Extensions.Internal
     clerk_org_id: string
     organisation_id: string
     actor_user_id: string | null
+    actor_display: string | null
     action: string
+    entity_type: string | null
+    entity_id: string | null
     resource_type: string
     resource_id: string | null
+    metadata: runtime.JsonValue | null
     payload: runtime.JsonValue | null
+    before_value: runtime.JsonValue | null
+    after_value: runtime.JsonValue | null
+    ip_address: string | null
+    user_agent: string | null
     created_at: Date
   }, ExtArgs["result"]["auditEvent"]>
   composites: {}
@@ -1055,10 +1309,18 @@ export interface AuditEventFieldRefs {
   readonly clerk_org_id: Prisma.FieldRef<"AuditEvent", 'String'>
   readonly organisation_id: Prisma.FieldRef<"AuditEvent", 'String'>
   readonly actor_user_id: Prisma.FieldRef<"AuditEvent", 'String'>
+  readonly actor_display: Prisma.FieldRef<"AuditEvent", 'String'>
   readonly action: Prisma.FieldRef<"AuditEvent", 'String'>
+  readonly entity_type: Prisma.FieldRef<"AuditEvent", 'String'>
+  readonly entity_id: Prisma.FieldRef<"AuditEvent", 'String'>
   readonly resource_type: Prisma.FieldRef<"AuditEvent", 'String'>
   readonly resource_id: Prisma.FieldRef<"AuditEvent", 'String'>
+  readonly metadata: Prisma.FieldRef<"AuditEvent", 'Json'>
   readonly payload: Prisma.FieldRef<"AuditEvent", 'Json'>
+  readonly before_value: Prisma.FieldRef<"AuditEvent", 'Json'>
+  readonly after_value: Prisma.FieldRef<"AuditEvent", 'Json'>
+  readonly ip_address: Prisma.FieldRef<"AuditEvent", 'String'>
+  readonly user_agent: Prisma.FieldRef<"AuditEvent", 'String'>
   readonly created_at: Prisma.FieldRef<"AuditEvent", 'DateTime'>
 }
     

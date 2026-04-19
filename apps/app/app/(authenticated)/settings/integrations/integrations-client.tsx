@@ -1,5 +1,10 @@
 "use client";
 
+import type { TenantSummary } from "@repo/availability";
+import type {
+  XeroConnection,
+  XeroTenant,
+} from "@repo/database/generated/client";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   Card,
@@ -8,203 +13,110 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
-import { LinkIcon, RefreshCwIcon, UnlinkIcon } from "lucide-react";
+import Link from "next/link";
 import { ProviderStatusBadge } from "../components/provider-status-badge";
 import { SettingsSectionHeader } from "../components/settings-section-header";
 
-type ConnectionStatus = "connected" | "disconnected" | "error";
-
-interface ProviderCapabilities {
-  absenceTypes: boolean;
-  approvedAbsences: boolean;
-  balances: boolean;
-  employees: boolean;
-  incrementalSync: boolean;
-  locations: boolean;
-  teams: boolean;
-  webhooks: boolean;
-}
-
-interface ProviderConnectionView {
-  capabilities: ProviderCapabilities | null;
-  id: string | null;
-  lastSyncedAt: Date | null;
-  provider: "xero" | "myob" | "zoho" | "quickbooks";
-  status: ConnectionStatus;
-}
-
 interface IntegrationsClientProps {
-  connections: ProviderConnectionView[];
+  summary: null | TenantSummary;
+  xeroConnection: (XeroConnection & { xero_tenant: XeroTenant | null }) | null;
 }
-
-const PROVIDER_META: Record<
-  ProviderConnectionView["provider"],
-  { name: string; description: string; color: string; initials: string }
-> = {
-  xero: {
-    name: "Xero Payroll AU",
-    description:
-      "Sync approved leave from Xero Payroll for Australian organisations.",
-    color: "#13B5EA",
-    initials: "X",
-  },
-  myob: {
-    name: "MYOB",
-    description:
-      "Connect MYOB AccountRight or Essentials to sync employee leave.",
-    color: "#6D2077",
-    initials: "M",
-  },
-  zoho: {
-    name: "Zoho People",
-    description: "Import leave records from Zoho People HR platform.",
-    color: "#E42527",
-    initials: "Z",
-  },
-  quickbooks: {
-    name: "QuickBooks",
-    description: "Sync time-off data from QuickBooks Payroll.",
-    color: "#2CA01C",
-    initials: "QB",
-  },
-};
-
-const CAPABILITY_LABELS: Record<keyof ProviderCapabilities, string> = {
-  employees: "Employees",
-  absenceTypes: "Absence types",
-  approvedAbsences: "Approved absences",
-  balances: "Leave balances",
-  teams: "Teams",
-  locations: "Locations",
-  webhooks: "Webhooks",
-  incrementalSync: "Incremental sync",
-};
-
-const PROVIDER_CONNECTIONS: ProviderConnectionView[] = (
-  ["xero", "myob", "zoho", "quickbooks"] as const
-).map((provider) => ({
-  id: null,
-  provider,
-  status: "disconnected",
-  lastSyncedAt: null,
-  capabilities: null,
-}));
 
 export const IntegrationsClient = ({
-  connections,
+  summary,
+  xeroConnection,
 }: IntegrationsClientProps) => {
-  // Merge live connections into the full provider list
-  const connectedMap = new Map(connections.map((c) => [c.provider, c]));
-  const allProviders = PROVIDER_CONNECTIONS.map(
-    (def) => connectedMap.get(def.provider) ?? def
-  );
+  let status: "connected" | "disconnected" | "expired" | "revoked";
+  if (summary) {
+    if (summary.connectionStatus === "active") {
+      status = "connected";
+    } else if (summary.connectionStatus === "not_configured") {
+      status = "disconnected";
+    } else {
+      status = summary.connectionStatus;
+    }
+  } else if (xeroConnection) {
+    status = "revoked";
+  } else {
+    status = "disconnected";
+  }
 
   return (
     <div className="space-y-6">
       <SettingsSectionHeader
-        description="Connect your payroll and HR systems to sync leave data into LeaveSync."
+        description="Connect external services to extend LeaveSync."
         title="Integrations"
       />
 
-      <div className="grid gap-4">
-        {allProviders.map((conn) => {
-          const meta = PROVIDER_META[conn.provider];
-          const isConnected = conn.status === "connected";
-
-          return (
-            <Card
-              className={
-                isConnected
-                  ? "rounded-2xl"
-                  : "rounded-2xl border-dashed bg-muted/40 opacity-80"
-              }
-              key={conn.provider}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-4">
-                    <div
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-bold text-sm text-white"
-                      style={{ backgroundColor: meta.color }}
-                    >
-                      {meta.initials}
-                    </div>
-                    <div>
-                      <CardTitle className="text-base">{meta.name}</CardTitle>
-                      <CardDescription className="mt-0.5 text-sm">
-                        {meta.description}
-                      </CardDescription>
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <ProviderStatusBadge status={conn.status} />
-                    {conn.status === "connected" && (
-                      <Button
-                        className="gap-1.5 text-xs"
-                        disabled
-                        size="sm"
-                        variant="outline"
-                      >
-                        <UnlinkIcon className="h-3 w-3" strokeWidth={2} />
-                        Disconnect
-                      </Button>
-                    )}
-                    {conn.status === "error" && (
-                      <Button
-                        className="gap-1.5 text-xs"
-                        disabled
-                        size="sm"
-                        variant="outline"
-                      >
-                        <RefreshCwIcon className="h-3 w-3" strokeWidth={2} />
-                        Reconnect
-                      </Button>
-                    )}
-                    {conn.status === "disconnected" && (
-                      <Button className="gap-1.5 text-xs" disabled size="sm">
-                        <LinkIcon className="h-3 w-3" strokeWidth={2} />
-                        Connect
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
-
-              {conn.status === "connected" && conn.capabilities && (
-                <CardContent className="pt-0">
-                  <div className="border-border/40 border-t pt-3">
-                    <p className="mb-2 font-medium text-muted-foreground text-xs uppercase tracking-wider">
-                      Capabilities
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {(
-                        Object.entries(conn.capabilities) as [
-                          keyof ProviderCapabilities,
-                          boolean,
-                        ][]
-                      )
-                        .filter(([, enabled]) => enabled)
-                        .map(([key]) => (
-                          <span
-                            className="rounded-md bg-primary/10 px-2 py-0.5 font-medium text-primary text-xs"
-                            key={key}
-                          >
-                            {CAPABILITY_LABELS[key]}
-                          </span>
-                        ))}
-                    </div>
-                    {conn.lastSyncedAt && (
-                      <p className="mt-3 text-muted-foreground text-xs">
-                        Last synced {conn.lastSyncedAt.toLocaleString()}
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              )}
-            </Card>
-          );
-        })}
+      <div className="rounded-2xl bg-muted/40 p-4 text-sm">
+        LeaveSync works without any integrations. Connect Xero to enable leave
+        submission for approval and automatic balance sync.
       </div>
+
+      <Card className="rounded-2xl">
+        <CardHeader>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <CardTitle>Xero Payroll</CardTitle>
+              <CardDescription>
+                Real connection state for this organisation.
+              </CardDescription>
+            </div>
+            <ProviderStatusBadge status={status} />
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {summary && (
+            <div className="grid gap-3 md:grid-cols-3">
+              <Stat
+                label="Last sync"
+                value={
+                  summary.lastRun?.completedAt?.toLocaleString("en-AU") ??
+                  "Not run yet"
+                }
+              />
+              <Stat
+                label="Synced people"
+                value={String(summary.lastRun?.recordsUpserted ?? 0)}
+              />
+              <Stat
+                label="Pending failed records"
+                value={String(summary.pendingFailedRecords)}
+              />
+            </div>
+          )}
+          {xeroConnection?.xero_tenant && (
+            <div className="rounded-xl bg-muted/40 p-3 text-sm">
+              Tenant:{" "}
+              {xeroConnection.xero_tenant.tenant_name ??
+                xeroConnection.xero_tenant.xero_tenant_id}
+            </div>
+          )}
+          <Button asChild>
+            <Link href="/settings/integrations/xero">
+              {xeroConnection ? "Manage" : "Connect"}
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+
+      {["MYOB", "QuickBooks", "Slack", "Microsoft Teams"].map((name) => (
+        <Card className="rounded-2xl opacity-70" key={name}>
+          <CardHeader>
+            <CardTitle>{name}</CardTitle>
+            <CardDescription>Coming soon.</CardDescription>
+          </CardHeader>
+        </Card>
+      ))}
     </div>
   );
 };
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-muted/30 p-3">
+      <p className="text-muted-foreground text-xs">{label}</p>
+      <p className="font-medium text-sm">{value}</p>
+    </div>
+  );
+}

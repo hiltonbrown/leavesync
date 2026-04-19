@@ -1,5 +1,5 @@
 import { Calendar } from "@repo/design-system/components/ui/calendar";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/nextjs";
 import { addDays } from "date-fns";
 import { action } from "storybook/actions";
 

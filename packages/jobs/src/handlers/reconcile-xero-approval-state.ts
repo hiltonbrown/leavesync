@@ -171,6 +171,13 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
     publishRunStatusChanged(context, run.id, "running");
 
     const xeroTenant = await loadXeroTenant(context);
+    if (xeroTenant?.sync_paused_at) {
+      await completeRun(context, run.id, {
+        errorSummary: "Tenant sync is paused for this Xero connection",
+        status: "cancelled",
+      });
+      return { ok: true, value: emptyResult(run.id, "cancelled") };
+    }
     if (!(xeroTenant && connectionActive(xeroTenant.xero_connection))) {
       await completeRun(context, run.id, {
         errorSummary: "Xero connection not active",

@@ -6,6 +6,7 @@ import { database, scopedQuery } from "@repo/database";
 import type {
   availability_approval_status,
   availability_contactability,
+  availability_failed_action,
   availability_privacy_mode,
   availability_record_type,
   availability_source_type,
@@ -17,6 +18,7 @@ import {
   type RecordType,
   USER_CREATABLE_RECORD_TYPES,
 } from "../records/record-type-categories";
+import { getSettings } from "../settings/organisation-settings-service";
 import { hasActiveXeroConnection } from "../xero-connection-state";
 
 export type EditableAction =
@@ -57,6 +59,7 @@ export interface PlanRecord {
   derivedUidKey: string;
   editableActions: EditableAction[];
   endsAt: Date;
+  failedAction: availability_failed_action | null;
   id: string;
   notesInternal: string | null;
   organisationId: string;
@@ -159,7 +162,7 @@ const CreateRecordSchema = z
     notesInternal: z.string().max(2000).optional(),
     organisationId: z.string().uuid(),
     personId: z.string().uuid(),
-    privacyMode: PrivacyModeSchema.default("named"),
+    privacyMode: PrivacyModeSchema.optional(),
     recordType: RecordTypeSchema,
     startsAt: z.coerce.date(),
   })
@@ -330,22 +333,27 @@ export async function createRecord(
   }
 
   try {
-    const [targetPerson, actingPerson, hasXero] = await Promise.all([
-      database.person.findFirst({
-        where: {
-          ...scoped(parsed.data.clerkOrgId, parsed.data.organisationId),
-          archived_at: null,
-          id: parsed.data.personId,
-        },
-        select: personSelect,
-      }),
-      resolvePersonForUser(
-        parsed.data.clerkOrgId,
-        parsed.data.organisationId,
-        parsed.data.createdByUserId
-      ),
-      hasActiveXeroConnection(parsed.data),
-    ]);
+    const [targetPerson, actingPerson, hasXero, settingsResult] =
+      await Promise.all([
+        database.person.findFirst({
+          where: {
+            ...scoped(parsed.data.clerkOrgId, parsed.data.organisationId),
+            archived_at: null,
+            id: parsed.data.personId,
+          },
+          select: personSelect,
+        }),
+        resolvePersonForUser(
+          parsed.data.clerkOrgId,
+          parsed.data.organisationId,
+          parsed.data.createdByUserId
+        ),
+        hasActiveXeroConnection(parsed.data),
+        getSettings({
+          clerkOrgId: parsed.data.clerkOrgId,
+          organisationId: parsed.data.organisationId,
+        }),
+      ]);
 
     if (!targetPerson) {
       return {
@@ -364,6 +372,9 @@ export async function createRecord(
     }
 
     const routing = routeRecord(parsed.data.recordType, hasXero);
+    const privacyMode =
+      parsed.data.privacyMode ??
+      (settingsResult.ok ? settingsResult.value.defaultPrivacyMode : "named");
     const id = randomUUID();
     const derivedUidKey = deriveUidKey({
       clerkOrgId: parsed.data.clerkOrgId,
@@ -393,7 +404,7 @@ export async function createRecord(
           notes_internal: emptyToNull(parsed.data.notesInternal),
           organisation_id: parsed.data.organisationId,
           person_id: parsed.data.personId,
-          privacy_mode: parsed.data.privacyMode,
+          privacy_mode: privacyMode,
           record_type: parsed.data.recordType,
           source_type: routing.sourceType,
           starts_at: parsed.data.startsAt,
@@ -928,6 +939,7 @@ function toPlanRecord(
     derivedUidKey: record.derived_uid_key,
     editableActions,
     endsAt: record.ends_at,
+    failedAction: record.failed_action,
     id: record.id,
     notesInternal: record.notes_internal,
     organisationId: record.organisation_id,

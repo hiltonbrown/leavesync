@@ -17,6 +17,7 @@ import {
   sourceTypesForCategory,
   USER_CREATABLE_RECORD_TYPES,
 } from "../records/record-type-categories";
+import { getSettings } from "../settings/organisation-settings-service";
 import { hasActiveXeroConnection } from "../xero-connection-state";
 
 export type CalendarRole = "admin" | "manager" | "owner" | "viewer";
@@ -227,10 +228,16 @@ export async function getCalendarRange(
   }
 
   try {
-    const organisation = await database.organisation.findFirst({
-      where: scoped(parsed.data.clerkOrgId, parsed.data.organisationId),
-      select: { timezone: true },
-    });
+    const [organisation, settingsResult] = await Promise.all([
+      database.organisation.findFirst({
+        where: scoped(parsed.data.clerkOrgId, parsed.data.organisationId),
+        select: { timezone: true },
+      }),
+      getSettings({
+        clerkOrgId: parsed.data.clerkOrgId,
+        organisationId: parsed.data.organisationId,
+      }),
+    ]);
     const timezone = organisation?.timezone ?? "UTC";
     const localRange = resolveLocalRange(
       parsed.data.view,
@@ -244,7 +251,16 @@ export async function getCalendarRange(
     };
 
     const allPeople = await loadPeople(parsed.data);
-    const scopedPeopleResult = resolvePeopleForScope(parsed.data, allPeople);
+    const managerReportIds =
+      parsed.data.role === "manager" && parsed.data.actingPersonId
+        ? transitiveReportIds(allPeople, parsed.data.actingPersonId)
+        : new Set<string>();
+    const scopedPeopleResult = resolvePeopleForScope(parsed.data, allPeople, {
+      includeIndirectReports:
+        settingsResult.ok &&
+        settingsResult.value.managerVisibilityScope === "all_team_leave",
+      managerReportIds,
+    });
     if (!scopedPeopleResult.ok) {
       return scopedPeopleResult;
     }
@@ -256,14 +272,22 @@ export async function getCalendarRange(
     const totalPeopleInScope = filteredPeople.length;
     const visiblePeople = filteredPeople.slice(0, MAX_VISIBLE_PEOPLE);
     const visiblePersonIds = new Set(visiblePeople.map((person) => person.id));
-    const records = await loadRecords(parsed.data, range, [
-      ...visiblePersonIds,
-    ]);
+    const records = await loadRecords(
+      parsed.data,
+      range,
+      [...visiblePersonIds],
+      {
+        showPendingOnCalendar: settingsResult.ok
+          ? settingsResult.value.showPendingOnCalendar
+          : true,
+      }
+    );
     const events = records
       .filter((record) => visiblePersonIds.has(record.person_id))
       .map((record) =>
         toCalendarEvent(record, {
           actingPersonId: parsed.data.actingPersonId ?? null,
+          managerReportIds,
           role: parsed.data.role,
         })
       );
@@ -324,6 +348,10 @@ export async function getEventDetail(
   }
 
   try {
+    const settingsResult = await getSettings({
+      clerkOrgId: parsed.data.clerkOrgId,
+      organisationId: parsed.data.organisationId,
+    });
     const record = await database.availabilityRecord.findFirst({
       where: {
         ...scoped(parsed.data.clerkOrgId, parsed.data.organisationId),
@@ -335,9 +363,27 @@ export async function getEventDetail(
     if (!record) {
       return await recordNotFoundOrLeak(parsed.data);
     }
+    const managerReportIds =
+      parsed.data.role === "manager" && parsed.data.actingPersonId
+        ? transitiveReportIds(
+            await loadPeople({
+              actingPersonId: parsed.data.actingPersonId ?? null,
+              actingUserId: parsed.data.actingUserId,
+              anchorDate: new Date(),
+              clerkOrgId: parsed.data.clerkOrgId,
+              filters: {},
+              organisationId: parsed.data.organisationId,
+              role: parsed.data.role,
+              scope: { type: "all_teams" },
+              view: "month",
+            }),
+            parsed.data.actingPersonId
+          )
+        : new Set<string>();
     if (
       !canViewRecord({
         actingPersonId: parsed.data.actingPersonId ?? null,
+        managerReportIds,
         role: parsed.data.role,
         targetPerson: record.person,
       })
@@ -346,6 +392,11 @@ export async function getEventDetail(
     }
     const event = toCalendarEvent(record, {
       actingPersonId: parsed.data.actingPersonId ?? null,
+      managerReportIds:
+        settingsResult.ok &&
+        settingsResult.value.managerVisibilityScope === "all_team_leave"
+          ? managerReportIds
+          : new Set<string>(),
       role: parsed.data.role,
     });
     return {
@@ -376,7 +427,11 @@ async function loadPeople(input: ParsedRangeInput): Promise<ScopedPerson[]> {
 
 function resolvePeopleForScope(
   input: ParsedRangeInput,
-  people: ScopedPerson[]
+  people: ScopedPerson[],
+  options: {
+    includeIndirectReports: boolean;
+    managerReportIds: ReadonlySet<string>;
+  }
 ): Result<ScopedPerson[], CalendarServiceError> {
   const actingPersonId = input.actingPersonId ?? null;
   if (!(actingPersonId || isAdminOrOwner(input.role))) {
@@ -392,7 +447,9 @@ function resolvePeopleForScope(
     const scopedPeople = people.filter(
       (person) =>
         person.id === actingPersonId ||
-        person.manager_person_id === actingPersonId
+        person.manager_person_id === actingPersonId ||
+        (options.includeIndirectReports &&
+          options.managerReportIds.has(person.id))
     );
     return { ok: true, value: scopedPeople };
   }
@@ -404,11 +461,12 @@ function resolvePeopleForScope(
     if (input.role !== "manager" || !actingPersonId) {
       return notAuthorised();
     }
-    const reportIds = transitiveReportIds(people, actingPersonId);
     return {
       ok: true,
       value: people.filter(
-        (person) => person.id === actingPersonId || reportIds.has(person.id)
+        (person) =>
+          person.id === actingPersonId ||
+          options.managerReportIds.has(person.id)
       ),
     };
   }
@@ -421,7 +479,10 @@ function resolvePeopleForScope(
       return { ok: true, value: teamPeople };
     }
     const hasDirectReportOnTeam = teamPeople.some(
-      (person) => person.manager_person_id === actingPersonId
+      (person) =>
+        person.manager_person_id === actingPersonId ||
+        (options.includeIndirectReports &&
+          options.managerReportIds.has(person.id))
     );
     return hasDirectReportOnTeam
       ? { ok: true, value: teamPeople }
@@ -435,6 +496,7 @@ function resolvePeopleForScope(
   if (
     canViewRecord({
       actingPersonId,
+      managerReportIds: options.managerReportIds,
       role: input.role,
       targetPerson: person,
     })
@@ -467,13 +529,17 @@ function applyPeopleFilters(
 async function loadRecords(
   input: ParsedRangeInput,
   range: CalendarRange["range"],
-  personIds: string[]
+  personIds: string[],
+  options: { showPendingOnCalendar: boolean }
 ): Promise<ScopedRecord[]> {
   if (personIds.length === 0) {
     return [];
   }
 
-  const filteredApprovalStatuses = approvalStatusesForFilter(input.filters);
+  const filteredApprovalStatuses = approvalStatusesForFilter(
+    input.filters,
+    options
+  );
   const category = input.filters.recordTypeCategory ?? "all";
   const approvalOr = [
     { approval_status: { in: filteredApprovalStatuses } },
@@ -506,11 +572,16 @@ async function loadRecords(
 }
 
 function approvalStatusesForFilter(
-  filters: ParsedRangeInput["filters"]
+  filters: ParsedRangeInput["filters"],
+  options: { showPendingOnCalendar: boolean }
 ): availability_approval_status[] {
   const statuses = filters.approvalStatus?.length
     ? filters.approvalStatus
-    : (["approved", "submitted", "xero_sync_failed"] as const);
+    : ([
+        "approved",
+        ...(options.showPendingOnCalendar ? (["submitted"] as const) : []),
+        "xero_sync_failed",
+      ] as const);
   return statuses.filter(
     (status) =>
       status !== "declined" &&
@@ -621,7 +692,11 @@ function holidayAppliesToLocation(
 
 function toCalendarEvent(
   record: ScopedRecord,
-  actor: { actingPersonId: string | null; role: CalendarRole }
+  actor: {
+    actingPersonId: string | null;
+    managerReportIds: ReadonlySet<string>;
+    role: CalendarRole;
+  }
 ): CalendarEvent {
   const relationship = relationshipToOwner(actor, record.person);
   const canSeeSensitive = relationship !== "peer";
@@ -699,13 +774,20 @@ function renderTreatment(
 }
 
 function relationshipToOwner(
-  actor: { actingPersonId: string | null; role: CalendarRole },
+  actor: {
+    actingPersonId: string | null;
+    managerReportIds: ReadonlySet<string>;
+    role: CalendarRole;
+  },
   targetPerson: Pick<ScopedPerson, "id" | "manager_person_id">
 ): "admin" | "manager" | "peer" | "self" {
   if (targetPerson.id === actor.actingPersonId) {
     return "self";
   }
   if (targetPerson.manager_person_id === actor.actingPersonId) {
+    return "manager";
+  }
+  if (actor.role === "manager" && actor.managerReportIds.has(targetPerson.id)) {
     return "manager";
   }
   if (isAdminOrOwner(actor.role)) {
@@ -716,11 +798,16 @@ function relationshipToOwner(
 
 function canViewRecord(input: {
   actingPersonId: string | null;
+  managerReportIds: ReadonlySet<string>;
   role: CalendarRole;
   targetPerson: Pick<ScopedPerson, "id" | "manager_person_id">;
 }): boolean {
   const relationship = relationshipToOwner(
-    { actingPersonId: input.actingPersonId, role: input.role },
+    {
+      actingPersonId: input.actingPersonId,
+      managerReportIds: input.managerReportIds,
+      role: input.role,
+    },
     input.targetPerson
   );
   return relationship !== "peer";

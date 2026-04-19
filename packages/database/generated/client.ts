@@ -47,6 +47,11 @@ export { Prisma }
  */
 export type Organisation = Prisma.OrganisationModel
 /**
+ * Model OrganisationSettings
+ * 
+ */
+export type OrganisationSettings = Prisma.OrganisationSettingsModel
+/**
  * Model Team
  * 
  */
@@ -156,3 +161,13 @@ export type FailedRecord = Prisma.FailedRecordModel
  * 
  */
 export type AuditEvent = Prisma.AuditEventModel
+/**
+ * Model ClerkOrgSubscription
+ * 
+ */
+export type ClerkOrgSubscription = Prisma.ClerkOrgSubscriptionModel
+/**
+ * Model UsageCounter
+ * 
+ */
+export type UsageCounter = Prisma.UsageCounterModel

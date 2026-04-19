@@ -8,6 +8,4 @@ interface NotificationsFeedProperties {
 
 export const NotificationsFeed = ({
   children,
-}: NotificationsFeedProperties) => {
-  return <>{children ?? null}</>;
-};
+}: NotificationsFeedProperties) => <>{children ?? null}</>;

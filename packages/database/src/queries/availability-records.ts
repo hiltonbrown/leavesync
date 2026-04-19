@@ -166,7 +166,7 @@ export async function listAvailabilityForPerson(
       ok: true,
       value: records.map(toAvailabilityRecord),
     };
-  } catch (_error) {
+  } catch {
     return {
       ok: false,
       error: appError("internal", "Failed to list person availability"),
@@ -223,7 +223,7 @@ export async function listPendingApprovalRecords(
       ok: true,
       value: records.map(toAvailabilityRecord),
     };
-  } catch (_error) {
+  } catch {
     return {
       ok: false,
       error: appError("internal", "Failed to list pending approval records"),
@@ -442,7 +442,7 @@ export async function getAvailabilityRecordById(
         personLastName: record.person.last_name,
       },
     };
-  } catch (_error) {
+  } catch {
     return {
       ok: false,
       error: appError("internal", "Failed to get availability record"),

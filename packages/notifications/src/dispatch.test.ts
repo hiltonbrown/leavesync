@@ -102,4 +102,28 @@ describe("dispatchNotification", () => {
     });
     expect(mocks.emailCreate).not.toHaveBeenCalled();
   });
+
+  it("recognises reconciliation complete notifications and suppresses email", async () => {
+    const result = await dispatchNotification(
+      {
+        ...input,
+        title: "Approval reconciliation complete",
+        type: "sync_reconciliation_complete",
+      },
+      client
+    );
+
+    expect(result).toEqual({
+      ok: true,
+      value: { emailQueued: false, inAppDelivered: true },
+    });
+    expect(mocks.notificationCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          type: "sync_reconciliation_complete",
+        }),
+      })
+    );
+    expect(mocks.emailCreate).not.toHaveBeenCalled();
+  });
 });

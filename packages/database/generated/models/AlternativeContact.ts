@@ -601,14 +601,6 @@ export type AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput = {
   deleteMany?: Prisma.AlternativeContactScalarWhereInput | Prisma.AlternativeContactScalarWhereInput[]
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type AlternativeContactCreateWithoutOrganisationInput = {
   id?: string
   clerk_org_id: string

@@ -548,7 +548,7 @@ function sameIdSet(left: string[], right: string[]): boolean {
 
 function emptyToNull(value: string | undefined): string | null | undefined {
   if (value === undefined) {
-    return undefined;
+    return;
   }
   const trimmed = value.trim();
   return trimmed ? trimmed : null;

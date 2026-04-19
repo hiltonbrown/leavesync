@@ -8,8 +8,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
+import { Checkbox } from "@repo/design-system/components/ui/checkbox";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@repo/design-system/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -18,242 +23,295 @@ import {
   SelectValue,
 } from "@repo/design-system/components/ui/select";
 import { toast } from "@repo/design-system/components/ui/sonner";
-import { useState, useTransition } from "react";
-import { updateOrg } from "@/app/actions/settings/update-org";
-import { SettingsComingSoon } from "../components/settings-coming-soon";
+import { useMemo, useState, useTransition } from "react";
 import { SettingsSectionHeader } from "../components/settings-section-header";
+import {
+  updateOrganisationAction,
+  updateWorkspaceNameAction,
+} from "./_actions";
 
-// Common IANA timezones
-const TIMEZONES = [
-  { value: "UTC", label: "UTC — Coordinated Universal Time" },
-  { value: "Pacific/Auckland", label: "Pacific/Auckland — NZST/NZDT" },
-  { value: "Australia/Sydney", label: "Australia/Sydney — AEST/AEDT" },
-  { value: "Australia/Melbourne", label: "Australia/Melbourne — AEST/AEDT" },
-  { value: "Australia/Brisbane", label: "Australia/Brisbane — AEST" },
-  { value: "Australia/Perth", label: "Australia/Perth — AWST" },
-  { value: "Asia/Singapore", label: "Asia/Singapore — SGT" },
-  { value: "Asia/Hong_Kong", label: "Asia/Hong_Kong — HKT" },
-  { value: "Asia/Tokyo", label: "Asia/Tokyo — JST" },
-  { value: "Europe/London", label: "Europe/London — GMT/BST" },
-  { value: "Europe/Paris", label: "Europe/Paris — CET/CEST" },
-  { value: "Europe/Berlin", label: "Europe/Berlin — CET/CEST" },
-  { value: "America/New_York", label: "America/New_York — EST/EDT" },
-  { value: "America/Chicago", label: "America/Chicago — CST/CDT" },
-  { value: "America/Denver", label: "America/Denver — MST/MDT" },
-  { value: "America/Los_Angeles", label: "America/Los_Angeles — PST/PDT" },
-];
+const COUNTRY_OPTIONS = [
+  { label: "Australia", value: "AU" },
+  { label: "New Zealand", value: "NZ" },
+  { label: "United Kingdom", value: "UK" },
+] as const;
 
-const LOCALES = [
-  { value: "en-AU", label: "English (Australia)" },
-  { value: "en-NZ", label: "English (New Zealand)" },
-  { value: "en-GB", label: "English (United Kingdom)" },
-  { value: "en-US", label: "English (United States)" },
-  { value: "en-SG", label: "English (Singapore)" },
-];
+const REGION_OPTIONS: Record<
+  string,
+  Array<{ label: string; value: string }>
+> = {
+  AU: [
+    { label: "Australian Capital Territory", value: "ACT" },
+    { label: "New South Wales", value: "NSW" },
+    { label: "Northern Territory", value: "NT" },
+    { label: "Queensland", value: "QLD" },
+    { label: "South Australia", value: "SA" },
+    { label: "Tasmania", value: "TAS" },
+    { label: "Victoria", value: "VIC" },
+    { label: "Western Australia", value: "WA" },
+  ],
+  NZ: [
+    { label: "Auckland", value: "AUK" },
+    { label: "Canterbury", value: "CAN" },
+    { label: "Otago", value: "OTA" },
+    { label: "Wellington", value: "WGN" },
+  ],
+  UK: [
+    { label: "England", value: "ENG" },
+    { label: "Northern Ireland", value: "NIR" },
+    { label: "Scotland", value: "SCT" },
+    { label: "Wales", value: "WLS" },
+  ],
+};
 
-const MONTHS = [
-  { value: 1, label: "January" },
-  { value: 2, label: "February" },
-  { value: 3, label: "March" },
-  { value: 4, label: "April" },
-  { value: 5, label: "May" },
-  { value: 6, label: "June" },
-  { value: 7, label: "July" },
-  { value: 8, label: "August" },
-  { value: 9, label: "September" },
-  { value: 10, label: "October" },
-  { value: 11, label: "November" },
-  { value: 12, label: "December" },
+const TIMEZONE_OPTIONS = [
+  "Australia/Brisbane",
+  "Australia/Sydney",
+  "Australia/Melbourne",
+  "Australia/Perth",
+  "Pacific/Auckland",
+  "Europe/London",
 ];
 
 interface GeneralClientProps {
-  fiscalYearStart: number;
-  locale: string;
-  organisationId: string;
-  orgName: string;
-  reportingUnit: string;
-  timezone: string;
-  workingHoursPerDay: number;
+  organisation: {
+    countryCode: "AU" | "NZ" | "UK";
+    id: string;
+    name: string;
+    regionCode: null | string;
+    timezone: string;
+  };
+  workspace: {
+    name: string;
+    slug: null | string;
+  };
 }
 
 export const GeneralClient = ({
-  organisationId,
-  orgName,
-  timezone,
-  locale,
-  fiscalYearStart,
-  reportingUnit,
-  workingHoursPerDay,
+  organisation,
+  workspace,
 }: GeneralClientProps) => {
-  const [name, setName] = useState(orgName);
-  const [tz, setTz] = useState(timezone);
-  const [loc, setLoc] = useState(locale);
-  const [fiscal, setFiscal] = useState(fiscalYearStart);
-  const [unit, setUnit] = useState(reportingUnit);
-  const [hoursPerDay, setHoursPerDay] = useState(workingHoursPerDay);
-  const [isPending, startTransition] = useTransition();
+  const [workspaceName, setWorkspaceName] = useState(workspace.name);
+  const [organisationName, setOrganisationName] = useState(organisation.name);
+  const [confirmCountryChange, setConfirmCountryChange] = useState(false);
+  const [countryCode, setCountryCode] = useState(organisation.countryCode);
+  const [regionCode, setRegionCode] = useState(organisation.regionCode ?? "");
+  const [timezone, setTimezone] = useState(organisation.timezone);
+  const [savingWorkspace, startWorkspaceTransition] = useTransition();
+  const [savingOrganisation, startOrganisationTransition] = useTransition();
 
-  const isDirty =
-    name !== orgName ||
-    tz !== timezone ||
-    loc !== locale ||
-    fiscal !== fiscalYearStart ||
-    unit !== reportingUnit ||
-    hoursPerDay !== workingHoursPerDay;
+  const regionOptions = useMemo(
+    () => REGION_OPTIONS[countryCode] ?? [],
+    [countryCode]
+  );
+  const countryChanged = countryCode !== organisation.countryCode;
 
-  const handleSave = () => {
-    startTransition(async () => {
-      const result = await updateOrg({
-        organisationId,
-        name,
-        timezone: tz,
-        locale: loc,
-        fiscalYearStart: fiscal,
-        reportingUnit: unit as "days" | "hours",
-        workingHoursPerDay: hoursPerDay,
+  const saveWorkspace = () => {
+    startWorkspaceTransition(async () => {
+      const result = await updateWorkspaceNameAction({
+        name: workspaceName,
+        organisationId: organisation.id,
       });
 
-      if (result.ok) {
-        toast.success("Organisation settings saved");
-      } else {
-        toast.error(result.error);
+      if (!result.ok) {
+        toast.error(result.error.message);
+        return;
       }
+
+      toast.success("Workspace name updated.");
+    });
+  };
+
+  const saveOrganisation = () => {
+    startOrganisationTransition(async () => {
+      const result = await updateOrganisationAction({
+        confirmationCountryChange: confirmCountryChange,
+        countryCode,
+        name: organisationName,
+        organisationId: organisation.id,
+        regionCode: regionCode || null,
+        timezone,
+      });
+
+      if (!result.ok) {
+        toast.error(result.error.message);
+        return;
+      }
+
+      toast.success("Organisation settings updated.");
     });
   };
 
   return (
     <div className="space-y-6">
       <SettingsSectionHeader
-        description="Manage your organisation's name, locale, and calendar settings."
+        description="Manage workspace identity and organisation-level defaults."
         title="General"
       />
 
       <Card className="rounded-2xl">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-base">Organisation details</CardTitle>
+        <CardHeader>
+          <CardTitle>Workspace</CardTitle>
           <CardDescription>
-            These settings apply to all members of your organisation.
+            Workspace name is managed in Clerk. The slug is fixed when the
+            workspace is created.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-5">
+        <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="org-name">Organisation name</Label>
+            <Label htmlFor="workspace-name">Workspace name</Label>
             <Input
-              className="max-w-sm"
-              id="org-name"
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Organisation Pty Ltd"
-              value={name}
+              id="workspace-name"
+              onChange={(event) => setWorkspaceName(event.target.value)}
+              value={workspaceName}
             />
           </div>
-
           <div className="space-y-2">
-            <Label htmlFor="timezone">Timezone</Label>
-            <Select onValueChange={setTz} value={tz}>
-              <SelectTrigger className="max-w-sm" id="timezone">
-                <SelectValue placeholder="Select timezone" />
-              </SelectTrigger>
-              <SelectContent>
-                {TIMEZONES.map((zone) => (
-                  <SelectItem key={zone.value} value={zone.value}>
-                    {zone.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-muted-foreground text-xs">
-              Used for calendar feeds, sync schedules, and date display.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="locale">Locale</Label>
-            <Select onValueChange={setLoc} value={loc}>
-              <SelectTrigger className="max-w-sm" id="locale">
-                <SelectValue placeholder="Select locale" />
-              </SelectTrigger>
-              <SelectContent>
-                {LOCALES.map((l) => (
-                  <SelectItem key={l.value} value={l.value}>
-                    {l.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-muted-foreground text-xs">
-              Controls date, number, and currency formatting.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="fiscal-year">Fiscal year starts</Label>
-            <Select
-              onValueChange={(v) => setFiscal(Number(v))}
-              value={String(fiscal)}
-            >
-              <SelectTrigger className="max-w-[200px]" id="fiscal-year">
-                <SelectValue placeholder="Select month" />
-              </SelectTrigger>
-              <SelectContent>
-                {MONTHS.map((m) => (
-                  <SelectItem key={m.value} value={String(m.value)}>
-                    {m.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-muted-foreground text-xs">
-              Used for leave balance reporting and accrual calculations.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="reporting-unit">Analytics reporting unit</Label>
-            <Select onValueChange={setUnit} value={unit}>
-              <SelectTrigger className="max-w-sm" id="reporting-unit">
-                <SelectValue placeholder="Select reporting unit" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="days">Days</SelectItem>
-                <SelectItem value="hours">Hours</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-muted-foreground text-xs">
-              Preferred unit for displaying durations in analytics reports.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="working-hours">Working hours per day</Label>
+            <Label htmlFor="workspace-slug">Workspace slug</Label>
             <Input
-              className="max-w-[200px]"
-              id="working-hours"
-              max={24}
-              min={1}
-              onChange={(e) => setHoursPerDay(Number(e.target.value))}
-              placeholder="7.6"
-              step={0.1}
-              type="number"
-              value={hoursPerDay || ""}
+              disabled
+              id="workspace-slug"
+              value={workspace.slug ?? "Not available"}
             />
             <p className="text-muted-foreground text-xs">
-              Used to convert daily values into hours when needed.
+              Workspace slug is set when the workspace is created.
             </p>
+          </div>
+          <div className="flex justify-end">
+            <Button disabled={savingWorkspace} onClick={saveWorkspace}>
+              {savingWorkspace ? "Saving..." : "Save"}
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      <SettingsComingSoon feature="Organisation logo" />
+      <Card className="rounded-2xl">
+        <CardHeader>
+          <CardTitle>Organisation</CardTitle>
+          <CardDescription>
+            Country, region, and timezone affect future public holiday imports
+            and Xero payroll region selection.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="organisation-name">Organisation name</Label>
+            <Input
+              id="organisation-name"
+              onChange={(event) => setOrganisationName(event.target.value)}
+              value={organisationName}
+            />
+          </div>
 
-      <div className="flex justify-end">
-        <Button
-          className="min-w-24"
-          disabled={!isDirty || isPending}
-          onClick={handleSave}
-        >
-          {isPending ? "Saving…" : "Save changes"}
-        </Button>
-      </div>
+          <div className="space-y-3">
+            <Label>Country</Label>
+            <RadioGroup
+              className="grid gap-2 sm:grid-cols-3"
+              onValueChange={(value) => {
+                if (value === "AU" || value === "NZ" || value === "UK") {
+                  setCountryCode(value);
+                }
+                setConfirmCountryChange(false);
+                setRegionCode("");
+              }}
+              value={countryCode}
+            >
+              {COUNTRY_OPTIONS.map((option) => (
+                <div
+                  className="flex items-center gap-2 rounded-xl bg-muted/40 px-4 py-3 text-sm"
+                  key={option.value}
+                >
+                  <RadioGroupItem
+                    id={`country-${option.value}`}
+                    value={option.value}
+                  />
+                  <Label htmlFor={`country-${option.value}`}>
+                    {option.label}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="region-code">Region</Label>
+            <Select
+              onValueChange={setRegionCode}
+              value={regionCode || undefined}
+            >
+              <SelectTrigger id="region-code">
+                <SelectValue placeholder="Select a region" />
+              </SelectTrigger>
+              <SelectContent>
+                {regionOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="timezone">Primary timezone</Label>
+            <Select onValueChange={setTimezone} value={timezone}>
+              <SelectTrigger id="timezone">
+                <SelectValue placeholder="Select a timezone" />
+              </SelectTrigger>
+              <SelectContent>
+                {TIMEZONE_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {(countryChanged ||
+            regionCode !== (organisation.regionCode ?? "")) && (
+            <div className="rounded-xl bg-muted/50 p-3 text-sm">
+              Changing your country or region affects which public holidays and
+              Xero payroll regions are available. Existing records and
+              connections are not changed automatically. You may need to import
+              new public holidays from Settings &gt; Holidays.
+            </div>
+          )}
+
+          {countryChanged && (
+            <div className="space-y-3 rounded-xl bg-muted/40 p-3 text-sm">
+              <p>
+                Confirm changing the organisation&apos;s country to{" "}
+                {countryCode}. This affects future Xero connections and holiday
+                imports. Existing data is preserved. Continue?
+              </p>
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  checked={confirmCountryChange}
+                  id="confirm-country-change"
+                  onCheckedChange={(checked) =>
+                    setConfirmCountryChange(checked === true)
+                  }
+                />
+                <Label htmlFor="confirm-country-change">
+                  I understand and want to continue
+                </Label>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end">
+            <Button
+              disabled={
+                savingOrganisation || (countryChanged && !confirmCountryChange)
+              }
+              onClick={saveOrganisation}
+            >
+              {savingOrganisation ? "Saving..." : "Save"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

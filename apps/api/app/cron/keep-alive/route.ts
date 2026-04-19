@@ -1,3 +1,1 @@
-export const GET = () => {
-  return new Response("OK", { status: 200 });
-};
+export const GET = () => new Response("OK", { status: 200 });

@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Organisation: 'Organisation',
+  OrganisationSettings: 'OrganisationSettings',
   Team: 'Team',
   Location: 'Location',
   Person: 'Person',
@@ -73,7 +74,9 @@ export const ModelName = {
   NotificationEmailQueue: 'NotificationEmailQueue',
   SyncRun: 'SyncRun',
   FailedRecord: 'FailedRecord',
-  AuditEvent: 'AuditEvent'
+  AuditEvent: 'AuditEvent',
+  ClerkOrgSubscription: 'ClerkOrgSubscription',
+  UsageCounter: 'UsageCounter'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -97,6 +100,7 @@ export const OrganisationScalarFieldEnum = {
   clerk_org_id: 'clerk_org_id',
   name: 'name',
   country_code: 'country_code',
+  region_code: 'region_code',
   is_active: 'is_active',
   timezone: 'timezone',
   locale: 'locale',
@@ -109,6 +113,26 @@ export const OrganisationScalarFieldEnum = {
 } as const
 
 export type OrganisationScalarFieldEnum = (typeof OrganisationScalarFieldEnum)[keyof typeof OrganisationScalarFieldEnum]
+
+
+export const OrganisationSettingsScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  show_pending_on_calendar: 'show_pending_on_calendar',
+  show_declined_on_approvals: 'show_declined_on_approvals',
+  notify_managers_on_status_change: 'notify_managers_on_status_change',
+  manager_visibility_scope: 'manager_visibility_scope',
+  default_leave_request_advance_days: 'default_leave_request_advance_days',
+  require_decline_reason: 'require_decline_reason',
+  default_privacy_mode: 'default_privacy_mode',
+  feeds_include_public_holidays_default: 'feeds_include_public_holidays_default',
+  default_feed_privacy_mode: 'default_feed_privacy_mode',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type OrganisationSettingsScalarFieldEnum = (typeof OrganisationSettingsScalarFieldEnum)[keyof typeof OrganisationSettingsScalarFieldEnum]
 
 
 export const TeamScalarFieldEnum = {
@@ -213,6 +237,7 @@ export const XeroTenantScalarFieldEnum = {
   xero_tenant_id: 'xero_tenant_id',
   tenant_name: 'tenant_name',
   payroll_region: 'payroll_region',
+  sync_paused_at: 'sync_paused_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -547,14 +572,50 @@ export const AuditEventScalarFieldEnum = {
   clerk_org_id: 'clerk_org_id',
   organisation_id: 'organisation_id',
   actor_user_id: 'actor_user_id',
+  actor_display: 'actor_display',
   action: 'action',
+  entity_type: 'entity_type',
+  entity_id: 'entity_id',
   resource_type: 'resource_type',
   resource_id: 'resource_id',
+  metadata: 'metadata',
   payload: 'payload',
+  before_value: 'before_value',
+  after_value: 'after_value',
+  ip_address: 'ip_address',
+  user_agent: 'user_agent',
   created_at: 'created_at'
 } as const
 
 export type AuditEventScalarFieldEnum = (typeof AuditEventScalarFieldEnum)[keyof typeof AuditEventScalarFieldEnum]
+
+
+export const ClerkOrgSubscriptionScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  plan_key: 'plan_key',
+  status: 'status',
+  current_period_end: 'current_period_end',
+  seats_purchased: 'seats_purchased',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ClerkOrgSubscriptionScalarFieldEnum = (typeof ClerkOrgSubscriptionScalarFieldEnum)[keyof typeof ClerkOrgSubscriptionScalarFieldEnum]
+
+
+export const UsageCounterScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  metric_key: 'metric_key',
+  current_value: 'current_value',
+  period_start: 'period_start',
+  period_end: 'period_end',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type UsageCounterScalarFieldEnum = (typeof UsageCounterScalarFieldEnum)[keyof typeof UsageCounterScalarFieldEnum]
 
 
 export const SortOrder = {

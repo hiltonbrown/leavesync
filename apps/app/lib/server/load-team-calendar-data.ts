@@ -118,7 +118,7 @@ export async function loadTeamCalendarData(
         })),
       },
     };
-  } catch (_error) {
+  } catch {
     return {
       ok: false,
       error: appError("internal", "Failed to load team calendar data"),

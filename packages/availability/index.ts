@@ -33,6 +33,139 @@ export {
   stableStringify,
 } from "./src/analytics/request-cache";
 export {
+  type ApprovalAction,
+  type ApprovalDetail,
+  type ApprovalListItem,
+  type ApprovalRole,
+  type ApprovalServiceError,
+  type ApprovalSummaryCounts,
+  approve,
+  decline,
+  dispatchApprovalReconciliation,
+  getApprovalDetail,
+  getApprovalSummaryCounts,
+  listForApprover,
+  requestMoreInfo,
+  retryApproval,
+  retryDecline,
+  revertApprovalAttempt,
+} from "./src/approvals/approval-service";
+export {
+  type CalendarDay,
+  type CalendarEvent,
+  type CalendarEventDetail,
+  type CalendarPerson,
+  type CalendarRange,
+  type CalendarRole,
+  type CalendarScope,
+  type CalendarServiceError,
+  type CalendarView,
+  getCalendarRange,
+  getEventDetail,
+} from "./src/calendar/calendar-service";
+export {
+  createDashboardCache,
+  type DashboardCache,
+} from "./src/dashboard/dashboard-cache";
+export {
+  type AdminDashboardView,
+  type DashboardRole,
+  type DashboardSection,
+  type DashboardServiceError,
+  type EmployeeDashboardView,
+  getAdminView,
+  getEmployeeView,
+  getManagerView,
+  type ManagerDashboardView,
+  resolveDashboardRole,
+} from "./src/dashboard/dashboard-service";
+export { computeWorkingDays } from "./src/duration/working-days";
+export {
+  addCustomHoliday,
+  deleteCustomHoliday,
+  importForJurisdiction,
+  listForOrganisation,
+  restoreHoliday,
+  suppressHoliday,
+} from "./src/holidays/holiday-service";
+export {
+  type AlternativeContactServiceError,
+  addAlternativeContact,
+  deleteAlternativeContact,
+  reorderAlternativeContacts,
+  updateAlternativeContact,
+} from "./src/people/alternative-contact-service";
+export {
+  type CurrentStatus,
+  type CurrentStatusKey,
+  computeCurrentStatus,
+} from "./src/people/current-status";
+export {
+  type FieldOwnership,
+  fieldOwnershipForPerson,
+} from "./src/people/field-ownership";
+export {
+  type AlternativeContactSnapshot,
+  type AvailabilityRecordSummary,
+  type BalanceRow,
+  getPersonProfile,
+  listHistoryPage,
+  listPeople,
+  listUpcomingRecords,
+  type PeopleRole,
+  type PeopleServiceError,
+  type PersonListItem,
+  type PersonProfile,
+} from "./src/people/people-service";
+export {
+  archiveRecord,
+  type BalanceChip,
+  createRecord,
+  deleteDraftRecord,
+  type EditableAction,
+  getRecord,
+  listMyRecords,
+  listTeamRecords,
+  type PlanRecord,
+  type PlanServiceError,
+  type RecordDetail,
+  type RecordListItem,
+  restoreRecord,
+  updateRecord,
+} from "./src/plans/plan-service";
+export {
+  retrySubmission,
+  revertToDraft,
+  submitDraftRecord,
+  withdrawSubmission,
+} from "./src/plans/submit-service";
+export {
+  type AuditEventDetail,
+  type AuditEventListItem,
+  AuditLogFilterSchema,
+  type AuditLogServiceError,
+  exportCsv as exportAuditLogCsv,
+  getEventDetail as getAuditEventDetail,
+  listEvents as listAuditLogEvents,
+} from "./src/settings/audit-log-service";
+export {
+  type BillingServiceError,
+  type BillingSummary,
+  type DashboardBillingSummary,
+  getBillingSummary,
+  getBillingSummaryForDashboard,
+} from "./src/settings/billing-service";
+export {
+  defaultOrganisationSettingsPatch,
+  getSettings,
+  type SettingsServiceError,
+  updateSettings,
+} from "./src/settings/organisation-settings-service";
+export type {
+  OrganisationSettings,
+  OrganisationSettingsPatch,
+} from "./src/settings/shared";
+export {
   cancelRun,
   dispatchManualSync,
   exportFailedRecordsCsv,
@@ -50,6 +183,7 @@ export {
   type TenantSummary,
   type TimelineEvent,
 } from "./src/sync/sync-monitor-service";
+export { hasActiveXeroConnection } from "./src/xero-connection-state";
 
 import { randomUUID } from "node:crypto";
 import {

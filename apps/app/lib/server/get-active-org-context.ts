@@ -23,7 +23,7 @@ export async function getActiveOrgContext(organisationId: string): Promise<
   let clerkOrgId: ClerkOrgId;
   try {
     clerkOrgId = (await requireOrg()) as ClerkOrgId;
-  } catch (_error) {
+  } catch {
     return {
       ok: false,
       error: appError(

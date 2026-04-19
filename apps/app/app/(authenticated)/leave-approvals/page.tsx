@@ -172,7 +172,7 @@ function effectiveApprovalRole(
 function arrayParam<T extends z.ZodTypeAny>(schema: T) {
   return z.preprocess((value) => {
     if (value === undefined) {
-      return undefined;
+      return;
     }
     if (Array.isArray(value)) {
       return value.flatMap((item) => String(item).split(",")).filter(Boolean);

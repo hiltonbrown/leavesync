@@ -10,8 +10,10 @@ const mocks = vi.hoisted(() => ({
   computeWorkingDays: vi.fn(),
   declineLeaveApplicationForRegion: vi.fn(),
   dispatchNotification: vi.fn(),
+  getSettings: vi.fn(),
   hasActiveXeroConnection: vi.fn(),
   leaveBalanceFindFirst: vi.fn(),
+  managerScopePersonIds: vi.fn(),
   resolveXeroEmployeeId: vi.fn(),
   xeroTenantFindFirst: vi.fn(),
 }));
@@ -39,6 +41,12 @@ vi.mock("../duration/working-days", () => ({
 }));
 vi.mock("../xero-connection-state", () => ({
   hasActiveXeroConnection: mocks.hasActiveXeroConnection,
+}));
+vi.mock("../settings/organisation-settings-service", () => ({
+  getSettings: mocks.getSettings,
+}));
+vi.mock("../settings/manager-scope", () => ({
+  managerScopePersonIds: mocks.managerScopePersonIds,
 }));
 vi.mock("@repo/xero", () => ({
   approveLeaveApplicationForRegion: mocks.approveLeaveApplicationForRegion,
@@ -131,10 +139,27 @@ describe("approval-service", () => {
       ok: true,
       value: { emailQueued: false, inAppDelivered: true },
     });
+    mocks.getSettings.mockResolvedValue({
+      ok: true,
+      value: {
+        defaultFeedPrivacyMode: "named",
+        defaultLeaveRequestAdvanceDays: 0,
+        defaultPrivacyMode: "named",
+        feedsIncludePublicHolidaysDefault: false,
+        id: "settings_1",
+        managerVisibilityScope: "direct_reports_only",
+        notifyManagersOnStatusChange: true,
+        organisationId: input.organisationId,
+        requireDeclineReason: true,
+        showDeclinedOnApprovals: true,
+        showPendingOnCalendar: true,
+      },
+    });
     mocks.resolveXeroEmployeeId.mockResolvedValue({
       ok: true,
       value: "employee-1",
     });
+    mocks.managerScopePersonIds.mockResolvedValue([record.person_id]);
     mocks.xeroTenantFindFirst.mockResolvedValue(xeroTenant);
   });
 
@@ -308,8 +333,15 @@ describe("approval-service", () => {
         where: expect.objectContaining({
           clerk_org_id: input.clerkOrgId,
           organisation_id: input.organisationId,
-          person: { manager_person_id: input.actingPersonId },
+          person_id: { in: [record.person_id] },
         }),
+      })
+    );
+    expect(mocks.managerScopePersonIds).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actingPersonId: input.actingPersonId,
+        clerkOrgId: input.clerkOrgId,
+        organisationId: input.organisationId,
       })
     );
   });

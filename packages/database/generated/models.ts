@@ -9,6 +9,7 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/Organisation'
+export type * from './models/OrganisationSettings'
 export type * from './models/Team'
 export type * from './models/Location'
 export type * from './models/Person'
@@ -31,4 +32,6 @@ export type * from './models/NotificationEmailQueue'
 export type * from './models/SyncRun'
 export type * from './models/FailedRecord'
 export type * from './models/AuditEvent'
+export type * from './models/ClerkOrgSubscription'
+export type * from './models/UsageCounter'
 export type * from './commonInputTypes'

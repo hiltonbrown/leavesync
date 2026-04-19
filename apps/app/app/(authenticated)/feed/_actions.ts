@@ -60,7 +60,7 @@ export async function createFeedAction(input: CreateFeedActionInput): Promise<
   if (!result.ok) {
     return result;
   }
-  revalidateFeedPaths(result.value.feedId);
+  revalidateFeedPaths(result.value.feedId, { includeSettings: true });
   return {
     ok: true,
     value: {
@@ -94,7 +94,7 @@ export async function updateFeedAction(
   if (!result.ok) {
     return result;
   }
-  revalidateFeedPaths(parsed.data.feedId);
+  revalidateFeedPaths(parsed.data.feedId, { includeSettings: true });
   return { ok: true, value: { feedId: parsed.data.feedId } };
 }
 
@@ -203,7 +203,7 @@ async function command(
   if (!result.ok) {
     return result;
   }
-  revalidateFeedPaths(parsed.data.feedId);
+  revalidateFeedPaths(parsed.data.feedId, { includeSettings: true });
   return { ok: true, value: { feedId: parsed.data.feedId } };
 }
 
@@ -255,10 +255,16 @@ async function resolveAdminContext(organisationId: string): Promise<
   };
 }
 
-function revalidateFeedPaths(feedId?: string): void {
+function revalidateFeedPaths(
+  feedId?: string,
+  options: { includeSettings?: boolean } = {}
+): void {
   revalidatePath("/feed");
   if (feedId) {
     revalidatePath(`/feed/feed/${feedId}`);
+  }
+  if (options.includeSettings) {
+    revalidatePath("/settings/feeds");
   }
 }
 

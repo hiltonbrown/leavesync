@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge } from "@repo/design-system/components/ui/badge";
+import type { AuditEventDetail, AuditEventListItem } from "@repo/availability";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   Card,
@@ -8,193 +8,131 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@repo/design-system/components/ui/empty";
 import { Input } from "@repo/design-system/components/ui/input";
-import { Label } from "@repo/design-system/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@repo/design-system/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@repo/design-system/components/ui/table";
-import { ScrollTextIcon } from "lucide-react";
+import { toast } from "@repo/design-system/components/ui/sonner";
+import { useState, useTransition } from "react";
 import { SettingsSectionHeader } from "../components/settings-section-header";
-
-interface AuditEntry {
-  action: string;
-  actorEmail: string;
-  actorName: string;
-  id: string;
-  ipAddress: string | null;
-  resourceType: string;
-  status: "success" | "failure";
-  timestamp: string;
-}
+import { exportAuditLogCsvAction } from "./_actions";
 
 interface AuditLogClientProps {
-  entries: AuditEntry[];
+  details: Record<string, AuditEventDetail>;
+  events: AuditEventListItem[];
+  filters: {
+    actionPrefix: string;
+    dateFrom: string;
+    dateTo: string;
+    searchEntityId: string;
+  };
+  nextCursor: null | string;
+  organisationId: string;
 }
 
-const EVENT_TYPES = [
-  { value: "all", label: "All events" },
-  { value: "member.invited", label: "Member invited" },
-  { value: "member.removed", label: "Member removed" },
-  { value: "member.role_changed", label: "Role changed" },
-  { value: "connection.created", label: "Connection created" },
-  { value: "connection.removed", label: "Connection removed" },
-  { value: "feed.created", label: "Feed created" },
-  { value: "feed.deleted", label: "Feed deleted" },
-  { value: "sync.triggered", label: "Sync triggered" },
-  { value: "token.revoked", label: "Tokens revoked" },
-];
+export const AuditLogClient = ({
+  details,
+  events,
+  filters,
+  organisationId,
+}: AuditLogClientProps) => {
+  const [isPending, startTransition] = useTransition();
+  const [exporting, setExporting] = useState(false);
 
-export const AuditLogClient = ({ entries }: AuditLogClientProps) => {
-  const isEmpty = entries.length === 0;
+  const exportCsv = () => {
+    setExporting(true);
+    startTransition(async () => {
+      const result = await exportAuditLogCsvAction({
+        filters: {
+          actionPrefix: filters.actionPrefix || undefined,
+          dateFrom: filters.dateFrom ? new Date(filters.dateFrom) : undefined,
+          dateTo: filters.dateTo ? new Date(filters.dateTo) : undefined,
+          searchEntityId: filters.searchEntityId || undefined,
+        },
+        organisationId,
+      });
+
+      setExporting(false);
+      if (!result.ok) {
+        toast.error(result.error.message);
+        return;
+      }
+
+      const blob = new Blob([result.value.csvContent], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = result.value.filename;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success("Audit log export ready.");
+    });
+  };
 
   return (
     <div className="space-y-6">
       <SettingsSectionHeader
-        description="A record of administrative actions taken within your organisation."
+        action={
+          <Button disabled={exporting || isPending} onClick={exportCsv}>
+            Export CSV
+          </Button>
+        }
+        description="All system and user actions for this organisation."
         title="Audit Log"
       />
 
-      {/* Filter row */}
       <Card className="rounded-2xl">
-        <CardContent className="flex flex-wrap items-end gap-4 p-4">
-          <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">From</Label>
-            <Input
-              className="h-8 w-36 text-sm"
-              disabled={isEmpty}
-              type="date"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">To</Label>
-            <Input
-              className="h-8 w-36 text-sm"
-              disabled={isEmpty}
-              type="date"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">Event type</Label>
-            <Select defaultValue="all" disabled={isEmpty}>
-              <SelectTrigger className="h-8 w-48 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {EVENT_TYPES.map((e) => (
-                  <SelectItem className="text-sm" key={e.value} value={e.value}>
-                    {e.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {!isEmpty && (
-            <Button className="h-8 text-sm" size="sm">
-              Filter
-            </Button>
-          )}
+        <CardContent className="grid gap-4 p-4 md:grid-cols-4">
+          <Input defaultValue={filters.dateFrom} name="dateFrom" type="date" />
+          <Input defaultValue={filters.dateTo} name="dateTo" type="date" />
+          <Input
+            defaultValue={filters.actionPrefix}
+            name="actionPrefix"
+            placeholder="Action prefix"
+          />
+          <Input
+            defaultValue={filters.searchEntityId}
+            name="entityId"
+            placeholder="Entity ID"
+          />
         </CardContent>
       </Card>
 
-      {/* Log table */}
       <Card className="rounded-2xl">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-base">
-            {isEmpty ? "Events" : `${entries.length} events`}
-          </CardTitle>
+        <CardHeader>
+          <CardTitle>{events.length} events</CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
-          {isEmpty ? (
-            <div className="px-6 pb-6">
-              <Empty className="border-0 bg-transparent py-8">
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <ScrollTextIcon strokeWidth={1.75} />
-                  </EmptyMedia>
-                  <EmptyTitle className="text-base">
-                    No audit events yet
-                  </EmptyTitle>
-                  <EmptyDescription>
-                    Admin actions — invites, role changes, connection events —
-                    will be recorded here.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border/40 border-b hover:bg-transparent">
-                  <TableHead className="h-12 pl-6">Timestamp</TableHead>
-                  <TableHead className="h-12">Actor</TableHead>
-                  <TableHead className="h-12">Action</TableHead>
-                  <TableHead className="h-12">Resource</TableHead>
-                  <TableHead className="h-12">IP</TableHead>
-                  <TableHead className="h-12">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {entries.map((entry) => (
-                  <TableRow
-                    className="border-border/40 border-b last:border-0"
-                    key={entry.id}
-                  >
-                    <TableCell className="py-4 pl-6 font-mono text-muted-foreground text-xs">
-                      {entry.timestamp}
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <p className="font-medium text-sm">{entry.actorName}</p>
-                      <p className="text-muted-foreground text-xs">
-                        {entry.actorEmail}
-                      </p>
-                    </TableCell>
-                    <TableCell className="py-4 text-sm">
-                      {entry.action}
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <span className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-xs">
-                        {entry.resourceType}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-4 font-mono text-muted-foreground text-xs">
-                      {entry.ipAddress ?? "—"}
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <Badge
-                        className={
-                          entry.status === "success"
-                            ? "border-primary/20 bg-primary/10 text-primary text-xs"
-                            : "border-destructive/20 bg-destructive/10 text-destructive text-xs"
-                        }
-                        variant="outline"
-                      >
-                        {entry.status === "success" ? "Success" : "Failed"}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+        <CardContent className="space-y-4">
+          {events.map((event) => (
+            <details className="rounded-xl bg-muted/30 p-4" key={event.id}>
+              <summary className="cursor-pointer list-none">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="font-medium text-sm">{event.action}</p>
+                    <p className="text-muted-foreground text-xs">
+                      {event.entityType} · {event.entityId} ·{" "}
+                      {event.actorDisplay}
+                    </p>
+                  </div>
+                  <div className="text-muted-foreground text-xs">
+                    {event.createdAt.toLocaleString("en-AU")}
+                  </div>
+                </div>
+              </summary>
+              <div className="mt-4 space-y-3 text-sm">
+                <pre className="overflow-x-auto rounded-lg bg-background p-3 text-xs">
+                  {JSON.stringify(event.metadata, null, 2)}
+                </pre>
+                {details[event.id] && (
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <pre className="overflow-x-auto rounded-lg bg-background p-3 text-xs">
+                      {JSON.stringify(details[event.id].beforeValue, null, 2)}
+                    </pre>
+                    <pre className="overflow-x-auto rounded-lg bg-background p-3 text-xs">
+                      {JSON.stringify(details[event.id].afterValue, null, 2)}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            </details>
+          ))}
         </CardContent>
       </Card>
     </div>

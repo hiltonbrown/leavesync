@@ -50,7 +50,7 @@ export const NotificationsProvider = ({
   useEffect(() => {
     if (!streamUrl) {
       setStatus("closed");
-      return undefined;
+      return;
     }
 
     let eventSource: EventSource | null = null;

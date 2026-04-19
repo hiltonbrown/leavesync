@@ -17,6 +17,7 @@ export type SyncMonitorError =
   | { code: "dispatch_failed"; message: string }
   | { code: "invalid_run_type"; message: string }
   | { code: "not_authorised"; message: string }
+  | { code: "tenant_sync_paused"; message: string }
   | { code: "run_not_found"; message: string }
   | { code: "tenant_not_found"; message: string }
   | { code: "unknown_error"; message: string }
@@ -65,6 +66,7 @@ export interface TenantSummary {
   } | null;
   payrollRegion: "AU" | "NZ" | "UK";
   pendingFailedRecords: number;
+  syncPausedAt: Date | null;
   tenantName: string;
   totalRunsLast30Days: number;
   xeroTenantId: string;
@@ -320,6 +322,7 @@ export async function listTenantSummaries(
             : null,
           payrollRegion: tenant.payroll_region,
           pendingFailedRecords,
+          syncPausedAt: tenant.sync_paused_at,
           tenantName: tenant.tenant_name ?? tenant.xero_tenant_id,
           totalRunsLast30Days: runsLast30Days.length,
           xeroTenantId: tenant.id,
@@ -480,6 +483,16 @@ export async function dispatchManualSync(
     }
 
     const eventName = syncEventNames[parsed.data.runType];
+    if (tenant.sync_paused_at) {
+      return {
+        ok: true,
+        value: {
+          eventName,
+          queued: false,
+          reason: "tenant_sync_paused",
+        },
+      };
+    }
     if (!getRegisteredSyncEventName(parsed.data.runType)) {
       return {
         ok: true,

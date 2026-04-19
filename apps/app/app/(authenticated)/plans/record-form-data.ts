@@ -172,11 +172,11 @@ function createPrefillRecord({
   startsAt?: string;
 }) {
   if (!startsAt) {
-    return undefined;
+    return;
   }
   const date = startsAt.includes("T") ? startsAt.slice(0, 10) : startsAt;
   if (!DATE_ONLY_PATTERN.test(date)) {
-    return undefined;
+    return;
   }
   const requestedPerson = people.find((person) => person.id === personId);
   return {

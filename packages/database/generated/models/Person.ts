@@ -1040,10 +1040,6 @@ export type Enumavailability_contactabilityFieldUpdateOperationsInput = {
   set?: $Enums.availability_contactability
 }
 
-export type Enumavailability_privacy_modeFieldUpdateOperationsInput = {
-  set?: $Enums.availability_privacy_mode
-}
-
 export type PersonUpdateOneWithoutDirect_reportsNestedInput = {
   create?: Prisma.XOR<Prisma.PersonCreateWithoutDirect_reportsInput, Prisma.PersonUncheckedCreateWithoutDirect_reportsInput>
   connectOrCreate?: Prisma.PersonCreateOrConnectWithoutDirect_reportsInput

@@ -53,16 +53,18 @@ export function SyncClient({
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    return subscribe((event) => {
-      if (
-        event.type === "sync.run_status_changed" &&
-        event.payload.organisationId === organisationId
-      ) {
-        router.refresh();
-      }
-    });
-  }, [organisationId, router, subscribe]);
+  useEffect(
+    () =>
+      subscribe((event) => {
+        if (
+          event.type === "sync.run_status_changed" &&
+          event.payload.organisationId === organisationId
+        ) {
+          router.refresh();
+        }
+      }),
+    [organisationId, router, subscribe]
+  );
 
   const loadMoreHref = useMemo(() => {
     if (!nextCursor) {
@@ -490,7 +492,7 @@ function buttonTitle(
   if (connectionInactive) {
     return "Reconnect Xero before running this sync.";
   }
-  return undefined;
+  return;
 }
 
 function reasonLabel(reason?: string): string {

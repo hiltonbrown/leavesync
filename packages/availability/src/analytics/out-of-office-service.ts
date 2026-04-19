@@ -9,6 +9,7 @@ import {
   isLocalOnlyType,
   LOCAL_ONLY_TYPES,
 } from "../records/record-type-categories";
+import { managerScopePersonIds } from "../settings/manager-scope";
 import {
   type ExpandedRecordDay,
   expandRecordAcrossDays,
@@ -385,10 +386,13 @@ async function loadPeople(
     if (!actingPerson) {
       return { ok: true, value: [] };
     }
-    where.OR = [
-      { id: actingPerson.id },
-      { manager_person_id: actingPerson.id },
-    ];
+    where.id = {
+      in: await managerScopePersonIds({
+        actingPersonId: actingPerson.id,
+        clerkOrgId: input.clerkOrgId,
+        organisationId: input.organisationId,
+      }),
+    };
   }
   const people = await database.person.findMany({
     include: { location: true, team: true },

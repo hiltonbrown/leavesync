@@ -96,7 +96,7 @@ export async function listFeedsForOrganisation(
         updatedAt: f.updated_at,
       })),
     };
-  } catch (_error) {
+  } catch {
     return {
       ok: false,
       error: appError("internal", "Failed to list feeds"),
@@ -184,7 +184,7 @@ export async function getFeedDetail(
         })),
       },
     };
-  } catch (_error) {
+  } catch {
     return {
       ok: false,
       error: appError("internal", "Failed to get feed detail"),

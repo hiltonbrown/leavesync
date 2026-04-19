@@ -5,13 +5,11 @@ import { useFilterParams } from "./use-filter-params";
 
 const pushMock = vi.fn();
 
-vi.mock("next/navigation", () => {
-  return {
-    usePathname: () => "/test",
-    useRouter: () => ({ push: pushMock }),
-    useSearchParams: () => new URLSearchParams("?q=search&page=1"),
-  };
-});
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/test",
+  useRouter: () => ({ push: pushMock }),
+  useSearchParams: () => new URLSearchParams("?q=search&page=1"),
+}));
 
 describe("useFilterParams", () => {
   it("parses valid params", () => {

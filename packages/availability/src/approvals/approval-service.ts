@@ -24,6 +24,8 @@ import {
 import { z } from "zod";
 import { computeWorkingDays } from "../duration/working-days";
 import { isXeroLeaveType } from "../records/record-type-categories";
+import { managerScopePersonIds } from "../settings/manager-scope";
+import { getSettings } from "../settings/organisation-settings-service";
 import { hasActiveXeroConnection } from "../xero-connection-state";
 
 export type ApprovalRole = "admin" | "manager" | "owner";
@@ -160,7 +162,7 @@ const DetailSchema = z.object({
 
 const CommandSchema = DetailSchema;
 const DeclineSchema = CommandSchema.extend({
-  reason: z.string().trim().min(3).max(1000),
+  reason: z.string().trim().max(1000).optional().default(""),
 });
 const InfoSchema = CommandSchema.extend({
   question: z.string().trim().min(3).max(1000),
@@ -209,7 +211,26 @@ export async function listForApprover(
   }
 
   try {
-    const filters = parsed.data.filters ?? { status: ["submitted"] };
+    const settingsResult = await getSettings({
+      clerkOrgId: parsed.data.clerkOrgId,
+      organisationId: parsed.data.organisationId,
+    });
+    const filters = parsed.data.filters ?? {
+      status:
+        settingsResult.ok && !settingsResult.value.showDeclinedOnApprovals
+          ? ["submitted", "approved", "xero_sync_failed", "withdrawn"]
+          : ["submitted"],
+    };
+    const managedPersonIds =
+      parsed.data.role === "manager" && parsed.data.actingPersonId
+        ? (
+            await managerScopePersonIds({
+              actingPersonId: parsed.data.actingPersonId,
+              clerkOrgId: parsed.data.clerkOrgId,
+              organisationId: parsed.data.organisationId,
+            })
+          ).filter((personId) => personId !== parsed.data.actingPersonId)
+        : [];
     const records = await database.availabilityRecord.findMany({
       where: {
         ...scoped(parsed.data),
@@ -225,7 +246,7 @@ export async function listForApprover(
         ...(filters.dateFrom ? { ends_at: { gte: filters.dateFrom } } : {}),
         ...(filters.dateTo ? { starts_at: { lte: filters.dateTo } } : {}),
         ...(parsed.data.role === "manager"
-          ? { person: { manager_person_id: parsed.data.actingPersonId } }
+          ? { person_id: { in: managedPersonIds } }
           : {}),
       },
       include: recordInclude,
@@ -303,6 +324,16 @@ export async function getApprovalSummaryCounts(input: {
   }
 
   try {
+    const managedPersonIds =
+      parsed.data.role === "manager" && parsed.data.actingPersonId
+        ? (
+            await managerScopePersonIds({
+              actingPersonId: parsed.data.actingPersonId,
+              clerkOrgId: parsed.data.clerkOrgId,
+              organisationId: parsed.data.organisationId,
+            })
+          ).filter((personId) => personId !== parsed.data.actingPersonId)
+        : [];
     const startOfMonth = new Date();
     startOfMonth.setUTCDate(1);
     startOfMonth.setUTCHours(0, 0, 0, 0);
@@ -311,7 +342,7 @@ export async function getApprovalSummaryCounts(input: {
       archived_at: null,
       source_type: { in: ["leavesync_leave", "xero_leave"] },
       ...(parsed.data.role === "manager"
-        ? { person: { manager_person_id: parsed.data.actingPersonId } }
+        ? { person_id: { in: managedPersonIds } }
         : {}),
     } satisfies Prisma.AvailabilityRecordWhereInput;
 
@@ -376,9 +407,26 @@ export async function decline(
   if (!parsed.success) {
     return validationError(parsed.error);
   }
+  const settingsResult = await getSettings({
+    clerkOrgId: parsed.data.clerkOrgId,
+    organisationId: parsed.data.organisationId,
+  });
+  if (
+    settingsResult.ok &&
+    settingsResult.value.requireDeclineReason &&
+    parsed.data.reason.trim().length < 3
+  ) {
+    return {
+      ok: false,
+      error: {
+        code: "validation_error",
+        message: "Enter a decline reason of at least 3 characters.",
+      },
+    };
+  }
   return await performDecline(parsed.data, {
     failureAuditAction: "availability_records.decline_failed",
-    reason: parsed.data.reason,
+    reason: parsed.data.reason.trim(),
     successAuditAction: "availability_records.declined",
   });
 }
@@ -655,6 +703,10 @@ async function performApproval(
         recipientUserId: record.person.clerk_user_id,
         type: "leave_approved",
       });
+      await notifyManagersIfEnabled(tx, parsed.data, record, {
+        actionUrl: `/leave-approvals?recordId=${record.id}`,
+        type: "leave_approved",
+      });
       await tx.auditEvent.create({
         data: auditData(parsed.data, options.successAuditAction, {
           xeroLeaveApplicationId,
@@ -748,6 +800,10 @@ async function performDecline(
         actionUrl: `/plans?recordId=${record.id}`,
         payload: { body: options.reason },
         recipientUserId: record.person.clerk_user_id,
+        type: "leave_declined",
+      });
+      await notifyManagersIfEnabled(tx, input, record, {
+        actionUrl: `/leave-approvals?recordId=${record.id}`,
         type: "leave_declined",
       });
       await tx.auditEvent.create({
@@ -923,7 +979,8 @@ async function loadAndAuthorise(
   if (!record) {
     return recordNotFound();
   }
-  if (!canActOnRecord(input, record)) {
+  const canAct = await canActOnRecord(input, record);
+  if (!canAct) {
     return notAuthorised();
   }
   return { ok: true, value: record };
@@ -1057,17 +1114,24 @@ function mutedNoteForRecord(record: LoadedApprovalRecord): string | null {
   return null;
 }
 
-function canActOnRecord(
+async function canActOnRecord(
   input: CommandInput,
   record: LoadedApprovalRecord
-): boolean {
-  return (
-    input.role === "admin" ||
-    input.role === "owner" ||
-    (input.role === "manager" &&
-      Boolean(input.actingPersonId) &&
-      record.person.manager_person_id === input.actingPersonId)
-  );
+): Promise<boolean> {
+  if (input.role === "admin" || input.role === "owner") {
+    return true;
+  }
+  if (!(input.role === "manager" && input.actingPersonId)) {
+    return false;
+  }
+
+  const visiblePersonIds = await managerScopePersonIds({
+    actingPersonId: input.actingPersonId,
+    clerkOrgId: input.clerkOrgId,
+    organisationId: input.organisationId,
+  });
+
+  return visiblePersonIds.includes(record.person_id);
 }
 
 function canUseApprovals(role: ApprovalRole): boolean {
@@ -1112,6 +1176,49 @@ async function notifyUser(
   if (!result.ok) {
     throw new NotificationCreateError();
   }
+}
+
+async function notifyManagersIfEnabled(
+  tx: NotificationDispatchDatabase,
+  input: CommandInput,
+  record: LoadedApprovalRecord,
+  options: {
+    actionUrl: string;
+    type: "leave_approved" | "leave_declined";
+  }
+) {
+  const settingsResult = await getSettings({
+    clerkOrgId: input.clerkOrgId,
+    organisationId: input.organisationId,
+  });
+  if (
+    !(settingsResult.ok && settingsResult.value.notifyManagersOnStatusChange)
+  ) {
+    return;
+  }
+
+  const managerUserId = record.person.manager?.clerk_user_id;
+  const managerPersonId = record.person.manager?.id ?? null;
+  if (!managerUserId || managerUserId === input.actingUserId) {
+    return;
+  }
+  if (managerUserId === record.person.clerk_user_id) {
+    return;
+  }
+
+  const personName = `${record.person.first_name} ${record.person.last_name}`;
+  await notifyUser(tx, input, record, {
+    actionUrl: options.actionUrl,
+    payload: {
+      body:
+        options.type === "leave_approved"
+          ? `${personName}'s leave request has been approved.`
+          : `${personName}'s leave request has been declined.`,
+    },
+    recipientPersonId: managerPersonId,
+    recipientUserId: managerUserId,
+    type: options.type,
+  });
 }
 
 async function notifyOwnerAndApprover(
@@ -1348,6 +1455,12 @@ const recordInclude = {
       id: true,
       last_name: true,
       location_id: true,
+      manager: {
+        select: {
+          clerk_user_id: true,
+          id: true,
+        },
+      },
       manager_person_id: true,
       team: {
         select: {

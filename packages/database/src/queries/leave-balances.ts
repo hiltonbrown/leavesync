@@ -65,7 +65,7 @@ export async function listLeaveBalancesForPerson(
         updatedAt: b.updated_at,
       })),
     };
-  } catch (_error) {
+  } catch {
     return {
       ok: false,
       error: appError("internal", "Failed to list leave balances"),
@@ -117,7 +117,7 @@ export async function listLeaveBalancesForOrganisation(
         updatedAt: b.updated_at,
       })),
     };
-  } catch (_error) {
+  } catch {
     return {
       ok: false,
       error: appError(

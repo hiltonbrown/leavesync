@@ -62,7 +62,7 @@ export async function listPeopleForOrganisation(
       ok: true,
       value: people.map(toPerson),
     };
-  } catch (_error) {
+  } catch {
     return {
       ok: false,
       error: appError("internal", "Failed to list people"),
@@ -133,7 +133,7 @@ export async function getPersonProfile(
         location: person.location,
       },
     };
-  } catch (_error) {
+  } catch {
     return {
       ok: false,
       error: appError("internal", "Failed to get person profile"),
