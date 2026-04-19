@@ -24,13 +24,13 @@ const mocks = vi.hoisted(() => ({
 
 class ResizeObserverMock {
   disconnect() {
-    return undefined;
+    return;
   }
   observe() {
-    return undefined;
+    return;
   }
   unobserve() {
-    return undefined;
+    return;
   }
 }
 

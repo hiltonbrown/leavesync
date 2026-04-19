@@ -15,11 +15,17 @@ import { PlusIcon, RotateCcwIcon, TrashIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 import { useTransition } from "react";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/states/empty-state";
+import { useFilterParams } from "@/lib/url-state/use-filter-params";
 import {
   deleteCustomHolidayAction,
   restoreHolidayAction,
   suppressHolidayAction,
 } from "./_actions";
+import {
+  PublicHolidayFilterSchema,
+  type PublicHolidayFilters,
+} from "./_schemas";
 
 interface PublicHolidayFromDB {
   archived_at: Date | null;
@@ -36,7 +42,9 @@ interface PublicHolidayFromDB {
 }
 
 interface PublicHolidaysListProps {
+  filters: PublicHolidayFilters;
   holidays: PublicHolidayFromDB[];
+  locations: Array<{ id: string; name: string }>;
 }
 
 const TYPE_CONFIG: Record<string, { label: string; bg: string; text: string }> =
@@ -96,8 +104,13 @@ function formatDayOfWeek(date: Date): string {
   return date.toLocaleDateString("en-GB", { weekday: "long" });
 }
 
-export function PublicHolidaysList({ holidays }: PublicHolidaysListProps) {
+export function PublicHolidaysList({
+  filters,
+  holidays,
+  locations,
+}: PublicHolidaysListProps) {
   const [isPending, startTransition] = useTransition();
+  const [, setFilterParams] = useFilterParams(PublicHolidayFilterSchema);
 
   const handleSuppress = (id: string, orgId: string) => {
     startTransition(async () => {
@@ -143,29 +156,42 @@ export function PublicHolidaysList({ holidays }: PublicHolidaysListProps) {
 
   if (holidays.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed p-12 text-center">
-        <h3 className="font-semibold text-lg">No public holidays</h3>
-        <p className="mt-2 text-muted-foreground text-sm">
-          Import holidays from a source or add custom ones.
-        </p>
-        <div className="mt-6 flex gap-4">
-          <Button asChild>
-            <Link href="/public-holidays/import">
-              <PlusIcon className="mr-2 h-4 w-4" /> Import holidays
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/public-holidays/holidays/new">
-              <PlusIcon className="mr-2 h-4 w-4" /> Add custom holiday
-            </Link>
-          </Button>
-        </div>
+      <div className="flex flex-col gap-6">
+        <FilterBar
+          filters={filters}
+          locations={locations}
+          setFilterParams={setFilterParams}
+        />
+        <EmptyState
+          actionSlot={
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button asChild>
+                <Link href="/public-holidays/import">
+                  <PlusIcon className="mr-2 h-4 w-4" /> Import holidays
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/public-holidays/holidays/new">
+                  <PlusIcon className="mr-2 h-4 w-4" /> Add custom holiday
+                </Link>
+              </Button>
+            </div>
+          }
+          description="Import holidays from a source or add custom holidays."
+          title="No public holidays"
+        />
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-6">
+      <FilterBar
+        filters={filters}
+        locations={locations}
+        setFilterParams={setFilterParams}
+      />
+
       <div className="flex justify-end gap-4">
         <Button asChild variant="outline">
           <Link href="/public-holidays/import">
@@ -179,7 +205,7 @@ export function PublicHolidaysList({ holidays }: PublicHolidaysListProps) {
         </Button>
       </div>
 
-      <div className="rounded-xl border">
+      <div className="overflow-x-auto rounded-xl border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -245,6 +271,7 @@ export function PublicHolidaysList({ holidays }: PublicHolidaysListProps) {
                     <div className="flex justify-end gap-2">
                       {isSuppressed ? (
                         <Button
+                          aria-label={`Restore ${holiday.name}`}
                           disabled={isPending}
                           onClick={() =>
                             handleRestore(holiday.id, holiday.organisation_id)
@@ -257,6 +284,7 @@ export function PublicHolidaysList({ holidays }: PublicHolidaysListProps) {
                         </Button>
                       ) : (
                         <Button
+                          aria-label={`Suppress ${holiday.name}`}
                           disabled={isPending}
                           onClick={() =>
                             handleSuppress(holiday.id, holiday.organisation_id)
@@ -270,6 +298,7 @@ export function PublicHolidaysList({ holidays }: PublicHolidaysListProps) {
                       )}
                       {holiday.source === "manual" && (
                         <Button
+                          aria-label={`Delete ${holiday.name}`}
                           disabled={isPending}
                           onClick={() =>
                             handleDelete(holiday.id, holiday.organisation_id)
@@ -289,6 +318,64 @@ export function PublicHolidaysList({ holidays }: PublicHolidaysListProps) {
           </TableBody>
         </Table>
       </div>
+    </div>
+  );
+}
+
+function FilterBar({
+  filters,
+  locations,
+  setFilterParams,
+}: {
+  filters: PublicHolidayFilters;
+  locations: Array<{ id: string; name: string }>;
+  setFilterParams: (params: Partial<PublicHolidayFilters>) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-end gap-3 rounded-2xl bg-muted p-4">
+      <label className="flex flex-col gap-1 text-sm">
+        <span className="font-medium">Year</span>
+        <input
+          className="min-h-11 rounded-xl bg-background px-3 py-2"
+          defaultValue={filters.year}
+          min={2000}
+          onChange={(event) =>
+            setFilterParams({ year: Number(event.currentTarget.value) })
+          }
+          type="number"
+        />
+      </label>
+      <label className="flex flex-col gap-1 text-sm">
+        <span className="font-medium">Location</span>
+        <select
+          className="min-h-11 rounded-xl bg-background px-3 py-2"
+          defaultValue={filters.locationId ?? ""}
+          onChange={(event) =>
+            setFilterParams({
+              locationId: event.currentTarget.value || undefined,
+            })
+          }
+        >
+          <option value="">All locations</option>
+          {locations.map((location) => (
+            <option key={location.id} value={location.id}>
+              {location.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex min-h-11 items-center gap-2 text-sm">
+        <input
+          checked={filters.includeSuppressed}
+          onChange={(event) =>
+            setFilterParams({
+              includeSuppressed: event.currentTarget.checked,
+            })
+          }
+          type="checkbox"
+        />
+        <span className="font-medium">Include suppressed</span>
+      </label>
     </div>
   );
 }

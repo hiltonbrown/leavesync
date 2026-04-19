@@ -1,13 +1,13 @@
 import { auth, clerkClient } from "@repo/auth/server";
-import { getOrganisationById } from "@repo/database/src/queries/organisations";
+import { database } from "@repo/database";
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { requirePageRole } from "@/lib/auth/require-page-role";
 import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
 import { GeneralClient } from "./general-client";
 
 export const metadata: Metadata = {
-  title: "General — Settings — LeaveSync",
-  description: "Manage organisation name, timezone, and locale settings.",
+  description: "Manage your workspace and organisation settings.",
+  title: "General - Settings - LeaveSync",
 };
 
 interface GeneralPageProps {
@@ -17,59 +17,55 @@ interface GeneralPageProps {
 }
 
 const GeneralPage = async ({ searchParams }: GeneralPageProps) => {
-  const { orgId } = await auth();
-
-  if (!orgId) {
-    redirect("/");
-  }
+  await requirePageRole("org:admin");
 
   const { org: orgParam } = await searchParams;
-  const { clerkOrgId, organisationId } =
-    await requireActiveOrgPageContext(orgParam);
-  const organisationResult = await getOrganisationById(
-    clerkOrgId,
-    organisationId
-  );
+  const [{ orgId }, { clerkOrgId, organisationId }] = await Promise.all([
+    auth(),
+    requireActiveOrgPageContext(orgParam),
+  ]);
 
-  if (!organisationResult.ok) {
-    throw new Error(organisationResult.error.message);
+  if (!orgId) {
+    throw new Error("No active workspace selected.");
   }
 
-  const clerk = await clerkClient();
-  const org = await clerk.organizations.getOrganization({
+  const [clerk, organisation] = await Promise.all([
+    clerkClient(),
+    database.organisation.findFirst({
+      where: {
+        clerk_org_id: clerkOrgId,
+        id: organisationId,
+      },
+      select: {
+        country_code: true,
+        name: true,
+        region_code: true,
+        timezone: true,
+      },
+    }),
+  ]);
+
+  if (!organisation) {
+    throw new Error("Organisation not found.");
+  }
+
+  const workspace = await clerk.organizations.getOrganization({
     organizationId: orgId,
   });
 
-  const meta = (org.publicMetadata ?? {}) as Record<string, unknown>;
-  const organisation = organisationResult.value;
-
-  const timezone =
-    organisation.timezone ??
-    (typeof meta.timezone === "string" ? meta.timezone : "UTC");
-  const locale =
-    organisation.locale ??
-    (typeof meta.locale === "string" ? meta.locale : "en-AU");
-  const fiscalYearStart =
-    organisation.fiscalYearStart ??
-    (typeof meta.fiscalYearStart === "number" ? meta.fiscalYearStart : 7);
-  const reportingUnit =
-    organisation.reportingUnit ??
-    (typeof meta.reportingUnit === "string" ? meta.reportingUnit : "hours");
-  const workingHoursPerDay =
-    organisation.workingHoursPerDay ??
-    (typeof meta.workingHoursPerDay === "number"
-      ? meta.workingHoursPerDay
-      : 7.6);
-
   return (
     <GeneralClient
-      fiscalYearStart={fiscalYearStart}
-      locale={locale}
-      organisationId={organisationId}
-      orgName={org.name}
-      reportingUnit={reportingUnit}
-      timezone={timezone}
-      workingHoursPerDay={workingHoursPerDay}
+      organisation={{
+        countryCode: organisation.country_code as "AU" | "NZ" | "UK",
+        id: organisationId,
+        name: organisation.name,
+        regionCode: organisation.region_code,
+        timezone: organisation.timezone ?? "Australia/Brisbane",
+      }}
+      workspace={{
+        name: workspace.name,
+        slug: workspace.slug ?? null,
+      }}
     />
   );
 };

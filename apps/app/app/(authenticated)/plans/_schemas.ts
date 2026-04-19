@@ -50,7 +50,7 @@ const csvArray = <T extends z.ZodTypeAny>(schema: T) =>
         .split(",")
         .filter((item) => item !== "all" && item.length > 0);
     }
-    return undefined;
+    return;
   }, z.array(schema).optional());
 
 const optionalDateString = z.preprocess(

@@ -41,6 +41,7 @@ export type OrganisationMinAggregateOutputType = {
   clerk_org_id: string | null
   name: string | null
   country_code: string | null
+  region_code: string | null
   is_active: boolean | null
   timezone: string | null
   locale: string | null
@@ -57,6 +58,7 @@ export type OrganisationMaxAggregateOutputType = {
   clerk_org_id: string | null
   name: string | null
   country_code: string | null
+  region_code: string | null
   is_active: boolean | null
   timezone: string | null
   locale: string | null
@@ -73,6 +75,7 @@ export type OrganisationCountAggregateOutputType = {
   clerk_org_id: number
   name: number
   country_code: number
+  region_code: number
   is_active: number
   timezone: number
   locale: number
@@ -101,6 +104,7 @@ export type OrganisationMinAggregateInputType = {
   clerk_org_id?: true
   name?: true
   country_code?: true
+  region_code?: true
   is_active?: true
   timezone?: true
   locale?: true
@@ -117,6 +121,7 @@ export type OrganisationMaxAggregateInputType = {
   clerk_org_id?: true
   name?: true
   country_code?: true
+  region_code?: true
   is_active?: true
   timezone?: true
   locale?: true
@@ -133,6 +138,7 @@ export type OrganisationCountAggregateInputType = {
   clerk_org_id?: true
   name?: true
   country_code?: true
+  region_code?: true
   is_active?: true
   timezone?: true
   locale?: true
@@ -236,6 +242,7 @@ export type OrganisationGroupByOutputType = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code: string | null
   is_active: boolean
   timezone: string | null
   locale: string | null
@@ -275,6 +282,7 @@ export type OrganisationWhereInput = {
   clerk_org_id?: Prisma.StringFilter<"Organisation"> | string
   name?: Prisma.StringFilter<"Organisation"> | string
   country_code?: Prisma.StringFilter<"Organisation"> | string
+  region_code?: Prisma.StringNullableFilter<"Organisation"> | string | null
   is_active?: Prisma.BoolFilter<"Organisation"> | boolean
   timezone?: Prisma.StringNullableFilter<"Organisation"> | string | null
   locale?: Prisma.StringNullableFilter<"Organisation"> | string | null
@@ -305,6 +313,7 @@ export type OrganisationWhereInput = {
   notifications?: Prisma.NotificationListRelationFilter
   notification_preferences?: Prisma.NotificationPreferenceListRelationFilter
   notification_email_queue?: Prisma.NotificationEmailQueueListRelationFilter
+  organisation_settings?: Prisma.XOR<Prisma.OrganisationSettingsNullableScalarRelationFilter, Prisma.OrganisationSettingsWhereInput> | null
 }
 
 export type OrganisationOrderByWithRelationInput = {
@@ -312,6 +321,7 @@ export type OrganisationOrderByWithRelationInput = {
   clerk_org_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   country_code?: Prisma.SortOrder
+  region_code?: Prisma.SortOrderInput | Prisma.SortOrder
   is_active?: Prisma.SortOrder
   timezone?: Prisma.SortOrderInput | Prisma.SortOrder
   locale?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -342,6 +352,7 @@ export type OrganisationOrderByWithRelationInput = {
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
   notification_preferences?: Prisma.NotificationPreferenceOrderByRelationAggregateInput
   notification_email_queue?: Prisma.NotificationEmailQueueOrderByRelationAggregateInput
+  organisation_settings?: Prisma.OrganisationSettingsOrderByWithRelationInput
 }
 
 export type OrganisationWhereUniqueInput = Prisma.AtLeast<{
@@ -352,6 +363,7 @@ export type OrganisationWhereUniqueInput = Prisma.AtLeast<{
   clerk_org_id?: Prisma.StringFilter<"Organisation"> | string
   name?: Prisma.StringFilter<"Organisation"> | string
   country_code?: Prisma.StringFilter<"Organisation"> | string
+  region_code?: Prisma.StringNullableFilter<"Organisation"> | string | null
   is_active?: Prisma.BoolFilter<"Organisation"> | boolean
   timezone?: Prisma.StringNullableFilter<"Organisation"> | string | null
   locale?: Prisma.StringNullableFilter<"Organisation"> | string | null
@@ -382,6 +394,7 @@ export type OrganisationWhereUniqueInput = Prisma.AtLeast<{
   notifications?: Prisma.NotificationListRelationFilter
   notification_preferences?: Prisma.NotificationPreferenceListRelationFilter
   notification_email_queue?: Prisma.NotificationEmailQueueListRelationFilter
+  organisation_settings?: Prisma.XOR<Prisma.OrganisationSettingsNullableScalarRelationFilter, Prisma.OrganisationSettingsWhereInput> | null
 }, "id">
 
 export type OrganisationOrderByWithAggregationInput = {
@@ -389,6 +402,7 @@ export type OrganisationOrderByWithAggregationInput = {
   clerk_org_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   country_code?: Prisma.SortOrder
+  region_code?: Prisma.SortOrderInput | Prisma.SortOrder
   is_active?: Prisma.SortOrder
   timezone?: Prisma.SortOrderInput | Prisma.SortOrder
   locale?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -413,6 +427,7 @@ export type OrganisationScalarWhereWithAggregatesInput = {
   clerk_org_id?: Prisma.StringWithAggregatesFilter<"Organisation"> | string
   name?: Prisma.StringWithAggregatesFilter<"Organisation"> | string
   country_code?: Prisma.StringWithAggregatesFilter<"Organisation"> | string
+  region_code?: Prisma.StringNullableWithAggregatesFilter<"Organisation"> | string | null
   is_active?: Prisma.BoolWithAggregatesFilter<"Organisation"> | boolean
   timezone?: Prisma.StringNullableWithAggregatesFilter<"Organisation"> | string | null
   locale?: Prisma.StringNullableWithAggregatesFilter<"Organisation"> | string | null
@@ -429,6 +444,7 @@ export type OrganisationCreateInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -459,6 +475,7 @@ export type OrganisationCreateInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateInput = {
@@ -466,6 +483,7 @@ export type OrganisationUncheckedCreateInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -496,6 +514,7 @@ export type OrganisationUncheckedCreateInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUpdateInput = {
@@ -503,6 +522,7 @@ export type OrganisationUpdateInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -533,6 +553,7 @@ export type OrganisationUpdateInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateInput = {
@@ -540,6 +561,7 @@ export type OrganisationUncheckedUpdateInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -570,6 +592,7 @@ export type OrganisationUncheckedUpdateInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateManyInput = {
@@ -577,6 +600,7 @@ export type OrganisationCreateManyInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -593,6 +617,7 @@ export type OrganisationUpdateManyMutationInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -609,6 +634,7 @@ export type OrganisationUncheckedUpdateManyInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -625,6 +651,7 @@ export type OrganisationCountOrderByAggregateInput = {
   clerk_org_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   country_code?: Prisma.SortOrder
+  region_code?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   locale?: Prisma.SortOrder
@@ -646,6 +673,7 @@ export type OrganisationMaxOrderByAggregateInput = {
   clerk_org_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   country_code?: Prisma.SortOrder
+  region_code?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   locale?: Prisma.SortOrder
@@ -662,6 +690,7 @@ export type OrganisationMinOrderByAggregateInput = {
   clerk_org_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   country_code?: Prisma.SortOrder
+  region_code?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
   locale?: Prisma.SortOrder
@@ -687,12 +716,12 @@ export type StringFieldUpdateOperationsInput = {
   set?: string
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
 }
 
 export type NullableIntFieldUpdateOperationsInput = {
@@ -717,6 +746,20 @@ export type NullableDateTimeFieldUpdateOperationsInput = {
 
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
+}
+
+export type OrganisationCreateNestedOneWithoutOrganisation_settingsInput = {
+  create?: Prisma.XOR<Prisma.OrganisationCreateWithoutOrganisation_settingsInput, Prisma.OrganisationUncheckedCreateWithoutOrganisation_settingsInput>
+  connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutOrganisation_settingsInput
+  connect?: Prisma.OrganisationWhereUniqueInput
+}
+
+export type OrganisationUpdateOneRequiredWithoutOrganisation_settingsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganisationCreateWithoutOrganisation_settingsInput, Prisma.OrganisationUncheckedCreateWithoutOrganisation_settingsInput>
+  connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutOrganisation_settingsInput
+  upsert?: Prisma.OrganisationUpsertWithoutOrganisation_settingsInput
+  connect?: Prisma.OrganisationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganisationUpdateToOneWithWhereWithoutOrganisation_settingsInput, Prisma.OrganisationUpdateWithoutOrganisation_settingsInput>, Prisma.OrganisationUncheckedUpdateWithoutOrganisation_settingsInput>
 }
 
 export type OrganisationCreateNestedOneWithoutTeamsInput = {
@@ -1013,11 +1056,180 @@ export type OrganisationUpdateOneRequiredWithoutAudit_eventsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganisationUpdateToOneWithWhereWithoutAudit_eventsInput, Prisma.OrganisationUpdateWithoutAudit_eventsInput>, Prisma.OrganisationUncheckedUpdateWithoutAudit_eventsInput>
 }
 
+export type OrganisationCreateWithoutOrganisation_settingsInput = {
+  id?: string
+  clerk_org_id: string
+  name: string
+  country_code: string
+  region_code?: string | null
+  is_active?: boolean
+  timezone?: string | null
+  locale?: string | null
+  fiscal_year_start?: number | null
+  working_hours_per_day?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: string | null
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  teams?: Prisma.TeamCreateNestedManyWithoutOrganisationInput
+  locations?: Prisma.LocationCreateNestedManyWithoutOrganisationInput
+  people?: Prisma.PersonCreateNestedManyWithoutOrganisationInput
+  leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutOrganisationInput
+  alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutOrganisationInput
+  availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutOrganisationInput
+  availability_publications?: Prisma.AvailabilityPublicationCreateNestedManyWithoutOrganisationInput
+  feeds?: Prisma.FeedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentCreateNestedManyWithoutOrganisationInput
+  xero_connection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganisationInput
+  xero_tenants?: Prisma.XeroTenantCreateNestedManyWithoutOrganisationInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorCreateNestedManyWithoutOrganisationInput
+  sync_runs?: Prisma.SyncRunCreateNestedManyWithoutOrganisationInput
+  failed_records?: Prisma.FailedRecordCreateNestedManyWithoutOrganisationInput
+  audit_events?: Prisma.AuditEventCreateNestedManyWithoutOrganisationInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
+  notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
+  notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+}
+
+export type OrganisationUncheckedCreateWithoutOrganisation_settingsInput = {
+  id?: string
+  clerk_org_id: string
+  name: string
+  country_code: string
+  region_code?: string | null
+  is_active?: boolean
+  timezone?: string | null
+  locale?: string | null
+  fiscal_year_start?: number | null
+  working_hours_per_day?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: string | null
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  teams?: Prisma.TeamUncheckedCreateNestedManyWithoutOrganisationInput
+  locations?: Prisma.LocationUncheckedCreateNestedManyWithoutOrganisationInput
+  people?: Prisma.PersonUncheckedCreateNestedManyWithoutOrganisationInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutOrganisationInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutOrganisationInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutOrganisationInput
+  availability_publications?: Prisma.AvailabilityPublicationUncheckedCreateNestedManyWithoutOrganisationInput
+  feeds?: Prisma.FeedUncheckedCreateNestedManyWithoutOrganisationInput
+  feed_tokens?: Prisma.FeedTokenUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holidays?: Prisma.PublicHolidayUncheckedCreateNestedManyWithoutOrganisationInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedCreateNestedManyWithoutOrganisationInput
+  xero_connection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganisationInput
+  xero_tenants?: Prisma.XeroTenantUncheckedCreateNestedManyWithoutOrganisationInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutOrganisationInput
+  sync_runs?: Prisma.SyncRunUncheckedCreateNestedManyWithoutOrganisationInput
+  failed_records?: Prisma.FailedRecordUncheckedCreateNestedManyWithoutOrganisationInput
+  audit_events?: Prisma.AuditEventUncheckedCreateNestedManyWithoutOrganisationInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
+  notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
+  notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+}
+
+export type OrganisationCreateOrConnectWithoutOrganisation_settingsInput = {
+  where: Prisma.OrganisationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganisationCreateWithoutOrganisation_settingsInput, Prisma.OrganisationUncheckedCreateWithoutOrganisation_settingsInput>
+}
+
+export type OrganisationUpsertWithoutOrganisation_settingsInput = {
+  update: Prisma.XOR<Prisma.OrganisationUpdateWithoutOrganisation_settingsInput, Prisma.OrganisationUncheckedUpdateWithoutOrganisation_settingsInput>
+  create: Prisma.XOR<Prisma.OrganisationCreateWithoutOrganisation_settingsInput, Prisma.OrganisationUncheckedCreateWithoutOrganisation_settingsInput>
+  where?: Prisma.OrganisationWhereInput
+}
+
+export type OrganisationUpdateToOneWithWhereWithoutOrganisation_settingsInput = {
+  where?: Prisma.OrganisationWhereInput
+  data: Prisma.XOR<Prisma.OrganisationUpdateWithoutOrganisation_settingsInput, Prisma.OrganisationUncheckedUpdateWithoutOrganisation_settingsInput>
+}
+
+export type OrganisationUpdateWithoutOrganisation_settingsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  working_hours_per_day?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teams?: Prisma.TeamUpdateManyWithoutOrganisationNestedInput
+  locations?: Prisma.LocationUpdateManyWithoutOrganisationNestedInput
+  people?: Prisma.PersonUpdateManyWithoutOrganisationNestedInput
+  leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutOrganisationNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutOrganisationNestedInput
+  availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutOrganisationNestedInput
+  availability_publications?: Prisma.AvailabilityPublicationUpdateManyWithoutOrganisationNestedInput
+  feeds?: Prisma.FeedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUpdateManyWithoutOrganisationNestedInput
+  xero_connection?: Prisma.XeroConnectionUpdateOneWithoutOrganisationNestedInput
+  xero_tenants?: Prisma.XeroTenantUpdateManyWithoutOrganisationNestedInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorUpdateManyWithoutOrganisationNestedInput
+  sync_runs?: Prisma.SyncRunUpdateManyWithoutOrganisationNestedInput
+  failed_records?: Prisma.FailedRecordUpdateManyWithoutOrganisationNestedInput
+  audit_events?: Prisma.AuditEventUpdateManyWithoutOrganisationNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
+  notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
+  notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+}
+
+export type OrganisationUncheckedUpdateWithoutOrganisation_settingsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fiscal_year_start?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  working_hours_per_day?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  reporting_unit?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teams?: Prisma.TeamUncheckedUpdateManyWithoutOrganisationNestedInput
+  locations?: Prisma.LocationUncheckedUpdateManyWithoutOrganisationNestedInput
+  people?: Prisma.PersonUncheckedUpdateManyWithoutOrganisationNestedInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutOrganisationNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutOrganisationNestedInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutOrganisationNestedInput
+  availability_publications?: Prisma.AvailabilityPublicationUncheckedUpdateManyWithoutOrganisationNestedInput
+  feeds?: Prisma.FeedUncheckedUpdateManyWithoutOrganisationNestedInput
+  feed_tokens?: Prisma.FeedTokenUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_jurisdictions?: Prisma.PublicHolidayJurisdictionUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holidays?: Prisma.PublicHolidayUncheckedUpdateManyWithoutOrganisationNestedInput
+  public_holiday_assignments?: Prisma.PublicHolidayAssignmentUncheckedUpdateManyWithoutOrganisationNestedInput
+  xero_connection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput
+  xero_tenants?: Prisma.XeroTenantUncheckedUpdateManyWithoutOrganisationNestedInput
+  xero_sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutOrganisationNestedInput
+  sync_runs?: Prisma.SyncRunUncheckedUpdateManyWithoutOrganisationNestedInput
+  failed_records?: Prisma.FailedRecordUncheckedUpdateManyWithoutOrganisationNestedInput
+  audit_events?: Prisma.AuditEventUncheckedUpdateManyWithoutOrganisationNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
+  notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
+  notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+}
+
 export type OrganisationCreateWithoutTeamsInput = {
   id?: string
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -1047,6 +1259,7 @@ export type OrganisationCreateWithoutTeamsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutTeamsInput = {
@@ -1054,6 +1267,7 @@ export type OrganisationUncheckedCreateWithoutTeamsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -1083,6 +1297,7 @@ export type OrganisationUncheckedCreateWithoutTeamsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutTeamsInput = {
@@ -1106,6 +1321,7 @@ export type OrganisationUpdateWithoutTeamsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1135,6 +1351,7 @@ export type OrganisationUpdateWithoutTeamsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutTeamsInput = {
@@ -1142,6 +1359,7 @@ export type OrganisationUncheckedUpdateWithoutTeamsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1171,6 +1389,7 @@ export type OrganisationUncheckedUpdateWithoutTeamsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutLocationsInput = {
@@ -1178,6 +1397,7 @@ export type OrganisationCreateWithoutLocationsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -1207,6 +1427,7 @@ export type OrganisationCreateWithoutLocationsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutLocationsInput = {
@@ -1214,6 +1435,7 @@ export type OrganisationUncheckedCreateWithoutLocationsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -1243,6 +1465,7 @@ export type OrganisationUncheckedCreateWithoutLocationsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutLocationsInput = {
@@ -1266,6 +1489,7 @@ export type OrganisationUpdateWithoutLocationsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1295,6 +1519,7 @@ export type OrganisationUpdateWithoutLocationsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutLocationsInput = {
@@ -1302,6 +1527,7 @@ export type OrganisationUncheckedUpdateWithoutLocationsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1331,6 +1557,7 @@ export type OrganisationUncheckedUpdateWithoutLocationsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutPeopleInput = {
@@ -1338,6 +1565,7 @@ export type OrganisationCreateWithoutPeopleInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -1367,6 +1595,7 @@ export type OrganisationCreateWithoutPeopleInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutPeopleInput = {
@@ -1374,6 +1603,7 @@ export type OrganisationUncheckedCreateWithoutPeopleInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -1403,6 +1633,7 @@ export type OrganisationUncheckedCreateWithoutPeopleInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutPeopleInput = {
@@ -1426,6 +1657,7 @@ export type OrganisationUpdateWithoutPeopleInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1455,6 +1687,7 @@ export type OrganisationUpdateWithoutPeopleInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutPeopleInput = {
@@ -1462,6 +1695,7 @@ export type OrganisationUncheckedUpdateWithoutPeopleInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1491,6 +1725,7 @@ export type OrganisationUncheckedUpdateWithoutPeopleInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutAlternative_contactsInput = {
@@ -1498,6 +1733,7 @@ export type OrganisationCreateWithoutAlternative_contactsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -1527,6 +1763,7 @@ export type OrganisationCreateWithoutAlternative_contactsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutAlternative_contactsInput = {
@@ -1534,6 +1771,7 @@ export type OrganisationUncheckedCreateWithoutAlternative_contactsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -1563,6 +1801,7 @@ export type OrganisationUncheckedCreateWithoutAlternative_contactsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutAlternative_contactsInput = {
@@ -1586,6 +1825,7 @@ export type OrganisationUpdateWithoutAlternative_contactsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1615,6 +1855,7 @@ export type OrganisationUpdateWithoutAlternative_contactsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutAlternative_contactsInput = {
@@ -1622,6 +1863,7 @@ export type OrganisationUncheckedUpdateWithoutAlternative_contactsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1651,6 +1893,7 @@ export type OrganisationUncheckedUpdateWithoutAlternative_contactsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutXero_connectionInput = {
@@ -1658,6 +1901,7 @@ export type OrganisationCreateWithoutXero_connectionInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -1687,6 +1931,7 @@ export type OrganisationCreateWithoutXero_connectionInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutXero_connectionInput = {
@@ -1694,6 +1939,7 @@ export type OrganisationUncheckedCreateWithoutXero_connectionInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -1723,6 +1969,7 @@ export type OrganisationUncheckedCreateWithoutXero_connectionInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutXero_connectionInput = {
@@ -1746,6 +1993,7 @@ export type OrganisationUpdateWithoutXero_connectionInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1775,6 +2023,7 @@ export type OrganisationUpdateWithoutXero_connectionInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutXero_connectionInput = {
@@ -1782,6 +2031,7 @@ export type OrganisationUncheckedUpdateWithoutXero_connectionInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1811,6 +2061,7 @@ export type OrganisationUncheckedUpdateWithoutXero_connectionInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutXero_tenantsInput = {
@@ -1818,6 +2069,7 @@ export type OrganisationCreateWithoutXero_tenantsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -1847,6 +2099,7 @@ export type OrganisationCreateWithoutXero_tenantsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutXero_tenantsInput = {
@@ -1854,6 +2107,7 @@ export type OrganisationUncheckedCreateWithoutXero_tenantsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -1883,6 +2137,7 @@ export type OrganisationUncheckedCreateWithoutXero_tenantsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutXero_tenantsInput = {
@@ -1906,6 +2161,7 @@ export type OrganisationUpdateWithoutXero_tenantsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1935,6 +2191,7 @@ export type OrganisationUpdateWithoutXero_tenantsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutXero_tenantsInput = {
@@ -1942,6 +2199,7 @@ export type OrganisationUncheckedUpdateWithoutXero_tenantsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1971,6 +2229,7 @@ export type OrganisationUncheckedUpdateWithoutXero_tenantsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutXero_sync_cursorsInput = {
@@ -1978,6 +2237,7 @@ export type OrganisationCreateWithoutXero_sync_cursorsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -2007,6 +2267,7 @@ export type OrganisationCreateWithoutXero_sync_cursorsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutXero_sync_cursorsInput = {
@@ -2014,6 +2275,7 @@ export type OrganisationUncheckedCreateWithoutXero_sync_cursorsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -2043,6 +2305,7 @@ export type OrganisationUncheckedCreateWithoutXero_sync_cursorsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutXero_sync_cursorsInput = {
@@ -2066,6 +2329,7 @@ export type OrganisationUpdateWithoutXero_sync_cursorsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2095,6 +2359,7 @@ export type OrganisationUpdateWithoutXero_sync_cursorsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutXero_sync_cursorsInput = {
@@ -2102,6 +2367,7 @@ export type OrganisationUncheckedUpdateWithoutXero_sync_cursorsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2131,6 +2397,7 @@ export type OrganisationUncheckedUpdateWithoutXero_sync_cursorsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutAvailability_recordsInput = {
@@ -2138,6 +2405,7 @@ export type OrganisationCreateWithoutAvailability_recordsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -2167,6 +2435,7 @@ export type OrganisationCreateWithoutAvailability_recordsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutAvailability_recordsInput = {
@@ -2174,6 +2443,7 @@ export type OrganisationUncheckedCreateWithoutAvailability_recordsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -2203,6 +2473,7 @@ export type OrganisationUncheckedCreateWithoutAvailability_recordsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutAvailability_recordsInput = {
@@ -2226,6 +2497,7 @@ export type OrganisationUpdateWithoutAvailability_recordsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2255,6 +2527,7 @@ export type OrganisationUpdateWithoutAvailability_recordsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutAvailability_recordsInput = {
@@ -2262,6 +2535,7 @@ export type OrganisationUncheckedUpdateWithoutAvailability_recordsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2291,6 +2565,7 @@ export type OrganisationUncheckedUpdateWithoutAvailability_recordsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutAvailability_publicationsInput = {
@@ -2298,6 +2573,7 @@ export type OrganisationCreateWithoutAvailability_publicationsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -2327,6 +2603,7 @@ export type OrganisationCreateWithoutAvailability_publicationsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutAvailability_publicationsInput = {
@@ -2334,6 +2611,7 @@ export type OrganisationUncheckedCreateWithoutAvailability_publicationsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -2363,6 +2641,7 @@ export type OrganisationUncheckedCreateWithoutAvailability_publicationsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutAvailability_publicationsInput = {
@@ -2386,6 +2665,7 @@ export type OrganisationUpdateWithoutAvailability_publicationsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2415,6 +2695,7 @@ export type OrganisationUpdateWithoutAvailability_publicationsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutAvailability_publicationsInput = {
@@ -2422,6 +2703,7 @@ export type OrganisationUncheckedUpdateWithoutAvailability_publicationsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2451,6 +2733,7 @@ export type OrganisationUncheckedUpdateWithoutAvailability_publicationsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutLeave_balancesInput = {
@@ -2458,6 +2741,7 @@ export type OrganisationCreateWithoutLeave_balancesInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -2487,6 +2771,7 @@ export type OrganisationCreateWithoutLeave_balancesInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutLeave_balancesInput = {
@@ -2494,6 +2779,7 @@ export type OrganisationUncheckedCreateWithoutLeave_balancesInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -2523,6 +2809,7 @@ export type OrganisationUncheckedCreateWithoutLeave_balancesInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutLeave_balancesInput = {
@@ -2546,6 +2833,7 @@ export type OrganisationUpdateWithoutLeave_balancesInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2575,6 +2863,7 @@ export type OrganisationUpdateWithoutLeave_balancesInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutLeave_balancesInput = {
@@ -2582,6 +2871,7 @@ export type OrganisationUncheckedUpdateWithoutLeave_balancesInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2611,6 +2901,7 @@ export type OrganisationUncheckedUpdateWithoutLeave_balancesInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutPublic_holiday_jurisdictionsInput = {
@@ -2618,6 +2909,7 @@ export type OrganisationCreateWithoutPublic_holiday_jurisdictionsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -2647,6 +2939,7 @@ export type OrganisationCreateWithoutPublic_holiday_jurisdictionsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutPublic_holiday_jurisdictionsInput = {
@@ -2654,6 +2947,7 @@ export type OrganisationUncheckedCreateWithoutPublic_holiday_jurisdictionsInput 
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -2683,6 +2977,7 @@ export type OrganisationUncheckedCreateWithoutPublic_holiday_jurisdictionsInput 
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutPublic_holiday_jurisdictionsInput = {
@@ -2706,6 +3001,7 @@ export type OrganisationUpdateWithoutPublic_holiday_jurisdictionsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2735,6 +3031,7 @@ export type OrganisationUpdateWithoutPublic_holiday_jurisdictionsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutPublic_holiday_jurisdictionsInput = {
@@ -2742,6 +3039,7 @@ export type OrganisationUncheckedUpdateWithoutPublic_holiday_jurisdictionsInput 
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2771,6 +3069,7 @@ export type OrganisationUncheckedUpdateWithoutPublic_holiday_jurisdictionsInput 
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutPublic_holidaysInput = {
@@ -2778,6 +3077,7 @@ export type OrganisationCreateWithoutPublic_holidaysInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -2807,6 +3107,7 @@ export type OrganisationCreateWithoutPublic_holidaysInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutPublic_holidaysInput = {
@@ -2814,6 +3115,7 @@ export type OrganisationUncheckedCreateWithoutPublic_holidaysInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -2843,6 +3145,7 @@ export type OrganisationUncheckedCreateWithoutPublic_holidaysInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutPublic_holidaysInput = {
@@ -2866,6 +3169,7 @@ export type OrganisationUpdateWithoutPublic_holidaysInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2895,6 +3199,7 @@ export type OrganisationUpdateWithoutPublic_holidaysInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutPublic_holidaysInput = {
@@ -2902,6 +3207,7 @@ export type OrganisationUncheckedUpdateWithoutPublic_holidaysInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2931,6 +3237,7 @@ export type OrganisationUncheckedUpdateWithoutPublic_holidaysInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutPublic_holiday_assignmentsInput = {
@@ -2938,6 +3245,7 @@ export type OrganisationCreateWithoutPublic_holiday_assignmentsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -2967,6 +3275,7 @@ export type OrganisationCreateWithoutPublic_holiday_assignmentsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutPublic_holiday_assignmentsInput = {
@@ -2974,6 +3283,7 @@ export type OrganisationUncheckedCreateWithoutPublic_holiday_assignmentsInput = 
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -3003,6 +3313,7 @@ export type OrganisationUncheckedCreateWithoutPublic_holiday_assignmentsInput = 
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutPublic_holiday_assignmentsInput = {
@@ -3026,6 +3337,7 @@ export type OrganisationUpdateWithoutPublic_holiday_assignmentsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3055,6 +3367,7 @@ export type OrganisationUpdateWithoutPublic_holiday_assignmentsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutPublic_holiday_assignmentsInput = {
@@ -3062,6 +3375,7 @@ export type OrganisationUncheckedUpdateWithoutPublic_holiday_assignmentsInput = 
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3091,6 +3405,7 @@ export type OrganisationUncheckedUpdateWithoutPublic_holiday_assignmentsInput = 
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutFeedsInput = {
@@ -3098,6 +3413,7 @@ export type OrganisationCreateWithoutFeedsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -3127,6 +3443,7 @@ export type OrganisationCreateWithoutFeedsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutFeedsInput = {
@@ -3134,6 +3451,7 @@ export type OrganisationUncheckedCreateWithoutFeedsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -3163,6 +3481,7 @@ export type OrganisationUncheckedCreateWithoutFeedsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutFeedsInput = {
@@ -3186,6 +3505,7 @@ export type OrganisationUpdateWithoutFeedsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3215,6 +3535,7 @@ export type OrganisationUpdateWithoutFeedsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutFeedsInput = {
@@ -3222,6 +3543,7 @@ export type OrganisationUncheckedUpdateWithoutFeedsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3251,6 +3573,7 @@ export type OrganisationUncheckedUpdateWithoutFeedsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutFeed_tokensInput = {
@@ -3258,6 +3581,7 @@ export type OrganisationCreateWithoutFeed_tokensInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -3287,6 +3611,7 @@ export type OrganisationCreateWithoutFeed_tokensInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutFeed_tokensInput = {
@@ -3294,6 +3619,7 @@ export type OrganisationUncheckedCreateWithoutFeed_tokensInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -3323,6 +3649,7 @@ export type OrganisationUncheckedCreateWithoutFeed_tokensInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutFeed_tokensInput = {
@@ -3346,6 +3673,7 @@ export type OrganisationUpdateWithoutFeed_tokensInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3375,6 +3703,7 @@ export type OrganisationUpdateWithoutFeed_tokensInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutFeed_tokensInput = {
@@ -3382,6 +3711,7 @@ export type OrganisationUncheckedUpdateWithoutFeed_tokensInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3411,6 +3741,7 @@ export type OrganisationUncheckedUpdateWithoutFeed_tokensInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutNotificationsInput = {
@@ -3418,6 +3749,7 @@ export type OrganisationCreateWithoutNotificationsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -3447,6 +3779,7 @@ export type OrganisationCreateWithoutNotificationsInput = {
   audit_events?: Prisma.AuditEventCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutNotificationsInput = {
@@ -3454,6 +3787,7 @@ export type OrganisationUncheckedCreateWithoutNotificationsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -3483,6 +3817,7 @@ export type OrganisationUncheckedCreateWithoutNotificationsInput = {
   audit_events?: Prisma.AuditEventUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutNotificationsInput = {
@@ -3506,6 +3841,7 @@ export type OrganisationUpdateWithoutNotificationsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3535,6 +3871,7 @@ export type OrganisationUpdateWithoutNotificationsInput = {
   audit_events?: Prisma.AuditEventUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutNotificationsInput = {
@@ -3542,6 +3879,7 @@ export type OrganisationUncheckedUpdateWithoutNotificationsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3571,6 +3909,7 @@ export type OrganisationUncheckedUpdateWithoutNotificationsInput = {
   audit_events?: Prisma.AuditEventUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutNotification_preferencesInput = {
@@ -3578,6 +3917,7 @@ export type OrganisationCreateWithoutNotification_preferencesInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -3607,6 +3947,7 @@ export type OrganisationCreateWithoutNotification_preferencesInput = {
   audit_events?: Prisma.AuditEventCreateNestedManyWithoutOrganisationInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutNotification_preferencesInput = {
@@ -3614,6 +3955,7 @@ export type OrganisationUncheckedCreateWithoutNotification_preferencesInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -3643,6 +3985,7 @@ export type OrganisationUncheckedCreateWithoutNotification_preferencesInput = {
   audit_events?: Prisma.AuditEventUncheckedCreateNestedManyWithoutOrganisationInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutNotification_preferencesInput = {
@@ -3666,6 +4009,7 @@ export type OrganisationUpdateWithoutNotification_preferencesInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3695,6 +4039,7 @@ export type OrganisationUpdateWithoutNotification_preferencesInput = {
   audit_events?: Prisma.AuditEventUpdateManyWithoutOrganisationNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutNotification_preferencesInput = {
@@ -3702,6 +4047,7 @@ export type OrganisationUncheckedUpdateWithoutNotification_preferencesInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3731,6 +4077,7 @@ export type OrganisationUncheckedUpdateWithoutNotification_preferencesInput = {
   audit_events?: Prisma.AuditEventUncheckedUpdateManyWithoutOrganisationNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutNotification_email_queueInput = {
@@ -3738,6 +4085,7 @@ export type OrganisationCreateWithoutNotification_email_queueInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -3767,6 +4115,7 @@ export type OrganisationCreateWithoutNotification_email_queueInput = {
   audit_events?: Prisma.AuditEventCreateNestedManyWithoutOrganisationInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutNotification_email_queueInput = {
@@ -3774,6 +4123,7 @@ export type OrganisationUncheckedCreateWithoutNotification_email_queueInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -3803,6 +4153,7 @@ export type OrganisationUncheckedCreateWithoutNotification_email_queueInput = {
   audit_events?: Prisma.AuditEventUncheckedCreateNestedManyWithoutOrganisationInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutNotification_email_queueInput = {
@@ -3826,6 +4177,7 @@ export type OrganisationUpdateWithoutNotification_email_queueInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3855,6 +4207,7 @@ export type OrganisationUpdateWithoutNotification_email_queueInput = {
   audit_events?: Prisma.AuditEventUpdateManyWithoutOrganisationNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutNotification_email_queueInput = {
@@ -3862,6 +4215,7 @@ export type OrganisationUncheckedUpdateWithoutNotification_email_queueInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3891,6 +4245,7 @@ export type OrganisationUncheckedUpdateWithoutNotification_email_queueInput = {
   audit_events?: Prisma.AuditEventUncheckedUpdateManyWithoutOrganisationNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutSync_runsInput = {
@@ -3898,6 +4253,7 @@ export type OrganisationCreateWithoutSync_runsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -3927,6 +4283,7 @@ export type OrganisationCreateWithoutSync_runsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutSync_runsInput = {
@@ -3934,6 +4291,7 @@ export type OrganisationUncheckedCreateWithoutSync_runsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -3963,6 +4321,7 @@ export type OrganisationUncheckedCreateWithoutSync_runsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutSync_runsInput = {
@@ -3986,6 +4345,7 @@ export type OrganisationUpdateWithoutSync_runsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4015,6 +4375,7 @@ export type OrganisationUpdateWithoutSync_runsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutSync_runsInput = {
@@ -4022,6 +4383,7 @@ export type OrganisationUncheckedUpdateWithoutSync_runsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4051,6 +4413,7 @@ export type OrganisationUncheckedUpdateWithoutSync_runsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutFailed_recordsInput = {
@@ -4058,6 +4421,7 @@ export type OrganisationCreateWithoutFailed_recordsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -4087,6 +4451,7 @@ export type OrganisationCreateWithoutFailed_recordsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutFailed_recordsInput = {
@@ -4094,6 +4459,7 @@ export type OrganisationUncheckedCreateWithoutFailed_recordsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -4123,6 +4489,7 @@ export type OrganisationUncheckedCreateWithoutFailed_recordsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutFailed_recordsInput = {
@@ -4146,6 +4513,7 @@ export type OrganisationUpdateWithoutFailed_recordsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4175,6 +4543,7 @@ export type OrganisationUpdateWithoutFailed_recordsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutFailed_recordsInput = {
@@ -4182,6 +4551,7 @@ export type OrganisationUncheckedUpdateWithoutFailed_recordsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4211,6 +4581,7 @@ export type OrganisationUncheckedUpdateWithoutFailed_recordsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutAudit_eventsInput = {
@@ -4218,6 +4589,7 @@ export type OrganisationCreateWithoutAudit_eventsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -4247,6 +4619,7 @@ export type OrganisationCreateWithoutAudit_eventsInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutAudit_eventsInput = {
@@ -4254,6 +4627,7 @@ export type OrganisationUncheckedCreateWithoutAudit_eventsInput = {
   clerk_org_id: string
   name: string
   country_code: string
+  region_code?: string | null
   is_active?: boolean
   timezone?: string | null
   locale?: string | null
@@ -4283,6 +4657,7 @@ export type OrganisationUncheckedCreateWithoutAudit_eventsInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutOrganisationInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedCreateNestedManyWithoutOrganisationInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedCreateNestedManyWithoutOrganisationInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutAudit_eventsInput = {
@@ -4306,6 +4681,7 @@ export type OrganisationUpdateWithoutAudit_eventsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4335,6 +4711,7 @@ export type OrganisationUpdateWithoutAudit_eventsInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUpdateOneWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutAudit_eventsInput = {
@@ -4342,6 +4719,7 @@ export type OrganisationUncheckedUpdateWithoutAudit_eventsInput = {
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   country_code?: Prisma.StringFieldUpdateOperationsInput | string
+  region_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   locale?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -4371,6 +4749,7 @@ export type OrganisationUncheckedUpdateWithoutAudit_eventsInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_preferences?: Prisma.NotificationPreferenceUncheckedUpdateManyWithoutOrganisationNestedInput
   notification_email_queue?: Prisma.NotificationEmailQueueUncheckedUpdateManyWithoutOrganisationNestedInput
+  organisation_settings?: Prisma.OrganisationSettingsUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
 
@@ -4580,6 +4959,7 @@ export type OrganisationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   clerk_org_id?: boolean
   name?: boolean
   country_code?: boolean
+  region_code?: boolean
   is_active?: boolean
   timezone?: boolean
   locale?: boolean
@@ -4610,6 +4990,7 @@ export type OrganisationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   notifications?: boolean | Prisma.Organisation$notificationsArgs<ExtArgs>
   notification_preferences?: boolean | Prisma.Organisation$notification_preferencesArgs<ExtArgs>
   notification_email_queue?: boolean | Prisma.Organisation$notification_email_queueArgs<ExtArgs>
+  organisation_settings?: boolean | Prisma.Organisation$organisation_settingsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganisationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organisation"]>
 
@@ -4618,6 +4999,7 @@ export type OrganisationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   clerk_org_id?: boolean
   name?: boolean
   country_code?: boolean
+  region_code?: boolean
   is_active?: boolean
   timezone?: boolean
   locale?: boolean
@@ -4634,6 +5016,7 @@ export type OrganisationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   clerk_org_id?: boolean
   name?: boolean
   country_code?: boolean
+  region_code?: boolean
   is_active?: boolean
   timezone?: boolean
   locale?: boolean
@@ -4650,6 +5033,7 @@ export type OrganisationSelectScalar = {
   clerk_org_id?: boolean
   name?: boolean
   country_code?: boolean
+  region_code?: boolean
   is_active?: boolean
   timezone?: boolean
   locale?: boolean
@@ -4661,7 +5045,7 @@ export type OrganisationSelectScalar = {
   updated_at?: boolean
 }
 
-export type OrganisationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "name" | "country_code" | "is_active" | "timezone" | "locale" | "fiscal_year_start" | "working_hours_per_day" | "reporting_unit" | "archived_at" | "created_at" | "updated_at", ExtArgs["result"]["organisation"]>
+export type OrganisationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "name" | "country_code" | "region_code" | "is_active" | "timezone" | "locale" | "fiscal_year_start" | "working_hours_per_day" | "reporting_unit" | "archived_at" | "created_at" | "updated_at", ExtArgs["result"]["organisation"]>
 export type OrganisationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   teams?: boolean | Prisma.Organisation$teamsArgs<ExtArgs>
   locations?: boolean | Prisma.Organisation$locationsArgs<ExtArgs>
@@ -4684,6 +5068,7 @@ export type OrganisationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   notifications?: boolean | Prisma.Organisation$notificationsArgs<ExtArgs>
   notification_preferences?: boolean | Prisma.Organisation$notification_preferencesArgs<ExtArgs>
   notification_email_queue?: boolean | Prisma.Organisation$notification_email_queueArgs<ExtArgs>
+  organisation_settings?: boolean | Prisma.Organisation$organisation_settingsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganisationCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OrganisationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -4713,12 +5098,14 @@ export type $OrganisationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
     notification_preferences: Prisma.$NotificationPreferencePayload<ExtArgs>[]
     notification_email_queue: Prisma.$NotificationEmailQueuePayload<ExtArgs>[]
+    organisation_settings: Prisma.$OrganisationSettingsPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     clerk_org_id: string
     name: string
     country_code: string
+    region_code: string | null
     is_active: boolean
     timezone: string | null
     locale: string | null
@@ -5143,6 +5530,7 @@ export interface Prisma__OrganisationClient<T, Null = never, ExtArgs extends run
   notifications<T extends Prisma.Organisation$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notification_preferences<T extends Prisma.Organisation$notification_preferencesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$notification_preferencesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPreferencePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notification_email_queue<T extends Prisma.Organisation$notification_email_queueArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$notification_email_queueArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationEmailQueuePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  organisation_settings<T extends Prisma.Organisation$organisation_settingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$organisation_settingsArgs<ExtArgs>>): Prisma.Prisma__OrganisationSettingsClient<runtime.Types.Result.GetResult<Prisma.$OrganisationSettingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5176,6 +5564,7 @@ export interface OrganisationFieldRefs {
   readonly clerk_org_id: Prisma.FieldRef<"Organisation", 'String'>
   readonly name: Prisma.FieldRef<"Organisation", 'String'>
   readonly country_code: Prisma.FieldRef<"Organisation", 'String'>
+  readonly region_code: Prisma.FieldRef<"Organisation", 'String'>
   readonly is_active: Prisma.FieldRef<"Organisation", 'Boolean'>
   readonly timezone: Prisma.FieldRef<"Organisation", 'String'>
   readonly locale: Prisma.FieldRef<"Organisation", 'String'>
@@ -6074,6 +6463,25 @@ export type Organisation$notification_email_queueArgs<ExtArgs extends runtime.Ty
   take?: number
   skip?: number
   distinct?: Prisma.NotificationEmailQueueScalarFieldEnum | Prisma.NotificationEmailQueueScalarFieldEnum[]
+}
+
+/**
+ * Organisation.organisation_settings
+ */
+export type Organisation$organisation_settingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OrganisationSettings
+   */
+  select?: Prisma.OrganisationSettingsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OrganisationSettings
+   */
+  omit?: Prisma.OrganisationSettingsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrganisationSettingsInclude<ExtArgs> | null
+  where?: Prisma.OrganisationSettingsWhereInput
 }
 
 /**

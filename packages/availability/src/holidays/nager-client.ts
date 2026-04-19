@@ -62,7 +62,7 @@ export async function getPublicHolidays(
       ok: true,
       value: parsed.data,
     };
-  } catch (_error) {
+  } catch {
     return {
       ok: false,
       error: appError("internal", "Network error while calling Nager.Date API"),

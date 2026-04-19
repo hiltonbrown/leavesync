@@ -8,6 +8,4 @@ interface NotificationsTriggerProperties {
 
 export const NotificationsTrigger = ({
   children,
-}: NotificationsTriggerProperties) => {
-  return <>{children ?? null}</>;
-};
+}: NotificationsTriggerProperties) => <>{children ?? null}</>;

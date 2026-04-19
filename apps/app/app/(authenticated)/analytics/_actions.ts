@@ -14,7 +14,6 @@ import {
 import type { Result } from "@repo/core";
 import { database } from "@repo/database";
 import { getOrganisationById } from "@repo/database/src/queries/organisations";
-import { revalidatePath } from "next/cache";
 import { requirePageRole } from "@/lib/auth/require-page-role";
 import { getActiveOrgContext } from "@/lib/server/get-active-org-context";
 import {
@@ -128,8 +127,6 @@ export async function exportLeaveReportsCsvAction(
     }),
     rowCount: exportRows.length,
   });
-  revalidatePath("/analytics/leave-reports");
-  revalidatePath("/settings/audit-log");
   return {
     ok: true,
     value: {
@@ -244,8 +241,6 @@ export async function exportOutOfOfficeCsvAction(
     }),
     rowCount: exportRows.length,
   });
-  revalidatePath("/analytics/out-of-office");
-  revalidatePath("/settings/audit-log");
   return {
     ok: true,
     value: {

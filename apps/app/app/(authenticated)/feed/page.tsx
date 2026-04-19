@@ -12,6 +12,7 @@ import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-pag
 import { parseFilterParams } from "@/lib/url-state/parse-filter-params";
 import { Header } from "../components/header";
 import { FeedFilterSchema } from "./_schemas";
+import { FeedFilterBar } from "./feed-filter-bar";
 
 export const metadata: Metadata = {
   title: "Feeds | LeaveSync",
@@ -109,7 +110,7 @@ const FeedPage = async ({ searchParams }: FeedPageProps) => {
 
         <SubscribeInstructions />
 
-        <FilterBar
+        <FeedFilterBar
           privacyMode={filters.privacyMode ?? []}
           search={filters.search ?? ""}
           status={filters.status}
@@ -122,56 +123,3 @@ const FeedPage = async ({ searchParams }: FeedPageProps) => {
 };
 
 export default FeedPage;
-
-function FilterBar({
-  privacyMode,
-  search,
-  status,
-}: {
-  privacyMode: string[];
-  search: string;
-  status: string[];
-}) {
-  return (
-    <form className="flex flex-wrap items-end gap-3 rounded-2xl bg-muted p-4">
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">Search</span>
-        <input
-          className="rounded-xl bg-background px-3 py-2"
-          defaultValue={search}
-          name="search"
-          placeholder="Feed name"
-        />
-      </label>
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">Status</span>
-        <select
-          className="rounded-xl bg-background px-3 py-2"
-          defaultValue={status.join(",")}
-          name="status"
-        >
-          <option value="active,paused">Active and paused</option>
-          <option value="active">Active</option>
-          <option value="paused">Paused</option>
-          <option value="archived">Archived</option>
-        </select>
-      </label>
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">Privacy</span>
-        <select
-          className="rounded-xl bg-background px-3 py-2"
-          defaultValue={privacyMode.join(",")}
-          name="privacyMode"
-        >
-          <option value="">All privacy modes</option>
-          <option value="named">Named</option>
-          <option value="masked">Masked</option>
-          <option value="private">Private</option>
-        </select>
-      </label>
-      <Button type="submit" variant="secondary">
-        Apply filters
-      </Button>
-    </form>
-  );
-}

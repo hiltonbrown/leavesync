@@ -30,14 +30,13 @@ export async function getOrgId(): Promise<string | null> {
  * Throws if user is not authenticated.
  */
 export async function requireRole(role: string): Promise<boolean> {
-  const { sessionClaims } = await auth();
+  const authObject = await auth();
 
-  if (!sessionClaims) {
+  if (!authObject.sessionClaims) {
     throw new Error("Not authenticated");
   }
 
-  const userRole = (sessionClaims.metadata as { role?: string })?.role;
-  return userRole === role;
+  return authObject.has({ role });
 }
 
 export type { User } from "@clerk/nextjs/server";

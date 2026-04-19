@@ -80,11 +80,11 @@ export type PrismaVersion = {
 }
 
 /**
- * Prisma Client JS version: 7.6.0
+ * Prisma Client JS version: 7.7.0
  * Query Engine version: 75cbdc1eb7150937890ad5465d861175c6624711
  */
 export const prismaVersion: PrismaVersion = {
-  client: "7.6.0",
+  client: "7.7.0",
   engine: "75cbdc1eb7150937890ad5465d861175c6624711"
 }
 
@@ -385,6 +385,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   Organisation: 'Organisation',
+  OrganisationSettings: 'OrganisationSettings',
   Team: 'Team',
   Location: 'Location',
   Person: 'Person',
@@ -406,7 +407,9 @@ export const ModelName = {
   NotificationEmailQueue: 'NotificationEmailQueue',
   SyncRun: 'SyncRun',
   FailedRecord: 'FailedRecord',
-  AuditEvent: 'AuditEvent'
+  AuditEvent: 'AuditEvent',
+  ClerkOrgSubscription: 'ClerkOrgSubscription',
+  UsageCounter: 'UsageCounter'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -422,7 +425,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "organisation" | "team" | "location" | "person" | "alternativeContact" | "xeroConnection" | "xeroTenant" | "xeroSyncCursor" | "availabilityRecord" | "availabilityPublication" | "leaveBalance" | "publicHolidayJurisdiction" | "publicHoliday" | "publicHolidayAssignment" | "feed" | "feedScope" | "feedToken" | "notification" | "notificationPreference" | "notificationEmailQueue" | "syncRun" | "failedRecord" | "auditEvent"
+    modelProps: "organisation" | "organisationSettings" | "team" | "location" | "person" | "alternativeContact" | "xeroConnection" | "xeroTenant" | "xeroSyncCursor" | "availabilityRecord" | "availabilityPublication" | "leaveBalance" | "publicHolidayJurisdiction" | "publicHoliday" | "publicHolidayAssignment" | "feed" | "feedScope" | "feedToken" | "notification" | "notificationPreference" | "notificationEmailQueue" | "syncRun" | "failedRecord" | "auditEvent" | "clerkOrgSubscription" | "usageCounter"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -497,6 +500,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.OrganisationCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.OrganisationCountAggregateOutputType> | number
+        }
+      }
+    }
+    OrganisationSettings: {
+      payload: Prisma.$OrganisationSettingsPayload<ExtArgs>
+      fields: Prisma.OrganisationSettingsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OrganisationSettingsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganisationSettingsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OrganisationSettingsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganisationSettingsPayload>
+        }
+        findFirst: {
+          args: Prisma.OrganisationSettingsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganisationSettingsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OrganisationSettingsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganisationSettingsPayload>
+        }
+        findMany: {
+          args: Prisma.OrganisationSettingsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganisationSettingsPayload>[]
+        }
+        create: {
+          args: Prisma.OrganisationSettingsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganisationSettingsPayload>
+        }
+        createMany: {
+          args: Prisma.OrganisationSettingsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OrganisationSettingsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganisationSettingsPayload>[]
+        }
+        delete: {
+          args: Prisma.OrganisationSettingsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganisationSettingsPayload>
+        }
+        update: {
+          args: Prisma.OrganisationSettingsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganisationSettingsPayload>
+        }
+        deleteMany: {
+          args: Prisma.OrganisationSettingsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OrganisationSettingsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OrganisationSettingsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganisationSettingsPayload>[]
+        }
+        upsert: {
+          args: Prisma.OrganisationSettingsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganisationSettingsPayload>
+        }
+        aggregate: {
+          args: Prisma.OrganisationSettingsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOrganisationSettings>
+        }
+        groupBy: {
+          args: Prisma.OrganisationSettingsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OrganisationSettingsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OrganisationSettingsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OrganisationSettingsCountAggregateOutputType> | number
         }
       }
     }
@@ -2128,6 +2205,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ClerkOrgSubscription: {
+      payload: Prisma.$ClerkOrgSubscriptionPayload<ExtArgs>
+      fields: Prisma.ClerkOrgSubscriptionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ClerkOrgSubscriptionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClerkOrgSubscriptionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ClerkOrgSubscriptionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClerkOrgSubscriptionPayload>
+        }
+        findFirst: {
+          args: Prisma.ClerkOrgSubscriptionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClerkOrgSubscriptionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ClerkOrgSubscriptionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClerkOrgSubscriptionPayload>
+        }
+        findMany: {
+          args: Prisma.ClerkOrgSubscriptionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClerkOrgSubscriptionPayload>[]
+        }
+        create: {
+          args: Prisma.ClerkOrgSubscriptionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClerkOrgSubscriptionPayload>
+        }
+        createMany: {
+          args: Prisma.ClerkOrgSubscriptionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ClerkOrgSubscriptionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClerkOrgSubscriptionPayload>[]
+        }
+        delete: {
+          args: Prisma.ClerkOrgSubscriptionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClerkOrgSubscriptionPayload>
+        }
+        update: {
+          args: Prisma.ClerkOrgSubscriptionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClerkOrgSubscriptionPayload>
+        }
+        deleteMany: {
+          args: Prisma.ClerkOrgSubscriptionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ClerkOrgSubscriptionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ClerkOrgSubscriptionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClerkOrgSubscriptionPayload>[]
+        }
+        upsert: {
+          args: Prisma.ClerkOrgSubscriptionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClerkOrgSubscriptionPayload>
+        }
+        aggregate: {
+          args: Prisma.ClerkOrgSubscriptionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateClerkOrgSubscription>
+        }
+        groupBy: {
+          args: Prisma.ClerkOrgSubscriptionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClerkOrgSubscriptionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ClerkOrgSubscriptionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClerkOrgSubscriptionCountAggregateOutputType> | number
+        }
+      }
+    }
+    UsageCounter: {
+      payload: Prisma.$UsageCounterPayload<ExtArgs>
+      fields: Prisma.UsageCounterFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UsageCounterFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UsageCounterPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UsageCounterFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UsageCounterPayload>
+        }
+        findFirst: {
+          args: Prisma.UsageCounterFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UsageCounterPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UsageCounterFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UsageCounterPayload>
+        }
+        findMany: {
+          args: Prisma.UsageCounterFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UsageCounterPayload>[]
+        }
+        create: {
+          args: Prisma.UsageCounterCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UsageCounterPayload>
+        }
+        createMany: {
+          args: Prisma.UsageCounterCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.UsageCounterCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UsageCounterPayload>[]
+        }
+        delete: {
+          args: Prisma.UsageCounterDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UsageCounterPayload>
+        }
+        update: {
+          args: Prisma.UsageCounterUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UsageCounterPayload>
+        }
+        deleteMany: {
+          args: Prisma.UsageCounterDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UsageCounterUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.UsageCounterUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UsageCounterPayload>[]
+        }
+        upsert: {
+          args: Prisma.UsageCounterUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UsageCounterPayload>
+        }
+        aggregate: {
+          args: Prisma.UsageCounterAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUsageCounter>
+        }
+        groupBy: {
+          args: Prisma.UsageCounterGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UsageCounterGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UsageCounterCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UsageCounterCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2172,6 +2397,7 @@ export const OrganisationScalarFieldEnum = {
   clerk_org_id: 'clerk_org_id',
   name: 'name',
   country_code: 'country_code',
+  region_code: 'region_code',
   is_active: 'is_active',
   timezone: 'timezone',
   locale: 'locale',
@@ -2184,6 +2410,26 @@ export const OrganisationScalarFieldEnum = {
 } as const
 
 export type OrganisationScalarFieldEnum = (typeof OrganisationScalarFieldEnum)[keyof typeof OrganisationScalarFieldEnum]
+
+
+export const OrganisationSettingsScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  show_pending_on_calendar: 'show_pending_on_calendar',
+  show_declined_on_approvals: 'show_declined_on_approvals',
+  notify_managers_on_status_change: 'notify_managers_on_status_change',
+  manager_visibility_scope: 'manager_visibility_scope',
+  default_leave_request_advance_days: 'default_leave_request_advance_days',
+  require_decline_reason: 'require_decline_reason',
+  default_privacy_mode: 'default_privacy_mode',
+  feeds_include_public_holidays_default: 'feeds_include_public_holidays_default',
+  default_feed_privacy_mode: 'default_feed_privacy_mode',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type OrganisationSettingsScalarFieldEnum = (typeof OrganisationSettingsScalarFieldEnum)[keyof typeof OrganisationSettingsScalarFieldEnum]
 
 
 export const TeamScalarFieldEnum = {
@@ -2288,6 +2534,7 @@ export const XeroTenantScalarFieldEnum = {
   xero_tenant_id: 'xero_tenant_id',
   tenant_name: 'tenant_name',
   payroll_region: 'payroll_region',
+  sync_paused_at: 'sync_paused_at',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -2622,14 +2869,50 @@ export const AuditEventScalarFieldEnum = {
   clerk_org_id: 'clerk_org_id',
   organisation_id: 'organisation_id',
   actor_user_id: 'actor_user_id',
+  actor_display: 'actor_display',
   action: 'action',
+  entity_type: 'entity_type',
+  entity_id: 'entity_id',
   resource_type: 'resource_type',
   resource_id: 'resource_id',
+  metadata: 'metadata',
   payload: 'payload',
+  before_value: 'before_value',
+  after_value: 'after_value',
+  ip_address: 'ip_address',
+  user_agent: 'user_agent',
   created_at: 'created_at'
 } as const
 
 export type AuditEventScalarFieldEnum = (typeof AuditEventScalarFieldEnum)[keyof typeof AuditEventScalarFieldEnum]
+
+
+export const ClerkOrgSubscriptionScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  plan_key: 'plan_key',
+  status: 'status',
+  current_period_end: 'current_period_end',
+  seats_purchased: 'seats_purchased',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type ClerkOrgSubscriptionScalarFieldEnum = (typeof ClerkOrgSubscriptionScalarFieldEnum)[keyof typeof ClerkOrgSubscriptionScalarFieldEnum]
+
+
+export const UsageCounterScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  metric_key: 'metric_key',
+  current_value: 'current_value',
+  period_start: 'period_start',
+  period_end: 'period_end',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type UsageCounterScalarFieldEnum = (typeof UsageCounterScalarFieldEnum)[keyof typeof UsageCounterScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2743,6 +3026,20 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
+ * Reference to a field of type 'availability_privacy_mode'
+ */
+export type Enumavailability_privacy_modeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'availability_privacy_mode'>
+    
+
+
+/**
+ * Reference to a field of type 'availability_privacy_mode[]'
+ */
+export type ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'availability_privacy_mode[]'>
+    
+
+
+/**
  * Reference to a field of type 'person_type'
  */
 export type Enumperson_typeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'person_type'>
@@ -2795,20 +3092,6 @@ export type Enumavailability_contactabilityFieldRefInput<$PrismaModel> = FieldRe
  * Reference to a field of type 'availability_contactability[]'
  */
 export type ListEnumavailability_contactabilityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'availability_contactability[]'>
-    
-
-
-/**
- * Reference to a field of type 'availability_privacy_mode'
- */
-export type Enumavailability_privacy_modeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'availability_privacy_mode'>
-    
-
-
-/**
- * Reference to a field of type 'availability_privacy_mode[]'
- */
-export type ListEnumavailability_privacy_modeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'availability_privacy_mode[]'>
     
 
 
@@ -3229,6 +3512,7 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   organisation?: Prisma.OrganisationOmit
+  organisationSettings?: Prisma.OrganisationSettingsOmit
   team?: Prisma.TeamOmit
   location?: Prisma.LocationOmit
   person?: Prisma.PersonOmit
@@ -3251,6 +3535,8 @@ export type GlobalOmitConfig = {
   syncRun?: Prisma.SyncRunOmit
   failedRecord?: Prisma.FailedRecordOmit
   auditEvent?: Prisma.AuditEventOmit
+  clerkOrgSubscription?: Prisma.ClerkOrgSubscriptionOmit
+  usageCounter?: Prisma.UsageCounterOmit
 }
 
 /* Types for Logging */

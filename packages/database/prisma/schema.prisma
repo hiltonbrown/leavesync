@@ -232,6 +232,7 @@ model Organisation {
   clerk_org_id          String
   name                  String
   country_code          String
+  region_code           String?
   is_active             Boolean   @default(true)
   timezone              String?
   locale                String?
@@ -263,9 +264,32 @@ model Organisation {
   notifications                Notification[]
   notification_preferences     NotificationPreference[]
   notification_email_queue     NotificationEmailQueue[]
+  organisation_settings        OrganisationSettings?
 
   @@index([clerk_org_id])
   @@map("organisations")
+}
+
+model OrganisationSettings {
+  id                                    String                    @id @default(uuid()) @db.Uuid
+  clerk_org_id                          String
+  organisation_id                       String                    @unique @db.Uuid
+  show_pending_on_calendar              Boolean                   @default(true)
+  show_declined_on_approvals            Boolean                   @default(true)
+  notify_managers_on_status_change      Boolean                   @default(true)
+  manager_visibility_scope              String                    @default("direct_reports_only")
+  default_leave_request_advance_days    Int                       @default(0)
+  require_decline_reason                Boolean                   @default(true)
+  default_privacy_mode                  availability_privacy_mode @default(named)
+  feeds_include_public_holidays_default Boolean                   @default(false)
+  default_feed_privacy_mode             availability_privacy_mode @default(named)
+  created_at                            DateTime                  @default(now())
+  updated_at                            DateTime                  @updatedAt
+
+  organisation Organisation @relation(fields: [organisation_id], references: [id], onDelete: Cascade)
+
+  @@index([clerk_org_id])
+  @@map("organisation_settings")
 }
 
 model Team {
@@ -406,6 +430,7 @@ model XeroTenant {
   xero_tenant_id     String
   tenant_name        String?
   payroll_region     payroll_region
+  sync_paused_at     DateTime?
   created_at         DateTime       @default(now())
   updated_at         DateTime       @updatedAt
 
@@ -851,10 +876,18 @@ model AuditEvent {
   clerk_org_id    String
   organisation_id String   @db.Uuid
   actor_user_id   String?
+  actor_display   String?
   action          String
+  entity_type     String?
+  entity_id       String?
   resource_type   String
   resource_id     String?
+  metadata        Json?
   payload         Json?
+  before_value    Json?
+  after_value     Json?
+  ip_address      String?
+  user_agent      String?
   created_at      DateTime @default(now())
 
   organisation Organisation @relation(fields: [organisation_id], references: [id])
@@ -862,5 +895,37 @@ model AuditEvent {
   @@index([clerk_org_id])
   @@index([organisation_id])
   @@index([organisation_id, created_at])
+  @@index([organisation_id, entity_id])
+  @@index([organisation_id, action, created_at, id], map: "audit_events_organisation_id_action_created_at_id_idx")
+  @@index([organisation_id, entity_type, created_at, id], map: "audit_events_organisation_id_entity_type_created_at_id_idx")
   @@map("audit_events")
+}
+
+model ClerkOrgSubscription {
+  id                 String    @id @default(uuid()) @db.Uuid
+  clerk_org_id       String    @unique
+  plan_key           String
+  status             String
+  current_period_end DateTime?
+  seats_purchased    Int       @default(1)
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+
+  @@index([clerk_org_id])
+  @@map("clerk_org_subscriptions")
+}
+
+model UsageCounter {
+  id            String   @id @default(uuid()) @db.Uuid
+  clerk_org_id  String
+  metric_key    String
+  current_value Int      @default(0)
+  period_start  DateTime
+  period_end    DateTime
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@unique([clerk_org_id, metric_key, period_start, period_end])
+  @@index([clerk_org_id])
+  @@map("usage_counters")
 }

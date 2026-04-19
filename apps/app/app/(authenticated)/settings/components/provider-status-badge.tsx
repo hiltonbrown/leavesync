@@ -1,8 +1,18 @@
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { cn } from "@repo/design-system/lib/utils";
-import { CircleCheckIcon, CircleIcon, TriangleAlertIcon } from "lucide-react";
+import {
+  CircleCheckIcon,
+  CircleIcon,
+  TriangleAlertIcon,
+  XCircleIcon,
+} from "lucide-react";
 
-type ConnectionStatus = "connected" | "disconnected" | "error";
+type ConnectionStatus =
+  | "connected"
+  | "disconnected"
+  | "error"
+  | "expired"
+  | "revoked";
 
 interface ProviderStatusBadgeProps {
   status: ConnectionStatus;
@@ -29,6 +39,16 @@ const STATUS_CONFIG: Record<
   error: {
     label: "Error",
     icon: TriangleAlertIcon,
+    className: "bg-destructive/10 text-destructive border-destructive/20",
+  },
+  expired: {
+    label: "Connection expired",
+    icon: TriangleAlertIcon,
+    className: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  },
+  revoked: {
+    label: "Connection revoked",
+    icon: XCircleIcon,
     className: "bg-destructive/10 text-destructive border-destructive/20",
   },
 };

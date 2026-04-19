@@ -1,5 +1,6 @@
 "use client";
 
+import type { OrganisationSettings } from "@repo/availability";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   Card,
@@ -8,235 +9,277 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/design-system/components/ui/card";
-import { Checkbox } from "@repo/design-system/components/ui/checkbox";
+import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@repo/design-system/components/ui/radio-group";
 import { toast } from "@repo/design-system/components/ui/sonner";
 import { Switch } from "@repo/design-system/components/ui/switch";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@repo/design-system/components/ui/table";
-import {
-  BriefcaseIcon,
-  HomeIcon,
-  InboxIcon,
-  MapPinIcon,
-  SparklesIcon,
-  SunIcon,
-} from "lucide-react";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { SettingsSectionHeader } from "../components/settings-section-header";
+import {
+  restoreLeaveApprovalDefaultsAction,
+  updateLeaveApprovalSettingsAction,
+} from "./_actions";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+interface LeaveApprovalSettingsClientProps {
+  organisationId: string;
+  settings: OrganisationSettings;
+}
 
-type LeaveTypeId =
-  | "holiday"
-  | "personal"
-  | "out-of-office"
-  | "wfh"
-  | "travelling"
-  | "custom";
+export const LeaveApprovalSettingsClient = ({
+  organisationId,
+  settings,
+}: LeaveApprovalSettingsClientProps) => {
+  const [state, setState] = useState(settings);
+  const [isPending, startTransition] = useTransition();
 
-type EmployeeTypeId = "full-time" | "part-time" | "contractor" | "casual";
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const LEAVE_TYPES: {
-  id: LeaveTypeId;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-}[] = [
-  { id: "holiday", label: "Holiday Leave", icon: SunIcon },
-  { id: "personal", label: "Personal Leave", icon: BriefcaseIcon },
-  { id: "out-of-office", label: "Out of Office", icon: InboxIcon },
-  { id: "wfh", label: "Working From Home", icon: HomeIcon },
-  { id: "travelling", label: "Travelling", icon: MapPinIcon },
-  { id: "custom", label: "Custom", icon: SparklesIcon },
-];
-
-const EMPLOYEE_TYPES: { id: EmployeeTypeId; label: string }[] = [
-  { id: "full-time", label: "Full-time" },
-  { id: "part-time", label: "Part-time" },
-  { id: "contractor", label: "Contractor" },
-  { id: "casual", label: "Casual" },
-];
-
-// ─── Component ───────────────────────────────────────────────────────────────
-
-export const LeaveApprovalSettingsClient = () => {
-  const [approvalRequirements, setApprovalRequirements] = useState<
-    Record<LeaveTypeId, boolean>
-  >({
-    holiday: true,
-    personal: true,
-    "out-of-office": false,
-    wfh: false,
-    travelling: true,
-    custom: true,
-  });
-
-  const [availability, setAvailability] = useState<
-    Record<EmployeeTypeId, LeaveTypeId[]>
-  >({
-    "full-time": [
-      "holiday",
-      "personal",
-      "out-of-office",
-      "wfh",
-      "travelling",
-      "custom",
-    ],
-    "part-time": [
-      "holiday",
-      "personal",
-      "out-of-office",
-      "wfh",
-      "travelling",
-      "custom",
-    ],
-    contractor: ["out-of-office", "wfh", "travelling", "custom"],
-    casual: ["personal", "out-of-office", "wfh", "travelling", "custom"],
-  });
-
-  const toggleApproval = (id: LeaveTypeId) => {
-    setApprovalRequirements((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
-
-  const toggleAvailability = (
-    employeeType: EmployeeTypeId,
-    leaveType: LeaveTypeId
+  const updatePatch = (
+    patch: Partial<OrganisationSettings>,
+    toastMessage = "Setting updated."
   ) => {
-    setAvailability((prev) => {
-      const current = prev[employeeType];
-      if (current.includes(leaveType)) {
-        return {
-          ...prev,
-          [employeeType]: current.filter((t) => t !== leaveType),
-        };
+    const previous = state;
+    const next = { ...state, ...patch };
+    setState(next);
+
+    startTransition(async () => {
+      const result = await updateLeaveApprovalSettingsAction({
+        organisationId,
+        patch,
+      });
+      if (!result.ok) {
+        setState(previous);
+        toast.error(result.error.message);
+        return;
       }
-      return {
-        ...prev,
-        [employeeType]: [...current, leaveType],
-      };
+      toast.success(toastMessage);
     });
   };
 
-  const handleSave = () => {
-    toast.success("Leave approval settings saved successfully.");
+  const restoreDefaults = () => {
+    startTransition(async () => {
+      const result = await restoreLeaveApprovalDefaultsAction({
+        organisationId,
+      });
+      if (!result.ok) {
+        toast.error(result.error.message);
+        return;
+      }
+      setState({
+        ...state,
+        defaultFeedPrivacyMode: "named",
+        defaultLeaveRequestAdvanceDays: 0,
+        defaultPrivacyMode: "named",
+        feedsIncludePublicHolidaysDefault: false,
+        managerVisibilityScope: "direct_reports_only",
+        notifyManagersOnStatusChange: true,
+        requireDeclineReason: true,
+        showDeclinedOnApprovals: true,
+        showPendingOnCalendar: true,
+      });
+      toast.success("Defaults restored.");
+    });
   };
 
   return (
-    <div className="max-w-4xl space-y-8">
+    <div className="space-y-6">
       <SettingsSectionHeader
-        action={
-          <Button onClick={handleSave} size="sm">
-            Save changes
-          </Button>
-        }
-        description="Configure which leave types require approval and set availability by employee type."
+        description="Each change is saved immediately and applied across approvals, planning, calendar, people, and analytics."
         title="Leave Approval"
       />
 
-      <Card className="border-none bg-muted/30 shadow-none">
+      <SettingsToggleCard
+        checked={state.showPendingOnCalendar}
+        description="Show submitted leave in calendar views before it is fully approved."
+        label="Show pending leave on calendar"
+        onCheckedChange={(checked) =>
+          updatePatch({ showPendingOnCalendar: checked })
+        }
+      />
+
+      <SettingsToggleCard
+        checked={state.showDeclinedOnApprovals}
+        description="Include declined records in the default approvals view until a user applies their own filters."
+        label="Show declined records by default"
+        onCheckedChange={(checked) =>
+          updatePatch({ showDeclinedOnApprovals: checked })
+        }
+      />
+
+      <SettingsToggleCard
+        checked={state.notifyManagersOnStatusChange}
+        description="Send manager notifications when leave approval status changes."
+        label="Notify managers on status change"
+        onCheckedChange={(checked) =>
+          updatePatch({ notifyManagersOnStatusChange: checked })
+        }
+      />
+
+      <Card className="rounded-2xl">
         <CardHeader>
-          <CardTitle className="text-lg">Approval Requirements</CardTitle>
+          <CardTitle>Manager visibility scope</CardTitle>
           <CardDescription>
-            Toggled leave types will require manager or owner approval before
-            being published.
+            Controls whether managers see only direct reports or indirect
+            reports as well.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            {LEAVE_TYPES.map((type) => {
-              const Icon = type.icon;
-              return (
-                <div
-                  className="flex items-center justify-between rounded-lg border border-border bg-background p-4"
-                  key={type.id}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex size-8 items-center justify-center rounded-md bg-muted">
-                      <Icon className="size-4 text-muted-foreground" />
-                    </div>
-                    <Label
-                      className="font-medium"
-                      htmlFor={`approval-${type.id}`}
-                    >
-                      {type.label}
-                    </Label>
-                  </div>
-                  <Switch
-                    checked={approvalRequirements[type.id]}
-                    id={`approval-${type.id}`}
-                    onCheckedChange={() => toggleApproval(type.id)}
-                  />
-                </div>
-              );
-            })}
+        <CardContent>
+          <RadioGroup
+            className="space-y-3"
+            onValueChange={(value) => {
+              if (
+                value === "direct_reports_only" ||
+                value === "all_team_leave"
+              ) {
+                updatePatch({
+                  managerVisibilityScope: value,
+                });
+              }
+            }}
+            value={state.managerVisibilityScope}
+          >
+            <div className="flex items-center gap-2 rounded-xl bg-muted/40 px-4 py-3">
+              <RadioGroupItem
+                id="manager-scope-direct"
+                value="direct_reports_only"
+              />
+              <Label htmlFor="manager-scope-direct">Direct reports only</Label>
+            </div>
+            <div className="flex items-center gap-2 rounded-xl bg-muted/40 px-4 py-3">
+              <RadioGroupItem
+                id="manager-scope-indirect"
+                value="all_team_leave"
+              />
+              <Label htmlFor="manager-scope-indirect">
+                All team leave including indirect reports
+              </Label>
+            </div>
+          </RadioGroup>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-2xl">
+        <CardHeader>
+          <CardTitle>Leave request advance days</CardTitle>
+          <CardDescription>
+            How many days in advance employees should submit leave. Zero means
+            no minimum.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="max-w-xs space-y-2">
+            <Label htmlFor="advance-days">Advance days</Label>
+            <Input
+              id="advance-days"
+              min={0}
+              onBlur={(event) =>
+                updatePatch({
+                  defaultLeaveRequestAdvanceDays: Number(
+                    event.target.value || 0
+                  ),
+                })
+              }
+              onChange={(event) =>
+                setState((current) => ({
+                  ...current,
+                  defaultLeaveRequestAdvanceDays: Number(
+                    event.target.value || 0
+                  ),
+                }))
+              }
+              type="number"
+              value={state.defaultLeaveRequestAdvanceDays}
+            />
           </div>
         </CardContent>
       </Card>
 
-      <Card className="border-none bg-muted/30 shadow-none">
+      <SettingsToggleCard
+        checked={state.requireDeclineReason}
+        description="Decline reasons help employees understand decisions. Disabling this is not recommended."
+        label="Require decline reason"
+        onCheckedChange={(checked) =>
+          updatePatch({ requireDeclineReason: checked })
+        }
+      />
+
+      <Card className="rounded-2xl">
         <CardHeader>
-          <CardTitle className="text-lg">Leave Availability</CardTitle>
+          <CardTitle>Default privacy mode</CardTitle>
           <CardDescription>
-            Specify which leave types are available for each employee type to
-            select in their plans.
+            Applies when new records are created without an explicit privacy
+            choice.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-hidden rounded-xl border border-border bg-background">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[180px]">Employee Type</TableHead>
-                  {LEAVE_TYPES.map((type) => (
-                    <TableHead className="text-center" key={type.id}>
-                      <div className="flex flex-col items-center gap-1">
-                        <type.icon className="size-3.5" />
-                        <span className="font-medium text-[0.7rem] uppercase tracking-tight">
-                          {type.label.split(" ")[0]}
-                        </span>
-                      </div>
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {EMPLOYEE_TYPES.map((employee) => (
-                  <TableRow key={employee.id}>
-                    <TableCell className="font-medium">
-                      {employee.label}
-                    </TableCell>
-                    {LEAVE_TYPES.map((leave) => (
-                      <TableCell className="text-center" key={leave.id}>
-                        <div className="flex justify-center">
-                          <Checkbox
-                            checked={availability[employee.id].includes(
-                              leave.id
-                            )}
-                            onCheckedChange={() =>
-                              toggleAvailability(employee.id, leave.id)
-                            }
-                          />
-                        </div>
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <RadioGroup
+            className="space-y-3"
+            onValueChange={(value) => {
+              if (
+                value === "named" ||
+                value === "masked" ||
+                value === "private"
+              ) {
+                updatePatch({
+                  defaultPrivacyMode: value,
+                });
+              }
+            }}
+            value={state.defaultPrivacyMode}
+          >
+            <div className="flex items-center gap-2 rounded-xl bg-muted/40 px-4 py-3">
+              <RadioGroupItem id="privacy-named" value="named" />
+              <Label htmlFor="privacy-named">Named (visible to all)</Label>
+            </div>
+            <div className="flex items-center gap-2 rounded-xl bg-muted/40 px-4 py-3">
+              <RadioGroupItem id="privacy-masked" value="masked" />
+              <Label htmlFor="privacy-masked">
+                Masked (Team member shown to peers)
+              </Label>
+            </div>
+            <div className="flex items-center gap-2 rounded-xl bg-muted/40 px-4 py-3">
+              <RadioGroupItem id="privacy-private" value="private" />
+              <Label htmlFor="privacy-private">
+                Private (Unavailable shown to peers)
+              </Label>
+            </div>
+          </RadioGroup>
         </CardContent>
       </Card>
+
+      <div className="flex justify-end">
+        <Button disabled={isPending} onClick={restoreDefaults} variant="ghost">
+          Restore defaults
+        </Button>
+      </div>
     </div>
   );
 };
+
+function SettingsToggleCard({
+  checked,
+  description,
+  label,
+  onCheckedChange,
+}: {
+  checked: boolean;
+  description: string;
+  label: string;
+  onCheckedChange: (checked: boolean) => void;
+}) {
+  return (
+    <Card className="rounded-2xl">
+      <CardHeader>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <CardTitle>{label}</CardTitle>
+            <CardDescription>{description}</CardDescription>
+          </div>
+          <Switch checked={checked} onCheckedChange={onCheckedChange} />
+        </div>
+      </CardHeader>
+    </Card>
+  );
+}

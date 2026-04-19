@@ -1,11 +1,20 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { PlansClient } from "./plans-client";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     refresh: vi.fn(),
   }),
+}));
+vi.mock("@repo/design-system/components/ui/sonner", () => ({
+  toast: {
+    error: vi.fn(),
+    success: vi.fn(),
+  },
+}));
+vi.mock("@/components/plans/submit-confirmation-modal", () => ({
+  SubmitConfirmationModal: () => null,
 }));
 vi.mock("./_actions", () => ({
   archiveRecordAction: vi.fn(),
@@ -24,6 +33,8 @@ const baseFilters = {
 };
 
 describe("Plans page client surface", () => {
+  afterEach(() => cleanup());
+
   it("does not expose the team tab to viewers", () => {
     render(
       <PlansClient

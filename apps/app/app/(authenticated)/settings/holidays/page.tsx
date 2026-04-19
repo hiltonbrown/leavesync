@@ -1,18 +1,34 @@
+import { listForOrganisation } from "@repo/availability";
 import type { Metadata } from "next";
-import { getAvailableCountries } from "@/app/actions/holidays/get-countries";
+import { requirePageRole } from "@/lib/auth/require-page-role";
+import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
 import { HolidaysClient } from "./holidays-client";
 
 export const metadata: Metadata = {
-  title: "Public Holidays — Settings — LeaveSync",
-  description: "Configure public holiday jurisdictions for your organisation.",
+  description: "Manage public holiday imports and custom holidays.",
+  title: "Holidays - Settings - LeaveSync",
 };
 
-const HolidaysPage = async () => {
-  const result = await getAvailableCountries();
-  const countries = "data" in result ? result.data : [];
+interface HolidaysPageProps {
+  searchParams: Promise<{ org?: string }>;
+}
 
-  // OrganisationHolidaySetting table not yet in DB — start with empty
-  return <HolidaysClient countries={countries} enabledJurisdictions={[]} />;
+const HolidaysPage = async ({ searchParams }: HolidaysPageProps) => {
+  await requirePageRole("org:admin");
+  const { org } = await searchParams;
+  const { clerkOrgId, organisationId } = await requireActiveOrgPageContext(org);
+  const holidaysResult = await listForOrganisation(clerkOrgId, organisationId);
+
+  if (!holidaysResult.ok) {
+    throw new Error(holidaysResult.error.message);
+  }
+
+  return (
+    <HolidaysClient
+      holidays={holidaysResult.value}
+      organisationId={organisationId}
+    />
+  );
 };
 
 export default HolidaysPage;

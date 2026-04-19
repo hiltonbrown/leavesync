@@ -1,37 +1,69 @@
 import { listForOrganisation } from "@repo/availability";
+import { database, scopedQuery } from "@repo/database";
 import type { Metadata } from "next";
+import { FetchErrorState } from "@/components/states/fetch-error-state";
+import { requirePageRole } from "@/lib/auth/require-page-role";
 import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
+import { parseFilterParams } from "@/lib/url-state/parse-filter-params";
 import { Header } from "../components/header";
+import { PublicHolidayFilterSchema } from "./_schemas";
 import { PublicHolidaysList } from "./public-holidays-list";
 
 export const metadata: Metadata = {
-  title: "Public Holidays — LeaveSync",
+  title: "Public Holidays - LeaveSync",
   description: "Manage public holidays for your organisation.",
 };
 
 interface PublicHolidaysPageProps {
-  searchParams: Promise<{
-    org?: string;
-  }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 const PublicHolidaysPage = async ({
   searchParams,
 }: PublicHolidaysPageProps) => {
-  const { org } = await searchParams;
-  const { clerkOrgId, organisationId } = await requireActiveOrgPageContext(org);
+  await requirePageRole("org:viewer");
+  const params = await searchParams;
+  const { org, ...filterParams } = params;
+  const orgParam = Array.isArray(org) ? org[0] : org;
+  const { clerkOrgId, organisationId } =
+    await requireActiveOrgPageContext(orgParam);
+  const filters =
+    parseFilterParams(filterParams, PublicHolidayFilterSchema) ??
+    PublicHolidayFilterSchema.parse({});
 
-  const holidaysResult = await listForOrganisation(clerkOrgId, organisationId);
+  const [holidaysResult, locations] = await Promise.all([
+    listForOrganisation(clerkOrgId, organisationId, {
+      includeSuppressed: filters.includeSuppressed,
+      locationId: filters.locationId,
+      year: filters.year,
+    }),
+    database.location.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+      where: scopedQuery(clerkOrgId, organisationId),
+    }),
+  ]);
 
   if (!holidaysResult.ok) {
-    throw new Error(holidaysResult.error.message);
+    return (
+      <>
+        <Header page="Public Holidays" />
+        <div className="flex flex-1 flex-col p-6 pt-0">
+          <FetchErrorState entityName="public holidays" />
+        </div>
+      </>
+    );
   }
 
   return (
     <>
       <Header page="Public Holidays" />
       <div className="flex flex-1 flex-col p-6 pt-0">
-        <PublicHolidaysList holidays={holidaysResult.value} />
+        <PublicHolidaysList
+          filters={filters}
+          holidays={holidaysResult.value}
+          locations={locations}
+        />
       </div>
     </>
   );

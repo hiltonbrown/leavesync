@@ -3,7 +3,7 @@ import "server-only";
 import { requireOrg } from "@repo/auth/helpers";
 import type { ClerkOrgId, OrganisationId } from "@repo/core";
 import { listOrganisationsByClerkOrg } from "@repo/database/src/queries/organisations";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getActiveOrgContext } from "./get-active-org-context";
 
 export interface ActiveOrgPageContext {
@@ -42,13 +42,13 @@ export async function requireActiveOrgPageContext(
   const orgResult = await listOrganisationsByClerkOrg(clerkOrgId);
 
   if (!orgResult.ok || orgResult.value.length === 0) {
-    notFound();
+    redirect("/setup");
   }
 
   const defaultOrganisation = orgResult.value[0];
 
   if (!defaultOrganisation) {
-    notFound();
+    redirect("/setup");
   }
 
   return {

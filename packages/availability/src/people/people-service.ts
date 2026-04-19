@@ -12,6 +12,7 @@ import type {
   person_type,
 } from "@repo/database/generated/enums";
 import { z } from "zod";
+import { managerScopePersonIds } from "../settings/manager-scope";
 import { hasActiveXeroConnection } from "../xero-connection-state";
 import {
   type CurrentStatus,
@@ -183,10 +184,12 @@ const PaginationSchema = z
   .default({ pageSize: 50 });
 
 const ListPeopleSchema = z.object({
+  actingPersonId: z.string().uuid().nullable().optional(),
   clerkOrgId: z.string().min(1),
   filters: FiltersSchema,
   organisationId: z.string().uuid(),
   pagination: PaginationSchema,
+  role: RoleSchema.default("viewer"),
 });
 
 const PersonProfileSchema = z.object({
@@ -214,10 +217,12 @@ const UpcomingSchema = z.object({
 });
 
 export async function listPeople(input: {
+  actingPersonId?: null | string;
   clerkOrgId: string;
   filters?: Partial<PeopleFilters>;
   organisationId: string;
   pagination?: Partial<PeoplePagination>;
+  role?: PeopleRole;
 }): Promise<
   Result<
     { nextCursor: string | null; people: PersonListItem[]; totalCount: number },
@@ -234,15 +239,31 @@ export async function listPeople(input: {
   }
 
   try {
-    const { clerkOrgId, organisationId, filters, pagination } = parsed.data;
+    const {
+      actingPersonId,
+      clerkOrgId,
+      organisationId,
+      filters,
+      pagination,
+      role,
+    } = parsed.data;
     const scoped = scopedQuery(
       clerkOrgId as ClerkOrgId,
       organisationId as OrganisationId
     );
+    const visiblePersonIds =
+      role === "manager" && actingPersonId
+        ? await managerScopePersonIds({
+            actingPersonId,
+            clerkOrgId,
+            organisationId,
+          })
+        : null;
     const people = await database.person.findMany({
       where: {
         ...scoped,
         ...(filters.includeArchived ? {} : { archived_at: null }),
+        ...(visiblePersonIds ? { id: { in: visiblePersonIds } } : {}),
         ...(filters.teamId?.length ? { team_id: { in: filters.teamId } } : {}),
         ...(filters.locationId?.length
           ? { location_id: { in: filters.locationId } }

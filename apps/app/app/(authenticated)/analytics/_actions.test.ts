@@ -111,6 +111,7 @@ describe("analytics export actions", () => {
         }),
       })
     );
+    expect(mocks.revalidatePath).not.toHaveBeenCalled();
   });
 
   it("exports out-of-office CSV and writes an audit event", async () => {
@@ -144,5 +145,6 @@ describe("analytics export actions", () => {
         }),
       })
     );
+    expect(mocks.revalidatePath).not.toHaveBeenCalled();
   });
 });

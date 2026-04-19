@@ -1,3 +1,10 @@
+export {
+  buildXeroOAuthStartUrl,
+  completeXeroOAuth,
+  disconnectXeroOAuthConnection,
+  refreshXeroOAuthConnection,
+  type XeroOAuthError,
+} from "./src/oauth/service";
 export { fetchLeaveApplicationStatusForRegion } from "./src/read/dispatch";
 export type {
   XeroLeaveApplicationStatus,

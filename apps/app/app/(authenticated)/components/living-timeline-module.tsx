@@ -39,8 +39,8 @@ const getAbsencesForDay = (
   }
 };
 
-const generateTimelineData = (todayAbsences: Absence[]): TimelineDay[] => {
-  return Array.from({ length: 14 }).map((_, i) => {
+const generateTimelineData = (todayAbsences: Absence[]): TimelineDay[] =>
+  Array.from({ length: 14 }).map((_, i) => {
     const date = new Date();
     date.setDate(date.getDate() + i);
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
@@ -51,7 +51,6 @@ const generateTimelineData = (todayAbsences: Absence[]): TimelineDay[] => {
       absences: getAbsencesForDay(i, isWeekend, todayAbsences),
     };
   });
-};
 
 const getBarClassName = (
   absenceCount: number,

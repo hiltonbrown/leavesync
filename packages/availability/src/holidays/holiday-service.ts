@@ -179,7 +179,7 @@ export async function importForJurisdiction(
       ok: true,
       value: { importedCount, skippedCount },
     };
-  } catch (_error) {
+  } catch {
     return {
       ok: false,
       error: appError("internal", "Failed to import holidays"),
@@ -237,7 +237,7 @@ export async function addCustomHoliday(
       ok: true,
       value: { id: holiday.id },
     };
-  } catch (_error) {
+  } catch {
     return {
       ok: false,
       error: appError("internal", "Failed to add custom holiday"),
@@ -272,7 +272,7 @@ export async function suppressHoliday(
     });
 
     return { ok: true, value: { id: holidayId } };
-  } catch (_error) {
+  } catch {
     return {
       ok: false,
       error: appError("internal", "Failed to suppress holiday"),
@@ -307,7 +307,7 @@ export async function restoreHoliday(
     });
 
     return { ok: true, value: { id: holidayId } };
-  } catch (_error) {
+  } catch {
     return {
       ok: false,
       error: appError("internal", "Failed to restore holiday"),
@@ -347,7 +347,7 @@ export async function deleteCustomHoliday(
     });
 
     return { ok: true, value: { id: holidayId } };
-  } catch (_error) {
+  } catch {
     return {
       ok: false,
       error: appError("internal", "Failed to delete custom holiday"),
@@ -359,7 +359,9 @@ export async function listForOrganisation(
   clerkOrgId: ClerkOrgId,
   organisationId: OrganisationId,
   options?: {
+    includeSuppressed?: boolean;
     jurisdictionId?: string | null;
+    locationId?: string;
     year?: number;
   }
 ) {
@@ -368,11 +370,53 @@ export async function listForOrganisation(
       ...scopedQuery(clerkOrgId, organisationId),
     };
 
+    if (!options?.includeSuppressed) {
+      whereClause.archived_at = null;
+    }
+
     if (options?.jurisdictionId !== undefined) {
-      // Either exact match or applies to all (null)
       whereClause.OR = [
         { jurisdiction_id: options.jurisdictionId },
         { jurisdiction_id: null },
+      ];
+    }
+
+    if (options?.locationId) {
+      const location = await database.location.findFirst({
+        where: {
+          ...scopedQuery(clerkOrgId, organisationId),
+          id: options.locationId,
+        },
+        select: { country_code: true, region_code: true },
+      });
+
+      if (!location) {
+        return { ok: true as const, value: [] };
+      }
+
+      const locationScope: Prisma.PublicHolidayWhereInput[] = [
+        { region_code: null },
+        {
+          assignments: {
+            some: {
+              archived_at: null,
+              scope_type: "location",
+              scope_value: options.locationId,
+            },
+          },
+        },
+      ];
+
+      if (location.region_code) {
+        locationScope.push({ region_code: location.region_code });
+      }
+      if (location.country_code) {
+        whereClause.country_code = { in: [location.country_code, "CUSTOM"] };
+      }
+
+      whereClause.AND = [
+        ...(Array.isArray(whereClause.AND) ? whereClause.AND : []),
+        { OR: locationScope },
       ];
     }
 
@@ -393,7 +437,7 @@ export async function listForOrganisation(
     });
 
     return { ok: true as const, value: holidays };
-  } catch (_error) {
+  } catch {
     return {
       ok: false as const,
       error: appError("internal", "Failed to list holidays"),

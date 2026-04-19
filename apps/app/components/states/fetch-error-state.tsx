@@ -15,16 +15,14 @@ interface FetchErrorStateProps {
 export const FetchErrorState = ({
   entityName,
   retrySlot,
-}: FetchErrorStateProps) => {
-  return (
-    <Empty>
-      <EmptyHeader>
-        <EmptyTitle>Unable to load {entityName}</EmptyTitle>
-        <EmptyDescription>
-          Try again or contact support if the issue continues.
-        </EmptyDescription>
-      </EmptyHeader>
-      {retrySlot && <EmptyContent>{retrySlot}</EmptyContent>}
-    </Empty>
-  );
-};
+}: FetchErrorStateProps) => (
+  <Empty>
+    <EmptyHeader>
+      <EmptyTitle>Unable to load {entityName}</EmptyTitle>
+      <EmptyDescription>
+        Try again or contact support if the issue continues.
+      </EmptyDescription>
+    </EmptyHeader>
+    {retrySlot && <EmptyContent>{retrySlot}</EmptyContent>}
+  </Empty>
+);

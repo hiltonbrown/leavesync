@@ -11,6 +11,7 @@
   "dependencies": {
     "@repo/core": "*",
     "@repo/database": "*",
+    "@repo/feeds": "*",
     "@repo/jobs": "*",
     "@repo/notifications": "*",
     "@repo/observability": "*",
@@ -20,7 +21,7 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
-    "dotenv": "^17.4.1",
-    "typescript": "^6.0.2"
+    "dotenv": "^17.4.2",
+    "typescript": "^6.0.3"
   }
 }

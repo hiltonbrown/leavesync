@@ -53,34 +53,6 @@ export default async function Page({ params }: { params: { orgId: string } }) {
 
 ## Data Loaders
 
-### `loadDashboardData(clerkOrgId, organisationId)`
-
-Loads dashboard overview data.
-
-**Returns**:
-```typescript
-{
-  pendingApprovals: Array<{ id, personName, recordType, startsAt, endsAt }>;
-  activeFeeds: Array<{ id, slug }>;
-  todayAbsences: Array<{ id, personName, recordType }>;
-}
-```
-
-**Usage**:
-```typescript
-const dataResult = await loadDashboardData(clerkOrgId, organisationId);
-
-if (!dataResult.ok) {
-  // Handle error
-  return <DashboardError message={dataResult.error.message} />;
-}
-
-const { pendingApprovals, activeFeeds, todayAbsences } = dataResult.value;
-return <Dashboard data={{ pendingApprovals, activeFeeds, todayAbsences }} />;
-```
-
----
-
 ### `loadTeamCalendarData(clerkOrgId, organisationId, dateRange, filters?)`
 
 Loads people and their availability for a calendar view.

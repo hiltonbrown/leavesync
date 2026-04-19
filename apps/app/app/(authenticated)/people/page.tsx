@@ -27,7 +27,7 @@ const PeoplePage = async ({ searchParams }: PeoplePageProps) => {
   const orgParam = Array.isArray(org) ? org[0] : org;
   const { clerkOrgId, organisationId, orgQueryValue } =
     await requireActiveOrgPageContext(orgParam);
-  const { orgRole } = await auth();
+  const { orgRole, userId } = await auth();
   const canIncludeArchived = orgRole === "org:admin" || orgRole === "org:owner";
   const parsedFilters = parseFilterParams(filterParams, PeopleFilterSchema) ?? {
     includeArchived: false,
@@ -40,9 +40,29 @@ const PeoplePage = async ({ searchParams }: PeoplePageProps) => {
     ...parsedFilters,
     includeArchived: canIncludeArchived ? parsedFilters.includeArchived : false,
   };
+  let peopleRole: "admin" | "manager" | "owner" | "viewer" = "viewer";
+  if (orgRole === "org:admin") {
+    peopleRole = "admin";
+  } else if (orgRole === "org:manager") {
+    peopleRole = "manager";
+  } else if (orgRole === "org:owner") {
+    peopleRole = "owner";
+  }
+
+  const actingPerson = userId
+    ? await database.person.findFirst({
+        where: {
+          clerk_org_id: clerkOrgId,
+          clerk_user_id: userId,
+          organisation_id: organisationId,
+        },
+        select: { id: true },
+      })
+    : null;
 
   const [peopleResult, teams, locations] = await Promise.all([
     listPeople({
+      actingPersonId: actingPerson?.id,
       clerkOrgId,
       filters,
       organisationId,
@@ -50,6 +70,7 @@ const PeoplePage = async ({ searchParams }: PeoplePageProps) => {
         cursor: filters.cursor,
         pageSize: filters.pageSize,
       },
+      role: peopleRole,
     }),
     database.team.findMany({
       where: scopedQuery(clerkOrgId, organisationId),

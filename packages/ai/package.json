@@ -7,17 +7,17 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^3.0.50",
+    "@ai-sdk/openai": "^3.0.53",
     "@t3-oss/env-nextjs": "^0.13.11",
-    "ai": "^6.0.146",
-    "react": "19.2.4",
+    "ai": "^6.0.168",
+    "react": "19.2.5",
     "streamdown": "^2.5.0",
     "tailwind-merge": "^3.5.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
-    "@types/node": "25.5.2",
+    "@types/node": "25.6.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3"
   }

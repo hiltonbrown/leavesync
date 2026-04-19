@@ -17,14 +17,12 @@ export const EmptyState = ({
   title,
   description,
   actionSlot,
-}: EmptyStateProps) => {
-  return (
-    <Empty>
-      <EmptyHeader>
-        {title && <EmptyTitle>{title}</EmptyTitle>}
-        <EmptyDescription>{description}</EmptyDescription>
-      </EmptyHeader>
-      {actionSlot && <EmptyContent>{actionSlot}</EmptyContent>}
-    </Empty>
-  );
-};
+}: EmptyStateProps) => (
+  <Empty>
+    <EmptyHeader>
+      {title && <EmptyTitle>{title}</EmptyTitle>}
+      <EmptyDescription>{description}</EmptyDescription>
+    </EmptyHeader>
+    {actionSlot && <EmptyContent>{actionSlot}</EmptyContent>}
+  </Empty>
+);

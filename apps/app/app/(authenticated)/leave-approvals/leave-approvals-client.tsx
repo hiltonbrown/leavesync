@@ -534,7 +534,7 @@ function retrySlotForRecord(
       </Button>
     );
   }
-  return undefined;
+  return;
 }
 
 function DetailItem({
