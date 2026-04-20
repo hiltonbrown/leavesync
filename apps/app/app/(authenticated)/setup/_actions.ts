@@ -1,7 +1,8 @@
 "use server";
 
-import { auth } from "@repo/auth/server";
+import { auth, currentUser } from "@repo/auth/server";
 import {
+  ensureCurrentUserPerson,
   ensureOrganisationForClerk,
   type OrganisationSettingsInput,
 } from "@repo/availability";
@@ -15,6 +16,7 @@ const SetupOrganisationSchema = z.object({
 });
 
 type ActionError =
+  | { code: "conflict"; message: string }
   | { code: "not_authorised"; message: string }
   | { code: "unknown_error"; message: string }
   | { code: "validation_error"; message: string };
@@ -30,9 +32,12 @@ export async function createOrganisationAction(input: {
     return validationError(parsed.error.issues[0]?.message);
   }
 
-  const { orgId, orgRole } = await auth();
+  const [{ orgId, orgRole }, user] = await Promise.all([auth(), currentUser()]);
 
-  if (!orgId || (orgRole !== "org:admin" && orgRole !== "org:owner")) {
+  if (
+    !(orgId && user) ||
+    (orgRole !== "org:admin" && orgRole !== "org:owner")
+  ) {
     return notAuthorised();
   }
 
@@ -43,7 +48,31 @@ export async function createOrganisationAction(input: {
       countryCode: parsed.data.countryCode,
       name: parsed.data.name,
     };
-    await ensureOrganisationForClerk(payload);
+    const tenant = await ensureOrganisationForClerk(payload);
+    const personResult = await ensureCurrentUserPerson(tenant, {
+      avatarUrl: user.imageUrl,
+      clerkUserId: user.id,
+      displayName:
+        [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+        user.emailAddresses[0]?.emailAddress ||
+        user.id,
+      email: user.emailAddresses[0]?.emailAddress,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    });
+
+    if (!personResult.ok) {
+      if (personResult.error.code === "conflict") {
+        return {
+          ok: false,
+          error: {
+            code: "conflict",
+            message: personResult.error.message,
+          },
+        };
+      }
+      return unknownError(personResult.error.message);
+    }
   } catch {
     return unknownError("Failed to create organisation. Please try again.");
   }

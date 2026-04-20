@@ -4,11 +4,12 @@ import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 import type { TenantContext } from "./index";
 
 config({ path: new URL("../database/.env", import.meta.url).pathname });
-vi.mock("server-only", () => ({}));
+vi.mock("server-only", () => ({}), { virtual: true });
 
 const {
   archiveManualAvailability,
   createManualAvailability,
+  ensureCurrentUserPerson,
   listAvailabilityRecords,
   updateManualAvailability,
 } = await import("./index");
@@ -238,5 +239,143 @@ describe("manual availability services", () => {
         expect.objectContaining({ id: created.value.id }),
       ])
     );
+  });
+});
+
+describe("current user person identity", () => {
+  test("returns an existing linked person", async () => {
+    await database.person.update({
+      where: { id: tenantA.personId },
+      data: { clerk_user_id: "user_existing" },
+    });
+
+    const result = await ensureCurrentUserPerson(contextFor(tenantA), {
+      clerkUserId: "user_existing",
+      displayName: "Existing User",
+      email: `${tenantA.clerkOrgId}@example.com`,
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: expect.objectContaining({ id: tenantA.personId }),
+    });
+  });
+
+  test("links one same-email unlinked person in the active tenant", async () => {
+    const result = await ensureCurrentUserPerson(contextFor(tenantA), {
+      clerkUserId: "user_same_email",
+      displayName: "Manual Person",
+      email: `${tenantA.clerkOrgId}@example.com`,
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: expect.objectContaining({ id: tenantA.personId }),
+    });
+
+    await expect(
+      database.person.findFirst({
+        where: {
+          id: tenantA.personId,
+          clerk_user_id: "user_same_email",
+          organisation_id: tenantA.organisationId,
+        },
+        select: { id: true },
+      })
+    ).resolves.toEqual({ id: tenantA.personId });
+  });
+
+  test("does not link same-email people outside the active tenant", async () => {
+    const result = await ensureCurrentUserPerson(contextFor(tenantA), {
+      clerkUserId: "user_cross_tenant",
+      displayName: "Cross Tenant",
+      email: `${tenantB.clerkOrgId}@example.com`,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.id).not.toBe(tenantB.personId);
+
+    await expect(
+      database.person.findUnique({
+        where: { id: tenantB.personId },
+        select: { clerk_user_id: true },
+      })
+    ).resolves.toEqual({ clerk_user_id: null });
+  });
+
+  test("creates a manual person when no same-email profile exists", async () => {
+    const result = await ensureCurrentUserPerson(contextFor(tenantA), {
+      avatarUrl: "https://img.clerk.com/avatar.png",
+      clerkUserId: "user_new",
+      displayName: "New User",
+      email: "New.User@example.com",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    await expect(
+      database.person.findUnique({
+        where: { id: result.value.id },
+        select: {
+          avatar_url: true,
+          clerk_org_id: true,
+          clerk_user_id: true,
+          email: true,
+          organisation_id: true,
+          source_system: true,
+        },
+      })
+    ).resolves.toEqual({
+      avatar_url: "https://img.clerk.com/avatar.png",
+      clerk_org_id: tenantA.clerkOrgId,
+      clerk_user_id: "user_new",
+      email: "new.user@example.com",
+      organisation_id: tenantA.organisationId,
+      source_system: "MANUAL",
+    });
+  });
+
+  test("returns a conflict when multiple same-email people exist", async () => {
+    await database.person.createMany({
+      data: [
+        {
+          clerk_org_id: tenantA.clerkOrgId,
+          email: "duplicate@example.com",
+          employment_type: "employee",
+          first_name: "Duplicate",
+          id: "41000000-0000-4000-8000-000000000101",
+          last_name: "One",
+          organisation_id: tenantA.organisationId,
+          source_system: "MANUAL",
+        },
+        {
+          clerk_org_id: tenantA.clerkOrgId,
+          email: "duplicate@example.com",
+          employment_type: "employee",
+          first_name: "Duplicate",
+          id: "41000000-0000-4000-8000-000000000102",
+          last_name: "Two",
+          organisation_id: tenantA.organisationId,
+          source_system: "MANUAL",
+        },
+      ],
+    });
+
+    await expect(
+      ensureCurrentUserPerson(contextFor(tenantA), {
+        clerkUserId: "user_conflict",
+        displayName: "Duplicate User",
+        email: "duplicate@example.com",
+      })
+    ).resolves.toMatchObject({
+      error: expect.objectContaining({ code: "conflict" }),
+      ok: false,
+    });
   });
 });

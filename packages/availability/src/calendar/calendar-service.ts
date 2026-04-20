@@ -230,7 +230,11 @@ export async function getCalendarRange(
   try {
     const [organisation, settingsResult] = await Promise.all([
       database.organisation.findFirst({
-        where: scoped(parsed.data.clerkOrgId, parsed.data.organisationId),
+        where: {
+          archived_at: null,
+          clerk_org_id: parsed.data.clerkOrgId,
+          id: parsed.data.organisationId,
+        },
         select: { timezone: true },
       }),
       getSettings({

@@ -253,10 +253,13 @@ export interface OrganisationSettingsInput {
 }
 
 export interface CurrentUserPersonInput {
+  avatarUrl?: string | null;
   clerkUserId: string;
-  displayName: string;
-  email?: string;
+  displayName?: string | null;
+  email?: string | null;
+  firstName?: string | null;
   jobTitle?: string;
+  lastName?: string | null;
 }
 
 export interface PersonView {
@@ -404,36 +407,147 @@ export const ensureOrganisationForClerk = async (
 export const ensureCurrentUserPerson = async (
   tenant: TenantContext,
   input: CurrentUserPersonInput
-): Promise<PersonView> => {
-  const person = await database.person.upsert({
-    where: {
-      organisation_id_clerk_user_id: {
-        clerk_user_id: input.clerkUserId,
-        organisation_id: tenant.organisationId,
-      },
-    },
-    create: {
-      clerk_org_id: tenant.clerkOrgId,
-      clerk_user_id: input.clerkUserId,
-      display_name: input.displayName,
-      email: input.email ?? `${input.clerkUserId}@internal`,
-      employment_type: "employee",
-      first_name: input.displayName.split(" ")[0] ?? "User",
-      job_title: input.jobTitle,
-      last_name: input.displayName.split(" ")[1] ?? input.clerkUserId,
-      organisation_id: tenant.organisationId,
-      source_system: "MANUAL",
-    },
-    update: {
-      display_name: input.displayName,
-      email: input.email,
-      job_title: input.jobTitle,
-    },
-    include: { location: true, team: true },
-  });
+): Promise<Result<PersonView>> => {
+  const scoped = scopedQuery(tenant.clerkOrgId, tenant.organisationId);
+  const profile = normaliseCurrentUserProfile(input);
+  const safeProfilePatch = safeCurrentUserProfilePatch(profile);
 
-  return mapPerson(person);
+  try {
+    const existingLinkedPerson = await database.person.findFirst({
+      where: {
+        ...scoped,
+        archived_at: null,
+        clerk_user_id: input.clerkUserId,
+      },
+      include: { location: true, team: true },
+    });
+
+    if (existingLinkedPerson) {
+      return { ok: true, value: mapPerson(existingLinkedPerson) };
+    }
+
+    if (profile.email) {
+      const sameEmailPeople = await database.person.findMany({
+        where: {
+          ...scoped,
+          archived_at: null,
+          clerk_user_id: null,
+          email: { equals: profile.email, mode: "insensitive" },
+        },
+        include: { location: true, team: true },
+        orderBy: [{ created_at: "asc" }, { id: "asc" }],
+      });
+
+      if (sameEmailPeople.length > 1) {
+        return {
+          ok: false,
+          error: appError(
+            "conflict",
+            "Multiple people match this Clerk user's email. Review the people directory before opening plans."
+          ),
+        };
+      }
+
+      const sameEmailPerson = sameEmailPeople[0];
+      if (sameEmailPerson) {
+        const person = await database.person.update({
+          where: { id: sameEmailPerson.id },
+          data: {
+            ...safeProfilePatch,
+            clerk_user_id: input.clerkUserId,
+          },
+          include: { location: true, team: true },
+        });
+
+        return { ok: true, value: mapPerson(person) };
+      }
+    }
+
+    const person = await database.person.create({
+      data: {
+        avatar_url: profile.avatarUrl,
+        clerk_org_id: tenant.clerkOrgId,
+        clerk_user_id: input.clerkUserId,
+        display_name: profile.displayName,
+        email: profile.email ?? `${input.clerkUserId}@internal`,
+        employment_type: "employee",
+        first_name: profile.firstName,
+        job_title: input.jobTitle ?? null,
+        last_name: profile.lastName,
+        organisation_id: tenant.organisationId,
+        source_system: "MANUAL",
+      },
+      include: { location: true, team: true },
+    });
+
+    return { ok: true, value: mapPerson(person) };
+  } catch {
+    return {
+      ok: false,
+      error: appError(
+        "internal",
+        "Failed to ensure the current user has a person profile."
+      ),
+    };
+  }
 };
+
+interface NormalisedCurrentUserProfile {
+  avatarUrl: string | null;
+  displayName: string;
+  email: string | null;
+  firstName: string;
+  lastName: string;
+}
+
+function normaliseCurrentUserProfile(
+  input: CurrentUserPersonInput
+): NormalisedCurrentUserProfile {
+  const email = normaliseEmail(input.email);
+  const displayName =
+    cleanString(input.displayName) ??
+    cleanString(
+      [cleanString(input.firstName), cleanString(input.lastName)]
+        .filter(Boolean)
+        .join(" ")
+    ) ??
+    email ??
+    input.clerkUserId;
+  const nameParts = displayName.split(WHITESPACE_PATTERN);
+  const firstName = cleanString(input.firstName) ?? nameParts[0] ?? "User";
+  const lastName =
+    cleanString(input.lastName) ??
+    cleanString(nameParts.slice(1).join(" ")) ??
+    input.clerkUserId;
+
+  return {
+    avatarUrl: cleanString(input.avatarUrl) ?? null,
+    displayName,
+    email,
+    firstName,
+    lastName,
+  };
+}
+
+function safeCurrentUserProfilePatch(profile: NormalisedCurrentUserProfile): {
+  avatar_url?: string | null;
+  display_name?: string;
+} {
+  return {
+    ...(profile.avatarUrl ? { avatar_url: profile.avatarUrl } : {}),
+    ...(profile.displayName ? { display_name: profile.displayName } : {}),
+  };
+}
+
+function cleanString(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
+function normaliseEmail(value: string | null | undefined): string | null {
+  const trimmed = cleanString(value);
+  return trimmed ? trimmed.toLowerCase() : null;
+}
 
 export const listPersonViews = async (
   tenant: TenantContext

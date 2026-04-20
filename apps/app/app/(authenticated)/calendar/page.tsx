@@ -73,7 +73,11 @@ const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
 
   const [organisation, teams, locations] = await Promise.all([
     database.organisation.findFirst({
-      where: scopedQuery(clerkOrgId, organisationId),
+      where: {
+        archived_at: null,
+        clerk_org_id: clerkOrgId,
+        id: organisationId,
+      },
       select: { timezone: true },
     }),
     database.team.findMany({
