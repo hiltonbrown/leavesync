@@ -8,15 +8,17 @@ import {
 } from "@repo/availability";
 import { database, scopedQuery } from "@repo/database";
 import type { Metadata } from "next";
+import { AdminEmptyView } from "@/components/dashboard/admin-empty-view";
 import { AdminView } from "@/components/dashboard/admin-view";
 import { DashboardLiveUpdates } from "@/components/dashboard/dashboard-live-updates";
 import { EmployeeView } from "@/components/dashboard/employee-view";
-import { GettingStartedView } from "@/components/dashboard/getting-started-view";
 import { ManagerView } from "@/components/dashboard/manager-view";
 import { ViewerView } from "@/components/dashboard/viewer-view";
+import { DismissibleOnboardingPanel } from "@/components/onboarding/dismissible-onboarding-panel";
 import { FetchErrorState } from "@/components/states/fetch-error-state";
 import { PermissionDeniedState } from "@/components/states/permission-denied-state";
 import { requirePageRole } from "@/lib/auth/require-page-role";
+import { loadOnboardingState } from "@/lib/server/load-onboarding-state";
 import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
 import { Header } from "./components/header";
 
@@ -54,7 +56,7 @@ export default async function DashboardPage({
     );
   }
 
-  const [actingPerson, roleResult] = await Promise.all([
+  const [actingPerson, roleResult, onboarding] = await Promise.all([
     database.person.findFirst({
       where: {
         ...scopedQuery(clerkOrgId, organisationId),
@@ -69,6 +71,7 @@ export default async function DashboardPage({
       organisationId,
       userId,
     }),
+    loadOnboardingState({ clerkOrgId, organisationId, userId }),
   ]);
 
   if (!roleResult.ok) {
@@ -89,15 +92,27 @@ export default async function DashboardPage({
     clerkOrgId,
     organisationId,
     orgQueryValue,
+    onboarding,
     role: roleResult.value,
     userId,
   });
+  const canManageOnboarding =
+    roleResult.value === "owner" || roleResult.value === "admin";
 
   return (
     <>
       <Header organisationId={organisationId} page="Dashboard" />
       <main className="flex flex-1 flex-col gap-6 p-6 pt-0">
         <DashboardLiveUpdates organisationId={organisationId} />
+        {canManageOnboarding ? (
+          <DismissibleOnboardingPanel
+            clerkOrgId={clerkOrgId}
+            onboarding={onboarding}
+            organisationId={organisationId}
+            orgQueryValue={orgQueryValue}
+            userId={userId}
+          />
+        ) : null}
         {content}
       </main>
     </>
@@ -108,6 +123,7 @@ interface RenderDashboardInput {
   actingPersonId: string | null;
   cache: ReturnType<typeof createDashboardCache>;
   clerkOrgId: string;
+  onboarding: Awaited<ReturnType<typeof loadOnboardingState>>;
   organisationId: string;
   orgQueryValue: string | null;
   role: "admin" | "employee" | "manager" | "owner" | "viewer";
@@ -119,13 +135,20 @@ async function renderDashboard({
   actingPersonId,
   cache,
   clerkOrgId,
+  onboarding,
   organisationId,
   orgQueryValue,
   userId,
 }: RenderDashboardInput) {
   if (!actingPersonId) {
     if (role === "owner" || role === "admin") {
-      return <GettingStartedView orgQueryValue={orgQueryValue} />;
+      return (
+        <AdminEmptyView
+          hasActiveXeroConnection={onboarding.hasActiveXeroConnection}
+          orgQueryValue={orgQueryValue}
+          roleLabel={role === "owner" ? "Owner" : "Admin"}
+        />
+      );
     }
     return <ViewerView />;
   }

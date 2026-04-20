@@ -1,13 +1,15 @@
 import { auth, currentUser } from "@repo/auth/server";
 import {
   computeWorkingDays,
+  ensureCurrentUserPerson,
   hasActiveXeroConnection,
   listMyRecords,
   listTeamRecords,
   type RecordListItem,
 } from "@repo/availability";
-import { database, scopedQuery } from "@repo/database";
+import { Button } from "@repo/design-system/components/ui/button";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { EmptyState } from "@/components/states/empty-state";
 import { FetchErrorState } from "@/components/states/fetch-error-state";
@@ -53,14 +55,44 @@ const PlansPage = async ({ searchParams }: PlansPageProps) => {
     redirect(withOrg("/plans?tab=my", orgQueryValue));
   }
 
-  const currentPerson = await database.person.findFirst({
-    where: {
-      ...scopedQuery(clerkOrgId, organisationId),
-      archived_at: null,
-      clerk_user_id: user.id,
+  const currentPersonResult = await ensureCurrentUserPerson(
+    {
+      clerkOrgId,
+      organisationId,
     },
-    select: { id: true },
-  });
+    {
+      avatarUrl: user.imageUrl,
+      clerkUserId: user.id,
+      displayName:
+        [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+        user.emailAddresses[0]?.emailAddress ||
+        user.id,
+      email: user.emailAddresses[0]?.emailAddress,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    }
+  );
+
+  if (!currentPersonResult.ok) {
+    return (
+      <>
+        <Header page="Plans" />
+        <main className="flex flex-1 flex-col p-6 pt-0">
+          <EmptyState
+            actionSlot={
+              <Button asChild variant="outline">
+                <Link href={withOrg("/people", orgQueryValue)}>
+                  Review people
+                </Link>
+              </Button>
+            }
+            description="Your Clerk account could not be linked to a single person profile. Review the people directory, then reload plans."
+            title="Person profile needs review"
+          />
+        </main>
+      </>
+    );
+  }
 
   const serviceFilters = {
     approvalStatus: filters.approvalStatus,
@@ -85,7 +117,7 @@ const PlansPage = async ({ searchParams }: PlansPageProps) => {
           actingOrgRole: orgRole,
           clerkOrgId,
           filters: serviceFilters,
-          managerPersonId: currentPerson?.id ?? "",
+          managerPersonId: currentPersonResult.value.id,
           organisationId,
         })
       : listMyRecords({

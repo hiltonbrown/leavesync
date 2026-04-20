@@ -544,7 +544,7 @@ export async function getAdminView(
       database.organisation.findFirst({
         where: {
           clerk_org_id: parsed.data.clerkOrgId,
-          organisation_id: parsed.data.organisationId,
+          id: parsed.data.organisationId,
         },
         select: { name: true },
       }),

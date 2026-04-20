@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  ensureDefaultOrganisation: vi.fn(),
   getActiveOrgContext: vi.fn(),
   listOrganisationsByClerkOrg: vi.fn(),
   notFound: vi.fn(() => {
@@ -21,6 +22,10 @@ vi.mock("@repo/database/src/queries/organisations", () => ({
 
 vi.mock("next/navigation", () => ({
   notFound: mocks.notFound,
+}));
+
+vi.mock("./ensure-default-organisation", () => ({
+  ensureDefaultOrganisation: mocks.ensureDefaultOrganisation,
 }));
 
 vi.mock("./get-active-org-context", () => ({
@@ -94,16 +99,24 @@ describe("requireActiveOrgPageContext", () => {
     expect(mocks.notFound).toHaveBeenCalledTimes(1);
   });
 
-  it("returns notFound when cookie state has no internal organisations", async () => {
+  it("creates a default internal organisation when cookie state has none", async () => {
     mocks.requireOrg.mockResolvedValue(clerkOrgId);
     mocks.listOrganisationsByClerkOrg.mockResolvedValue({
       ok: true,
       value: [],
     });
+    mocks.ensureDefaultOrganisation.mockResolvedValue({
+      clerkOrgId,
+      organisationId,
+    });
 
-    await expect(requireActiveOrgPageContext()).rejects.toThrow(
-      "NEXT_NOT_FOUND"
-    );
-    expect(mocks.notFound).toHaveBeenCalledTimes(1);
+    await expect(requireActiveOrgPageContext()).resolves.toEqual({
+      clerkOrgId,
+      organisationId,
+      orgQueryValue: null,
+      orgSource: "clerk_cookie",
+    });
+    expect(mocks.ensureDefaultOrganisation).toHaveBeenCalledWith(clerkOrgId);
+    expect(mocks.notFound).not.toHaveBeenCalled();
   });
 });

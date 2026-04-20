@@ -9,6 +9,7 @@ import {
   CalendarCheckIcon,
   ClipboardListIcon,
   CreditCardIcon,
+  ListChecksIcon,
   PlugIcon,
   RssIcon,
   ScrollTextIcon,
@@ -21,6 +22,11 @@ import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
   { label: "General", href: "/settings/general", icon: Settings2Icon },
+  {
+    label: "Getting Started",
+    href: "/settings/getting-started",
+    icon: ListChecksIcon,
+  },
   {
     label: "Leave Approval",
     href: "/settings/leave-approval",

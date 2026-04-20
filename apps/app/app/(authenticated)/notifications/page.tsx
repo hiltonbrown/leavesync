@@ -11,6 +11,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { FetchErrorState } from "@/components/states/fetch-error-state";
 import { requirePageRole } from "@/lib/auth/require-page-role";
+import { getPublicApiUrl } from "@/lib/public-api-url";
 import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
 import { parseFilterParams } from "@/lib/url-state/parse-filter-params";
 import { Header } from "../components/header";
@@ -84,8 +85,9 @@ const NotificationsPage = async ({ searchParams }: NotificationsPageProps) => {
     }),
   ]);
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "";
-  const streamUrl = `${apiUrl}/api/notifications/stream?organisationId=${organisationId}`;
+  const streamUrl = getPublicApiUrl(
+    `/api/notifications/stream?organisationId=${encodeURIComponent(organisationId)}`
+  );
 
   return (
     <>

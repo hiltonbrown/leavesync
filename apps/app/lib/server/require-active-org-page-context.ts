@@ -3,7 +3,8 @@ import "server-only";
 import { requireOrg } from "@repo/auth/helpers";
 import type { ClerkOrgId, OrganisationId } from "@repo/core";
 import { listOrganisationsByClerkOrg } from "@repo/database/src/queries/organisations";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
+import { ensureDefaultOrganisation } from "./ensure-default-organisation";
 import { getActiveOrgContext } from "./get-active-org-context";
 
 export interface ActiveOrgPageContext {
@@ -41,19 +42,22 @@ export async function requireActiveOrgPageContext(
 
   const orgResult = await listOrganisationsByClerkOrg(clerkOrgId);
 
-  if (!orgResult.ok || orgResult.value.length === 0) {
-    redirect("/setup");
+  if (!orgResult.ok) {
+    notFound();
   }
 
-  const defaultOrganisation = orgResult.value[0];
+  const existingOrganisation = orgResult.value[0];
+  const organisationId =
+    existingOrganisation?.id ??
+    (await ensureDefaultOrganisation(clerkOrgId)).organisationId;
 
-  if (!defaultOrganisation) {
-    redirect("/setup");
+  if (!organisationId) {
+    notFound();
   }
 
   return {
     clerkOrgId,
-    organisationId: defaultOrganisation.id,
+    organisationId,
     orgQueryValue: null,
     orgSource: "clerk_cookie",
   };

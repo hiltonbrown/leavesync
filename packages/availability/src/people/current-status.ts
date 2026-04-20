@@ -141,7 +141,9 @@ export async function computeCurrentStatus(input: {
       : Promise.resolve(null),
     database.organisation.findFirst({
       where: {
-        ...scopedQuery(clerkOrgId, organisationId),
+        archived_at: null,
+        clerk_org_id: clerkOrgId,
+        id: organisationId,
       },
       select: {
         country_code: true,

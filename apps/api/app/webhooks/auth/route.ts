@@ -6,6 +6,9 @@ import type {
   UserJSON,
   WebhookEvent,
 } from "@repo/auth/server";
+import { ensureCurrentUserPerson } from "@repo/availability";
+import type { ClerkOrgId, OrganisationId } from "@repo/core";
+import { database } from "@repo/database";
 import { log } from "@repo/observability/log";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
@@ -114,9 +117,9 @@ const handleOrganizationUpdated = (data: OrganizationJSON) => {
   return new Response("Organization updated", { status: 201 });
 };
 
-const handleOrganizationMembershipCreated = (
+export const handleOrganizationMembershipCreated = async (
   data: OrganizationMembershipJSON
-) => {
+): Promise<Response> => {
   analytics?.groupIdentify({
     groupKey: data.organization.id,
     groupType: "company",
@@ -128,21 +131,77 @@ const handleOrganizationMembershipCreated = (
     distinctId: data.public_user_data.user_id,
   });
 
+  await ensurePeopleForMembership(data);
+
   return new Response("Organization membership created", { status: 201 });
 };
 
-const handleOrganizationMembershipDeleted = (
+export const handleOrganizationMembershipDeleted = async (
   data: OrganizationMembershipJSON
-) => {
-  // Need to unlink the user from the group
-
+): Promise<Response> => {
   analytics?.capture({
     event: "Organization Member Deleted",
     distinctId: data.public_user_data.user_id,
   });
 
+  await database.person.updateMany({
+    where: {
+      clerk_org_id: data.organization.id,
+      clerk_user_id: data.public_user_data.user_id,
+    },
+    data: {
+      clerk_user_id: null,
+    },
+  });
+
   return new Response("Organization membership deleted", { status: 201 });
 };
+
+async function ensurePeopleForMembership(data: OrganizationMembershipJSON) {
+  const organisations = await database.organisation.findMany({
+    where: {
+      archived_at: null,
+      clerk_org_id: data.organization.id,
+    },
+    select: {
+      clerk_org_id: true,
+      id: true,
+    },
+  });
+
+  await Promise.all(
+    organisations.map(async (organisation) => {
+      const result = await ensureCurrentUserPerson(
+        {
+          clerkOrgId: organisation.clerk_org_id as ClerkOrgId,
+          organisationId: organisation.id as OrganisationId,
+        },
+        {
+          avatarUrl: data.public_user_data.image_url,
+          clerkUserId: data.public_user_data.user_id,
+          displayName:
+            [data.public_user_data.first_name, data.public_user_data.last_name]
+              .filter(Boolean)
+              .join(" ") ||
+            data.public_user_data.identifier ||
+            data.public_user_data.user_id,
+          email: data.public_user_data.identifier,
+          firstName: data.public_user_data.first_name,
+          lastName: data.public_user_data.last_name,
+        }
+      );
+
+      if (!result.ok) {
+        log.error("Failed to link Clerk organisation member to person", {
+          clerkOrgId: data.organization.id,
+          error: result.error,
+          organisationId: organisation.id,
+          userId: data.public_user_data.user_id,
+        });
+      }
+    })
+  );
+}
 
 export const POST = async (request: Request): Promise<Response> => {
   if (!env.CLERK_WEBHOOK_SECRET) {
@@ -215,11 +274,11 @@ export const POST = async (request: Request): Promise<Response> => {
       break;
     }
     case "organizationMembership.created": {
-      response = handleOrganizationMembershipCreated(event.data);
+      response = await handleOrganizationMembershipCreated(event.data);
       break;
     }
     case "organizationMembership.deleted": {
-      response = handleOrganizationMembershipDeleted(event.data);
+      response = await handleOrganizationMembershipDeleted(event.data);
       break;
     }
     default: {
