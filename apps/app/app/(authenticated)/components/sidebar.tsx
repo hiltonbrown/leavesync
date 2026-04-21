@@ -23,7 +23,6 @@ import {
   ClipboardListIcon,
   FlagIcon,
   LayoutDashboardIcon,
-  LeafIcon,
   LifeBuoyIcon,
   LinkIcon,
   Settings2Icon,
@@ -108,11 +107,37 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                   !sidebar.open && "justify-center"
                 )}
               >
-                <div
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
-                  style={{ background: "var(--primary)" }}
-                >
-                  <LeafIcon className="h-4 w-4 text-white" strokeWidth={2} />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center">
+                  <svg
+                    className="h-9 w-9"
+                    viewBox="0 0 150 150"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect
+                      fill="#57624F"
+                      height="20"
+                      rx="10"
+                      width="60"
+                      x="30"
+                      y="35"
+                    />
+                    <rect
+                      fill="#CAE8BC"
+                      height="20"
+                      rx="10"
+                      width="80"
+                      x="50"
+                      y="65"
+                    />
+                    <rect
+                      fill="#6DA671"
+                      height="20"
+                      rx="10"
+                      width="70"
+                      x="20"
+                      y="95"
+                    />
+                  </svg>
                 </div>
                 {sidebar.open && (
                   <span className="font-semibold text-[0.9375rem] tracking-[-0.01em]">
