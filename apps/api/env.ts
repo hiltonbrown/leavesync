@@ -7,6 +7,7 @@ import { keys as observability } from "@repo/observability/keys";
 import { keys as payments } from "@repo/payments/keys";
 import { keys as xero } from "@repo/xero/keys";
 import { createEnv } from "@t3-oss/env-nextjs";
+import { keys as github } from "./lib/github/keys";
 
 export const env = createEnv({
   extends: [
@@ -15,6 +16,7 @@ export const env = createEnv({
     core(),
     database(),
     email(),
+    github(),
     observability(),
     payments(),
     xero(),
