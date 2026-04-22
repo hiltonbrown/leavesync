@@ -54,6 +54,8 @@ export type {
   PublicHolidayImportResult,
 } from "./public-holidays";
 export { importPublicHolidaysForFeed } from "./public-holidays";
+export type { SupportSubmissionAuditData } from "./support-submissions";
+export { listRecentSupportSubmissionAudits } from "./support-submissions";
 export type {
   AuditEventData,
   FailedRecordData,

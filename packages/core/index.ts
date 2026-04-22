@@ -48,3 +48,22 @@ export const formatDateRangeLabel = (startsAt: Date, endsAt: Date): string => {
   const end = formatter.format(endsAt);
   return start === end ? start : `${start} to ${end}`;
 };
+
+export type {
+  SupportSubmissionCategory,
+  SupportSubmissionContext,
+  SupportSubmissionIssueInput,
+  SupportSubmissionPayload,
+  SupportSubmissionPriority,
+} from "./src/support-submission";
+
+export {
+  buildSupportIssueMarkdownBody,
+  buildSupportIssueTitle,
+  getSupportIssueLabels,
+  SupportSubmissionCategorySchema,
+  SupportSubmissionContextSchema,
+  SupportSubmissionIssueInputSchema,
+  SupportSubmissionPayloadSchema,
+  SupportSubmissionPrioritySchema,
+} from "./src/support-submission";

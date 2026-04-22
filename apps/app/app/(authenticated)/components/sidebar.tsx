@@ -109,7 +109,9 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
               >
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center">
                   <svg
+                    aria-hidden="true"
                     className="h-9 w-9"
+                    focusable="false"
                     viewBox="0 0 150 150"
                     xmlns="http://www.w3.org/2000/svg"
                   >
