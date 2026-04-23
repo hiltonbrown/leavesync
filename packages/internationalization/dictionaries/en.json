@@ -11,6 +11,11 @@
         "description": "Leave management and availability publishing for Xero Payroll teams.",
         "pricing": "Pricing"
       },
+      "features": "Features",
+      "xero": "Xero",
+      "pricing": "Pricing",
+      "security": "Security",
+      "changelog": "Changelog",
       "blog": "Blog",
       "docs": "Docs",
       "contact": "Contact",

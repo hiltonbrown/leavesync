@@ -11,6 +11,11 @@
         "description": "Gérer une petite entreprise aujourd'hui est déjà difficile.",
         "pricing": "Tarification"
       },
+      "features": "Fonctionnalités",
+      "xero": "Xero",
+      "pricing": "Tarification",
+      "security": "Sécurité",
+      "changelog": "Journal des changements",
       "blog": "Blog",
       "docs": "Docs",
       "contact": "Contact",

@@ -128,6 +128,19 @@ export async function loadOnboardingState({
       { complete: hasFeeds, id: "feed" },
     ];
   const nextRequiredId = requiredSteps.find((step) => !step.complete)?.id;
+  const xeroSetupSteps: OnboardingStep[] = showXeroSetupTask
+    ? [
+        {
+          ctaHref: "/settings/integrations/xero",
+          ctaLabel: hasActiveXeroConnection ? "Manage Xero" : "Connect Xero",
+          description:
+            "Connect Xero now or skip for later. LeaveSync keeps a persistent setup task until the first payroll connection is in place.",
+          id: "xero",
+          status: hasActiveXeroConnection ? "complete" : "next",
+          title: "Connect Xero",
+        },
+      ]
+    : [];
 
   const steps: OnboardingStep[] = [
     {
@@ -140,19 +153,7 @@ export async function loadOnboardingState({
       status: statusForRequiredStep("profile", hasProfile, nextRequiredId),
       title: "Review organisation profile",
     },
-    ...(showXeroSetupTask
-      ? [
-          {
-            ctaHref: "/settings/integrations/xero",
-            ctaLabel: hasActiveXeroConnection ? "Manage Xero" : "Connect Xero",
-            description:
-              "Connect Xero now or skip for later. LeaveSync keeps a persistent setup task until the first payroll connection is in place.",
-            id: "xero" as const,
-            status: hasActiveXeroConnection ? "complete" : "next",
-            title: "Connect Xero",
-          },
-        ]
-      : []),
+    ...xeroSetupSteps,
     {
       ctaHref: "/people",
       ctaLabel: hasPeople ? "View people" : "Add people",

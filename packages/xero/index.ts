@@ -5,6 +5,8 @@ export {
   disconnectXeroOAuthConnection,
   getPendingXeroOAuthSession,
   markXeroConnectionStale,
+  type PendingXeroSessionOrganisation,
+  type PendingXeroSessionTenant,
   refreshXeroOAuthConnection,
   type XeroOAuthError,
 } from "./src/oauth/service";
