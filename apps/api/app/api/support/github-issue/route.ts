@@ -70,7 +70,7 @@ export async function POST(request: Request): Promise<Response> {
       organisation_id: organisationContext.value?.organisationId,
       organisation_name: organisationContext.value?.organisationName,
       current_route: `${pageUrl.pathname}${pageUrl.search}`,
-      environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? undefined,
+      environment: getRuntimeEnvironment(),
       user_id: user.id,
       user_email: getPrimaryEmail(user),
       user_name: getUserName(user),
@@ -84,8 +84,6 @@ export async function POST(request: Request): Promise<Response> {
         case "auth_error":
         case "integration_error":
           return jsonFailure(500, result.error.code, result.error.message);
-        default:
-          return jsonFailure(500, "integration_error", result.error.message);
       }
     }
 
@@ -215,6 +213,14 @@ function getUserName(
 ): string | undefined {
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
   return fullName || user.fullName || getPrimaryEmail(user);
+}
+
+function getRuntimeEnvironment(): string | undefined {
+  if (process.env.NODE_ENV === "test") {
+    return "test";
+  }
+
+  return process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? undefined;
 }
 
 function jsonFailure(

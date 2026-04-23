@@ -56,6 +56,10 @@ export function decryptXeroToken(input: {
 
 function readKey(): Buffer {
   const raw = keys().XERO_TOKEN_ENCRYPTION_KEY;
+  if (!raw) {
+    throw new Error("XERO_TOKEN_ENCRYPTION_KEY must be configured.");
+  }
+
   if (raw.length !== KEY_BYTES * 2) {
     throw new Error("XERO_TOKEN_ENCRYPTION_KEY must be 64 hex characters.");
   }
