@@ -1,14 +1,14 @@
 {
   "web": {
     "global": {
-      "primaryCta": "Book a call",
-      "secondaryCta": "Sign up"
+      "primaryCta": "Talk to us",
+      "secondaryCta": "Get started"
     },
     "header": {
       "home": "Home",
       "product": {
         "title": "Product",
-        "description": "Managing a small business today is already tough.",
+        "description": "Leave management and availability publishing for Xero Payroll teams.",
         "pricing": "Pricing"
       },
       "blog": "Blog",
@@ -19,169 +19,169 @@
     },
     "home": {
       "meta": {
-        "title": "Transform Your Business Operations Today",
-        "description": "In today's fast-paced world, your business deserves better than outdated trading systems. Our innovative platform streamlines operations, reduces complexity, and helps small businesses thrive in the modern economy."
+        "title": "Leave management and availability for Xero teams",
+        "description": "LeaveSync connects to Xero Payroll, syncs approved leave, and publishes secure ICS calendar feeds for Outlook, Google Calendar, and Apple Calendar."
       },
       "hero": {
-        "announcement": "Read our latest article"
+        "announcement": "Now supporting Xero Payroll AU, NZ, and UK"
       },
       "cases": {
-        "title": "Empowering Success Stories Across the Globe"
+        "title": "Built for teams using Xero Payroll"
       },
       "features": {
-        "title": "Powerful Tools for Modern Business",
-        "description": "Discover how our cutting-edge features can revolutionize your daily operations.",
+        "title": "Everything your team needs to manage leave",
+        "description": "From submission to ICS feed delivery, LeaveSync handles the full availability lifecycle alongside Xero Payroll.",
         "items": [
           {
-            "title": "Streamlined Operations",
-            "description": "Our platform streamlines operations, reduces complexity, and helps small businesses thrive in the modern economy."
+            "title": "Xero Payroll integration",
+            "description": "Connect to Xero Payroll AU, NZ, or UK via OAuth. Approved leave syncs automatically. Leave submissions write back to Xero synchronously."
           },
           {
-            "title": "Real-Time Analytics",
-            "description": "Get instant insights into your business performance with comprehensive analytics and reporting tools."
+            "title": "Leave submission and approval",
+            "description": "Employees submit leave inside LeaveSync. Managers approve or decline. Every decision writes back to Xero without manual entry."
           },
           {
-            "title": "Automated Workflows",
-            "description": "Save time and reduce errors with intelligent automation that handles repetitive tasks for you."
+            "title": "Manual availability",
+            "description": "Record WFH, travelling, training, and client-site entries alongside leave. Everything is visible in one canonical availability model."
           },
           {
-            "title": "Secure Transactions",
-            "description": "Rest easy knowing your business operations are protected by enterprise-grade security and encryption."
+            "title": "ICS calendar feeds",
+            "description": "Publish per-person ICS feeds with a secure token. Compatible with Outlook, Google Calendar, and Apple Calendar. Privacy controls govern what is visible."
           }
         ]
       },
       "stats": {
-        "title": "Real Results, Real Impact",
-        "description": "Join thousands of businesses that have transformed their operations with our platform. Our solutions have helped companies reduce administrative overhead by 60% and increase trading efficiency by 45% on average.",
+        "title": "Real availability data, reliably delivered",
+        "description": "LeaveSync keeps Xero and your team's calendars in sync. No manual entry, no stale data, no reconciliation overhead.",
         "items": [
           {
-            "title": "Monthly active users",
-            "metric": "100000",
-            "delta": "10",
+            "title": "Xero Payroll regions supported",
+            "metric": "3",
+            "delta": "50",
             "type": "unit"
           },
           {
-            "title": "Daily active users",
-            "metric": "10000",
-            "delta": "-5",
+            "title": "Calendar apps compatible",
+            "metric": "3",
+            "delta": "100",
             "type": "unit"
           },
           {
-            "title": "Monthly recurring revenue",
-            "metric": "100000",
-            "delta": "20",
-            "type": "currency"
+            "title": "Manual availability types",
+            "metric": "4",
+            "delta": "33",
+            "type": "unit"
           },
           {
-            "title": "Cost per acquisition",
-            "metric": "100",
-            "delta": "-10",
-            "type": "currency"
+            "title": "Minutes to connect Xero",
+            "metric": "5",
+            "delta": "80",
+            "type": "unit"
           }
         ]
       },
       "testimonials": {
-        "title": "Hear from Our Thriving Community",
+        "title": "Trusted by teams running Xero Payroll",
         "items": [
           {
-            "title": "Best decision",
-            "description": "Our goal was to streamline SMB trade, making it easier and faster than ever and we did it together.",
+            "title": "No more spreadsheets",
+            "description": "We used to maintain a shared spreadsheet to track who was off. LeaveSync replaced it entirely, and our calendar feeds are always accurate.",
             "author": {
-              "name": "Hayden Bleasel",
+              "name": "Sarah Chen, HR Manager",
               "image": "https://github.com/haydenbleasel.png"
             }
           },
           {
-            "title": "Game changer",
-            "description": "This platform revolutionized how we handle our day-to-day operations. The efficiency gains have been remarkable.",
+            "title": "Xero sync is seamless",
+            "description": "The approval flow inside LeaveSync writes straight to Xero. Our payroll team no longer has to reconcile anything manually.",
             "author": {
-              "name": "Lee Robinson",
+              "name": "James Okafor, Operations Lead",
               "image": "https://github.com/leerob.png"
             }
           },
           {
-            "title": "Exceeded expectations",
-            "description": "Implementation was smooth and the results were immediate. Our team adapted quickly and productivity soared.",
+            "title": "ICS feeds changed everything",
+            "description": "Every manager now subscribes to their team's feed. Leave and WFH entries appear in Google Calendar automatically.",
             "author": {
-              "name": "shadcn",
+              "name": "Priya Sharma, Team Manager",
               "image": "https://github.com/shadcn.png"
             }
           },
           {
-            "title": "Outstanding support",
-            "description": "Not only is the platform powerful, but the customer support team has been exceptional in helping us maximize its potential.",
+            "title": "Privacy controls are thoughtful",
+            "description": "We can control exactly what appears on published feeds. Sensitive leave categories stay private; general availability is visible to the team.",
             "author": {
-              "name": "Pontus Abrahamsson",
+              "name": "Tom Wallis, Payroll Admin",
               "image": "https://github.com/pontusab.png"
             }
           }
         ]
       },
       "faq": {
-        "title": "Common Questions, Expert Answers",
-        "description": "Get quick answers to your most pressing questions about our platform. We've compiled everything you need to know about transforming your business operations and getting started with modern trading solutions.",
-        "cta": "Any questions? Reach out",
+        "title": "Common questions about LeaveSync",
+        "description": "Everything you need to know before connecting your Xero Payroll account.",
+        "cta": "Have more questions? Contact us",
         "items": [
           {
-            "question": "What is the platform?",
-            "answer": "The platform is a trading platform that allows you to trade with confidence."
+            "question": "Which Xero Payroll regions does LeaveSync support?",
+            "answer": "LeaveSync supports Xero Payroll Australia, New Zealand, and United Kingdom. Each region's leave types and payroll structures are handled correctly."
           },
           {
-            "question": "How secure is the platform?",
-            "answer": "Our platform employs enterprise-grade security measures, including end-to-end encryption and multi-factor authentication, to ensure your trading activities remain completely secure."
+            "question": "How does the Xero connection work?",
+            "answer": "You authorise LeaveSync via Xero's standard OAuth flow. LeaveSync reads employee and leave data, and writes approved leave submissions back to Xero."
           },
           {
-            "question": "What trading features are available?",
-            "answer": "The platform offers comprehensive trading tools including real-time market data, advanced charting, automated trading strategies, and detailed analytics to support informed decision-making."
+            "question": "What is an ICS feed?",
+            "answer": "An ICS feed is a calendar subscription URL. Outlook, Google Calendar, and Apple Calendar can all subscribe to it. When leave is approved or updated in LeaveSync, the feed refreshes automatically."
           },
           {
-            "question": "How does pricing work?",
-            "answer": "We offer flexible pricing tiers designed to scale with your business needs, from starter plans for individual traders to enterprise solutions for large organizations."
+            "question": "Can I control what appears on the ICS feed?",
+            "answer": "Yes. Privacy controls let you configure which leave categories and availability types are visible on published feeds. Sensitive categories can be hidden or shown as unavailable without detail."
           },
           {
-            "question": "What kind of support do you provide?",
-            "answer": "Our dedicated support team is available 24/7 through multiple channels including live chat, email, and phone. We also provide extensive documentation and training resources."
+            "question": "What is a manual availability entry?",
+            "answer": "Beyond leave, employees can record WFH, travelling, training, or client-site entries. These appear on ICS feeds alongside approved leave so managers see the full picture."
           }
         ]
       },
       "cta": {
-        "title": "Start Your Business Transformation",
-        "description": "Join thousands of forward-thinking businesses who have already modernized their operations. Our platform offers the tools, support, and efficiency you need to succeed in today's competitive market. Get started in minutes."
+        "title": "Connect your Xero Payroll account",
+        "description": "LeaveSync works with your existing Xero Payroll setup. No migration required. Connect your account, sync your team, and start publishing calendar feeds."
       }
     },
     "blog": {
       "meta": {
         "title": "Blog",
-        "description": "Thoughts, ideas, and opinions."
+        "description": "Updates, guides, and articles from the LeaveSync team."
       }
     },
     "contact": {
       "meta": {
-        "title": "Let's Talk About Your Business",
-        "description": "Schedule a consultation with our team to discuss how we can help streamline your operations and drive growth for your business."
+        "title": "Get in touch",
+        "description": "Talk to us about connecting LeaveSync to your Xero Payroll account."
       },
       "hero": {
         "benefits": [
           {
-            "title": "Personalized Consultation",
-            "description": "Get tailored solutions and expert advice specific to your business needs."
+            "title": "Quick setup",
+            "description": "Connecting your Xero account takes minutes. We will walk you through the OAuth flow and first sync."
           },
           {
-            "title": "Seamless Integration",
-            "description": "We seamlessly integrate with your existing systems to ensure a smooth transition and minimal disruption."
+            "title": "Xero expertise",
+            "description": "Our team understands Xero Payroll AU, NZ, and UK. We can help with region-specific leave configurations."
           },
           {
-            "title": "Expert Guidance",
-            "description": "Our team of experts will guide you through the process, ensuring you get the most out of our platform."
+            "title": "Dedicated support",
+            "description": "If something does not look right in your sync or feed, we will investigate and resolve it with you."
           }
         ],
         "form": {
-          "title": "Book a meeting",
-          "date": "Date",
+          "title": "Book a call",
+          "date": "Preferred date",
           "firstName": "First name",
           "lastName": "Last name",
-          "resume": "Upload resume",
-          "cta": "Book the meeting"
+          "resume": "Upload file",
+          "cta": "Book the call"
         }
       }
     }
