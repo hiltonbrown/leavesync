@@ -31,7 +31,9 @@ export interface XeroTenantForWrite {
   organisation_id: string;
   payroll_region: PayrollRegion;
   xero_connection: {
+    access_token_auth_tag?: null | string;
     access_token_encrypted: string;
+    access_token_iv?: null | string;
     revoked_at: Date | null;
   };
   xero_tenant_id: string;

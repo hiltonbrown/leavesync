@@ -20,6 +20,8 @@ export async function hasActiveXeroConnection({
           clerkOrgId as ClerkOrgId,
           organisationId as OrganisationId
         ),
+        disconnected_at: null,
+        status: "active",
         revoked_at: null,
         refresh_token_encrypted: { not: "" },
       },

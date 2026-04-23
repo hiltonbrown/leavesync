@@ -33,6 +33,16 @@ export type XeroTenantMinAggregateOutputType = {
   tenant_name: string | null
   payroll_region: $Enums.payroll_region | null
   sync_paused_at: Date | null
+  last_people_sync_at: Date | null
+  last_leave_records_sync_at: Date | null
+  last_leave_balances_sync_at: Date | null
+  last_approval_state_reconciled_at: Date | null
+  people_stale_since: Date | null
+  leave_records_stale_since: Date | null
+  leave_balances_stale_since: Date | null
+  approval_state_stale_since: Date | null
+  last_sync_error_code: string | null
+  last_sync_error_message: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -46,6 +56,16 @@ export type XeroTenantMaxAggregateOutputType = {
   tenant_name: string | null
   payroll_region: $Enums.payroll_region | null
   sync_paused_at: Date | null
+  last_people_sync_at: Date | null
+  last_leave_records_sync_at: Date | null
+  last_leave_balances_sync_at: Date | null
+  last_approval_state_reconciled_at: Date | null
+  people_stale_since: Date | null
+  leave_records_stale_since: Date | null
+  leave_balances_stale_since: Date | null
+  approval_state_stale_since: Date | null
+  last_sync_error_code: string | null
+  last_sync_error_message: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -59,6 +79,16 @@ export type XeroTenantCountAggregateOutputType = {
   tenant_name: number
   payroll_region: number
   sync_paused_at: number
+  last_people_sync_at: number
+  last_leave_records_sync_at: number
+  last_leave_balances_sync_at: number
+  last_approval_state_reconciled_at: number
+  people_stale_since: number
+  leave_records_stale_since: number
+  leave_balances_stale_since: number
+  approval_state_stale_since: number
+  last_sync_error_code: number
+  last_sync_error_message: number
   created_at: number
   updated_at: number
   _all: number
@@ -74,6 +104,16 @@ export type XeroTenantMinAggregateInputType = {
   tenant_name?: true
   payroll_region?: true
   sync_paused_at?: true
+  last_people_sync_at?: true
+  last_leave_records_sync_at?: true
+  last_leave_balances_sync_at?: true
+  last_approval_state_reconciled_at?: true
+  people_stale_since?: true
+  leave_records_stale_since?: true
+  leave_balances_stale_since?: true
+  approval_state_stale_since?: true
+  last_sync_error_code?: true
+  last_sync_error_message?: true
   created_at?: true
   updated_at?: true
 }
@@ -87,6 +127,16 @@ export type XeroTenantMaxAggregateInputType = {
   tenant_name?: true
   payroll_region?: true
   sync_paused_at?: true
+  last_people_sync_at?: true
+  last_leave_records_sync_at?: true
+  last_leave_balances_sync_at?: true
+  last_approval_state_reconciled_at?: true
+  people_stale_since?: true
+  leave_records_stale_since?: true
+  leave_balances_stale_since?: true
+  approval_state_stale_since?: true
+  last_sync_error_code?: true
+  last_sync_error_message?: true
   created_at?: true
   updated_at?: true
 }
@@ -100,6 +150,16 @@ export type XeroTenantCountAggregateInputType = {
   tenant_name?: true
   payroll_region?: true
   sync_paused_at?: true
+  last_people_sync_at?: true
+  last_leave_records_sync_at?: true
+  last_leave_balances_sync_at?: true
+  last_approval_state_reconciled_at?: true
+  people_stale_since?: true
+  leave_records_stale_since?: true
+  leave_balances_stale_since?: true
+  approval_state_stale_since?: true
+  last_sync_error_code?: true
+  last_sync_error_message?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -186,6 +246,16 @@ export type XeroTenantGroupByOutputType = {
   tenant_name: string | null
   payroll_region: $Enums.payroll_region
   sync_paused_at: Date | null
+  last_people_sync_at: Date | null
+  last_leave_records_sync_at: Date | null
+  last_leave_balances_sync_at: Date | null
+  last_approval_state_reconciled_at: Date | null
+  people_stale_since: Date | null
+  leave_records_stale_since: Date | null
+  leave_balances_stale_since: Date | null
+  approval_state_stale_since: Date | null
+  last_sync_error_code: string | null
+  last_sync_error_message: string | null
   created_at: Date
   updated_at: Date
   _count: XeroTenantCountAggregateOutputType | null
@@ -220,6 +290,16 @@ export type XeroTenantWhereInput = {
   tenant_name?: Prisma.StringNullableFilter<"XeroTenant"> | string | null
   payroll_region?: Prisma.Enumpayroll_regionFilter<"XeroTenant"> | $Enums.payroll_region
   sync_paused_at?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  last_people_sync_at?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  last_leave_records_sync_at?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  last_leave_balances_sync_at?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  people_stale_since?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  leave_records_stale_since?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  leave_balances_stale_since?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  approval_state_stale_since?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  last_sync_error_code?: Prisma.StringNullableFilter<"XeroTenant"> | string | null
+  last_sync_error_message?: Prisma.StringNullableFilter<"XeroTenant"> | string | null
   created_at?: Prisma.DateTimeFilter<"XeroTenant"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"XeroTenant"> | Date | string
   organisation?: Prisma.XOR<Prisma.OrganisationScalarRelationFilter, Prisma.OrganisationWhereInput>
@@ -238,6 +318,16 @@ export type XeroTenantOrderByWithRelationInput = {
   tenant_name?: Prisma.SortOrderInput | Prisma.SortOrder
   payroll_region?: Prisma.SortOrder
   sync_paused_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_people_sync_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_leave_records_sync_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_leave_balances_sync_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_approval_state_reconciled_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  people_stale_since?: Prisma.SortOrderInput | Prisma.SortOrder
+  leave_records_stale_since?: Prisma.SortOrderInput | Prisma.SortOrder
+  leave_balances_stale_since?: Prisma.SortOrderInput | Prisma.SortOrder
+  approval_state_stale_since?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_sync_error_code?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_sync_error_message?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   organisation?: Prisma.OrganisationOrderByWithRelationInput
@@ -259,6 +349,16 @@ export type XeroTenantWhereUniqueInput = Prisma.AtLeast<{
   tenant_name?: Prisma.StringNullableFilter<"XeroTenant"> | string | null
   payroll_region?: Prisma.Enumpayroll_regionFilter<"XeroTenant"> | $Enums.payroll_region
   sync_paused_at?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  last_people_sync_at?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  last_leave_records_sync_at?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  last_leave_balances_sync_at?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  people_stale_since?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  leave_records_stale_since?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  leave_balances_stale_since?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  approval_state_stale_since?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  last_sync_error_code?: Prisma.StringNullableFilter<"XeroTenant"> | string | null
+  last_sync_error_message?: Prisma.StringNullableFilter<"XeroTenant"> | string | null
   created_at?: Prisma.DateTimeFilter<"XeroTenant"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"XeroTenant"> | Date | string
   organisation?: Prisma.XOR<Prisma.OrganisationScalarRelationFilter, Prisma.OrganisationWhereInput>
@@ -277,6 +377,16 @@ export type XeroTenantOrderByWithAggregationInput = {
   tenant_name?: Prisma.SortOrderInput | Prisma.SortOrder
   payroll_region?: Prisma.SortOrder
   sync_paused_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_people_sync_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_leave_records_sync_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_leave_balances_sync_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_approval_state_reconciled_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  people_stale_since?: Prisma.SortOrderInput | Prisma.SortOrder
+  leave_records_stale_since?: Prisma.SortOrderInput | Prisma.SortOrder
+  leave_balances_stale_since?: Prisma.SortOrderInput | Prisma.SortOrder
+  approval_state_stale_since?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_sync_error_code?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_sync_error_message?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.XeroTenantCountOrderByAggregateInput
@@ -296,6 +406,16 @@ export type XeroTenantScalarWhereWithAggregatesInput = {
   tenant_name?: Prisma.StringNullableWithAggregatesFilter<"XeroTenant"> | string | null
   payroll_region?: Prisma.Enumpayroll_regionWithAggregatesFilter<"XeroTenant"> | $Enums.payroll_region
   sync_paused_at?: Prisma.DateTimeNullableWithAggregatesFilter<"XeroTenant"> | Date | string | null
+  last_people_sync_at?: Prisma.DateTimeNullableWithAggregatesFilter<"XeroTenant"> | Date | string | null
+  last_leave_records_sync_at?: Prisma.DateTimeNullableWithAggregatesFilter<"XeroTenant"> | Date | string | null
+  last_leave_balances_sync_at?: Prisma.DateTimeNullableWithAggregatesFilter<"XeroTenant"> | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.DateTimeNullableWithAggregatesFilter<"XeroTenant"> | Date | string | null
+  people_stale_since?: Prisma.DateTimeNullableWithAggregatesFilter<"XeroTenant"> | Date | string | null
+  leave_records_stale_since?: Prisma.DateTimeNullableWithAggregatesFilter<"XeroTenant"> | Date | string | null
+  leave_balances_stale_since?: Prisma.DateTimeNullableWithAggregatesFilter<"XeroTenant"> | Date | string | null
+  approval_state_stale_since?: Prisma.DateTimeNullableWithAggregatesFilter<"XeroTenant"> | Date | string | null
+  last_sync_error_code?: Prisma.StringNullableWithAggregatesFilter<"XeroTenant"> | string | null
+  last_sync_error_message?: Prisma.StringNullableWithAggregatesFilter<"XeroTenant"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"XeroTenant"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"XeroTenant"> | Date | string
 }
@@ -307,6 +427,16 @@ export type XeroTenantCreateInput = {
   tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   sync_paused_at?: Date | string | null
+  last_people_sync_at?: Date | string | null
+  last_leave_records_sync_at?: Date | string | null
+  last_leave_balances_sync_at?: Date | string | null
+  last_approval_state_reconciled_at?: Date | string | null
+  people_stale_since?: Date | string | null
+  leave_records_stale_since?: Date | string | null
+  leave_balances_stale_since?: Date | string | null
+  approval_state_stale_since?: Date | string | null
+  last_sync_error_code?: string | null
+  last_sync_error_message?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutXero_tenantsInput
@@ -325,6 +455,16 @@ export type XeroTenantUncheckedCreateInput = {
   tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   sync_paused_at?: Date | string | null
+  last_people_sync_at?: Date | string | null
+  last_leave_records_sync_at?: Date | string | null
+  last_leave_balances_sync_at?: Date | string | null
+  last_approval_state_reconciled_at?: Date | string | null
+  people_stale_since?: Date | string | null
+  leave_records_stale_since?: Date | string | null
+  leave_balances_stale_since?: Date | string | null
+  approval_state_stale_since?: Date | string | null
+  last_sync_error_code?: string | null
+  last_sync_error_message?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutXero_tenantInput
@@ -339,6 +479,16 @@ export type XeroTenantUpdateInput = {
   tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   sync_paused_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_people_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_records_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_balances_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  people_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_records_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_balances_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_state_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_sync_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_sync_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutXero_tenantsNestedInput
@@ -357,6 +507,16 @@ export type XeroTenantUncheckedUpdateInput = {
   tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   sync_paused_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_people_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_records_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_balances_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  people_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_records_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_balances_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_state_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_sync_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_sync_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutXero_tenantNestedInput
@@ -373,6 +533,16 @@ export type XeroTenantCreateManyInput = {
   tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   sync_paused_at?: Date | string | null
+  last_people_sync_at?: Date | string | null
+  last_leave_records_sync_at?: Date | string | null
+  last_leave_balances_sync_at?: Date | string | null
+  last_approval_state_reconciled_at?: Date | string | null
+  people_stale_since?: Date | string | null
+  leave_records_stale_since?: Date | string | null
+  leave_balances_stale_since?: Date | string | null
+  approval_state_stale_since?: Date | string | null
+  last_sync_error_code?: string | null
+  last_sync_error_message?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -384,6 +554,16 @@ export type XeroTenantUpdateManyMutationInput = {
   tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   sync_paused_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_people_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_records_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_balances_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  people_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_records_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_balances_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_state_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_sync_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_sync_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -397,6 +577,16 @@ export type XeroTenantUncheckedUpdateManyInput = {
   tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   sync_paused_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_people_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_records_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_balances_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  people_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_records_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_balances_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_state_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_sync_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_sync_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -425,6 +615,16 @@ export type XeroTenantCountOrderByAggregateInput = {
   tenant_name?: Prisma.SortOrder
   payroll_region?: Prisma.SortOrder
   sync_paused_at?: Prisma.SortOrder
+  last_people_sync_at?: Prisma.SortOrder
+  last_leave_records_sync_at?: Prisma.SortOrder
+  last_leave_balances_sync_at?: Prisma.SortOrder
+  last_approval_state_reconciled_at?: Prisma.SortOrder
+  people_stale_since?: Prisma.SortOrder
+  leave_records_stale_since?: Prisma.SortOrder
+  leave_balances_stale_since?: Prisma.SortOrder
+  approval_state_stale_since?: Prisma.SortOrder
+  last_sync_error_code?: Prisma.SortOrder
+  last_sync_error_message?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -438,6 +638,16 @@ export type XeroTenantMaxOrderByAggregateInput = {
   tenant_name?: Prisma.SortOrder
   payroll_region?: Prisma.SortOrder
   sync_paused_at?: Prisma.SortOrder
+  last_people_sync_at?: Prisma.SortOrder
+  last_leave_records_sync_at?: Prisma.SortOrder
+  last_leave_balances_sync_at?: Prisma.SortOrder
+  last_approval_state_reconciled_at?: Prisma.SortOrder
+  people_stale_since?: Prisma.SortOrder
+  leave_records_stale_since?: Prisma.SortOrder
+  leave_balances_stale_since?: Prisma.SortOrder
+  approval_state_stale_since?: Prisma.SortOrder
+  last_sync_error_code?: Prisma.SortOrder
+  last_sync_error_message?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -451,6 +661,16 @@ export type XeroTenantMinOrderByAggregateInput = {
   tenant_name?: Prisma.SortOrder
   payroll_region?: Prisma.SortOrder
   sync_paused_at?: Prisma.SortOrder
+  last_people_sync_at?: Prisma.SortOrder
+  last_leave_records_sync_at?: Prisma.SortOrder
+  last_leave_balances_sync_at?: Prisma.SortOrder
+  last_approval_state_reconciled_at?: Prisma.SortOrder
+  people_stale_since?: Prisma.SortOrder
+  leave_records_stale_since?: Prisma.SortOrder
+  leave_balances_stale_since?: Prisma.SortOrder
+  approval_state_stale_since?: Prisma.SortOrder
+  last_sync_error_code?: Prisma.SortOrder
+  last_sync_error_message?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -589,6 +809,16 @@ export type XeroTenantCreateWithoutOrganisationInput = {
   tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   sync_paused_at?: Date | string | null
+  last_people_sync_at?: Date | string | null
+  last_leave_records_sync_at?: Date | string | null
+  last_leave_balances_sync_at?: Date | string | null
+  last_approval_state_reconciled_at?: Date | string | null
+  people_stale_since?: Date | string | null
+  leave_records_stale_since?: Date | string | null
+  leave_balances_stale_since?: Date | string | null
+  approval_state_stale_since?: Date | string | null
+  last_sync_error_code?: string | null
+  last_sync_error_message?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   xero_connection: Prisma.XeroConnectionCreateNestedOneWithoutXero_tenantInput
@@ -605,6 +835,16 @@ export type XeroTenantUncheckedCreateWithoutOrganisationInput = {
   tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   sync_paused_at?: Date | string | null
+  last_people_sync_at?: Date | string | null
+  last_leave_records_sync_at?: Date | string | null
+  last_leave_balances_sync_at?: Date | string | null
+  last_approval_state_reconciled_at?: Date | string | null
+  people_stale_since?: Date | string | null
+  leave_records_stale_since?: Date | string | null
+  leave_balances_stale_since?: Date | string | null
+  approval_state_stale_since?: Date | string | null
+  last_sync_error_code?: string | null
+  last_sync_error_message?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutXero_tenantInput
@@ -650,6 +890,16 @@ export type XeroTenantScalarWhereInput = {
   tenant_name?: Prisma.StringNullableFilter<"XeroTenant"> | string | null
   payroll_region?: Prisma.Enumpayroll_regionFilter<"XeroTenant"> | $Enums.payroll_region
   sync_paused_at?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  last_people_sync_at?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  last_leave_records_sync_at?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  last_leave_balances_sync_at?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  people_stale_since?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  leave_records_stale_since?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  leave_balances_stale_since?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  approval_state_stale_since?: Prisma.DateTimeNullableFilter<"XeroTenant"> | Date | string | null
+  last_sync_error_code?: Prisma.StringNullableFilter<"XeroTenant"> | string | null
+  last_sync_error_message?: Prisma.StringNullableFilter<"XeroTenant"> | string | null
   created_at?: Prisma.DateTimeFilter<"XeroTenant"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"XeroTenant"> | Date | string
 }
@@ -661,6 +911,16 @@ export type XeroTenantCreateWithoutXero_connectionInput = {
   tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   sync_paused_at?: Date | string | null
+  last_people_sync_at?: Date | string | null
+  last_leave_records_sync_at?: Date | string | null
+  last_leave_balances_sync_at?: Date | string | null
+  last_approval_state_reconciled_at?: Date | string | null
+  people_stale_since?: Date | string | null
+  leave_records_stale_since?: Date | string | null
+  leave_balances_stale_since?: Date | string | null
+  approval_state_stale_since?: Date | string | null
+  last_sync_error_code?: string | null
+  last_sync_error_message?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutXero_tenantsInput
@@ -677,6 +937,16 @@ export type XeroTenantUncheckedCreateWithoutXero_connectionInput = {
   tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   sync_paused_at?: Date | string | null
+  last_people_sync_at?: Date | string | null
+  last_leave_records_sync_at?: Date | string | null
+  last_leave_balances_sync_at?: Date | string | null
+  last_approval_state_reconciled_at?: Date | string | null
+  people_stale_since?: Date | string | null
+  leave_records_stale_since?: Date | string | null
+  leave_balances_stale_since?: Date | string | null
+  approval_state_stale_since?: Date | string | null
+  last_sync_error_code?: string | null
+  last_sync_error_message?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutXero_tenantInput
@@ -707,6 +977,16 @@ export type XeroTenantUpdateWithoutXero_connectionInput = {
   tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   sync_paused_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_people_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_records_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_balances_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  people_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_records_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_balances_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_state_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_sync_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_sync_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutXero_tenantsNestedInput
@@ -723,6 +1003,16 @@ export type XeroTenantUncheckedUpdateWithoutXero_connectionInput = {
   tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   sync_paused_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_people_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_records_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_balances_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  people_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_records_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_balances_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_state_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_sync_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_sync_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutXero_tenantNestedInput
@@ -737,6 +1027,16 @@ export type XeroTenantCreateWithoutSync_cursorsInput = {
   tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   sync_paused_at?: Date | string | null
+  last_people_sync_at?: Date | string | null
+  last_leave_records_sync_at?: Date | string | null
+  last_leave_balances_sync_at?: Date | string | null
+  last_approval_state_reconciled_at?: Date | string | null
+  people_stale_since?: Date | string | null
+  leave_records_stale_since?: Date | string | null
+  leave_balances_stale_since?: Date | string | null
+  approval_state_stale_since?: Date | string | null
+  last_sync_error_code?: string | null
+  last_sync_error_message?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutXero_tenantsInput
@@ -754,6 +1054,16 @@ export type XeroTenantUncheckedCreateWithoutSync_cursorsInput = {
   tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   sync_paused_at?: Date | string | null
+  last_people_sync_at?: Date | string | null
+  last_leave_records_sync_at?: Date | string | null
+  last_leave_balances_sync_at?: Date | string | null
+  last_approval_state_reconciled_at?: Date | string | null
+  people_stale_since?: Date | string | null
+  leave_records_stale_since?: Date | string | null
+  leave_balances_stale_since?: Date | string | null
+  approval_state_stale_since?: Date | string | null
+  last_sync_error_code?: string | null
+  last_sync_error_message?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutXero_tenantInput
@@ -783,6 +1093,16 @@ export type XeroTenantUpdateWithoutSync_cursorsInput = {
   tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   sync_paused_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_people_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_records_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_balances_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  people_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_records_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_balances_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_state_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_sync_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_sync_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutXero_tenantsNestedInput
@@ -800,6 +1120,16 @@ export type XeroTenantUncheckedUpdateWithoutSync_cursorsInput = {
   tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   sync_paused_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_people_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_records_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_balances_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  people_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_records_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_balances_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_state_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_sync_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_sync_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutXero_tenantNestedInput
@@ -813,6 +1143,16 @@ export type XeroTenantCreateWithoutLeave_balancesInput = {
   tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   sync_paused_at?: Date | string | null
+  last_people_sync_at?: Date | string | null
+  last_leave_records_sync_at?: Date | string | null
+  last_leave_balances_sync_at?: Date | string | null
+  last_approval_state_reconciled_at?: Date | string | null
+  people_stale_since?: Date | string | null
+  leave_records_stale_since?: Date | string | null
+  leave_balances_stale_since?: Date | string | null
+  approval_state_stale_since?: Date | string | null
+  last_sync_error_code?: string | null
+  last_sync_error_message?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutXero_tenantsInput
@@ -830,6 +1170,16 @@ export type XeroTenantUncheckedCreateWithoutLeave_balancesInput = {
   tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   sync_paused_at?: Date | string | null
+  last_people_sync_at?: Date | string | null
+  last_leave_records_sync_at?: Date | string | null
+  last_leave_balances_sync_at?: Date | string | null
+  last_approval_state_reconciled_at?: Date | string | null
+  people_stale_since?: Date | string | null
+  leave_records_stale_since?: Date | string | null
+  leave_balances_stale_since?: Date | string | null
+  approval_state_stale_since?: Date | string | null
+  last_sync_error_code?: string | null
+  last_sync_error_message?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutXero_tenantInput
@@ -859,6 +1209,16 @@ export type XeroTenantUpdateWithoutLeave_balancesInput = {
   tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   sync_paused_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_people_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_records_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_balances_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  people_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_records_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_balances_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_state_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_sync_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_sync_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutXero_tenantsNestedInput
@@ -876,6 +1236,16 @@ export type XeroTenantUncheckedUpdateWithoutLeave_balancesInput = {
   tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   sync_paused_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_people_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_records_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_balances_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  people_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_records_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_balances_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_state_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_sync_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_sync_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutXero_tenantNestedInput
@@ -889,6 +1259,16 @@ export type XeroTenantCreateWithoutSync_runsInput = {
   tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   sync_paused_at?: Date | string | null
+  last_people_sync_at?: Date | string | null
+  last_leave_records_sync_at?: Date | string | null
+  last_leave_balances_sync_at?: Date | string | null
+  last_approval_state_reconciled_at?: Date | string | null
+  people_stale_since?: Date | string | null
+  leave_records_stale_since?: Date | string | null
+  leave_balances_stale_since?: Date | string | null
+  approval_state_stale_since?: Date | string | null
+  last_sync_error_code?: string | null
+  last_sync_error_message?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutXero_tenantsInput
@@ -906,6 +1286,16 @@ export type XeroTenantUncheckedCreateWithoutSync_runsInput = {
   tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   sync_paused_at?: Date | string | null
+  last_people_sync_at?: Date | string | null
+  last_leave_records_sync_at?: Date | string | null
+  last_leave_balances_sync_at?: Date | string | null
+  last_approval_state_reconciled_at?: Date | string | null
+  people_stale_since?: Date | string | null
+  leave_records_stale_since?: Date | string | null
+  leave_balances_stale_since?: Date | string | null
+  approval_state_stale_since?: Date | string | null
+  last_sync_error_code?: string | null
+  last_sync_error_message?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   sync_cursors?: Prisma.XeroSyncCursorUncheckedCreateNestedManyWithoutXero_tenantInput
@@ -935,6 +1325,16 @@ export type XeroTenantUpdateWithoutSync_runsInput = {
   tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   sync_paused_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_people_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_records_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_balances_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  people_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_records_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_balances_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_state_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_sync_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_sync_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutXero_tenantsNestedInput
@@ -952,6 +1352,16 @@ export type XeroTenantUncheckedUpdateWithoutSync_runsInput = {
   tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   sync_paused_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_people_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_records_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_balances_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  people_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_records_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_balances_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_state_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_sync_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_sync_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutXero_tenantNestedInput
@@ -966,6 +1376,16 @@ export type XeroTenantCreateManyOrganisationInput = {
   tenant_name?: string | null
   payroll_region: $Enums.payroll_region
   sync_paused_at?: Date | string | null
+  last_people_sync_at?: Date | string | null
+  last_leave_records_sync_at?: Date | string | null
+  last_leave_balances_sync_at?: Date | string | null
+  last_approval_state_reconciled_at?: Date | string | null
+  people_stale_since?: Date | string | null
+  leave_records_stale_since?: Date | string | null
+  leave_balances_stale_since?: Date | string | null
+  approval_state_stale_since?: Date | string | null
+  last_sync_error_code?: string | null
+  last_sync_error_message?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -977,6 +1397,16 @@ export type XeroTenantUpdateWithoutOrganisationInput = {
   tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   sync_paused_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_people_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_records_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_balances_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  people_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_records_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_balances_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_state_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_sync_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_sync_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   xero_connection?: Prisma.XeroConnectionUpdateOneRequiredWithoutXero_tenantNestedInput
@@ -993,6 +1423,16 @@ export type XeroTenantUncheckedUpdateWithoutOrganisationInput = {
   tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   sync_paused_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_people_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_records_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_balances_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  people_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_records_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_balances_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_state_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_sync_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_sync_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sync_cursors?: Prisma.XeroSyncCursorUncheckedUpdateManyWithoutXero_tenantNestedInput
@@ -1008,6 +1448,16 @@ export type XeroTenantUncheckedUpdateManyWithoutOrganisationInput = {
   tenant_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payroll_region?: Prisma.Enumpayroll_regionFieldUpdateOperationsInput | $Enums.payroll_region
   sync_paused_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_people_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_records_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_leave_balances_sync_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_approval_state_reconciled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  people_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_records_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leave_balances_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_state_stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_sync_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_sync_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1070,6 +1520,16 @@ export type XeroTenantSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   tenant_name?: boolean
   payroll_region?: boolean
   sync_paused_at?: boolean
+  last_people_sync_at?: boolean
+  last_leave_records_sync_at?: boolean
+  last_leave_balances_sync_at?: boolean
+  last_approval_state_reconciled_at?: boolean
+  people_stale_since?: boolean
+  leave_records_stale_since?: boolean
+  leave_balances_stale_since?: boolean
+  approval_state_stale_since?: boolean
+  last_sync_error_code?: boolean
+  last_sync_error_message?: boolean
   created_at?: boolean
   updated_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
@@ -1089,6 +1549,16 @@ export type XeroTenantSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   tenant_name?: boolean
   payroll_region?: boolean
   sync_paused_at?: boolean
+  last_people_sync_at?: boolean
+  last_leave_records_sync_at?: boolean
+  last_leave_balances_sync_at?: boolean
+  last_approval_state_reconciled_at?: boolean
+  people_stale_since?: boolean
+  leave_records_stale_since?: boolean
+  leave_balances_stale_since?: boolean
+  approval_state_stale_since?: boolean
+  last_sync_error_code?: boolean
+  last_sync_error_message?: boolean
   created_at?: boolean
   updated_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
@@ -1104,6 +1574,16 @@ export type XeroTenantSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   tenant_name?: boolean
   payroll_region?: boolean
   sync_paused_at?: boolean
+  last_people_sync_at?: boolean
+  last_leave_records_sync_at?: boolean
+  last_leave_balances_sync_at?: boolean
+  last_approval_state_reconciled_at?: boolean
+  people_stale_since?: boolean
+  leave_records_stale_since?: boolean
+  leave_balances_stale_since?: boolean
+  approval_state_stale_since?: boolean
+  last_sync_error_code?: boolean
+  last_sync_error_message?: boolean
   created_at?: boolean
   updated_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
@@ -1119,11 +1599,21 @@ export type XeroTenantSelectScalar = {
   tenant_name?: boolean
   payroll_region?: boolean
   sync_paused_at?: boolean
+  last_people_sync_at?: boolean
+  last_leave_records_sync_at?: boolean
+  last_leave_balances_sync_at?: boolean
+  last_approval_state_reconciled_at?: boolean
+  people_stale_since?: boolean
+  leave_records_stale_since?: boolean
+  leave_balances_stale_since?: boolean
+  approval_state_stale_since?: boolean
+  last_sync_error_code?: boolean
+  last_sync_error_message?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type XeroTenantOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "xero_connection_id" | "xero_tenant_id" | "tenant_name" | "payroll_region" | "sync_paused_at" | "created_at" | "updated_at", ExtArgs["result"]["xeroTenant"]>
+export type XeroTenantOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "xero_connection_id" | "xero_tenant_id" | "tenant_name" | "payroll_region" | "sync_paused_at" | "last_people_sync_at" | "last_leave_records_sync_at" | "last_leave_balances_sync_at" | "last_approval_state_reconciled_at" | "people_stale_since" | "leave_records_stale_since" | "leave_balances_stale_since" | "approval_state_stale_since" | "last_sync_error_code" | "last_sync_error_message" | "created_at" | "updated_at", ExtArgs["result"]["xeroTenant"]>
 export type XeroTenantInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
   xero_connection?: boolean | Prisma.XeroConnectionDefaultArgs<ExtArgs>
@@ -1159,6 +1649,16 @@ export type $XeroTenantPayload<ExtArgs extends runtime.Types.Extensions.Internal
     tenant_name: string | null
     payroll_region: $Enums.payroll_region
     sync_paused_at: Date | null
+    last_people_sync_at: Date | null
+    last_leave_records_sync_at: Date | null
+    last_leave_balances_sync_at: Date | null
+    last_approval_state_reconciled_at: Date | null
+    people_stale_since: Date | null
+    leave_records_stale_since: Date | null
+    leave_balances_stale_since: Date | null
+    approval_state_stale_since: Date | null
+    last_sync_error_code: string | null
+    last_sync_error_message: string | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["xeroTenant"]>
@@ -1597,6 +2097,16 @@ export interface XeroTenantFieldRefs {
   readonly tenant_name: Prisma.FieldRef<"XeroTenant", 'String'>
   readonly payroll_region: Prisma.FieldRef<"XeroTenant", 'payroll_region'>
   readonly sync_paused_at: Prisma.FieldRef<"XeroTenant", 'DateTime'>
+  readonly last_people_sync_at: Prisma.FieldRef<"XeroTenant", 'DateTime'>
+  readonly last_leave_records_sync_at: Prisma.FieldRef<"XeroTenant", 'DateTime'>
+  readonly last_leave_balances_sync_at: Prisma.FieldRef<"XeroTenant", 'DateTime'>
+  readonly last_approval_state_reconciled_at: Prisma.FieldRef<"XeroTenant", 'DateTime'>
+  readonly people_stale_since: Prisma.FieldRef<"XeroTenant", 'DateTime'>
+  readonly leave_records_stale_since: Prisma.FieldRef<"XeroTenant", 'DateTime'>
+  readonly leave_balances_stale_since: Prisma.FieldRef<"XeroTenant", 'DateTime'>
+  readonly approval_state_stale_since: Prisma.FieldRef<"XeroTenant", 'DateTime'>
+  readonly last_sync_error_code: Prisma.FieldRef<"XeroTenant", 'String'>
+  readonly last_sync_error_message: Prisma.FieldRef<"XeroTenant", 'String'>
   readonly created_at: Prisma.FieldRef<"XeroTenant", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"XeroTenant", 'DateTime'>
 }

@@ -38,6 +38,7 @@ export async function loadOnboardingState({
 }: LoadOnboardingStateInput): Promise<OnboardingState> {
   const [
     organisation,
+    clerkOrgConnectionCount,
     activeXeroConnection,
     peopleCount,
     currentUserPerson,
@@ -55,10 +56,20 @@ export async function loadOnboardingState({
         name: true,
       },
     }),
+    database.xeroConnection.count({
+      where: {
+        clerk_org_id: clerkOrgId,
+        status: {
+          in: ["active", "pending", "pending_tenant_selection", "stale"],
+        },
+      },
+    }),
     database.xeroConnection.findFirst({
       where: {
         clerk_org_id: clerkOrgId,
+        disconnected_at: null,
         organisation_id: organisationId,
+        status: "active",
         revoked_at: null,
       },
       select: { id: true },
@@ -101,6 +112,7 @@ export async function loadOnboardingState({
 
   const hasProfile = Boolean(organisation);
   const hasActiveXeroConnection = Boolean(activeXeroConnection);
+  const showXeroSetupTask = clerkOrgConnectionCount === 0;
   const hasPeople = peopleCount > 0;
   const currentUserPersonLinked = userId ? Boolean(currentUserPerson) : null;
   const hasPeopleForCurrentUser =
@@ -128,15 +140,19 @@ export async function loadOnboardingState({
       status: statusForRequiredStep("profile", hasProfile, nextRequiredId),
       title: "Review organisation profile",
     },
-    {
-      ctaHref: "/settings/integrations/xero",
-      ctaLabel: hasActiveXeroConnection ? "Manage Xero" : "Connect Xero",
-      description:
-        "Optional. Connect Xero to sync approved leave, people, and balances automatically.",
-      id: "xero",
-      status: hasActiveXeroConnection ? "complete" : "optional",
-      title: "Connect Xero",
-    },
+    ...(showXeroSetupTask
+      ? [
+          {
+            ctaHref: "/settings/integrations/xero",
+            ctaLabel: hasActiveXeroConnection ? "Manage Xero" : "Connect Xero",
+            description:
+              "Connect Xero now or skip for later. LeaveSync keeps a persistent setup task until the first payroll connection is in place.",
+            id: "xero" as const,
+            status: hasActiveXeroConnection ? "complete" : "next",
+            title: "Connect Xero",
+          },
+        ]
+      : []),
     {
       ctaHref: "/people",
       ctaLabel: hasPeople ? "View people" : "Add people",

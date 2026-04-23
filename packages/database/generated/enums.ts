@@ -46,6 +46,36 @@ export const payroll_region = {
 export type payroll_region = (typeof payroll_region)[keyof typeof payroll_region]
 
 
+export const xero_connection_status = {
+  pending: 'pending',
+  pending_tenant_selection: 'pending_tenant_selection',
+  active: 'active',
+  stale: 'stale',
+  disconnected: 'disconnected'
+} as const
+
+export type xero_connection_status = (typeof xero_connection_status)[keyof typeof xero_connection_status]
+
+
+export const xero_oauth_session_status = {
+  pending: 'pending',
+  completed: 'completed',
+  expired: 'expired',
+  cancelled: 'cancelled'
+} as const
+
+export type xero_oauth_session_status = (typeof xero_oauth_session_status)[keyof typeof xero_oauth_session_status]
+
+
+export const xero_person_match_status = {
+  pending: 'pending',
+  matched: 'matched',
+  ignored: 'ignored'
+} as const
+
+export type xero_person_match_status = (typeof xero_person_match_status)[keyof typeof xero_person_match_status]
+
+
 export const xero_sync_entity_type = {
   people: 'people',
   leave_records: 'leave_records',

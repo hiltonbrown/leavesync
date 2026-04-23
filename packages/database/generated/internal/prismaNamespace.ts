@@ -80,12 +80,12 @@ export type PrismaVersion = {
 }
 
 /**
- * Prisma Client JS version: 7.7.0
- * Query Engine version: 75cbdc1eb7150937890ad5465d861175c6624711
+ * Prisma Client JS version: 7.8.0
+ * Query Engine version: 3c6e192761c0362d496ed980de936e2f3cebcd3a
  */
 export const prismaVersion: PrismaVersion = {
-  client: "7.7.0",
-  engine: "75cbdc1eb7150937890ad5465d861175c6624711"
+  client: "7.8.0",
+  engine: "3c6e192761c0362d496ed980de936e2f3cebcd3a"
 }
 
 /**
@@ -392,10 +392,12 @@ export const ModelName = {
   AlternativeContact: 'AlternativeContact',
   XeroConnection: 'XeroConnection',
   XeroTenant: 'XeroTenant',
+  XeroOAuthSession: 'XeroOAuthSession',
   XeroSyncCursor: 'XeroSyncCursor',
   AvailabilityRecord: 'AvailabilityRecord',
   AvailabilityPublication: 'AvailabilityPublication',
   LeaveBalance: 'LeaveBalance',
+  XeroPersonMatch: 'XeroPersonMatch',
   PublicHolidayJurisdiction: 'PublicHolidayJurisdiction',
   PublicHoliday: 'PublicHoliday',
   PublicHolidayAssignment: 'PublicHolidayAssignment',
@@ -425,7 +427,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "organisation" | "organisationSettings" | "team" | "location" | "person" | "alternativeContact" | "xeroConnection" | "xeroTenant" | "xeroSyncCursor" | "availabilityRecord" | "availabilityPublication" | "leaveBalance" | "publicHolidayJurisdiction" | "publicHoliday" | "publicHolidayAssignment" | "feed" | "feedScope" | "feedToken" | "notification" | "notificationPreference" | "notificationEmailQueue" | "syncRun" | "failedRecord" | "auditEvent" | "clerkOrgSubscription" | "usageCounter"
+    modelProps: "organisation" | "organisationSettings" | "team" | "location" | "person" | "alternativeContact" | "xeroConnection" | "xeroTenant" | "xeroOAuthSession" | "xeroSyncCursor" | "availabilityRecord" | "availabilityPublication" | "leaveBalance" | "xeroPersonMatch" | "publicHolidayJurisdiction" | "publicHoliday" | "publicHolidayAssignment" | "feed" | "feedScope" | "feedToken" | "notification" | "notificationPreference" | "notificationEmailQueue" | "syncRun" | "failedRecord" | "auditEvent" | "clerkOrgSubscription" | "usageCounter"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1021,6 +1023,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    XeroOAuthSession: {
+      payload: Prisma.$XeroOAuthSessionPayload<ExtArgs>
+      fields: Prisma.XeroOAuthSessionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.XeroOAuthSessionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroOAuthSessionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.XeroOAuthSessionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroOAuthSessionPayload>
+        }
+        findFirst: {
+          args: Prisma.XeroOAuthSessionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroOAuthSessionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.XeroOAuthSessionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroOAuthSessionPayload>
+        }
+        findMany: {
+          args: Prisma.XeroOAuthSessionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroOAuthSessionPayload>[]
+        }
+        create: {
+          args: Prisma.XeroOAuthSessionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroOAuthSessionPayload>
+        }
+        createMany: {
+          args: Prisma.XeroOAuthSessionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.XeroOAuthSessionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroOAuthSessionPayload>[]
+        }
+        delete: {
+          args: Prisma.XeroOAuthSessionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroOAuthSessionPayload>
+        }
+        update: {
+          args: Prisma.XeroOAuthSessionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroOAuthSessionPayload>
+        }
+        deleteMany: {
+          args: Prisma.XeroOAuthSessionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.XeroOAuthSessionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.XeroOAuthSessionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroOAuthSessionPayload>[]
+        }
+        upsert: {
+          args: Prisma.XeroOAuthSessionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroOAuthSessionPayload>
+        }
+        aggregate: {
+          args: Prisma.XeroOAuthSessionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateXeroOAuthSession>
+        }
+        groupBy: {
+          args: Prisma.XeroOAuthSessionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.XeroOAuthSessionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.XeroOAuthSessionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.XeroOAuthSessionCountAggregateOutputType> | number
+        }
+      }
+    }
     XeroSyncCursor: {
       payload: Prisma.$XeroSyncCursorPayload<ExtArgs>
       fields: Prisma.XeroSyncCursorFieldRefs
@@ -1314,6 +1390,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.LeaveBalanceCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.LeaveBalanceCountAggregateOutputType> | number
+        }
+      }
+    }
+    XeroPersonMatch: {
+      payload: Prisma.$XeroPersonMatchPayload<ExtArgs>
+      fields: Prisma.XeroPersonMatchFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.XeroPersonMatchFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroPersonMatchPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.XeroPersonMatchFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroPersonMatchPayload>
+        }
+        findFirst: {
+          args: Prisma.XeroPersonMatchFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroPersonMatchPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.XeroPersonMatchFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroPersonMatchPayload>
+        }
+        findMany: {
+          args: Prisma.XeroPersonMatchFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroPersonMatchPayload>[]
+        }
+        create: {
+          args: Prisma.XeroPersonMatchCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroPersonMatchPayload>
+        }
+        createMany: {
+          args: Prisma.XeroPersonMatchCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.XeroPersonMatchCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroPersonMatchPayload>[]
+        }
+        delete: {
+          args: Prisma.XeroPersonMatchDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroPersonMatchPayload>
+        }
+        update: {
+          args: Prisma.XeroPersonMatchUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroPersonMatchPayload>
+        }
+        deleteMany: {
+          args: Prisma.XeroPersonMatchDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.XeroPersonMatchUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.XeroPersonMatchUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroPersonMatchPayload>[]
+        }
+        upsert: {
+          args: Prisma.XeroPersonMatchUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroPersonMatchPayload>
+        }
+        aggregate: {
+          args: Prisma.XeroPersonMatchAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateXeroPersonMatch>
+        }
+        groupBy: {
+          args: Prisma.XeroPersonMatchGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.XeroPersonMatchGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.XeroPersonMatchCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.XeroPersonMatchCountAggregateOutputType> | number
         }
       }
     }
@@ -2514,11 +2664,25 @@ export const XeroConnectionScalarFieldEnum = {
   id: 'id',
   clerk_org_id: 'clerk_org_id',
   organisation_id: 'organisation_id',
+  status: 'status',
   access_token_encrypted: 'access_token_encrypted',
+  access_token_iv: 'access_token_iv',
+  access_token_auth_tag: 'access_token_auth_tag',
   refresh_token_encrypted: 'refresh_token_encrypted',
+  refresh_token_iv: 'refresh_token_iv',
+  refresh_token_auth_tag: 'refresh_token_auth_tag',
+  token_key_version: 'token_key_version',
+  token_encrypted_at: 'token_encrypted_at',
   expires_at: 'expires_at',
   last_refreshed_at: 'last_refreshed_at',
+  last_connected_at: 'last_connected_at',
+  last_disconnected_at: 'last_disconnected_at',
+  last_error_code: 'last_error_code',
+  last_error_message: 'last_error_message',
+  stale_since: 'stale_since',
   revoked_at: 'revoked_at',
+  disconnected_at: 'disconnected_at',
+  disconnected_by_user_id: 'disconnected_by_user_id',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -2535,11 +2699,49 @@ export const XeroTenantScalarFieldEnum = {
   tenant_name: 'tenant_name',
   payroll_region: 'payroll_region',
   sync_paused_at: 'sync_paused_at',
+  last_people_sync_at: 'last_people_sync_at',
+  last_leave_records_sync_at: 'last_leave_records_sync_at',
+  last_leave_balances_sync_at: 'last_leave_balances_sync_at',
+  last_approval_state_reconciled_at: 'last_approval_state_reconciled_at',
+  people_stale_since: 'people_stale_since',
+  leave_records_stale_since: 'leave_records_stale_since',
+  leave_balances_stale_since: 'leave_balances_stale_since',
+  approval_state_stale_since: 'approval_state_stale_since',
+  last_sync_error_code: 'last_sync_error_code',
+  last_sync_error_message: 'last_sync_error_message',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
 
 export type XeroTenantScalarFieldEnum = (typeof XeroTenantScalarFieldEnum)[keyof typeof XeroTenantScalarFieldEnum]
+
+
+export const XeroOAuthSessionScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  created_by_user_id: 'created_by_user_id',
+  status: 'status',
+  return_to: 'return_to',
+  access_token_encrypted: 'access_token_encrypted',
+  access_token_iv: 'access_token_iv',
+  access_token_auth_tag: 'access_token_auth_tag',
+  refresh_token_encrypted: 'refresh_token_encrypted',
+  refresh_token_iv: 'refresh_token_iv',
+  refresh_token_auth_tag: 'refresh_token_auth_tag',
+  token_key_version: 'token_key_version',
+  token_encrypted_at: 'token_encrypted_at',
+  token_expires_at: 'token_expires_at',
+  available_tenants_json: 'available_tenants_json',
+  selected_tenant_id: 'selected_tenant_id',
+  selected_tenant_name: 'selected_tenant_name',
+  selected_payroll_region: 'selected_payroll_region',
+  expires_at: 'expires_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type XeroOAuthSessionScalarFieldEnum = (typeof XeroOAuthSessionScalarFieldEnum)[keyof typeof XeroOAuthSessionScalarFieldEnum]
 
 
 export const XeroSyncCursorScalarFieldEnum = {
@@ -2636,6 +2838,26 @@ export const LeaveBalanceScalarFieldEnum = {
 } as const
 
 export type LeaveBalanceScalarFieldEnum = (typeof LeaveBalanceScalarFieldEnum)[keyof typeof LeaveBalanceScalarFieldEnum]
+
+
+export const XeroPersonMatchScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  xero_person_id: 'xero_person_id',
+  candidate_person_id: 'candidate_person_id',
+  detected_reason: 'detected_reason',
+  status: 'status',
+  resolution_note: 'resolution_note',
+  resolved_person_id: 'resolved_person_id',
+  resolved_clerk_user_id: 'resolved_clerk_user_id',
+  resolved_by_user_id: 'resolved_by_user_id',
+  resolved_at: 'resolved_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type XeroPersonMatchScalarFieldEnum = (typeof XeroPersonMatchScalarFieldEnum)[keyof typeof XeroPersonMatchScalarFieldEnum]
 
 
 export const PublicHolidayJurisdictionScalarFieldEnum = {
@@ -2923,6 +3145,13 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
 export const NullableJsonNullValueInput = {
   DbNull: DbNull,
   JsonNull: JsonNull
@@ -3096,6 +3325,20 @@ export type ListEnumavailability_contactabilityFieldRefInput<$PrismaModel> = Fie
 
 
 /**
+ * Reference to a field of type 'xero_connection_status'
+ */
+export type Enumxero_connection_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'xero_connection_status'>
+    
+
+
+/**
+ * Reference to a field of type 'xero_connection_status[]'
+ */
+export type ListEnumxero_connection_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'xero_connection_status[]'>
+    
+
+
+/**
  * Reference to a field of type 'payroll_region'
  */
 export type Enumpayroll_regionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'payroll_region'>
@@ -3106,6 +3349,34 @@ export type Enumpayroll_regionFieldRefInput<$PrismaModel> = FieldRefInputType<$P
  * Reference to a field of type 'payroll_region[]'
  */
 export type ListEnumpayroll_regionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'payroll_region[]'>
+    
+
+
+/**
+ * Reference to a field of type 'xero_oauth_session_status'
+ */
+export type Enumxero_oauth_session_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'xero_oauth_session_status'>
+    
+
+
+/**
+ * Reference to a field of type 'xero_oauth_session_status[]'
+ */
+export type ListEnumxero_oauth_session_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'xero_oauth_session_status[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -3194,20 +3465,6 @@ export type ListEnumavailability_publish_statusFieldRefInput<$PrismaModel> = Fie
 
 
 /**
- * Reference to a field of type 'Json'
- */
-export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-/**
- * Reference to a field of type 'QueryMode'
- */
-export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
-    
-
-
-/**
  * Reference to a field of type 'leave_balance_unit'
  */
 export type Enumleave_balance_unitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'leave_balance_unit'>
@@ -3218,6 +3475,20 @@ export type Enumleave_balance_unitFieldRefInput<$PrismaModel> = FieldRefInputTyp
  * Reference to a field of type 'leave_balance_unit[]'
  */
 export type ListEnumleave_balance_unitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'leave_balance_unit[]'>
+    
+
+
+/**
+ * Reference to a field of type 'xero_person_match_status'
+ */
+export type Enumxero_person_match_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'xero_person_match_status'>
+    
+
+
+/**
+ * Reference to a field of type 'xero_person_match_status[]'
+ */
+export type ListEnumxero_person_match_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'xero_person_match_status[]'>
     
 
 
@@ -3509,6 +3780,21 @@ export type PrismaClientOptions = ({
    * ```
    */
   comments?: runtime.SqlCommenterPlugin[]
+  /**
+   * Optional maximum size for the query plan cache. If not provided, a default size will be used.
+   * A value of `0` can be used to disable the cache entirely. A higher cache size can improve
+   * performance for applications that execute a large number of unique queries, while a smaller
+   * cache size can reduce memory usage.
+   * 
+   * @example
+   * ```
+   * const prisma = new PrismaClient({
+   *   adapter,
+   *   queryPlanCacheMaxSize: 100,
+   * })
+   * ```
+   */
+  queryPlanCacheMaxSize?: number
 }
 export type GlobalOmitConfig = {
   organisation?: Prisma.OrganisationOmit
@@ -3519,10 +3805,12 @@ export type GlobalOmitConfig = {
   alternativeContact?: Prisma.AlternativeContactOmit
   xeroConnection?: Prisma.XeroConnectionOmit
   xeroTenant?: Prisma.XeroTenantOmit
+  xeroOAuthSession?: Prisma.XeroOAuthSessionOmit
   xeroSyncCursor?: Prisma.XeroSyncCursorOmit
   availabilityRecord?: Prisma.AvailabilityRecordOmit
   availabilityPublication?: Prisma.AvailabilityPublicationOmit
   leaveBalance?: Prisma.LeaveBalanceOmit
+  xeroPersonMatch?: Prisma.XeroPersonMatchOmit
   publicHolidayJurisdiction?: Prisma.PublicHolidayJurisdictionOmit
   publicHoliday?: Prisma.PublicHolidayOmit
   publicHolidayAssignment?: Prisma.PublicHolidayAssignmentOmit

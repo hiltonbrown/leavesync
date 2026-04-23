@@ -526,7 +526,9 @@ function loadXeroTenant(input: RecordActionInput) {
     include: {
       xero_connection: {
         select: {
+          access_token_auth_tag: true,
           access_token_encrypted: true,
+          access_token_iv: true,
           revoked_at: true,
         },
       },

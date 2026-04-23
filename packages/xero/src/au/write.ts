@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { keys } from "../../keys";
+import { decryptXeroToken } from "../crypto/tokens";
 import type {
   ApproveLeaveApplicationInput,
   DeclineLeaveApplicationInput,
@@ -145,7 +146,13 @@ async function xeroRequest(
   }
 ): Promise<XeroWriteResult<unknown>> {
   const accessToken = xeroTenant.xero_connection.access_token_encrypted;
-  if (!accessToken || xeroTenant.xero_connection.revoked_at) {
+  const decryptedAccessToken = decryptXeroToken({
+    authTag: xeroTenant.xero_connection.access_token_auth_tag ?? null,
+    encrypted: accessToken,
+    iv: xeroTenant.xero_connection.access_token_iv ?? null,
+  });
+
+  if (!decryptedAccessToken || xeroTenant.xero_connection.revoked_at) {
     return {
       ok: false,
       error: {
@@ -160,7 +167,7 @@ async function xeroRequest(
       body: request.body ? JSON.stringify(request.body) : undefined,
       headers: {
         Accept: "application/json",
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${decryptedAccessToken}`,
         "Content-Type": "application/json",
         "Xero-Tenant-Id": xeroTenant.xero_tenant_id,
       },

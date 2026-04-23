@@ -1,7 +1,10 @@
 export {
   buildXeroOAuthStartUrl,
   completeXeroOAuth,
+  completeXeroTenantSelection,
   disconnectXeroOAuthConnection,
+  getPendingXeroOAuthSession,
+  markXeroConnectionStale,
   refreshXeroOAuthConnection,
   type XeroOAuthError,
 } from "./src/oauth/service";
