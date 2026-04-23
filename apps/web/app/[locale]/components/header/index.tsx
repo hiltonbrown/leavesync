@@ -18,17 +18,34 @@ interface HeaderProps {
   dictionary: Dictionary;
 }
 
-const navLinks = [
-  { title: "Features", href: "/features" },
-  { title: "Xero", href: "/integrations/xero" },
-  { title: "Pricing", href: "/pricing" },
-  { title: "Security", href: "/security" },
-  { title: "Changelog", href: "/changelog" },
-  { title: "Blog", href: "/blog" },
-];
-
 export const Header = ({ dictionary }: HeaderProps) => {
   const [isOpen, setOpen] = useState(false);
+  const navLinks = [
+    {
+      title: dictionary.web.header.features ?? "Features",
+      href: "/features",
+    },
+    {
+      title: dictionary.web.header.xero ?? "Xero",
+      href: "/integrations/xero",
+    },
+    {
+      title: dictionary.web.header.pricing ?? "Pricing",
+      href: "/pricing",
+    },
+    {
+      title: dictionary.web.header.security ?? "Security",
+      href: "/security",
+    },
+    {
+      title: dictionary.web.header.changelog ?? "Changelog",
+      href: "/changelog",
+    },
+    {
+      title: dictionary.web.header.blog ?? "Blog",
+      href: "/blog",
+    },
+  ];
 
   return (
     <header className="header-reactive sticky top-0 left-0 z-40 w-full transition-colors duration-300">
