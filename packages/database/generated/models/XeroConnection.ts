@@ -20,19 +20,43 @@ export type XeroConnectionModel = runtime.Types.Result.DefaultSelection<Prisma.$
 
 export type AggregateXeroConnection = {
   _count: XeroConnectionCountAggregateOutputType | null
+  _avg: XeroConnectionAvgAggregateOutputType | null
+  _sum: XeroConnectionSumAggregateOutputType | null
   _min: XeroConnectionMinAggregateOutputType | null
   _max: XeroConnectionMaxAggregateOutputType | null
+}
+
+export type XeroConnectionAvgAggregateOutputType = {
+  token_key_version: number | null
+}
+
+export type XeroConnectionSumAggregateOutputType = {
+  token_key_version: number | null
 }
 
 export type XeroConnectionMinAggregateOutputType = {
   id: string | null
   clerk_org_id: string | null
   organisation_id: string | null
+  status: $Enums.xero_connection_status | null
   access_token_encrypted: string | null
+  access_token_iv: string | null
+  access_token_auth_tag: string | null
   refresh_token_encrypted: string | null
+  refresh_token_iv: string | null
+  refresh_token_auth_tag: string | null
+  token_key_version: number | null
+  token_encrypted_at: Date | null
   expires_at: Date | null
   last_refreshed_at: Date | null
+  last_connected_at: Date | null
+  last_disconnected_at: Date | null
+  last_error_code: string | null
+  last_error_message: string | null
+  stale_since: Date | null
   revoked_at: Date | null
+  disconnected_at: Date | null
+  disconnected_by_user_id: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -41,11 +65,25 @@ export type XeroConnectionMaxAggregateOutputType = {
   id: string | null
   clerk_org_id: string | null
   organisation_id: string | null
+  status: $Enums.xero_connection_status | null
   access_token_encrypted: string | null
+  access_token_iv: string | null
+  access_token_auth_tag: string | null
   refresh_token_encrypted: string | null
+  refresh_token_iv: string | null
+  refresh_token_auth_tag: string | null
+  token_key_version: number | null
+  token_encrypted_at: Date | null
   expires_at: Date | null
   last_refreshed_at: Date | null
+  last_connected_at: Date | null
+  last_disconnected_at: Date | null
+  last_error_code: string | null
+  last_error_message: string | null
+  stale_since: Date | null
   revoked_at: Date | null
+  disconnected_at: Date | null
+  disconnected_by_user_id: string | null
   created_at: Date | null
   updated_at: Date | null
 }
@@ -54,26 +92,62 @@ export type XeroConnectionCountAggregateOutputType = {
   id: number
   clerk_org_id: number
   organisation_id: number
+  status: number
   access_token_encrypted: number
+  access_token_iv: number
+  access_token_auth_tag: number
   refresh_token_encrypted: number
+  refresh_token_iv: number
+  refresh_token_auth_tag: number
+  token_key_version: number
+  token_encrypted_at: number
   expires_at: number
   last_refreshed_at: number
+  last_connected_at: number
+  last_disconnected_at: number
+  last_error_code: number
+  last_error_message: number
+  stale_since: number
   revoked_at: number
+  disconnected_at: number
+  disconnected_by_user_id: number
   created_at: number
   updated_at: number
   _all: number
 }
 
 
+export type XeroConnectionAvgAggregateInputType = {
+  token_key_version?: true
+}
+
+export type XeroConnectionSumAggregateInputType = {
+  token_key_version?: true
+}
+
 export type XeroConnectionMinAggregateInputType = {
   id?: true
   clerk_org_id?: true
   organisation_id?: true
+  status?: true
   access_token_encrypted?: true
+  access_token_iv?: true
+  access_token_auth_tag?: true
   refresh_token_encrypted?: true
+  refresh_token_iv?: true
+  refresh_token_auth_tag?: true
+  token_key_version?: true
+  token_encrypted_at?: true
   expires_at?: true
   last_refreshed_at?: true
+  last_connected_at?: true
+  last_disconnected_at?: true
+  last_error_code?: true
+  last_error_message?: true
+  stale_since?: true
   revoked_at?: true
+  disconnected_at?: true
+  disconnected_by_user_id?: true
   created_at?: true
   updated_at?: true
 }
@@ -82,11 +156,25 @@ export type XeroConnectionMaxAggregateInputType = {
   id?: true
   clerk_org_id?: true
   organisation_id?: true
+  status?: true
   access_token_encrypted?: true
+  access_token_iv?: true
+  access_token_auth_tag?: true
   refresh_token_encrypted?: true
+  refresh_token_iv?: true
+  refresh_token_auth_tag?: true
+  token_key_version?: true
+  token_encrypted_at?: true
   expires_at?: true
   last_refreshed_at?: true
+  last_connected_at?: true
+  last_disconnected_at?: true
+  last_error_code?: true
+  last_error_message?: true
+  stale_since?: true
   revoked_at?: true
+  disconnected_at?: true
+  disconnected_by_user_id?: true
   created_at?: true
   updated_at?: true
 }
@@ -95,11 +183,25 @@ export type XeroConnectionCountAggregateInputType = {
   id?: true
   clerk_org_id?: true
   organisation_id?: true
+  status?: true
   access_token_encrypted?: true
+  access_token_iv?: true
+  access_token_auth_tag?: true
   refresh_token_encrypted?: true
+  refresh_token_iv?: true
+  refresh_token_auth_tag?: true
+  token_key_version?: true
+  token_encrypted_at?: true
   expires_at?: true
   last_refreshed_at?: true
+  last_connected_at?: true
+  last_disconnected_at?: true
+  last_error_code?: true
+  last_error_message?: true
+  stale_since?: true
   revoked_at?: true
+  disconnected_at?: true
+  disconnected_by_user_id?: true
   created_at?: true
   updated_at?: true
   _all?: true
@@ -143,6 +245,18 @@ export type XeroConnectionAggregateArgs<ExtArgs extends runtime.Types.Extensions
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: XeroConnectionAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: XeroConnectionSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: XeroConnectionMinAggregateInputType
@@ -173,6 +287,8 @@ export type XeroConnectionGroupByArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   _count?: XeroConnectionCountAggregateInputType | true
+  _avg?: XeroConnectionAvgAggregateInputType
+  _sum?: XeroConnectionSumAggregateInputType
   _min?: XeroConnectionMinAggregateInputType
   _max?: XeroConnectionMaxAggregateInputType
 }
@@ -181,14 +297,30 @@ export type XeroConnectionGroupByOutputType = {
   id: string
   clerk_org_id: string
   organisation_id: string
+  status: $Enums.xero_connection_status
   access_token_encrypted: string
+  access_token_iv: string | null
+  access_token_auth_tag: string | null
   refresh_token_encrypted: string
+  refresh_token_iv: string | null
+  refresh_token_auth_tag: string | null
+  token_key_version: number
+  token_encrypted_at: Date | null
   expires_at: Date
   last_refreshed_at: Date | null
+  last_connected_at: Date | null
+  last_disconnected_at: Date | null
+  last_error_code: string | null
+  last_error_message: string | null
+  stale_since: Date | null
   revoked_at: Date | null
+  disconnected_at: Date | null
+  disconnected_by_user_id: string | null
   created_at: Date
   updated_at: Date
   _count: XeroConnectionCountAggregateOutputType | null
+  _avg: XeroConnectionAvgAggregateOutputType | null
+  _sum: XeroConnectionSumAggregateOutputType | null
   _min: XeroConnectionMinAggregateOutputType | null
   _max: XeroConnectionMaxAggregateOutputType | null
 }
@@ -215,11 +347,25 @@ export type XeroConnectionWhereInput = {
   id?: Prisma.UuidFilter<"XeroConnection"> | string
   clerk_org_id?: Prisma.StringFilter<"XeroConnection"> | string
   organisation_id?: Prisma.UuidFilter<"XeroConnection"> | string
+  status?: Prisma.Enumxero_connection_statusFilter<"XeroConnection"> | $Enums.xero_connection_status
   access_token_encrypted?: Prisma.StringFilter<"XeroConnection"> | string
+  access_token_iv?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
+  access_token_auth_tag?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
   refresh_token_encrypted?: Prisma.StringFilter<"XeroConnection"> | string
+  refresh_token_iv?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
+  refresh_token_auth_tag?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
+  token_key_version?: Prisma.IntFilter<"XeroConnection"> | number
+  token_encrypted_at?: Prisma.DateTimeNullableFilter<"XeroConnection"> | Date | string | null
   expires_at?: Prisma.DateTimeFilter<"XeroConnection"> | Date | string
   last_refreshed_at?: Prisma.DateTimeNullableFilter<"XeroConnection"> | Date | string | null
+  last_connected_at?: Prisma.DateTimeNullableFilter<"XeroConnection"> | Date | string | null
+  last_disconnected_at?: Prisma.DateTimeNullableFilter<"XeroConnection"> | Date | string | null
+  last_error_code?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
+  last_error_message?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
+  stale_since?: Prisma.DateTimeNullableFilter<"XeroConnection"> | Date | string | null
   revoked_at?: Prisma.DateTimeNullableFilter<"XeroConnection"> | Date | string | null
+  disconnected_at?: Prisma.DateTimeNullableFilter<"XeroConnection"> | Date | string | null
+  disconnected_by_user_id?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
   created_at?: Prisma.DateTimeFilter<"XeroConnection"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"XeroConnection"> | Date | string
   organisation?: Prisma.XOR<Prisma.OrganisationScalarRelationFilter, Prisma.OrganisationWhereInput>
@@ -230,11 +376,25 @@ export type XeroConnectionOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   clerk_org_id?: Prisma.SortOrder
   organisation_id?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   access_token_encrypted?: Prisma.SortOrder
+  access_token_iv?: Prisma.SortOrderInput | Prisma.SortOrder
+  access_token_auth_tag?: Prisma.SortOrderInput | Prisma.SortOrder
   refresh_token_encrypted?: Prisma.SortOrder
+  refresh_token_iv?: Prisma.SortOrderInput | Prisma.SortOrder
+  refresh_token_auth_tag?: Prisma.SortOrderInput | Prisma.SortOrder
+  token_key_version?: Prisma.SortOrder
+  token_encrypted_at?: Prisma.SortOrderInput | Prisma.SortOrder
   expires_at?: Prisma.SortOrder
   last_refreshed_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_connected_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_disconnected_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_error_code?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_error_message?: Prisma.SortOrderInput | Prisma.SortOrder
+  stale_since?: Prisma.SortOrderInput | Prisma.SortOrder
   revoked_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  disconnected_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  disconnected_by_user_id?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   organisation?: Prisma.OrganisationOrderByWithRelationInput
@@ -248,11 +408,25 @@ export type XeroConnectionWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.XeroConnectionWhereInput[]
   NOT?: Prisma.XeroConnectionWhereInput | Prisma.XeroConnectionWhereInput[]
   clerk_org_id?: Prisma.StringFilter<"XeroConnection"> | string
+  status?: Prisma.Enumxero_connection_statusFilter<"XeroConnection"> | $Enums.xero_connection_status
   access_token_encrypted?: Prisma.StringFilter<"XeroConnection"> | string
+  access_token_iv?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
+  access_token_auth_tag?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
   refresh_token_encrypted?: Prisma.StringFilter<"XeroConnection"> | string
+  refresh_token_iv?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
+  refresh_token_auth_tag?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
+  token_key_version?: Prisma.IntFilter<"XeroConnection"> | number
+  token_encrypted_at?: Prisma.DateTimeNullableFilter<"XeroConnection"> | Date | string | null
   expires_at?: Prisma.DateTimeFilter<"XeroConnection"> | Date | string
   last_refreshed_at?: Prisma.DateTimeNullableFilter<"XeroConnection"> | Date | string | null
+  last_connected_at?: Prisma.DateTimeNullableFilter<"XeroConnection"> | Date | string | null
+  last_disconnected_at?: Prisma.DateTimeNullableFilter<"XeroConnection"> | Date | string | null
+  last_error_code?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
+  last_error_message?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
+  stale_since?: Prisma.DateTimeNullableFilter<"XeroConnection"> | Date | string | null
   revoked_at?: Prisma.DateTimeNullableFilter<"XeroConnection"> | Date | string | null
+  disconnected_at?: Prisma.DateTimeNullableFilter<"XeroConnection"> | Date | string | null
+  disconnected_by_user_id?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
   created_at?: Prisma.DateTimeFilter<"XeroConnection"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"XeroConnection"> | Date | string
   organisation?: Prisma.XOR<Prisma.OrganisationScalarRelationFilter, Prisma.OrganisationWhereInput>
@@ -263,16 +437,32 @@ export type XeroConnectionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   clerk_org_id?: Prisma.SortOrder
   organisation_id?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   access_token_encrypted?: Prisma.SortOrder
+  access_token_iv?: Prisma.SortOrderInput | Prisma.SortOrder
+  access_token_auth_tag?: Prisma.SortOrderInput | Prisma.SortOrder
   refresh_token_encrypted?: Prisma.SortOrder
+  refresh_token_iv?: Prisma.SortOrderInput | Prisma.SortOrder
+  refresh_token_auth_tag?: Prisma.SortOrderInput | Prisma.SortOrder
+  token_key_version?: Prisma.SortOrder
+  token_encrypted_at?: Prisma.SortOrderInput | Prisma.SortOrder
   expires_at?: Prisma.SortOrder
   last_refreshed_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_connected_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_disconnected_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_error_code?: Prisma.SortOrderInput | Prisma.SortOrder
+  last_error_message?: Prisma.SortOrderInput | Prisma.SortOrder
+  stale_since?: Prisma.SortOrderInput | Prisma.SortOrder
   revoked_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  disconnected_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  disconnected_by_user_id?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   _count?: Prisma.XeroConnectionCountOrderByAggregateInput
+  _avg?: Prisma.XeroConnectionAvgOrderByAggregateInput
   _max?: Prisma.XeroConnectionMaxOrderByAggregateInput
   _min?: Prisma.XeroConnectionMinOrderByAggregateInput
+  _sum?: Prisma.XeroConnectionSumOrderByAggregateInput
 }
 
 export type XeroConnectionScalarWhereWithAggregatesInput = {
@@ -282,11 +472,25 @@ export type XeroConnectionScalarWhereWithAggregatesInput = {
   id?: Prisma.UuidWithAggregatesFilter<"XeroConnection"> | string
   clerk_org_id?: Prisma.StringWithAggregatesFilter<"XeroConnection"> | string
   organisation_id?: Prisma.UuidWithAggregatesFilter<"XeroConnection"> | string
+  status?: Prisma.Enumxero_connection_statusWithAggregatesFilter<"XeroConnection"> | $Enums.xero_connection_status
   access_token_encrypted?: Prisma.StringWithAggregatesFilter<"XeroConnection"> | string
+  access_token_iv?: Prisma.StringNullableWithAggregatesFilter<"XeroConnection"> | string | null
+  access_token_auth_tag?: Prisma.StringNullableWithAggregatesFilter<"XeroConnection"> | string | null
   refresh_token_encrypted?: Prisma.StringWithAggregatesFilter<"XeroConnection"> | string
+  refresh_token_iv?: Prisma.StringNullableWithAggregatesFilter<"XeroConnection"> | string | null
+  refresh_token_auth_tag?: Prisma.StringNullableWithAggregatesFilter<"XeroConnection"> | string | null
+  token_key_version?: Prisma.IntWithAggregatesFilter<"XeroConnection"> | number
+  token_encrypted_at?: Prisma.DateTimeNullableWithAggregatesFilter<"XeroConnection"> | Date | string | null
   expires_at?: Prisma.DateTimeWithAggregatesFilter<"XeroConnection"> | Date | string
   last_refreshed_at?: Prisma.DateTimeNullableWithAggregatesFilter<"XeroConnection"> | Date | string | null
+  last_connected_at?: Prisma.DateTimeNullableWithAggregatesFilter<"XeroConnection"> | Date | string | null
+  last_disconnected_at?: Prisma.DateTimeNullableWithAggregatesFilter<"XeroConnection"> | Date | string | null
+  last_error_code?: Prisma.StringNullableWithAggregatesFilter<"XeroConnection"> | string | null
+  last_error_message?: Prisma.StringNullableWithAggregatesFilter<"XeroConnection"> | string | null
+  stale_since?: Prisma.DateTimeNullableWithAggregatesFilter<"XeroConnection"> | Date | string | null
   revoked_at?: Prisma.DateTimeNullableWithAggregatesFilter<"XeroConnection"> | Date | string | null
+  disconnected_at?: Prisma.DateTimeNullableWithAggregatesFilter<"XeroConnection"> | Date | string | null
+  disconnected_by_user_id?: Prisma.StringNullableWithAggregatesFilter<"XeroConnection"> | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"XeroConnection"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"XeroConnection"> | Date | string
 }
@@ -294,11 +498,25 @@ export type XeroConnectionScalarWhereWithAggregatesInput = {
 export type XeroConnectionCreateInput = {
   id?: string
   clerk_org_id: string
-  access_token_encrypted: string
-  refresh_token_encrypted: string
+  status?: $Enums.xero_connection_status
+  access_token_encrypted?: string
+  access_token_iv?: string | null
+  access_token_auth_tag?: string | null
+  refresh_token_encrypted?: string
+  refresh_token_iv?: string | null
+  refresh_token_auth_tag?: string | null
+  token_key_version?: number
+  token_encrypted_at?: Date | string | null
   expires_at: Date | string
   last_refreshed_at?: Date | string | null
+  last_connected_at?: Date | string | null
+  last_disconnected_at?: Date | string | null
+  last_error_code?: string | null
+  last_error_message?: string | null
+  stale_since?: Date | string | null
   revoked_at?: Date | string | null
+  disconnected_at?: Date | string | null
+  disconnected_by_user_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutXero_connectionInput
@@ -309,11 +527,25 @@ export type XeroConnectionUncheckedCreateInput = {
   id?: string
   clerk_org_id: string
   organisation_id: string
-  access_token_encrypted: string
-  refresh_token_encrypted: string
+  status?: $Enums.xero_connection_status
+  access_token_encrypted?: string
+  access_token_iv?: string | null
+  access_token_auth_tag?: string | null
+  refresh_token_encrypted?: string
+  refresh_token_iv?: string | null
+  refresh_token_auth_tag?: string | null
+  token_key_version?: number
+  token_encrypted_at?: Date | string | null
   expires_at: Date | string
   last_refreshed_at?: Date | string | null
+  last_connected_at?: Date | string | null
+  last_disconnected_at?: Date | string | null
+  last_error_code?: string | null
+  last_error_message?: string | null
+  stale_since?: Date | string | null
   revoked_at?: Date | string | null
+  disconnected_at?: Date | string | null
+  disconnected_by_user_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   xero_tenant?: Prisma.XeroTenantUncheckedCreateNestedOneWithoutXero_connectionInput
@@ -322,11 +554,25 @@ export type XeroConnectionUncheckedCreateInput = {
 export type XeroConnectionUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumxero_connection_statusFieldUpdateOperationsInput | $Enums.xero_connection_status
   access_token_encrypted?: Prisma.StringFieldUpdateOperationsInput | string
+  access_token_iv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  access_token_auth_tag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refresh_token_encrypted?: Prisma.StringFieldUpdateOperationsInput | string
+  refresh_token_iv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refresh_token_auth_tag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  token_key_version?: Prisma.IntFieldUpdateOperationsInput | number
+  token_encrypted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   expires_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_refreshed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_connected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_disconnected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   revoked_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disconnected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disconnected_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutXero_connectionNestedInput
@@ -337,11 +583,25 @@ export type XeroConnectionUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumxero_connection_statusFieldUpdateOperationsInput | $Enums.xero_connection_status
   access_token_encrypted?: Prisma.StringFieldUpdateOperationsInput | string
+  access_token_iv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  access_token_auth_tag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refresh_token_encrypted?: Prisma.StringFieldUpdateOperationsInput | string
+  refresh_token_iv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refresh_token_auth_tag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  token_key_version?: Prisma.IntFieldUpdateOperationsInput | number
+  token_encrypted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   expires_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_refreshed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_connected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_disconnected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   revoked_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disconnected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disconnected_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   xero_tenant?: Prisma.XeroTenantUncheckedUpdateOneWithoutXero_connectionNestedInput
@@ -351,11 +611,25 @@ export type XeroConnectionCreateManyInput = {
   id?: string
   clerk_org_id: string
   organisation_id: string
-  access_token_encrypted: string
-  refresh_token_encrypted: string
+  status?: $Enums.xero_connection_status
+  access_token_encrypted?: string
+  access_token_iv?: string | null
+  access_token_auth_tag?: string | null
+  refresh_token_encrypted?: string
+  refresh_token_iv?: string | null
+  refresh_token_auth_tag?: string | null
+  token_key_version?: number
+  token_encrypted_at?: Date | string | null
   expires_at: Date | string
   last_refreshed_at?: Date | string | null
+  last_connected_at?: Date | string | null
+  last_disconnected_at?: Date | string | null
+  last_error_code?: string | null
+  last_error_message?: string | null
+  stale_since?: Date | string | null
   revoked_at?: Date | string | null
+  disconnected_at?: Date | string | null
+  disconnected_by_user_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -363,11 +637,25 @@ export type XeroConnectionCreateManyInput = {
 export type XeroConnectionUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumxero_connection_statusFieldUpdateOperationsInput | $Enums.xero_connection_status
   access_token_encrypted?: Prisma.StringFieldUpdateOperationsInput | string
+  access_token_iv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  access_token_auth_tag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refresh_token_encrypted?: Prisma.StringFieldUpdateOperationsInput | string
+  refresh_token_iv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refresh_token_auth_tag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  token_key_version?: Prisma.IntFieldUpdateOperationsInput | number
+  token_encrypted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   expires_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_refreshed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_connected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_disconnected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   revoked_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disconnected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disconnected_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -376,11 +664,25 @@ export type XeroConnectionUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumxero_connection_statusFieldUpdateOperationsInput | $Enums.xero_connection_status
   access_token_encrypted?: Prisma.StringFieldUpdateOperationsInput | string
+  access_token_iv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  access_token_auth_tag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refresh_token_encrypted?: Prisma.StringFieldUpdateOperationsInput | string
+  refresh_token_iv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refresh_token_auth_tag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  token_key_version?: Prisma.IntFieldUpdateOperationsInput | number
+  token_encrypted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   expires_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_refreshed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_connected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_disconnected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   revoked_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disconnected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disconnected_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -394,24 +696,56 @@ export type XeroConnectionCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   clerk_org_id?: Prisma.SortOrder
   organisation_id?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   access_token_encrypted?: Prisma.SortOrder
+  access_token_iv?: Prisma.SortOrder
+  access_token_auth_tag?: Prisma.SortOrder
   refresh_token_encrypted?: Prisma.SortOrder
+  refresh_token_iv?: Prisma.SortOrder
+  refresh_token_auth_tag?: Prisma.SortOrder
+  token_key_version?: Prisma.SortOrder
+  token_encrypted_at?: Prisma.SortOrder
   expires_at?: Prisma.SortOrder
   last_refreshed_at?: Prisma.SortOrder
+  last_connected_at?: Prisma.SortOrder
+  last_disconnected_at?: Prisma.SortOrder
+  last_error_code?: Prisma.SortOrder
+  last_error_message?: Prisma.SortOrder
+  stale_since?: Prisma.SortOrder
   revoked_at?: Prisma.SortOrder
+  disconnected_at?: Prisma.SortOrder
+  disconnected_by_user_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+}
+
+export type XeroConnectionAvgOrderByAggregateInput = {
+  token_key_version?: Prisma.SortOrder
 }
 
 export type XeroConnectionMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   clerk_org_id?: Prisma.SortOrder
   organisation_id?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   access_token_encrypted?: Prisma.SortOrder
+  access_token_iv?: Prisma.SortOrder
+  access_token_auth_tag?: Prisma.SortOrder
   refresh_token_encrypted?: Prisma.SortOrder
+  refresh_token_iv?: Prisma.SortOrder
+  refresh_token_auth_tag?: Prisma.SortOrder
+  token_key_version?: Prisma.SortOrder
+  token_encrypted_at?: Prisma.SortOrder
   expires_at?: Prisma.SortOrder
   last_refreshed_at?: Prisma.SortOrder
+  last_connected_at?: Prisma.SortOrder
+  last_disconnected_at?: Prisma.SortOrder
+  last_error_code?: Prisma.SortOrder
+  last_error_message?: Prisma.SortOrder
+  stale_since?: Prisma.SortOrder
   revoked_at?: Prisma.SortOrder
+  disconnected_at?: Prisma.SortOrder
+  disconnected_by_user_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
 }
@@ -420,13 +754,31 @@ export type XeroConnectionMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   clerk_org_id?: Prisma.SortOrder
   organisation_id?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   access_token_encrypted?: Prisma.SortOrder
+  access_token_iv?: Prisma.SortOrder
+  access_token_auth_tag?: Prisma.SortOrder
   refresh_token_encrypted?: Prisma.SortOrder
+  refresh_token_iv?: Prisma.SortOrder
+  refresh_token_auth_tag?: Prisma.SortOrder
+  token_key_version?: Prisma.SortOrder
+  token_encrypted_at?: Prisma.SortOrder
   expires_at?: Prisma.SortOrder
   last_refreshed_at?: Prisma.SortOrder
+  last_connected_at?: Prisma.SortOrder
+  last_disconnected_at?: Prisma.SortOrder
+  last_error_code?: Prisma.SortOrder
+  last_error_message?: Prisma.SortOrder
+  stale_since?: Prisma.SortOrder
   revoked_at?: Prisma.SortOrder
+  disconnected_at?: Prisma.SortOrder
+  disconnected_by_user_id?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+}
+
+export type XeroConnectionSumOrderByAggregateInput = {
+  token_key_version?: Prisma.SortOrder
 }
 
 export type XeroConnectionScalarRelationFilter = {
@@ -466,6 +818,10 @@ export type XeroConnectionUncheckedUpdateOneWithoutOrganisationNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.XeroConnectionUpdateToOneWithWhereWithoutOrganisationInput, Prisma.XeroConnectionUpdateWithoutOrganisationInput>, Prisma.XeroConnectionUncheckedUpdateWithoutOrganisationInput>
 }
 
+export type Enumxero_connection_statusFieldUpdateOperationsInput = {
+  set?: $Enums.xero_connection_status
+}
+
 export type XeroConnectionCreateNestedOneWithoutXero_tenantInput = {
   create?: Prisma.XOR<Prisma.XeroConnectionCreateWithoutXero_tenantInput, Prisma.XeroConnectionUncheckedCreateWithoutXero_tenantInput>
   connectOrCreate?: Prisma.XeroConnectionCreateOrConnectWithoutXero_tenantInput
@@ -483,11 +839,25 @@ export type XeroConnectionUpdateOneRequiredWithoutXero_tenantNestedInput = {
 export type XeroConnectionCreateWithoutOrganisationInput = {
   id?: string
   clerk_org_id: string
-  access_token_encrypted: string
-  refresh_token_encrypted: string
+  status?: $Enums.xero_connection_status
+  access_token_encrypted?: string
+  access_token_iv?: string | null
+  access_token_auth_tag?: string | null
+  refresh_token_encrypted?: string
+  refresh_token_iv?: string | null
+  refresh_token_auth_tag?: string | null
+  token_key_version?: number
+  token_encrypted_at?: Date | string | null
   expires_at: Date | string
   last_refreshed_at?: Date | string | null
+  last_connected_at?: Date | string | null
+  last_disconnected_at?: Date | string | null
+  last_error_code?: string | null
+  last_error_message?: string | null
+  stale_since?: Date | string | null
   revoked_at?: Date | string | null
+  disconnected_at?: Date | string | null
+  disconnected_by_user_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   xero_tenant?: Prisma.XeroTenantCreateNestedOneWithoutXero_connectionInput
@@ -496,11 +866,25 @@ export type XeroConnectionCreateWithoutOrganisationInput = {
 export type XeroConnectionUncheckedCreateWithoutOrganisationInput = {
   id?: string
   clerk_org_id: string
-  access_token_encrypted: string
-  refresh_token_encrypted: string
+  status?: $Enums.xero_connection_status
+  access_token_encrypted?: string
+  access_token_iv?: string | null
+  access_token_auth_tag?: string | null
+  refresh_token_encrypted?: string
+  refresh_token_iv?: string | null
+  refresh_token_auth_tag?: string | null
+  token_key_version?: number
+  token_encrypted_at?: Date | string | null
   expires_at: Date | string
   last_refreshed_at?: Date | string | null
+  last_connected_at?: Date | string | null
+  last_disconnected_at?: Date | string | null
+  last_error_code?: string | null
+  last_error_message?: string | null
+  stale_since?: Date | string | null
   revoked_at?: Date | string | null
+  disconnected_at?: Date | string | null
+  disconnected_by_user_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   xero_tenant?: Prisma.XeroTenantUncheckedCreateNestedOneWithoutXero_connectionInput
@@ -525,11 +909,25 @@ export type XeroConnectionUpdateToOneWithWhereWithoutOrganisationInput = {
 export type XeroConnectionUpdateWithoutOrganisationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumxero_connection_statusFieldUpdateOperationsInput | $Enums.xero_connection_status
   access_token_encrypted?: Prisma.StringFieldUpdateOperationsInput | string
+  access_token_iv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  access_token_auth_tag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refresh_token_encrypted?: Prisma.StringFieldUpdateOperationsInput | string
+  refresh_token_iv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refresh_token_auth_tag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  token_key_version?: Prisma.IntFieldUpdateOperationsInput | number
+  token_encrypted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   expires_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_refreshed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_connected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_disconnected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   revoked_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disconnected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disconnected_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   xero_tenant?: Prisma.XeroTenantUpdateOneWithoutXero_connectionNestedInput
@@ -538,11 +936,25 @@ export type XeroConnectionUpdateWithoutOrganisationInput = {
 export type XeroConnectionUncheckedUpdateWithoutOrganisationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumxero_connection_statusFieldUpdateOperationsInput | $Enums.xero_connection_status
   access_token_encrypted?: Prisma.StringFieldUpdateOperationsInput | string
+  access_token_iv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  access_token_auth_tag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refresh_token_encrypted?: Prisma.StringFieldUpdateOperationsInput | string
+  refresh_token_iv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refresh_token_auth_tag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  token_key_version?: Prisma.IntFieldUpdateOperationsInput | number
+  token_encrypted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   expires_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_refreshed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_connected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_disconnected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   revoked_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disconnected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disconnected_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   xero_tenant?: Prisma.XeroTenantUncheckedUpdateOneWithoutXero_connectionNestedInput
@@ -551,11 +963,25 @@ export type XeroConnectionUncheckedUpdateWithoutOrganisationInput = {
 export type XeroConnectionCreateWithoutXero_tenantInput = {
   id?: string
   clerk_org_id: string
-  access_token_encrypted: string
-  refresh_token_encrypted: string
+  status?: $Enums.xero_connection_status
+  access_token_encrypted?: string
+  access_token_iv?: string | null
+  access_token_auth_tag?: string | null
+  refresh_token_encrypted?: string
+  refresh_token_iv?: string | null
+  refresh_token_auth_tag?: string | null
+  token_key_version?: number
+  token_encrypted_at?: Date | string | null
   expires_at: Date | string
   last_refreshed_at?: Date | string | null
+  last_connected_at?: Date | string | null
+  last_disconnected_at?: Date | string | null
+  last_error_code?: string | null
+  last_error_message?: string | null
+  stale_since?: Date | string | null
   revoked_at?: Date | string | null
+  disconnected_at?: Date | string | null
+  disconnected_by_user_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
   organisation: Prisma.OrganisationCreateNestedOneWithoutXero_connectionInput
@@ -565,11 +991,25 @@ export type XeroConnectionUncheckedCreateWithoutXero_tenantInput = {
   id?: string
   clerk_org_id: string
   organisation_id: string
-  access_token_encrypted: string
-  refresh_token_encrypted: string
+  status?: $Enums.xero_connection_status
+  access_token_encrypted?: string
+  access_token_iv?: string | null
+  access_token_auth_tag?: string | null
+  refresh_token_encrypted?: string
+  refresh_token_iv?: string | null
+  refresh_token_auth_tag?: string | null
+  token_key_version?: number
+  token_encrypted_at?: Date | string | null
   expires_at: Date | string
   last_refreshed_at?: Date | string | null
+  last_connected_at?: Date | string | null
+  last_disconnected_at?: Date | string | null
+  last_error_code?: string | null
+  last_error_message?: string | null
+  stale_since?: Date | string | null
   revoked_at?: Date | string | null
+  disconnected_at?: Date | string | null
+  disconnected_by_user_id?: string | null
   created_at?: Date | string
   updated_at?: Date | string
 }
@@ -593,11 +1033,25 @@ export type XeroConnectionUpdateToOneWithWhereWithoutXero_tenantInput = {
 export type XeroConnectionUpdateWithoutXero_tenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumxero_connection_statusFieldUpdateOperationsInput | $Enums.xero_connection_status
   access_token_encrypted?: Prisma.StringFieldUpdateOperationsInput | string
+  access_token_iv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  access_token_auth_tag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refresh_token_encrypted?: Prisma.StringFieldUpdateOperationsInput | string
+  refresh_token_iv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refresh_token_auth_tag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  token_key_version?: Prisma.IntFieldUpdateOperationsInput | number
+  token_encrypted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   expires_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_refreshed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_connected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_disconnected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   revoked_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disconnected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disconnected_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organisation?: Prisma.OrganisationUpdateOneRequiredWithoutXero_connectionNestedInput
@@ -607,11 +1061,25 @@ export type XeroConnectionUncheckedUpdateWithoutXero_tenantInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
   organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.Enumxero_connection_statusFieldUpdateOperationsInput | $Enums.xero_connection_status
   access_token_encrypted?: Prisma.StringFieldUpdateOperationsInput | string
+  access_token_iv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  access_token_auth_tag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   refresh_token_encrypted?: Prisma.StringFieldUpdateOperationsInput | string
+  refresh_token_iv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refresh_token_auth_tag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  token_key_version?: Prisma.IntFieldUpdateOperationsInput | number
+  token_encrypted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   expires_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   last_refreshed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_connected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_disconnected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  last_error_code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  last_error_message?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stale_since?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   revoked_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disconnected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disconnected_by_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -622,11 +1090,25 @@ export type XeroConnectionSelect<ExtArgs extends runtime.Types.Extensions.Intern
   id?: boolean
   clerk_org_id?: boolean
   organisation_id?: boolean
+  status?: boolean
   access_token_encrypted?: boolean
+  access_token_iv?: boolean
+  access_token_auth_tag?: boolean
   refresh_token_encrypted?: boolean
+  refresh_token_iv?: boolean
+  refresh_token_auth_tag?: boolean
+  token_key_version?: boolean
+  token_encrypted_at?: boolean
   expires_at?: boolean
   last_refreshed_at?: boolean
+  last_connected_at?: boolean
+  last_disconnected_at?: boolean
+  last_error_code?: boolean
+  last_error_message?: boolean
+  stale_since?: boolean
   revoked_at?: boolean
+  disconnected_at?: boolean
+  disconnected_by_user_id?: boolean
   created_at?: boolean
   updated_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
@@ -637,11 +1119,25 @@ export type XeroConnectionSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   id?: boolean
   clerk_org_id?: boolean
   organisation_id?: boolean
+  status?: boolean
   access_token_encrypted?: boolean
+  access_token_iv?: boolean
+  access_token_auth_tag?: boolean
   refresh_token_encrypted?: boolean
+  refresh_token_iv?: boolean
+  refresh_token_auth_tag?: boolean
+  token_key_version?: boolean
+  token_encrypted_at?: boolean
   expires_at?: boolean
   last_refreshed_at?: boolean
+  last_connected_at?: boolean
+  last_disconnected_at?: boolean
+  last_error_code?: boolean
+  last_error_message?: boolean
+  stale_since?: boolean
   revoked_at?: boolean
+  disconnected_at?: boolean
+  disconnected_by_user_id?: boolean
   created_at?: boolean
   updated_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
@@ -651,11 +1147,25 @@ export type XeroConnectionSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   id?: boolean
   clerk_org_id?: boolean
   organisation_id?: boolean
+  status?: boolean
   access_token_encrypted?: boolean
+  access_token_iv?: boolean
+  access_token_auth_tag?: boolean
   refresh_token_encrypted?: boolean
+  refresh_token_iv?: boolean
+  refresh_token_auth_tag?: boolean
+  token_key_version?: boolean
+  token_encrypted_at?: boolean
   expires_at?: boolean
   last_refreshed_at?: boolean
+  last_connected_at?: boolean
+  last_disconnected_at?: boolean
+  last_error_code?: boolean
+  last_error_message?: boolean
+  stale_since?: boolean
   revoked_at?: boolean
+  disconnected_at?: boolean
+  disconnected_by_user_id?: boolean
   created_at?: boolean
   updated_at?: boolean
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
@@ -665,16 +1175,30 @@ export type XeroConnectionSelectScalar = {
   id?: boolean
   clerk_org_id?: boolean
   organisation_id?: boolean
+  status?: boolean
   access_token_encrypted?: boolean
+  access_token_iv?: boolean
+  access_token_auth_tag?: boolean
   refresh_token_encrypted?: boolean
+  refresh_token_iv?: boolean
+  refresh_token_auth_tag?: boolean
+  token_key_version?: boolean
+  token_encrypted_at?: boolean
   expires_at?: boolean
   last_refreshed_at?: boolean
+  last_connected_at?: boolean
+  last_disconnected_at?: boolean
+  last_error_code?: boolean
+  last_error_message?: boolean
+  stale_since?: boolean
   revoked_at?: boolean
+  disconnected_at?: boolean
+  disconnected_by_user_id?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type XeroConnectionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "access_token_encrypted" | "refresh_token_encrypted" | "expires_at" | "last_refreshed_at" | "revoked_at" | "created_at" | "updated_at", ExtArgs["result"]["xeroConnection"]>
+export type XeroConnectionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "status" | "access_token_encrypted" | "access_token_iv" | "access_token_auth_tag" | "refresh_token_encrypted" | "refresh_token_iv" | "refresh_token_auth_tag" | "token_key_version" | "token_encrypted_at" | "expires_at" | "last_refreshed_at" | "last_connected_at" | "last_disconnected_at" | "last_error_code" | "last_error_message" | "stale_since" | "revoked_at" | "disconnected_at" | "disconnected_by_user_id" | "created_at" | "updated_at", ExtArgs["result"]["xeroConnection"]>
 export type XeroConnectionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
   xero_tenant?: boolean | Prisma.XeroConnection$xero_tenantArgs<ExtArgs>
@@ -696,11 +1220,25 @@ export type $XeroConnectionPayload<ExtArgs extends runtime.Types.Extensions.Inte
     id: string
     clerk_org_id: string
     organisation_id: string
+    status: $Enums.xero_connection_status
     access_token_encrypted: string
+    access_token_iv: string | null
+    access_token_auth_tag: string | null
     refresh_token_encrypted: string
+    refresh_token_iv: string | null
+    refresh_token_auth_tag: string | null
+    token_key_version: number
+    token_encrypted_at: Date | null
     expires_at: Date
     last_refreshed_at: Date | null
+    last_connected_at: Date | null
+    last_disconnected_at: Date | null
+    last_error_code: string | null
+    last_error_message: string | null
+    stale_since: Date | null
     revoked_at: Date | null
+    disconnected_at: Date | null
+    disconnected_by_user_id: string | null
     created_at: Date
     updated_at: Date
   }, ExtArgs["result"]["xeroConnection"]>
@@ -1131,11 +1669,25 @@ export interface XeroConnectionFieldRefs {
   readonly id: Prisma.FieldRef<"XeroConnection", 'String'>
   readonly clerk_org_id: Prisma.FieldRef<"XeroConnection", 'String'>
   readonly organisation_id: Prisma.FieldRef<"XeroConnection", 'String'>
+  readonly status: Prisma.FieldRef<"XeroConnection", 'xero_connection_status'>
   readonly access_token_encrypted: Prisma.FieldRef<"XeroConnection", 'String'>
+  readonly access_token_iv: Prisma.FieldRef<"XeroConnection", 'String'>
+  readonly access_token_auth_tag: Prisma.FieldRef<"XeroConnection", 'String'>
   readonly refresh_token_encrypted: Prisma.FieldRef<"XeroConnection", 'String'>
+  readonly refresh_token_iv: Prisma.FieldRef<"XeroConnection", 'String'>
+  readonly refresh_token_auth_tag: Prisma.FieldRef<"XeroConnection", 'String'>
+  readonly token_key_version: Prisma.FieldRef<"XeroConnection", 'Int'>
+  readonly token_encrypted_at: Prisma.FieldRef<"XeroConnection", 'DateTime'>
   readonly expires_at: Prisma.FieldRef<"XeroConnection", 'DateTime'>
   readonly last_refreshed_at: Prisma.FieldRef<"XeroConnection", 'DateTime'>
+  readonly last_connected_at: Prisma.FieldRef<"XeroConnection", 'DateTime'>
+  readonly last_disconnected_at: Prisma.FieldRef<"XeroConnection", 'DateTime'>
+  readonly last_error_code: Prisma.FieldRef<"XeroConnection", 'String'>
+  readonly last_error_message: Prisma.FieldRef<"XeroConnection", 'String'>
+  readonly stale_since: Prisma.FieldRef<"XeroConnection", 'DateTime'>
   readonly revoked_at: Prisma.FieldRef<"XeroConnection", 'DateTime'>
+  readonly disconnected_at: Prisma.FieldRef<"XeroConnection", 'DateTime'>
+  readonly disconnected_by_user_id: Prisma.FieldRef<"XeroConnection", 'String'>
   readonly created_at: Prisma.FieldRef<"XeroConnection", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"XeroConnection", 'DateTime'>
 }

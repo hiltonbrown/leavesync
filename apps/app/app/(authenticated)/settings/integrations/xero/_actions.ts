@@ -58,6 +58,7 @@ export async function connectXeroAction(input: {
   redirectUrl.searchParams.set("clerkOrgId", context.value.clerkOrgId);
   redirectUrl.searchParams.set("organisationId", context.value.organisationId);
   redirectUrl.searchParams.set("returnTo", "/settings/integrations/xero");
+  redirectUrl.searchParams.set("userId", context.value.actingUserId);
 
   return { ok: true, value: { redirectUrl: redirectUrl.toString() } };
 }

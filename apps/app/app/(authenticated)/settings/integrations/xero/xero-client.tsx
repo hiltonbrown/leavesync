@@ -1,7 +1,7 @@
 "use client";
 
-import type { RunListItem, TenantSummary } from "@repo/availability";
 import type {
+  Organisation,
   XeroConnection,
   XeroTenant,
 } from "@repo/database/generated/client";
@@ -23,28 +23,21 @@ import { SettingsSectionHeader } from "../../components/settings-section-header"
 import {
   connectXeroAction,
   disconnectXeroAction,
-  pauseTenantSyncAction,
   refreshXeroConnectionAction,
-  resumeTenantSyncAction,
 } from "./_actions";
 
+type OrganisationWithXero = Organisation & {
+  xero_connection: (XeroConnection & { xero_tenant: XeroTenant | null }) | null;
+};
+
 interface XeroClientProps {
-  connection: (XeroConnection & { xero_tenant: XeroTenant | null }) | null;
-  organisationId: string;
-  organisationName: string;
-  recentRuns: RunListItem[];
-  summaries: TenantSummary[];
+  organisations: OrganisationWithXero[];
 }
 
-export const XeroClient = ({
-  connection,
-  organisationId,
-  organisationName,
-  recentRuns,
-  summaries,
-}: XeroClientProps) => {
+export const XeroClient = ({ organisations }: XeroClientProps) => {
   const [isPending, startTransition] = useTransition();
-  const [confirmationText, setConfirmationText] = useState("");
+  const [confirmationTextByOrganisation, setConfirmationTextByOrganisation] =
+    useState<Record<string, string>>({});
 
   const handleConnect = (organisationId: string) => {
     startTransition(async () => {
@@ -72,205 +65,279 @@ export const XeroClient = ({
   const handleDisconnect = (
     connectionId: string,
     organisationId: string,
+    organisationName: string,
     mode: "destructive" | "soft"
   ) => {
     startTransition(async () => {
       const result = await disconnectXeroAction({
-        confirmationText,
+        confirmationText: confirmationTextByOrganisation[organisationId] ?? "",
         connectionId,
         mode,
         organisationId,
       });
+      const successMessage =
+        mode === "destructive"
+          ? "Xero disconnected and Xero-linked data purged."
+          : "Xero disconnected. Historical data is now read-only.";
       toast[result.ok ? "success" : "error"](
-        result.ok ? "Xero disconnected." : result.error.message
+        result.ok ? successMessage : result.error.message
       );
+
+      if (result.ok) {
+        setConfirmationTextByOrganisation((current) => ({
+          ...current,
+          [organisationId]: organisationName,
+        }));
+      }
     });
   };
 
-  const runReconciliation = (organisationId: string, xeroTenantId: string) => {
+  const runSync = (
+    organisationId: string,
+    xeroTenantId: string,
+    runType: string
+  ) => {
     startTransition(async () => {
       const result = await dispatchManualSyncAction({
         organisationId,
-        runType: "approval_state_reconciliation",
+        runType,
         xeroTenantId,
       });
       if (!result.ok) {
         toast.error(result.error.message);
         return;
       }
-      const message = result.value.queued
-        ? "Reconciliation dispatched."
-        : (result.value.reason ?? "Reconciliation not queued.");
-      toast.success(message);
+      if (!result.value.queued) {
+        toast.error(
+          result.value.reason === "connection_not_active"
+            ? "Reconnect Xero before running syncs."
+            : "This sync is not available yet."
+        );
+        return;
+      }
+      toast.success("Sync dispatched.");
     });
   };
-
-  let connectionStatus: "connected" | "disconnected" | "revoked";
-  if (connection?.revoked_at) {
-    connectionStatus = "revoked";
-  } else if (connection) {
-    connectionStatus = "connected";
-  } else {
-    connectionStatus = "disconnected";
-  }
 
   return (
     <div className="space-y-6">
       <SettingsSectionHeader
-        description="Manage the Xero connection and per-tenant sync state."
+        description="Each payroll organisation owns one Xero connection and one Xero tenant. Status is shared across everyone in this Clerk Organisation."
         title="Xero Payroll"
       />
 
-      <Card className="rounded-2xl">
-        <CardHeader>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <CardTitle>Connection</CardTitle>
-              <CardDescription>
-                Refresh, disconnect, or reconnect the organisation Xero link.
-              </CardDescription>
-            </div>
-            <ProviderStatusBadge status={connectionStatus} />
-          </div>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-3">
-          {!connection && (
-            <Button
-              disabled={isPending}
-              onClick={() => handleConnect(organisationId)}
-            >
-              Connect Xero
-            </Button>
-          )}
-          {connection && (
-            <>
-              <div className="min-w-[260px] space-y-2">
-                <Label htmlFor="disconnect-confirmation">
-                  Type the organisation name to confirm disconnect
-                </Label>
-                <Input
-                  id="disconnect-confirmation"
-                  onChange={(event) => setConfirmationText(event.target.value)}
-                  placeholder={organisationName}
-                  value={confirmationText}
+      {organisations.map((organisation) => {
+        const connection = organisation.xero_connection;
+        const tenant = connection?.xero_tenant ?? null;
+        const status = statusForConnection(connection);
+        const confirmationText =
+          confirmationTextByOrganisation[organisation.id] ?? "";
+
+        return (
+          <Card className="rounded-2xl" key={organisation.id}>
+            <CardHeader>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <CardTitle>{organisation.name}</CardTitle>
+                  <CardDescription>
+                    {tenant
+                      ? `${tenant.tenant_name ?? tenant.xero_tenant_id} · ${tenant.payroll_region}`
+                      : `${organisation.country_code} payroll organisation`}
+                  </CardDescription>
+                </div>
+                <ProviderStatusBadge status={status} />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {connection?.last_error_message ? (
+                <div className="rounded-2xl bg-destructive/10 p-3 text-destructive text-sm">
+                  {connection.last_error_message}
+                </div>
+              ) : null}
+
+              <div className="grid gap-3 md:grid-cols-4">
+                <Stat
+                  label="People sync"
+                  value={formatTimestamp(tenant?.last_people_sync_at ?? null)}
+                />
+                <Stat
+                  label="Leave sync"
+                  value={formatTimestamp(
+                    tenant?.last_leave_records_sync_at ?? null
+                  )}
+                />
+                <Stat
+                  label="Balance sync"
+                  value={formatTimestamp(
+                    tenant?.last_leave_balances_sync_at ?? null
+                  )}
+                />
+                <Stat
+                  label="Reconciliation"
+                  value={formatTimestamp(
+                    tenant?.last_approval_state_reconciled_at ?? null
+                  )}
                 />
               </div>
-              <Button
-                disabled={isPending}
-                onClick={() =>
-                  handleRefresh(connection.id, connection.organisation_id)
-                }
-                variant="outline"
-              >
-                Refresh connection
-              </Button>
-              <Button
-                disabled={isPending}
-                onClick={() =>
-                  handleDisconnect(
-                    connection.id,
-                    connection.organisation_id,
-                    "soft"
-                  )
-                }
-                variant="outline"
-              >
-                Soft disconnect
-              </Button>
-              <Button
-                disabled={isPending}
-                onClick={() =>
-                  handleDisconnect(
-                    connection.id,
-                    connection.organisation_id,
-                    "destructive"
-                  )
-                }
-                variant="destructive"
-              >
-                Disconnect and archive Xero data
-              </Button>
-            </>
-          )}
-        </CardContent>
-      </Card>
 
-      {summaries.map((summary) => (
-        <Card className="rounded-2xl" key={summary.xeroTenantId}>
-          <CardHeader>
-            <CardTitle>{summary.tenantName}</CardTitle>
-            <CardDescription>{summary.payrollRegion}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {summary.syncPausedAt && (
-              <div className="rounded-xl bg-muted/40 p-3 text-sm">
-                Sync paused since {summary.syncPausedAt.toLocaleString("en-AU")}
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  disabled={isPending}
+                  onClick={() => handleConnect(organisation.id)}
+                >
+                  {connection ? "Reconnect Xero" : "Connect Xero"}
+                </Button>
+                {connection ? (
+                  <Button
+                    disabled={isPending}
+                    onClick={() =>
+                      handleRefresh(connection.id, organisation.id)
+                    }
+                    variant="outline"
+                  >
+                    Refresh tokens
+                  </Button>
+                ) : null}
+                {tenant ? (
+                  <>
+                    <Button
+                      disabled={isPending}
+                      onClick={() =>
+                        runSync(organisation.id, tenant.id, "people")
+                      }
+                      variant="outline"
+                    >
+                      Sync people
+                    </Button>
+                    <Button
+                      disabled={isPending}
+                      onClick={() =>
+                        runSync(organisation.id, tenant.id, "leave_records")
+                      }
+                      variant="outline"
+                    >
+                      Sync leave records
+                    </Button>
+                    <Button
+                      disabled={isPending}
+                      onClick={() =>
+                        runSync(organisation.id, tenant.id, "leave_balances")
+                      }
+                      variant="outline"
+                    >
+                      Sync balances
+                    </Button>
+                    <Button
+                      disabled={isPending}
+                      onClick={() =>
+                        runSync(
+                          organisation.id,
+                          tenant.id,
+                          "approval_state_reconciliation"
+                        )
+                      }
+                      variant="outline"
+                    >
+                      Reconcile approval state
+                    </Button>
+                  </>
+                ) : null}
               </div>
-            )}
-            <div className="flex flex-wrap gap-3">
-              <Button
-                disabled={Boolean(summary.syncPausedAt) || isPending}
-                onClick={() =>
-                  runReconciliation(organisationId, summary.xeroTenantId)
-                }
-              >
-                Run reconciliation now
-              </Button>
-              {summary.syncPausedAt ? (
-                <Button
-                  disabled={isPending}
-                  onClick={() =>
-                    startTransition(async () => {
-                      const result = await resumeTenantSyncAction({
-                        organisationId,
-                        xeroTenantId: summary.xeroTenantId,
-                      });
-                      toast[result.ok ? "success" : "error"](
-                        result.ok ? "Sync resumed." : result.error.message
-                      );
-                    })
-                  }
-                  variant="outline"
-                >
-                  Resume sync
-                </Button>
-              ) : (
-                <Button
-                  disabled={isPending}
-                  onClick={() =>
-                    startTransition(async () => {
-                      const result = await pauseTenantSyncAction({
-                        organisationId,
-                        xeroTenantId: summary.xeroTenantId,
-                      });
-                      toast[result.ok ? "success" : "error"](
-                        result.ok ? "Sync paused." : result.error.message
-                      );
-                    })
-                  }
-                  variant="outline"
-                >
-                  Pause sync
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
 
-      <Card className="rounded-2xl">
-        <CardHeader>
-          <CardTitle>Recent sync runs</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {recentRuns.map((run) => (
-            <div className="rounded-xl bg-muted/30 p-3 text-sm" key={run.id}>
-              {run.runType} · {run.status} ·{" "}
-              {run.startedAt.toLocaleString("en-AU")}
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+              {connection ? (
+                <div className="space-y-3 rounded-2xl bg-muted/30 p-4">
+                  <div className="space-y-2">
+                    <Label htmlFor={`disconnect-${organisation.id}`}>
+                      Type the organisation name to confirm disconnect
+                    </Label>
+                    <Input
+                      id={`disconnect-${organisation.id}`}
+                      onChange={(event) =>
+                        setConfirmationTextByOrganisation((current) => ({
+                          ...current,
+                          [organisation.id]: event.target.value,
+                        }))
+                      }
+                      placeholder={organisation.name}
+                      value={confirmationText}
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      disabled={isPending}
+                      onClick={() =>
+                        handleDisconnect(
+                          connection.id,
+                          organisation.id,
+                          organisation.name,
+                          "soft"
+                        )
+                      }
+                      variant="outline"
+                    >
+                      Standard disconnect
+                    </Button>
+                    <Button
+                      disabled={isPending}
+                      onClick={() =>
+                        handleDisconnect(
+                          connection.id,
+                          organisation.id,
+                          organisation.name,
+                          "destructive"
+                        )
+                      }
+                      variant="destructive"
+                    >
+                      Destructive disconnect
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 };
+
+function statusForConnection(
+  connection: (XeroConnection & { xero_tenant: XeroTenant | null }) | null
+): "connected" | "disconnected" | "error" | "expired" | "revoked" {
+  if (!connection) {
+    return "disconnected";
+  }
+  if (connection.revoked_at) {
+    return "revoked";
+  }
+  if (connection.status === "stale") {
+    return "expired";
+  }
+  if (
+    connection.status === "pending" ||
+    connection.status === "pending_tenant_selection"
+  ) {
+    return "error";
+  }
+  if (connection.status === "disconnected" || connection.disconnected_at) {
+    return "disconnected";
+  }
+  if (connection.expires_at.getTime() <= Date.now()) {
+    return "expired";
+  }
+  return "connected";
+}
+
+function formatTimestamp(value: Date | null): string {
+  return value ? value.toLocaleString("en-AU") : "Not run yet";
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-muted/30 p-3">
+      <p className="text-muted-foreground text-xs">{label}</p>
+      <p className="font-medium text-sm">{value}</p>
+    </div>
+  );
+}

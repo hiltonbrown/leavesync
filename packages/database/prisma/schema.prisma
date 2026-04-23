@@ -33,6 +33,27 @@ enum payroll_region {
   UK
 }
 
+enum xero_connection_status {
+  pending
+  pending_tenant_selection
+  active
+  stale
+  disconnected
+}
+
+enum xero_oauth_session_status {
+  pending
+  completed
+  expired
+  cancelled
+}
+
+enum xero_person_match_status {
+  pending
+  matched
+  ignored
+}
+
 enum xero_sync_entity_type {
   people
   leave_records
@@ -257,6 +278,8 @@ model Organisation {
   public_holiday_assignments   PublicHolidayAssignment[]
   xero_connection              XeroConnection?
   xero_tenants                 XeroTenant[]
+  xero_oauth_sessions          XeroOAuthSession[]
+  xero_person_matches          XeroPersonMatch[]
   xero_sync_cursors            XeroSyncCursor[]
   sync_runs                    SyncRun[]
   failed_records               FailedRecord[]
@@ -356,16 +379,19 @@ model Person {
   created_at                  DateTime                    @default(now())
   updated_at                  DateTime                    @updatedAt
 
-  organisation         Organisation         @relation(fields: [organisation_id], references: [id])
-  team                 Team?                @relation(fields: [team_id], references: [id])
-  location             Location?            @relation(fields: [location_id], references: [id])
-  manager              Person?              @relation("PersonManager", fields: [manager_person_id], references: [id])
-  direct_reports       Person[]             @relation("PersonManager")
-  leave_balances       LeaveBalance[]
-  alternative_contacts AlternativeContact[]
-  availability_records AvailabilityRecord[]
-  approved_records     AvailabilityRecord[] @relation("ApprovedBy")
-  notifications        Notification[]
+  organisation           Organisation         @relation(fields: [organisation_id], references: [id])
+  team                   Team?                @relation(fields: [team_id], references: [id])
+  location               Location?            @relation(fields: [location_id], references: [id])
+  manager                Person?              @relation("PersonManager", fields: [manager_person_id], references: [id])
+  direct_reports         Person[]             @relation("PersonManager")
+  leave_balances         LeaveBalance[]
+  alternative_contacts   AlternativeContact[]
+  availability_records   AvailabilityRecord[]
+  approved_records       AvailabilityRecord[] @relation("ApprovedBy")
+  xero_match_sources     XeroPersonMatch[]    @relation("XeroMatchSource")
+  xero_match_candidates  XeroPersonMatch[]    @relation("XeroMatchCandidate")
+  xero_match_resolutions XeroPersonMatch[]    @relation("XeroMatchResolution")
+  notifications          Notification[]
 
   @@unique([organisation_id, source_system, source_person_key])
   @@unique([organisation_id, clerk_user_id])
@@ -404,16 +430,30 @@ model AlternativeContact {
 }
 
 model XeroConnection {
-  id                      String    @id @default(uuid()) @db.Uuid
+  id                      String                 @id @default(uuid()) @db.Uuid
   clerk_org_id            String
-  organisation_id         String    @unique @db.Uuid
-  access_token_encrypted  String
-  refresh_token_encrypted String
+  organisation_id         String                 @unique @db.Uuid
+  status                  xero_connection_status @default(pending)
+  access_token_encrypted  String                 @default("")
+  access_token_iv         String?
+  access_token_auth_tag   String?
+  refresh_token_encrypted String                 @default("")
+  refresh_token_iv        String?
+  refresh_token_auth_tag  String?
+  token_key_version       Int                    @default(1)
+  token_encrypted_at      DateTime?
   expires_at              DateTime
   last_refreshed_at       DateTime?
+  last_connected_at       DateTime?
+  last_disconnected_at    DateTime?
+  last_error_code         String?
+  last_error_message      String?
+  stale_since             DateTime?
   revoked_at              DateTime?
-  created_at              DateTime  @default(now())
-  updated_at              DateTime  @updatedAt
+  disconnected_at         DateTime?
+  disconnected_by_user_id String?
+  created_at              DateTime               @default(now())
+  updated_at              DateTime               @updatedAt
 
   organisation Organisation @relation(fields: [organisation_id], references: [id])
   xero_tenant  XeroTenant?
@@ -423,16 +463,26 @@ model XeroConnection {
 }
 
 model XeroTenant {
-  id                 String         @id @default(uuid()) @db.Uuid
-  clerk_org_id       String
-  organisation_id    String         @db.Uuid
-  xero_connection_id String         @unique @db.Uuid
-  xero_tenant_id     String
-  tenant_name        String?
-  payroll_region     payroll_region
-  sync_paused_at     DateTime?
-  created_at         DateTime       @default(now())
-  updated_at         DateTime       @updatedAt
+  id                                String         @id @default(uuid()) @db.Uuid
+  clerk_org_id                      String
+  organisation_id                   String         @db.Uuid
+  xero_connection_id                String         @unique @db.Uuid
+  xero_tenant_id                    String
+  tenant_name                       String?
+  payroll_region                    payroll_region
+  sync_paused_at                    DateTime?
+  last_people_sync_at               DateTime?
+  last_leave_records_sync_at        DateTime?
+  last_leave_balances_sync_at       DateTime?
+  last_approval_state_reconciled_at DateTime?
+  people_stale_since                DateTime?
+  leave_records_stale_since         DateTime?
+  leave_balances_stale_since        DateTime?
+  approval_state_stale_since        DateTime?
+  last_sync_error_code              String?
+  last_sync_error_message           String?
+  created_at                        DateTime       @default(now())
+  updated_at                        DateTime       @updatedAt
 
   organisation    Organisation     @relation(fields: [organisation_id], references: [id])
   xero_connection XeroConnection   @relation(fields: [xero_connection_id], references: [id])
@@ -444,6 +494,38 @@ model XeroTenant {
   @@index([organisation_id])
   @@index([xero_tenant_id])
   @@map("xero_tenants")
+}
+
+model XeroOAuthSession {
+  id                      String                    @id @default(uuid()) @db.Uuid
+  clerk_org_id            String
+  organisation_id         String?                   @db.Uuid
+  created_by_user_id      String?
+  status                  xero_oauth_session_status @default(pending)
+  return_to               String
+  access_token_encrypted  String                    @default("")
+  access_token_iv         String?
+  access_token_auth_tag   String?
+  refresh_token_encrypted String                    @default("")
+  refresh_token_iv        String?
+  refresh_token_auth_tag  String?
+  token_key_version       Int                       @default(1)
+  token_encrypted_at      DateTime?
+  token_expires_at        DateTime
+  available_tenants_json  Json
+  selected_tenant_id      String?
+  selected_tenant_name    String?
+  selected_payroll_region payroll_region?
+  expires_at              DateTime
+  created_at              DateTime                  @default(now())
+  updated_at              DateTime                  @updatedAt
+
+  organisation Organisation? @relation(fields: [organisation_id], references: [id])
+
+  @@index([clerk_org_id])
+  @@index([organisation_id])
+  @@index([status, expires_at])
+  @@map("xero_oauth_sessions")
 }
 
 model XeroSyncCursor {
@@ -571,6 +653,36 @@ model LeaveBalance {
   @@index([person_id])
   @@index([xero_tenant_id])
   @@map("leave_balances")
+}
+
+model XeroPersonMatch {
+  id                     String                   @id @default(uuid()) @db.Uuid
+  clerk_org_id           String
+  organisation_id        String                   @db.Uuid
+  xero_person_id         String                   @db.Uuid
+  candidate_person_id    String?                  @db.Uuid
+  detected_reason        String
+  status                 xero_person_match_status @default(pending)
+  resolution_note        String?
+  resolved_person_id     String?                  @db.Uuid
+  resolved_clerk_user_id String?
+  resolved_by_user_id    String?
+  resolved_at            DateTime?
+  created_at             DateTime                 @default(now())
+  updated_at             DateTime                 @updatedAt
+
+  organisation     Organisation @relation(fields: [organisation_id], references: [id])
+  xero_person      Person       @relation("XeroMatchSource", fields: [xero_person_id], references: [id])
+  candidate_person Person?      @relation("XeroMatchCandidate", fields: [candidate_person_id], references: [id])
+  resolved_person  Person?      @relation("XeroMatchResolution", fields: [resolved_person_id], references: [id])
+
+  @@unique([xero_person_id, candidate_person_id], map: "xero_person_matches_source_candidate_key")
+  @@index([clerk_org_id])
+  @@index([organisation_id])
+  @@index([xero_person_id])
+  @@index([candidate_person_id])
+  @@index([status, created_at])
+  @@map("xero_person_matches")
 }
 
 model PublicHolidayJurisdiction {

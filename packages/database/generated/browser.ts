@@ -58,6 +58,11 @@ export type XeroConnection = Prisma.XeroConnectionModel
  */
 export type XeroTenant = Prisma.XeroTenantModel
 /**
+ * Model XeroOAuthSession
+ * 
+ */
+export type XeroOAuthSession = Prisma.XeroOAuthSessionModel
+/**
  * Model XeroSyncCursor
  * 
  */
@@ -77,6 +82,11 @@ export type AvailabilityPublication = Prisma.AvailabilityPublicationModel
  * 
  */
 export type LeaveBalance = Prisma.LeaveBalanceModel
+/**
+ * Model XeroPersonMatch
+ * 
+ */
+export type XeroPersonMatch = Prisma.XeroPersonMatchModel
 /**
  * Model PublicHolidayJurisdiction
  * 

@@ -1,4 +1,5 @@
 import { keys } from "../../keys";
+import { decryptXeroToken } from "../crypto/tokens";
 import {
   type FetchLeaveApplicationStatusInput,
   mapLeaveApplicationStatus,
@@ -14,7 +15,13 @@ export async function fetchLeaveApplicationStatus(
   input: FetchLeaveApplicationStatusInput
 ): Promise<XeroWriteResult<XeroLeaveApplicationStatusResult>> {
   const accessToken = input.xeroTenant.xero_connection.access_token_encrypted;
-  if (!accessToken || input.xeroTenant.xero_connection.revoked_at) {
+  const decryptedAccessToken = decryptXeroToken({
+    authTag: input.xeroTenant.xero_connection.access_token_auth_tag ?? null,
+    encrypted: accessToken,
+    iv: input.xeroTenant.xero_connection.access_token_iv ?? null,
+  });
+
+  if (!decryptedAccessToken || input.xeroTenant.xero_connection.revoked_at) {
     return {
       ok: false,
       error: {
@@ -32,7 +39,7 @@ export async function fetchLeaveApplicationStatus(
       {
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${decryptedAccessToken}`,
           "Xero-Tenant-Id": input.xeroTenant.xero_tenant_id,
         },
         method: "GET",

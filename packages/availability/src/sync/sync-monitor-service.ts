@@ -729,11 +729,19 @@ function auditBase(input: BaseInput, actingUserId: string) {
 
 function connectionStatus(connection: {
   access_token_encrypted: string;
+  disconnected_at?: Date | null;
   expires_at: Date;
   last_refreshed_at: Date | null;
+  status?: string;
   refresh_token_encrypted: string;
   revoked_at: Date | null;
 }): TenantSummary["connectionStatus"] {
+  if (connection.status === "disconnected" || connection.disconnected_at) {
+    return "not_configured";
+  }
+  if (connection.status === "stale") {
+    return "expired";
+  }
   if (connection.revoked_at) {
     return "revoked";
   }

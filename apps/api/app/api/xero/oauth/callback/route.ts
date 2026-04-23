@@ -18,5 +18,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: result.error.message }, { status: 400 });
   }
 
-  return NextResponse.redirect(new URL(result.value.returnTo, request.url));
+  const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? request.url;
+  return NextResponse.redirect(new URL(result.value.redirectTo, appBaseUrl));
 }

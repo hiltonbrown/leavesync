@@ -596,9 +596,12 @@ function loadXeroTenant(context: ReconcileApprovalStateInput) {
     include: {
       xero_connection: {
         select: {
+          access_token_auth_tag: true,
           access_token_encrypted: true,
+          access_token_iv: true,
           expires_at: true,
           last_refreshed_at: true,
+          status: true,
           revoked_at: true,
         },
       },
@@ -615,9 +618,12 @@ function connectionActive(connection: {
   access_token_encrypted: string;
   expires_at: Date;
   last_refreshed_at: Date | null;
+  status?: string;
   revoked_at: Date | null;
 }) {
   return (
+    connection.status !== "stale" &&
+    connection.status !== "disconnected" &&
     connection.revoked_at === null &&
     connection.access_token_encrypted.length > 0 &&
     connection.expires_at.getTime() > Date.now()

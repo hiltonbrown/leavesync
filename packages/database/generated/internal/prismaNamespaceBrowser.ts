@@ -59,10 +59,12 @@ export const ModelName = {
   AlternativeContact: 'AlternativeContact',
   XeroConnection: 'XeroConnection',
   XeroTenant: 'XeroTenant',
+  XeroOAuthSession: 'XeroOAuthSession',
   XeroSyncCursor: 'XeroSyncCursor',
   AvailabilityRecord: 'AvailabilityRecord',
   AvailabilityPublication: 'AvailabilityPublication',
   LeaveBalance: 'LeaveBalance',
+  XeroPersonMatch: 'XeroPersonMatch',
   PublicHolidayJurisdiction: 'PublicHolidayJurisdiction',
   PublicHoliday: 'PublicHoliday',
   PublicHolidayAssignment: 'PublicHolidayAssignment',
@@ -217,11 +219,25 @@ export const XeroConnectionScalarFieldEnum = {
   id: 'id',
   clerk_org_id: 'clerk_org_id',
   organisation_id: 'organisation_id',
+  status: 'status',
   access_token_encrypted: 'access_token_encrypted',
+  access_token_iv: 'access_token_iv',
+  access_token_auth_tag: 'access_token_auth_tag',
   refresh_token_encrypted: 'refresh_token_encrypted',
+  refresh_token_iv: 'refresh_token_iv',
+  refresh_token_auth_tag: 'refresh_token_auth_tag',
+  token_key_version: 'token_key_version',
+  token_encrypted_at: 'token_encrypted_at',
   expires_at: 'expires_at',
   last_refreshed_at: 'last_refreshed_at',
+  last_connected_at: 'last_connected_at',
+  last_disconnected_at: 'last_disconnected_at',
+  last_error_code: 'last_error_code',
+  last_error_message: 'last_error_message',
+  stale_since: 'stale_since',
   revoked_at: 'revoked_at',
+  disconnected_at: 'disconnected_at',
+  disconnected_by_user_id: 'disconnected_by_user_id',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
@@ -238,11 +254,49 @@ export const XeroTenantScalarFieldEnum = {
   tenant_name: 'tenant_name',
   payroll_region: 'payroll_region',
   sync_paused_at: 'sync_paused_at',
+  last_people_sync_at: 'last_people_sync_at',
+  last_leave_records_sync_at: 'last_leave_records_sync_at',
+  last_leave_balances_sync_at: 'last_leave_balances_sync_at',
+  last_approval_state_reconciled_at: 'last_approval_state_reconciled_at',
+  people_stale_since: 'people_stale_since',
+  leave_records_stale_since: 'leave_records_stale_since',
+  leave_balances_stale_since: 'leave_balances_stale_since',
+  approval_state_stale_since: 'approval_state_stale_since',
+  last_sync_error_code: 'last_sync_error_code',
+  last_sync_error_message: 'last_sync_error_message',
   created_at: 'created_at',
   updated_at: 'updated_at'
 } as const
 
 export type XeroTenantScalarFieldEnum = (typeof XeroTenantScalarFieldEnum)[keyof typeof XeroTenantScalarFieldEnum]
+
+
+export const XeroOAuthSessionScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  created_by_user_id: 'created_by_user_id',
+  status: 'status',
+  return_to: 'return_to',
+  access_token_encrypted: 'access_token_encrypted',
+  access_token_iv: 'access_token_iv',
+  access_token_auth_tag: 'access_token_auth_tag',
+  refresh_token_encrypted: 'refresh_token_encrypted',
+  refresh_token_iv: 'refresh_token_iv',
+  refresh_token_auth_tag: 'refresh_token_auth_tag',
+  token_key_version: 'token_key_version',
+  token_encrypted_at: 'token_encrypted_at',
+  token_expires_at: 'token_expires_at',
+  available_tenants_json: 'available_tenants_json',
+  selected_tenant_id: 'selected_tenant_id',
+  selected_tenant_name: 'selected_tenant_name',
+  selected_payroll_region: 'selected_payroll_region',
+  expires_at: 'expires_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type XeroOAuthSessionScalarFieldEnum = (typeof XeroOAuthSessionScalarFieldEnum)[keyof typeof XeroOAuthSessionScalarFieldEnum]
 
 
 export const XeroSyncCursorScalarFieldEnum = {
@@ -339,6 +393,26 @@ export const LeaveBalanceScalarFieldEnum = {
 } as const
 
 export type LeaveBalanceScalarFieldEnum = (typeof LeaveBalanceScalarFieldEnum)[keyof typeof LeaveBalanceScalarFieldEnum]
+
+
+export const XeroPersonMatchScalarFieldEnum = {
+  id: 'id',
+  clerk_org_id: 'clerk_org_id',
+  organisation_id: 'organisation_id',
+  xero_person_id: 'xero_person_id',
+  candidate_person_id: 'candidate_person_id',
+  detected_reason: 'detected_reason',
+  status: 'status',
+  resolution_note: 'resolution_note',
+  resolved_person_id: 'resolved_person_id',
+  resolved_clerk_user_id: 'resolved_clerk_user_id',
+  resolved_by_user_id: 'resolved_by_user_id',
+  resolved_at: 'resolved_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type XeroPersonMatchScalarFieldEnum = (typeof XeroPersonMatchScalarFieldEnum)[keyof typeof XeroPersonMatchScalarFieldEnum]
 
 
 export const PublicHolidayJurisdictionScalarFieldEnum = {
@@ -624,6 +698,13 @@ export const SortOrder = {
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const NullableJsonNullValueInput = {

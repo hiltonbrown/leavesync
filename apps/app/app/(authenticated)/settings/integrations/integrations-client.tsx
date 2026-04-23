@@ -1,7 +1,7 @@
 "use client";
 
-import type { TenantSummary } from "@repo/availability";
 import type {
+  Organisation,
   XeroConnection,
   XeroTenant,
 } from "@repo/database/generated/client";
@@ -17,41 +17,50 @@ import Link from "next/link";
 import { ProviderStatusBadge } from "../components/provider-status-badge";
 import { SettingsSectionHeader } from "../components/settings-section-header";
 
+type OrganisationWithXero = Organisation & {
+  xero_connection: (XeroConnection & { xero_tenant: XeroTenant | null }) | null;
+};
+
 interface IntegrationsClientProps {
-  summary: null | TenantSummary;
-  xeroConnection: (XeroConnection & { xero_tenant: XeroTenant | null }) | null;
+  organisations: OrganisationWithXero[];
 }
 
 export const IntegrationsClient = ({
-  summary,
-  xeroConnection,
+  organisations,
 }: IntegrationsClientProps) => {
-  let status: "connected" | "disconnected" | "expired" | "revoked";
-  if (summary) {
-    if (summary.connectionStatus === "active") {
-      status = "connected";
-    } else if (summary.connectionStatus === "not_configured") {
-      status = "disconnected";
-    } else {
-      status = summary.connectionStatus;
-    }
-  } else if (xeroConnection) {
-    status = "revoked";
+  const totals = organisations.reduce(
+    (accumulator, organisation) => {
+      const status = statusForConnection(organisation.xero_connection);
+      accumulator.total += 1;
+      if (status === "connected") {
+        accumulator.connected += 1;
+      } else if (status === "expired" || status === "error") {
+        accumulator.stale += 1;
+      } else {
+        accumulator.disconnected += 1;
+      }
+      return accumulator;
+    },
+    { connected: 0, disconnected: 0, stale: 0, total: 0 }
+  );
+
+  let rolledUpStatus: "connected" | "disconnected" | "error" | "expired";
+  if (totals.connected > 0 && totals.stale === 0) {
+    rolledUpStatus = "connected";
+  } else if (totals.stale > 0) {
+    rolledUpStatus = "error";
+  } else if (totals.connected > 0) {
+    rolledUpStatus = "expired";
   } else {
-    status = "disconnected";
+    rolledUpStatus = "disconnected";
   }
 
   return (
     <div className="space-y-6">
       <SettingsSectionHeader
-        description="Connect external services to extend LeaveSync."
+        description="Xero is shared at the Clerk Organisation level and attached per payroll organisation."
         title="Integrations"
       />
-
-      <div className="rounded-2xl bg-muted/40 p-4 text-sm">
-        LeaveSync works without any integrations. Connect Xero to enable leave
-        submission for approval and automatic balance sync.
-      </div>
 
       <Card className="rounded-2xl">
         <CardHeader>
@@ -59,58 +68,81 @@ export const IntegrationsClient = ({
             <div>
               <CardTitle>Xero Payroll</CardTitle>
               <CardDescription>
-                Real connection state for this organisation.
+                One shared integration overview for every payroll organisation
+                in this Clerk Organisation.
               </CardDescription>
             </div>
-            <ProviderStatusBadge status={status} />
+            <ProviderStatusBadge status={rolledUpStatus} />
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {summary && (
-            <div className="grid gap-3 md:grid-cols-3">
-              <Stat
-                label="Last sync"
-                value={
-                  summary.lastRun?.completedAt?.toLocaleString("en-AU") ??
-                  "Not run yet"
-                }
-              />
-              <Stat
-                label="Synced people"
-                value={String(summary.lastRun?.recordsUpserted ?? 0)}
-              />
-              <Stat
-                label="Pending failed records"
-                value={String(summary.pendingFailedRecords)}
-              />
-            </div>
-          )}
-          {xeroConnection?.xero_tenant && (
-            <div className="rounded-xl bg-muted/40 p-3 text-sm">
-              Tenant:{" "}
-              {xeroConnection.xero_tenant.tenant_name ??
-                xeroConnection.xero_tenant.xero_tenant_id}
-            </div>
-          )}
+          <div className="grid gap-3 md:grid-cols-4">
+            <Stat label="Payroll organisations" value={String(totals.total)} />
+            <Stat label="Connected" value={String(totals.connected)} />
+            <Stat label="Stale or error" value={String(totals.stale)} />
+            <Stat label="Not connected" value={String(totals.disconnected)} />
+          </div>
+          <div className="space-y-2 rounded-2xl bg-muted/30 p-4 text-sm">
+            {organisations.map((organisation) => {
+              const status = statusForConnection(organisation.xero_connection);
+              const tenantName =
+                organisation.xero_connection?.xero_tenant?.tenant_name ??
+                "Not connected";
+
+              return (
+                <div
+                  className="flex flex-wrap items-center justify-between gap-3"
+                  key={organisation.id}
+                >
+                  <div>
+                    <p className="font-medium">{organisation.name}</p>
+                    <p className="text-muted-foreground">
+                      {tenantName}
+                      {organisation.xero_connection?.xero_tenant?.payroll_region
+                        ? ` · ${organisation.xero_connection.xero_tenant.payroll_region}`
+                        : ""}
+                    </p>
+                  </div>
+                  <ProviderStatusBadge status={status} />
+                </div>
+              );
+            })}
+          </div>
           <Button asChild>
-            <Link href="/settings/integrations/xero">
-              {xeroConnection ? "Manage" : "Connect"}
-            </Link>
+            <Link href="/settings/integrations/xero">Manage Xero</Link>
           </Button>
         </CardContent>
       </Card>
-
-      {["MYOB", "QuickBooks", "Slack", "Microsoft Teams"].map((name) => (
-        <Card className="rounded-2xl opacity-70" key={name}>
-          <CardHeader>
-            <CardTitle>{name}</CardTitle>
-            <CardDescription>Coming soon.</CardDescription>
-          </CardHeader>
-        </Card>
-      ))}
     </div>
   );
 };
+
+function statusForConnection(
+  connection: (XeroConnection & { xero_tenant: XeroTenant | null }) | null
+): "connected" | "disconnected" | "error" | "expired" | "revoked" {
+  if (!connection) {
+    return "disconnected";
+  }
+  if (connection.revoked_at) {
+    return "revoked";
+  }
+  if (connection.status === "stale") {
+    return "expired";
+  }
+  if (connection.status === "disconnected" || connection.disconnected_at) {
+    return "disconnected";
+  }
+  if (
+    connection.status === "pending" ||
+    connection.status === "pending_tenant_selection"
+  ) {
+    return "error";
+  }
+  if (connection.expires_at.getTime() <= Date.now()) {
+    return "expired";
+  }
+  return "connected";
+}
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (

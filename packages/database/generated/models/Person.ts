@@ -367,6 +367,9 @@ export type PersonWhereInput = {
   alternative_contacts?: Prisma.AlternativeContactListRelationFilter
   availability_records?: Prisma.AvailabilityRecordListRelationFilter
   approved_records?: Prisma.AvailabilityRecordListRelationFilter
+  xero_match_sources?: Prisma.XeroPersonMatchListRelationFilter
+  xero_match_candidates?: Prisma.XeroPersonMatchListRelationFilter
+  xero_match_resolutions?: Prisma.XeroPersonMatchListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
 }
 
@@ -407,6 +410,9 @@ export type PersonOrderByWithRelationInput = {
   alternative_contacts?: Prisma.AlternativeContactOrderByRelationAggregateInput
   availability_records?: Prisma.AvailabilityRecordOrderByRelationAggregateInput
   approved_records?: Prisma.AvailabilityRecordOrderByRelationAggregateInput
+  xero_match_sources?: Prisma.XeroPersonMatchOrderByRelationAggregateInput
+  xero_match_candidates?: Prisma.XeroPersonMatchOrderByRelationAggregateInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchOrderByRelationAggregateInput
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
 }
 
@@ -453,6 +459,9 @@ export type PersonWhereUniqueInput = Prisma.AtLeast<{
   alternative_contacts?: Prisma.AlternativeContactListRelationFilter
   availability_records?: Prisma.AvailabilityRecordListRelationFilter
   approved_records?: Prisma.AvailabilityRecordListRelationFilter
+  xero_match_sources?: Prisma.XeroPersonMatchListRelationFilter
+  xero_match_candidates?: Prisma.XeroPersonMatchListRelationFilter
+  xero_match_resolutions?: Prisma.XeroPersonMatchListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
 }, "id" | "organisation_id_source_system_source_person_key" | "organisation_id_clerk_user_id" | "organisation_id_xero_employee_id">
 
@@ -555,6 +564,9 @@ export type PersonCreateInput = {
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -591,6 +603,9 @@ export type PersonUncheckedCreateInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -627,6 +642,9 @@ export type PersonUpdateInput = {
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -663,6 +681,9 @@ export type PersonUncheckedUpdateInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -1136,6 +1157,52 @@ export type PersonUpdateOneRequiredWithoutLeave_balancesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.PersonUpdateToOneWithWhereWithoutLeave_balancesInput, Prisma.PersonUpdateWithoutLeave_balancesInput>, Prisma.PersonUncheckedUpdateWithoutLeave_balancesInput>
 }
 
+export type PersonCreateNestedOneWithoutXero_match_sourcesInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutXero_match_sourcesInput, Prisma.PersonUncheckedCreateWithoutXero_match_sourcesInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutXero_match_sourcesInput
+  connect?: Prisma.PersonWhereUniqueInput
+}
+
+export type PersonCreateNestedOneWithoutXero_match_candidatesInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutXero_match_candidatesInput, Prisma.PersonUncheckedCreateWithoutXero_match_candidatesInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutXero_match_candidatesInput
+  connect?: Prisma.PersonWhereUniqueInput
+}
+
+export type PersonCreateNestedOneWithoutXero_match_resolutionsInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutXero_match_resolutionsInput, Prisma.PersonUncheckedCreateWithoutXero_match_resolutionsInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutXero_match_resolutionsInput
+  connect?: Prisma.PersonWhereUniqueInput
+}
+
+export type PersonUpdateOneRequiredWithoutXero_match_sourcesNestedInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutXero_match_sourcesInput, Prisma.PersonUncheckedCreateWithoutXero_match_sourcesInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutXero_match_sourcesInput
+  upsert?: Prisma.PersonUpsertWithoutXero_match_sourcesInput
+  connect?: Prisma.PersonWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PersonUpdateToOneWithWhereWithoutXero_match_sourcesInput, Prisma.PersonUpdateWithoutXero_match_sourcesInput>, Prisma.PersonUncheckedUpdateWithoutXero_match_sourcesInput>
+}
+
+export type PersonUpdateOneWithoutXero_match_candidatesNestedInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutXero_match_candidatesInput, Prisma.PersonUncheckedCreateWithoutXero_match_candidatesInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutXero_match_candidatesInput
+  upsert?: Prisma.PersonUpsertWithoutXero_match_candidatesInput
+  disconnect?: Prisma.PersonWhereInput | boolean
+  delete?: Prisma.PersonWhereInput | boolean
+  connect?: Prisma.PersonWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PersonUpdateToOneWithWhereWithoutXero_match_candidatesInput, Prisma.PersonUpdateWithoutXero_match_candidatesInput>, Prisma.PersonUncheckedUpdateWithoutXero_match_candidatesInput>
+}
+
+export type PersonUpdateOneWithoutXero_match_resolutionsNestedInput = {
+  create?: Prisma.XOR<Prisma.PersonCreateWithoutXero_match_resolutionsInput, Prisma.PersonUncheckedCreateWithoutXero_match_resolutionsInput>
+  connectOrCreate?: Prisma.PersonCreateOrConnectWithoutXero_match_resolutionsInput
+  upsert?: Prisma.PersonUpsertWithoutXero_match_resolutionsInput
+  disconnect?: Prisma.PersonWhereInput | boolean
+  delete?: Prisma.PersonWhereInput | boolean
+  connect?: Prisma.PersonWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PersonUpdateToOneWithWhereWithoutXero_match_resolutionsInput, Prisma.PersonUpdateWithoutXero_match_resolutionsInput>, Prisma.PersonUncheckedUpdateWithoutXero_match_resolutionsInput>
+}
+
 export type PersonCreateNestedOneWithoutNotificationsInput = {
   create?: Prisma.XOR<Prisma.PersonCreateWithoutNotificationsInput, Prisma.PersonUncheckedCreateWithoutNotificationsInput>
   connectOrCreate?: Prisma.PersonCreateOrConnectWithoutNotificationsInput
@@ -1184,6 +1251,9 @@ export type PersonCreateWithoutOrganisationInput = {
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -1219,6 +1289,9 @@ export type PersonUncheckedCreateWithoutOrganisationInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -1313,6 +1386,9 @@ export type PersonCreateWithoutTeamInput = {
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -1348,6 +1424,9 @@ export type PersonUncheckedCreateWithoutTeamInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -1409,6 +1488,9 @@ export type PersonCreateWithoutLocationInput = {
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -1444,6 +1526,9 @@ export type PersonUncheckedCreateWithoutLocationInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -1505,6 +1590,9 @@ export type PersonCreateWithoutDirect_reportsInput = {
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -1540,6 +1628,9 @@ export type PersonUncheckedCreateWithoutDirect_reportsInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -1580,6 +1671,9 @@ export type PersonCreateWithoutManagerInput = {
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -1615,6 +1709,9 @@ export type PersonUncheckedCreateWithoutManagerInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -1671,6 +1768,9 @@ export type PersonUpdateWithoutDirect_reportsInput = {
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -1706,6 +1806,9 @@ export type PersonUncheckedUpdateWithoutDirect_reportsInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -1757,6 +1860,9 @@ export type PersonCreateWithoutAlternative_contactsInput = {
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -1792,6 +1898,9 @@ export type PersonUncheckedCreateWithoutAlternative_contactsInput = {
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -1843,6 +1952,9 @@ export type PersonUpdateWithoutAlternative_contactsInput = {
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -1878,6 +1990,9 @@ export type PersonUncheckedUpdateWithoutAlternative_contactsInput = {
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -1913,6 +2028,9 @@ export type PersonCreateWithoutAvailability_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -1948,6 +2066,9 @@ export type PersonUncheckedCreateWithoutAvailability_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -1988,6 +2109,9 @@ export type PersonCreateWithoutApproved_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
+  xero_match_sources?: Prisma.XeroPersonMatchCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -2023,6 +2147,9 @@ export type PersonUncheckedCreateWithoutApproved_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -2074,6 +2201,9 @@ export type PersonUpdateWithoutAvailability_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -2109,6 +2239,9 @@ export type PersonUncheckedUpdateWithoutAvailability_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -2155,6 +2288,9 @@ export type PersonUpdateWithoutApproved_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -2190,6 +2326,9 @@ export type PersonUncheckedUpdateWithoutApproved_recordsInput = {
   leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -2225,6 +2364,9 @@ export type PersonCreateWithoutLeave_balancesInput = {
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -2260,6 +2402,9 @@ export type PersonUncheckedCreateWithoutLeave_balancesInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutResolved_personInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
 }
 
@@ -2311,6 +2456,9 @@ export type PersonUpdateWithoutLeave_balancesInput = {
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -2346,6 +2494,513 @@ export type PersonUncheckedUpdateWithoutLeave_balancesInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutResolved_personNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
+}
+
+export type PersonCreateWithoutXero_match_sourcesInput = {
+  id?: string
+  clerk_org_id: string
+  person_type?: $Enums.person_type | null
+  source_system: $Enums.source_system
+  source_person_key?: string | null
+  first_name: string
+  last_name: string
+  email: string
+  xero_employee_id?: string | null
+  employment_type: $Enums.employment_type
+  is_active?: boolean
+  display_name?: string | null
+  clerk_user_id?: string | null
+  job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
+  default_contactability?: $Enums.availability_contactability
+  default_privacy_mode?: $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: boolean
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  organisation: Prisma.OrganisationCreateNestedOneWithoutPeopleInput
+  team?: Prisma.TeamCreateNestedOneWithoutPeopleInput
+  location?: Prisma.LocationCreateNestedOneWithoutPeopleInput
+  manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
+  direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
+  leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
+  availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  xero_match_candidates?: Prisma.XeroPersonMatchCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchCreateNestedManyWithoutResolved_personInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
+}
+
+export type PersonUncheckedCreateWithoutXero_match_sourcesInput = {
+  id?: string
+  clerk_org_id: string
+  organisation_id: string
+  team_id?: string | null
+  manager_person_id?: string | null
+  location_id?: string | null
+  person_type?: $Enums.person_type | null
+  source_system: $Enums.source_system
+  source_person_key?: string | null
+  first_name: string
+  last_name: string
+  email: string
+  xero_employee_id?: string | null
+  employment_type: $Enums.employment_type
+  is_active?: boolean
+  display_name?: string | null
+  clerk_user_id?: string | null
+  job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
+  default_contactability?: $Enums.availability_contactability
+  default_privacy_mode?: $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: boolean
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutResolved_personInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
+}
+
+export type PersonCreateOrConnectWithoutXero_match_sourcesInput = {
+  where: Prisma.PersonWhereUniqueInput
+  create: Prisma.XOR<Prisma.PersonCreateWithoutXero_match_sourcesInput, Prisma.PersonUncheckedCreateWithoutXero_match_sourcesInput>
+}
+
+export type PersonCreateWithoutXero_match_candidatesInput = {
+  id?: string
+  clerk_org_id: string
+  person_type?: $Enums.person_type | null
+  source_system: $Enums.source_system
+  source_person_key?: string | null
+  first_name: string
+  last_name: string
+  email: string
+  xero_employee_id?: string | null
+  employment_type: $Enums.employment_type
+  is_active?: boolean
+  display_name?: string | null
+  clerk_user_id?: string | null
+  job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
+  default_contactability?: $Enums.availability_contactability
+  default_privacy_mode?: $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: boolean
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  organisation: Prisma.OrganisationCreateNestedOneWithoutPeopleInput
+  team?: Prisma.TeamCreateNestedOneWithoutPeopleInput
+  location?: Prisma.LocationCreateNestedOneWithoutPeopleInput
+  manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
+  direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
+  leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
+  availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchCreateNestedManyWithoutXero_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchCreateNestedManyWithoutResolved_personInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
+}
+
+export type PersonUncheckedCreateWithoutXero_match_candidatesInput = {
+  id?: string
+  clerk_org_id: string
+  organisation_id: string
+  team_id?: string | null
+  manager_person_id?: string | null
+  location_id?: string | null
+  person_type?: $Enums.person_type | null
+  source_system: $Enums.source_system
+  source_person_key?: string | null
+  first_name: string
+  last_name: string
+  email: string
+  xero_employee_id?: string | null
+  employment_type: $Enums.employment_type
+  is_active?: boolean
+  display_name?: string | null
+  clerk_user_id?: string | null
+  job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
+  default_contactability?: $Enums.availability_contactability
+  default_privacy_mode?: $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: boolean
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutXero_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutResolved_personInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
+}
+
+export type PersonCreateOrConnectWithoutXero_match_candidatesInput = {
+  where: Prisma.PersonWhereUniqueInput
+  create: Prisma.XOR<Prisma.PersonCreateWithoutXero_match_candidatesInput, Prisma.PersonUncheckedCreateWithoutXero_match_candidatesInput>
+}
+
+export type PersonCreateWithoutXero_match_resolutionsInput = {
+  id?: string
+  clerk_org_id: string
+  person_type?: $Enums.person_type | null
+  source_system: $Enums.source_system
+  source_person_key?: string | null
+  first_name: string
+  last_name: string
+  email: string
+  xero_employee_id?: string | null
+  employment_type: $Enums.employment_type
+  is_active?: boolean
+  display_name?: string | null
+  clerk_user_id?: string | null
+  job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
+  default_contactability?: $Enums.availability_contactability
+  default_privacy_mode?: $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: boolean
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  organisation: Prisma.OrganisationCreateNestedOneWithoutPeopleInput
+  team?: Prisma.TeamCreateNestedOneWithoutPeopleInput
+  location?: Prisma.LocationCreateNestedOneWithoutPeopleInput
+  manager?: Prisma.PersonCreateNestedOneWithoutDirect_reportsInput
+  direct_reports?: Prisma.PersonCreateNestedManyWithoutManagerInput
+  leave_balances?: Prisma.LeaveBalanceCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
+  availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchCreateNestedManyWithoutCandidate_personInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutRecipient_personInput
+}
+
+export type PersonUncheckedCreateWithoutXero_match_resolutionsInput = {
+  id?: string
+  clerk_org_id: string
+  organisation_id: string
+  team_id?: string | null
+  manager_person_id?: string | null
+  location_id?: string | null
+  person_type?: $Enums.person_type | null
+  source_system: $Enums.source_system
+  source_person_key?: string | null
+  first_name: string
+  last_name: string
+  email: string
+  xero_employee_id?: string | null
+  employment_type: $Enums.employment_type
+  is_active?: boolean
+  display_name?: string | null
+  clerk_user_id?: string | null
+  job_title?: string | null
+  start_date?: Date | string | null
+  avatar_url?: string | null
+  status_note?: string | null
+  default_contactability?: $Enums.availability_contactability
+  default_privacy_mode?: $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: boolean
+  archived_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  direct_reports?: Prisma.PersonUncheckedCreateNestedManyWithoutManagerInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedCreateNestedManyWithoutPersonInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutCandidate_personInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutRecipient_personInput
+}
+
+export type PersonCreateOrConnectWithoutXero_match_resolutionsInput = {
+  where: Prisma.PersonWhereUniqueInput
+  create: Prisma.XOR<Prisma.PersonCreateWithoutXero_match_resolutionsInput, Prisma.PersonUncheckedCreateWithoutXero_match_resolutionsInput>
+}
+
+export type PersonUpsertWithoutXero_match_sourcesInput = {
+  update: Prisma.XOR<Prisma.PersonUpdateWithoutXero_match_sourcesInput, Prisma.PersonUncheckedUpdateWithoutXero_match_sourcesInput>
+  create: Prisma.XOR<Prisma.PersonCreateWithoutXero_match_sourcesInput, Prisma.PersonUncheckedCreateWithoutXero_match_sourcesInput>
+  where?: Prisma.PersonWhereInput
+}
+
+export type PersonUpdateToOneWithWhereWithoutXero_match_sourcesInput = {
+  where?: Prisma.PersonWhereInput
+  data: Prisma.XOR<Prisma.PersonUpdateWithoutXero_match_sourcesInput, Prisma.PersonUncheckedUpdateWithoutXero_match_sourcesInput>
+}
+
+export type PersonUpdateWithoutXero_match_sourcesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
+  source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
+  source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
+  default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organisation?: Prisma.OrganisationUpdateOneRequiredWithoutPeopleNestedInput
+  team?: Prisma.TeamUpdateOneWithoutPeopleNestedInput
+  location?: Prisma.LocationUpdateOneWithoutPeopleNestedInput
+  manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
+  direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
+  leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
+  availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUpdateManyWithoutResolved_personNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
+}
+
+export type PersonUncheckedUpdateWithoutXero_match_sourcesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  team_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_person_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
+  source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
+  source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
+  default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutResolved_personNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
+}
+
+export type PersonUpsertWithoutXero_match_candidatesInput = {
+  update: Prisma.XOR<Prisma.PersonUpdateWithoutXero_match_candidatesInput, Prisma.PersonUncheckedUpdateWithoutXero_match_candidatesInput>
+  create: Prisma.XOR<Prisma.PersonCreateWithoutXero_match_candidatesInput, Prisma.PersonUncheckedCreateWithoutXero_match_candidatesInput>
+  where?: Prisma.PersonWhereInput
+}
+
+export type PersonUpdateToOneWithWhereWithoutXero_match_candidatesInput = {
+  where?: Prisma.PersonWhereInput
+  data: Prisma.XOR<Prisma.PersonUpdateWithoutXero_match_candidatesInput, Prisma.PersonUncheckedUpdateWithoutXero_match_candidatesInput>
+}
+
+export type PersonUpdateWithoutXero_match_candidatesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
+  source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
+  source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
+  default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organisation?: Prisma.OrganisationUpdateOneRequiredWithoutPeopleNestedInput
+  team?: Prisma.TeamUpdateOneWithoutPeopleNestedInput
+  location?: Prisma.LocationUpdateOneWithoutPeopleNestedInput
+  manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
+  direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
+  leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
+  availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUpdateManyWithoutXero_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUpdateManyWithoutResolved_personNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
+}
+
+export type PersonUncheckedUpdateWithoutXero_match_candidatesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  team_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_person_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
+  source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
+  source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
+  default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutXero_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutResolved_personNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
+}
+
+export type PersonUpsertWithoutXero_match_resolutionsInput = {
+  update: Prisma.XOR<Prisma.PersonUpdateWithoutXero_match_resolutionsInput, Prisma.PersonUncheckedUpdateWithoutXero_match_resolutionsInput>
+  create: Prisma.XOR<Prisma.PersonCreateWithoutXero_match_resolutionsInput, Prisma.PersonUncheckedCreateWithoutXero_match_resolutionsInput>
+  where?: Prisma.PersonWhereInput
+}
+
+export type PersonUpdateToOneWithWhereWithoutXero_match_resolutionsInput = {
+  where?: Prisma.PersonWhereInput
+  data: Prisma.XOR<Prisma.PersonUpdateWithoutXero_match_resolutionsInput, Prisma.PersonUncheckedUpdateWithoutXero_match_resolutionsInput>
+}
+
+export type PersonUpdateWithoutXero_match_resolutionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
+  source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
+  source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
+  default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organisation?: Prisma.OrganisationUpdateOneRequiredWithoutPeopleNestedInput
+  team?: Prisma.TeamUpdateOneWithoutPeopleNestedInput
+  location?: Prisma.LocationUpdateOneWithoutPeopleNestedInput
+  manager?: Prisma.PersonUpdateOneWithoutDirect_reportsNestedInput
+  direct_reports?: Prisma.PersonUpdateManyWithoutManagerNestedInput
+  leave_balances?: Prisma.LeaveBalanceUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
+  availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUpdateManyWithoutCandidate_personNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
+}
+
+export type PersonUncheckedUpdateWithoutXero_match_resolutionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clerk_org_id?: Prisma.StringFieldUpdateOperationsInput | string
+  organisation_id?: Prisma.StringFieldUpdateOperationsInput | string
+  team_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_person_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  person_type?: Prisma.NullableEnumperson_typeFieldUpdateOperationsInput | $Enums.person_type | null
+  source_system?: Prisma.Enumsource_systemFieldUpdateOperationsInput | $Enums.source_system
+  source_person_key?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  first_name?: Prisma.StringFieldUpdateOperationsInput | string
+  last_name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  xero_employee_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employment_type?: Prisma.Enumemployment_typeFieldUpdateOperationsInput | $Enums.employment_type
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clerk_user_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  job_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  start_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  default_contactability?: Prisma.Enumavailability_contactabilityFieldUpdateOperationsInput | $Enums.availability_contactability
+  default_privacy_mode?: Prisma.Enumavailability_privacy_modeFieldUpdateOperationsInput | $Enums.availability_privacy_mode
+  include_in_feeds_by_default?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archived_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  direct_reports?: Prisma.PersonUncheckedUpdateManyWithoutManagerNestedInput
+  leave_balances?: Prisma.LeaveBalanceUncheckedUpdateManyWithoutPersonNestedInput
+  alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
+  availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
+  approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutCandidate_personNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -2382,6 +3037,9 @@ export type PersonCreateWithoutNotificationsInput = {
   alternative_contacts?: Prisma.AlternativeContactCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchCreateNestedManyWithoutResolved_personInput
 }
 
 export type PersonUncheckedCreateWithoutNotificationsInput = {
@@ -2417,6 +3075,9 @@ export type PersonUncheckedCreateWithoutNotificationsInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedCreateNestedManyWithoutPersonInput
   availability_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutPersonInput
   approved_records?: Prisma.AvailabilityRecordUncheckedCreateNestedManyWithoutApproved_byInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutXero_personInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutCandidate_personInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedCreateNestedManyWithoutResolved_personInput
 }
 
 export type PersonCreateOrConnectWithoutNotificationsInput = {
@@ -2468,6 +3129,9 @@ export type PersonUpdateWithoutNotificationsInput = {
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUpdateManyWithoutResolved_personNestedInput
 }
 
 export type PersonUncheckedUpdateWithoutNotificationsInput = {
@@ -2503,6 +3167,9 @@ export type PersonUncheckedUpdateWithoutNotificationsInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutResolved_personNestedInput
 }
 
 export type PersonCreateManyOrganisationInput = {
@@ -2566,6 +3233,9 @@ export type PersonUpdateWithoutOrganisationInput = {
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -2601,6 +3271,9 @@ export type PersonUncheckedUpdateWithoutOrganisationInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -2694,6 +3367,9 @@ export type PersonUpdateWithoutTeamInput = {
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -2729,6 +3405,9 @@ export type PersonUncheckedUpdateWithoutTeamInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -2822,6 +3501,9 @@ export type PersonUpdateWithoutLocationInput = {
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -2857,6 +3539,9 @@ export type PersonUncheckedUpdateWithoutLocationInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -2950,6 +3635,9 @@ export type PersonUpdateWithoutManagerInput = {
   alternative_contacts?: Prisma.AlternativeContactUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -2985,6 +3673,9 @@ export type PersonUncheckedUpdateWithoutManagerInput = {
   alternative_contacts?: Prisma.AlternativeContactUncheckedUpdateManyWithoutPersonNestedInput
   availability_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutPersonNestedInput
   approved_records?: Prisma.AvailabilityRecordUncheckedUpdateManyWithoutApproved_byNestedInput
+  xero_match_sources?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutXero_personNestedInput
+  xero_match_candidates?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutCandidate_personNestedInput
+  xero_match_resolutions?: Prisma.XeroPersonMatchUncheckedUpdateManyWithoutResolved_personNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutRecipient_personNestedInput
 }
 
@@ -3028,6 +3719,9 @@ export type PersonCountOutputType = {
   alternative_contacts: number
   availability_records: number
   approved_records: number
+  xero_match_sources: number
+  xero_match_candidates: number
+  xero_match_resolutions: number
   notifications: number
 }
 
@@ -3037,6 +3731,9 @@ export type PersonCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   alternative_contacts?: boolean | PersonCountOutputTypeCountAlternative_contactsArgs
   availability_records?: boolean | PersonCountOutputTypeCountAvailability_recordsArgs
   approved_records?: boolean | PersonCountOutputTypeCountApproved_recordsArgs
+  xero_match_sources?: boolean | PersonCountOutputTypeCountXero_match_sourcesArgs
+  xero_match_candidates?: boolean | PersonCountOutputTypeCountXero_match_candidatesArgs
+  xero_match_resolutions?: boolean | PersonCountOutputTypeCountXero_match_resolutionsArgs
   notifications?: boolean | PersonCountOutputTypeCountNotificationsArgs
 }
 
@@ -3088,6 +3785,27 @@ export type PersonCountOutputTypeCountApproved_recordsArgs<ExtArgs extends runti
 /**
  * PersonCountOutputType without action
  */
+export type PersonCountOutputTypeCountXero_match_sourcesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.XeroPersonMatchWhereInput
+}
+
+/**
+ * PersonCountOutputType without action
+ */
+export type PersonCountOutputTypeCountXero_match_candidatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.XeroPersonMatchWhereInput
+}
+
+/**
+ * PersonCountOutputType without action
+ */
+export type PersonCountOutputTypeCountXero_match_resolutionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.XeroPersonMatchWhereInput
+}
+
+/**
+ * PersonCountOutputType without action
+ */
 export type PersonCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.NotificationWhereInput
 }
@@ -3130,6 +3848,9 @@ export type PersonSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   alternative_contacts?: boolean | Prisma.Person$alternative_contactsArgs<ExtArgs>
   availability_records?: boolean | Prisma.Person$availability_recordsArgs<ExtArgs>
   approved_records?: boolean | Prisma.Person$approved_recordsArgs<ExtArgs>
+  xero_match_sources?: boolean | Prisma.Person$xero_match_sourcesArgs<ExtArgs>
+  xero_match_candidates?: boolean | Prisma.Person$xero_match_candidatesArgs<ExtArgs>
+  xero_match_resolutions?: boolean | Prisma.Person$xero_match_resolutionsArgs<ExtArgs>
   notifications?: boolean | Prisma.Person$notificationsArgs<ExtArgs>
   _count?: boolean | Prisma.PersonCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["person"]>
@@ -3243,6 +3964,9 @@ export type PersonInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   alternative_contacts?: boolean | Prisma.Person$alternative_contactsArgs<ExtArgs>
   availability_records?: boolean | Prisma.Person$availability_recordsArgs<ExtArgs>
   approved_records?: boolean | Prisma.Person$approved_recordsArgs<ExtArgs>
+  xero_match_sources?: boolean | Prisma.Person$xero_match_sourcesArgs<ExtArgs>
+  xero_match_candidates?: boolean | Prisma.Person$xero_match_candidatesArgs<ExtArgs>
+  xero_match_resolutions?: boolean | Prisma.Person$xero_match_resolutionsArgs<ExtArgs>
   notifications?: boolean | Prisma.Person$notificationsArgs<ExtArgs>
   _count?: boolean | Prisma.PersonCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -3271,6 +3995,9 @@ export type $PersonPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     alternative_contacts: Prisma.$AlternativeContactPayload<ExtArgs>[]
     availability_records: Prisma.$AvailabilityRecordPayload<ExtArgs>[]
     approved_records: Prisma.$AvailabilityRecordPayload<ExtArgs>[]
+    xero_match_sources: Prisma.$XeroPersonMatchPayload<ExtArgs>[]
+    xero_match_candidates: Prisma.$XeroPersonMatchPayload<ExtArgs>[]
+    xero_match_resolutions: Prisma.$XeroPersonMatchPayload<ExtArgs>[]
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -3704,6 +4431,9 @@ export interface Prisma__PersonClient<T, Null = never, ExtArgs extends runtime.T
   alternative_contacts<T extends Prisma.Person$alternative_contactsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$alternative_contactsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AlternativeContactPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   availability_records<T extends Prisma.Person$availability_recordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$availability_recordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AvailabilityRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   approved_records<T extends Prisma.Person$approved_recordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$approved_recordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AvailabilityRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  xero_match_sources<T extends Prisma.Person$xero_match_sourcesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$xero_match_sourcesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroPersonMatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  xero_match_candidates<T extends Prisma.Person$xero_match_candidatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$xero_match_candidatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroPersonMatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  xero_match_resolutions<T extends Prisma.Person$xero_match_resolutionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$xero_match_resolutionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroPersonMatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.Person$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Person$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -4336,6 +5066,78 @@ export type Person$approved_recordsArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.AvailabilityRecordScalarFieldEnum | Prisma.AvailabilityRecordScalarFieldEnum[]
+}
+
+/**
+ * Person.xero_match_sources
+ */
+export type Person$xero_match_sourcesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the XeroPersonMatch
+   */
+  select?: Prisma.XeroPersonMatchSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the XeroPersonMatch
+   */
+  omit?: Prisma.XeroPersonMatchOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.XeroPersonMatchInclude<ExtArgs> | null
+  where?: Prisma.XeroPersonMatchWhereInput
+  orderBy?: Prisma.XeroPersonMatchOrderByWithRelationInput | Prisma.XeroPersonMatchOrderByWithRelationInput[]
+  cursor?: Prisma.XeroPersonMatchWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.XeroPersonMatchScalarFieldEnum | Prisma.XeroPersonMatchScalarFieldEnum[]
+}
+
+/**
+ * Person.xero_match_candidates
+ */
+export type Person$xero_match_candidatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the XeroPersonMatch
+   */
+  select?: Prisma.XeroPersonMatchSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the XeroPersonMatch
+   */
+  omit?: Prisma.XeroPersonMatchOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.XeroPersonMatchInclude<ExtArgs> | null
+  where?: Prisma.XeroPersonMatchWhereInput
+  orderBy?: Prisma.XeroPersonMatchOrderByWithRelationInput | Prisma.XeroPersonMatchOrderByWithRelationInput[]
+  cursor?: Prisma.XeroPersonMatchWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.XeroPersonMatchScalarFieldEnum | Prisma.XeroPersonMatchScalarFieldEnum[]
+}
+
+/**
+ * Person.xero_match_resolutions
+ */
+export type Person$xero_match_resolutionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the XeroPersonMatch
+   */
+  select?: Prisma.XeroPersonMatchSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the XeroPersonMatch
+   */
+  omit?: Prisma.XeroPersonMatchOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.XeroPersonMatchInclude<ExtArgs> | null
+  where?: Prisma.XeroPersonMatchWhereInput
+  orderBy?: Prisma.XeroPersonMatchOrderByWithRelationInput | Prisma.XeroPersonMatchOrderByWithRelationInput[]
+  cursor?: Prisma.XeroPersonMatchWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.XeroPersonMatchScalarFieldEnum | Prisma.XeroPersonMatchScalarFieldEnum[]
 }
 
 /**
