@@ -1,9 +1,11 @@
 import type { Dictionary } from "@repo/internationalization";
-import { User } from "lucide-react";
+import { CalendarDays, RefreshCw, Rss, UserCheck } from "lucide-react";
 
 interface FeaturesProps {
   dictionary: Dictionary;
 }
+
+const icons = [RefreshCw, UserCheck, CalendarDays, Rss];
 
 export const Features = ({ dictionary }: FeaturesProps) => (
   <div className="w-full py-20 lg:py-40">
@@ -11,60 +13,40 @@ export const Features = ({ dictionary }: FeaturesProps) => (
       <div className="flex flex-col gap-10">
         <div className="flex flex-col items-start gap-4">
           <div className="flex flex-col gap-2">
-            <h2 className="max-w-xl text-left font-regular text-3xl tracking-tighter md:text-5xl">
+            <h2 className="max-w-xl text-left font-semibold text-3xl tracking-tight md:text-5xl">
               {dictionary.web.home.features.title}
             </h2>
-            <p className="max-w-xl text-left text-lg text-muted-foreground leading-relaxed tracking-tight lg:max-w-lg">
+            <p className="max-w-xl text-left text-lg text-muted-foreground leading-relaxed lg:max-w-lg">
               {dictionary.web.home.features.description}
             </p>
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="flex aspect-square h-full flex-col justify-between rounded-md bg-muted p-6 lg:col-span-2 lg:aspect-auto">
-            <User className="h-8 w-8 stroke-1" />
-            <div className="flex flex-col">
-              <h3 className="text-xl tracking-tight">
-                {dictionary.web.home.features.items[0].title}
-              </h3>
-              <p className="max-w-xs text-base text-muted-foreground">
-                {dictionary.web.home.features.items[0].description}
-              </p>
-            </div>
-          </div>
-          <div className="flex aspect-square flex-col justify-between rounded-md bg-muted p-6">
-            <User className="h-8 w-8 stroke-1" />
-            <div className="flex flex-col">
-              <h3 className="text-xl tracking-tight">
-                {dictionary.web.home.features.items[1].title}
-              </h3>
-              <p className="max-w-xs text-base text-muted-foreground">
-                {dictionary.web.home.features.items[1].description}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex aspect-square flex-col justify-between rounded-md bg-muted p-6">
-            <User className="h-8 w-8 stroke-1" />
-            <div className="flex flex-col">
-              <h3 className="text-xl tracking-tight">
-                {dictionary.web.home.features.items[2].title}
-              </h3>
-              <p className="max-w-xs text-base text-muted-foreground">
-                {dictionary.web.home.features.items[2].description}
-              </p>
-            </div>
-          </div>
-          <div className="flex aspect-square h-full flex-col justify-between rounded-md bg-muted p-6 lg:col-span-2 lg:aspect-auto">
-            <User className="h-8 w-8 stroke-1" />
-            <div className="flex flex-col">
-              <h3 className="text-xl tracking-tight">
-                {dictionary.web.home.features.items[3].title}
-              </h3>
-              <p className="max-w-xs text-base text-muted-foreground">
-                {dictionary.web.home.features.items[3].description}
-              </p>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {dictionary.web.home.features.items.map((item, index) => {
+            const Icon = icons[index % icons.length];
+            return (
+              <div
+                className={[
+                  "flex flex-col justify-between gap-8 rounded-2xl bg-muted p-6",
+                  index === 0 ? "lg:col-span-2" : "",
+                  index === 3 ? "lg:col-span-2" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                key={item.title}
+              >
+                <Icon className="h-7 w-7 text-primary" strokeWidth={1.5} />
+                <div className="flex flex-col gap-2">
+                  <h3 className="font-medium text-lg tracking-tight">
+                    {item.title}
+                  </h3>
+                  <p className="max-w-sm text-base text-muted-foreground leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
