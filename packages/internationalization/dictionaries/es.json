@@ -11,6 +11,11 @@
         "description": "Gestionar un pequeño negocio hoy en día ya es difícil.",
         "pricing": "Precios"
       },
+      "features": "Funciones",
+      "xero": "Xero",
+      "pricing": "Precios",
+      "security": "Seguridad",
+      "changelog": "Cambios",
       "blog": "Blog",
       "docs": "Documentos",
       "contact": "Contacto",

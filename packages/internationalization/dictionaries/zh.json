@@ -11,6 +11,11 @@
         "description": "今天管理一家小企业已经很困难。",
         "pricing": "定价"
       },
+      "features": "功能",
+      "xero": "Xero",
+      "pricing": "定价",
+      "security": "安全",
+      "changelog": "更新日志",
       "blog": "博客",
       "docs": "文档",
       "contact": "联系",

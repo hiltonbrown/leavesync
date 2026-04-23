@@ -11,6 +11,11 @@
         "description": "Die Verwaltung eines kleinen Unternehmens ist heute bereits schwierig.",
         "pricing": "Preise"
       },
+      "features": "Funktionen",
+      "xero": "Xero",
+      "pricing": "Preise",
+      "security": "Sicherheit",
+      "changelog": "Änderungen",
       "blog": "Blog",
       "docs": "Dokumente",
       "contact": "Kontakt",
