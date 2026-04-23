@@ -1,0 +1,57 @@
+---
+title: ICS feeds explained
+description: What an ICS calendar feed is, how LeaveSync generates them, and how to subscribe in Outlook, Google Calendar, and Apple Calendar.
+date: 2026-02-20
+author: LeaveSync Team
+---
+
+## What is an ICS feed?
+
+An ICS feed (also called a calendar subscription or iCalendar feed) is a URL that calendar applications can subscribe to. When the data behind the URL changes, the calendar app fetches a fresh copy and updates the events it shows.
+
+The format is standardised in [RFC 5545](https://datatracker.ietf.org/doc/html/rfc5545). Every major calendar application supports it: Outlook, Google Calendar, Apple Calendar, and many others.
+
+## How LeaveSync generates feeds
+
+LeaveSync generates one ICS feed per person. The feed contains that person's:
+
+- Approved leave synced from Xero Payroll
+- Manual availability entries (WFH, travelling, training, client site)
+- Events filtered by the privacy rules configured by the administrator
+
+Feeds are generated at request time and cached. When leave is approved, declined, or cancelled, the cache is invalidated and the feed is regenerated on the next request.
+
+## Stable event UIDs
+
+Each event in the feed has a stable, deterministic UID. This ensures that when leave is updated (for example, dates are changed), the calendar app updates the existing event rather than creating a duplicate.
+
+UIDs are generated from a combination of the person ID, the availability record ID, and the feed ID. They are consistent across cache invalidations and token regenerations.
+
+## Secure token URLs
+
+Feed URLs are not guessable. Each URL contains a signed token that is specific to the person and the feed configuration. If a URL is shared outside the intended audience, the token can be revoked and regenerated. Existing calendar subscriptions using the old URL will stop receiving updates.
+
+Tokens are never stored in plaintext. Only a cryptographic hash is persisted.
+
+## Subscribing in your calendar app
+
+### Outlook (desktop or web)
+
+1. Open Calendar.
+2. Select **Add calendar** and then **Subscribe from web**.
+3. Paste the ICS feed URL and select **Import**.
+
+### Google Calendar
+
+1. Open [calendar.google.com](https://calendar.google.com).
+2. Click the **+** next to **Other calendars** and select **From URL**.
+3. Paste the ICS feed URL and click **Add calendar**.
+
+Note: Google Calendar refreshes subscribed calendars every 12 to 24 hours.
+
+### Apple Calendar
+
+1. Open Calendar on Mac.
+2. Go to **File** and select **New Calendar Subscription**.
+3. Paste the ICS feed URL and click **Subscribe**.
+4. Configure the refresh interval (every hour is recommended).
