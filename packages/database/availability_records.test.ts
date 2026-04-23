@@ -1,8 +1,9 @@
 // biome-ignore-all lint/style/useFilenamingConvention: The requested test file is availability_records.test.ts.
 import { config } from "dotenv";
-import { afterAll, beforeEach, describe, expect, test } from "vitest";
+import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 config({ path: new URL("./.env", import.meta.url).pathname });
+vi.mock("server-only", () => ({}));
 
 const {
   availability_approval_status,
@@ -132,24 +133,29 @@ const createAvailabilityRecord = async ({
   });
 
 const cleanTestData = async () => {
-  await database.availabilityPublication.deleteMany({
-    where: { clerk_org_id: { in: [...testClerkOrgIds] } },
-  });
-  await database.availabilityRecord.deleteMany({
-    where: { clerk_org_id: { in: [...testClerkOrgIds] } },
-  });
-  await database.person.deleteMany({
-    where: { clerk_org_id: { in: [...testClerkOrgIds] } },
-  });
-  await database.location.deleteMany({
-    where: { clerk_org_id: { in: [...testClerkOrgIds] } },
-  });
-  await database.team.deleteMany({
-    where: { clerk_org_id: { in: [...testClerkOrgIds] } },
-  });
-  await database.organisation.deleteMany({
-    where: { clerk_org_id: { in: [...testClerkOrgIds] } },
-  });
+  const scope = { clerk_org_id: { in: [...testClerkOrgIds] } };
+  await database.failedRecord.deleteMany({ where: scope });
+  await database.availabilityPublication.deleteMany({ where: scope });
+  await database.auditEvent.deleteMany({ where: scope });
+  await database.availabilityRecord.deleteMany({ where: scope });
+  await database.leaveBalance.deleteMany({ where: scope });
+  await database.alternativeContact.deleteMany({ where: scope });
+  await database.notification.deleteMany({ where: scope });
+  await database.notificationPreference.deleteMany({ where: scope });
+  await database.xeroSyncCursor.deleteMany({ where: scope });
+  await database.syncRun.deleteMany({ where: scope });
+  await database.xeroTenant.deleteMany({ where: scope });
+  await database.xeroConnection.deleteMany({ where: scope });
+  await database.publicHolidayAssignment.deleteMany({ where: scope });
+  await database.publicHoliday.deleteMany({ where: scope });
+  await database.publicHolidayJurisdiction.deleteMany({ where: scope });
+  await database.feedToken.deleteMany({ where: scope });
+  await database.feedScope.deleteMany({ where: scope });
+  await database.feed.deleteMany({ where: scope });
+  await database.person.deleteMany({ where: scope });
+  await database.location.deleteMany({ where: scope });
+  await database.team.deleteMany({ where: scope });
+  await database.organisation.deleteMany({ where: scope });
 };
 
 const expectPrismaErrorCode = async (

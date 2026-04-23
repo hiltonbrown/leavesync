@@ -25,27 +25,29 @@ const tenantB = {
 const testClerkOrgIds = [tenantA.clerkOrgId, tenantB.clerkOrgId];
 
 const cleanTestData = async () => {
-  await database.publicHolidayAssignment.deleteMany({
-    where: { clerk_org_id: { in: testClerkOrgIds } },
-  });
-  await database.publicHoliday.deleteMany({
-    where: { clerk_org_id: { in: testClerkOrgIds } },
-  });
-  await database.publicHolidayJurisdiction.deleteMany({
-    where: { clerk_org_id: { in: testClerkOrgIds } },
-  });
-  await database.feedToken.deleteMany({
-    where: { clerk_org_id: { in: testClerkOrgIds } },
-  });
-  await database.feedScope.deleteMany({
-    where: { clerk_org_id: { in: testClerkOrgIds } },
-  });
-  await database.feed.deleteMany({
-    where: { clerk_org_id: { in: testClerkOrgIds } },
-  });
-  await database.organisation.deleteMany({
-    where: { clerk_org_id: { in: testClerkOrgIds } },
-  });
+  const scope = { clerk_org_id: { in: testClerkOrgIds } };
+  await database.failedRecord.deleteMany({ where: scope });
+  await database.availabilityPublication.deleteMany({ where: scope });
+  await database.auditEvent.deleteMany({ where: scope });
+  await database.availabilityRecord.deleteMany({ where: scope });
+  await database.leaveBalance.deleteMany({ where: scope });
+  await database.alternativeContact.deleteMany({ where: scope });
+  await database.notification.deleteMany({ where: scope });
+  await database.notificationPreference.deleteMany({ where: scope });
+  await database.xeroSyncCursor.deleteMany({ where: scope });
+  await database.syncRun.deleteMany({ where: scope });
+  await database.xeroTenant.deleteMany({ where: scope });
+  await database.xeroConnection.deleteMany({ where: scope });
+  await database.publicHolidayAssignment.deleteMany({ where: scope });
+  await database.publicHoliday.deleteMany({ where: scope });
+  await database.publicHolidayJurisdiction.deleteMany({ where: scope });
+  await database.feedToken.deleteMany({ where: scope });
+  await database.feedScope.deleteMany({ where: scope });
+  await database.feed.deleteMany({ where: scope });
+  await database.person.deleteMany({ where: scope });
+  await database.location.deleteMany({ where: scope });
+  await database.team.deleteMany({ where: scope });
+  await database.organisation.deleteMany({ where: scope });
 };
 
 const createTenant = async () => {
