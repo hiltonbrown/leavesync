@@ -1,13 +1,10 @@
-import { blog } from "@repo/cms";
-import { Feed } from "@repo/cms/components/feed";
-import { Image } from "@repo/cms/components/image";
-import { cn } from "@repo/design-system/lib/utils";
 import { getDictionary } from "@repo/internationalization";
 import type { Blog, WithContext } from "@repo/seo/json-ld";
 import { JsonLd } from "@repo/seo/json-ld";
 import { createMetadata } from "@repo/seo/metadata";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getAllPosts } from "@/src/lib/blog";
 
 interface BlogProps {
   params: Promise<{
@@ -27,6 +24,7 @@ export const generateMetadata = async ({
 const BlogIndex = async ({ params }: BlogProps) => {
   const { locale } = await params;
   const dictionary = await getDictionary(locale);
+  const posts = await getAllPosts();
 
   const jsonLd: WithContext<Blog> = {
     "@type": "Blog",
@@ -38,57 +36,75 @@ const BlogIndex = async ({ params }: BlogProps) => {
       <JsonLd code={jsonLd} />
       <div className="w-full py-20 lg:py-40">
         <div className="container mx-auto flex flex-col gap-14">
-          <div className="flex w-full flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
-            <h4 className="max-w-xl font-regular text-3xl tracking-tighter md:text-5xl">
+          <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <h1 className="max-w-xl font-semibold text-3xl tracking-tight md:text-5xl">
               {dictionary.web.blog.meta.title}
-            </h4>
+            </h1>
+            <p className="text-muted-foreground text-base">
+              {dictionary.web.blog.meta.description}
+            </p>
           </div>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            <Feed queries={[blog.postsQuery]}>
-              {async ([data]) => {
-                "use server";
 
-                if (!data.blog.posts.items.length) {
-                  return null;
-                }
-
-                return data.blog.posts.items.map((post, index) => (
-                  <Link
-                    className={cn(
-                      "flex cursor-pointer flex-col gap-4 hover:opacity-75",
-                      !index && "md:col-span-2"
-                    )}
-                    href={`/blog/${post._slug}`}
-                    key={post._slug}
-                  >
-                    <Image
-                      alt={post.image.alt ?? ""}
-                      height={post.image.height}
-                      src={post.image.url}
-                      width={post.image.width}
-                    />
-                    <div className="flex flex-row items-center gap-4">
-                      <p className="text-muted-foreground text-sm">
-                        {new Date(post.date).toLocaleDateString("en-US", {
-                          month: "long",
+          {posts.length === 0 ? (
+            <div className="flex flex-col gap-3 rounded-2xl bg-muted p-8">
+              <p className="font-medium text-base">No posts yet</p>
+              <p className="text-muted-foreground text-sm">
+                Check back soon for updates, guides, and articles from the
+                LeaveSync team.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+              {posts.map((post, index) => (
+                <Link
+                  className={[
+                    "flex cursor-pointer flex-col gap-4 rounded-2xl bg-muted p-6 hover:bg-muted/80 transition-colors",
+                    index === 0 ? "md:col-span-2" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  href={`/blog/${post.slug}`}
+                  key={post.slug}
+                >
+                  <div className="flex items-center gap-3">
+                    <time
+                      className="text-muted-foreground text-sm"
+                      dateTime={post.frontmatter.date}
+                    >
+                      {new Date(post.frontmatter.date).toLocaleDateString(
+                        "en-AU",
+                        {
                           day: "numeric",
+                          month: "long",
                           year: "numeric",
-                        })}
-                      </p>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <h3 className="max-w-3xl text-4xl tracking-tight">
-                        {post._title}
-                      </h3>
-                      <p className="max-w-3xl text-base text-muted-foreground">
-                        {post.description}
-                      </p>
-                    </div>
-                  </Link>
-                ));
-              }}
-            </Feed>
-          </div>
+                        }
+                      )}
+                    </time>
+                    {post.frontmatter.author && (
+                      <>
+                        <span className="text-muted-foreground text-sm">
+                          &middot;
+                        </span>
+                        <span className="text-muted-foreground text-sm">
+                          {post.frontmatter.author}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <h2
+                      className={`font-semibold tracking-tight ${index === 0 ? "text-3xl" : "text-xl"}`}
+                    >
+                      {post.frontmatter.title}
+                    </h2>
+                    <p className="text-base text-muted-foreground leading-relaxed">
+                      {post.frontmatter.description}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </>
