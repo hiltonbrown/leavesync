@@ -33,7 +33,7 @@ export const CTA = ({ dictionary }: CTAProps) => (
             className="gap-4 border-white/30 text-white hover:bg-white/10"
             variant="outline"
           >
-            <Link href={env.NEXT_PUBLIC_APP_URL}>
+            <Link href={env.NEXT_PUBLIC_APP_URL ?? "/"}>
               {dictionary.web.global.secondaryCta}{" "}
               <MoveRight className="h-4 w-4" />
             </Link>
