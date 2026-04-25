@@ -25,7 +25,7 @@ export const Stats = ({ dictionary }: StatsProps) => (
                 className="flex flex-col justify-between gap-4 rounded-2xl bg-muted p-6"
                 key={item.title}
               >
-                <h2 className="font-semibold text-5xl tracking-tight text-primary">
+                <h2 className="font-semibold text-5xl text-primary tracking-tight">
                   {item.type === "currency" && "$"}
                   {new Intl.NumberFormat().format(
                     Number.parseFloat(item.metric)

@@ -13,7 +13,12 @@ export const Hero = ({ dictionary }: HeroProps) => (
     <div className="container mx-auto">
       <div className="flex flex-col items-center justify-center gap-8 py-20 lg:py-40">
         <div>
-          <Button asChild className="gap-4 rounded-full" size="sm" variant="secondary">
+          <Button
+            asChild
+            className="gap-4 rounded-full"
+            size="sm"
+            variant="secondary"
+          >
             <Link href="/integrations/xero">
               {dictionary.web.home.hero.announcement}
               <MoveRight className="h-4 w-4" />

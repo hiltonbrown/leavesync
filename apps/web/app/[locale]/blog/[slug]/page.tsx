@@ -45,7 +45,7 @@ const BlogPost = async ({ params }: BlogPostProperties) => {
   return (
     <div className="container mx-auto py-16">
       <Link
-        className="mb-8 inline-flex items-center gap-2 text-muted-foreground text-sm hover:text-foreground transition-colors focus:underline focus:outline-none"
+        className="mb-8 inline-flex items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground focus:underline focus:outline-none"
         href="/blog"
       >
         <ArrowLeftIcon className="h-4 w-4" />

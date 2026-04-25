@@ -1,7 +1,7 @@
 import { Button } from "@repo/design-system/components/ui/button";
 import { createMetadata } from "@repo/seo/metadata";
-import type { Metadata } from "next";
 import { Mail } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = createMetadata({
@@ -77,7 +77,7 @@ const Pricing = () => (
               <h2 className="font-semibold text-2xl tracking-tight">
                 Register your interest
               </h2>
-              <p className="text-muted-foreground text-base leading-relaxed">
+              <p className="text-base text-muted-foreground leading-relaxed">
                 We will notify you when pricing is published. In the meantime,
                 you are welcome to connect your Xero account and use LeaveSync
                 during the early access period.

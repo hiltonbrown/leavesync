@@ -1,10 +1,5 @@
 import type { Dictionary } from "@repo/internationalization";
-import {
-  Calendar,
-  Clock,
-  Settings,
-  Users,
-} from "lucide-react";
+import { Calendar, Clock, Settings, Users } from "lucide-react";
 
 interface CasesProps {
   dictionary: Dictionary;
