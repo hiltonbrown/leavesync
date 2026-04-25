@@ -589,24 +589,6 @@
   min-width: 0;
 }
 
-.marketing-week-days span::before {
-  position: absolute;
-  top: 12px;
-  bottom: 12px;
-  left: 0;
-  width: 1px;
-  content: "";
-  background: color-mix(
-    in srgb,
-    var(--marketing-outline-variant) 54%,
-    transparent
-  );
-}
-
-.marketing-week-days span:first-child::before {
-  content: none;
-}
-
 .marketing-week-days span.is-today {
   background: color-mix(
     in srgb,
