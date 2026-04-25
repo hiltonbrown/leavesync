@@ -385,9 +385,7 @@ const WeekGrid = ({ days, weekOf }: { days: WeekDay[]; weekOf: string }) => (
               <Avatar initials={person.initials} tone={person.tone} />
               <div>
                 <p>{person.name}</p>
-                <span>
-                  {person.role} · {person.location}
-                </span>
+                <span>{person.role}</span>
               </div>
             </div>
             <div aria-hidden="true" className="marketing-week-days">
@@ -411,7 +409,6 @@ const WeekGrid = ({ days, weekOf }: { days: WeekDay[]; weekOf: string }) => (
                   >
                     <MarketingSnapshotIcon id={leave.icon} size={14} />
                     <span>{leave.label}</span>
-                    <em>{entry.detail}</em>
                   </div>
                 );
               })}
