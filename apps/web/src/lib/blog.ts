@@ -1,19 +1,19 @@
-import { readFile, readdir } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { bundleMDX } from "mdx-bundler";
 
 const contentDir = path.join(process.cwd(), "src/content/blog");
 
 export interface PostFrontmatter {
-  title: string;
-  description: string;
-  date: string;
   author?: string;
+  date: string;
+  description: string;
+  title: string;
 }
 
 export interface PostMeta {
-  slug: string;
   frontmatter: PostFrontmatter;
+  slug: string;
 }
 
 export interface Post extends PostMeta {
@@ -40,7 +40,9 @@ export async function getAllPosts(): Promise<PostMeta[]> {
         .map(async (file) => {
           const slug = file.replace(".mdx", "");
           const post = await getPost(slug);
-          if (!post) return null;
+          if (!post) {
+            return null;
+          }
           return { slug, frontmatter: post.frontmatter };
         })
     );

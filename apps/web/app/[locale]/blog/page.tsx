@@ -40,7 +40,7 @@ const BlogIndex = async ({ params }: BlogProps) => {
             <h1 className="max-w-xl font-semibold text-3xl tracking-tight md:text-5xl">
               {dictionary.web.blog.meta.title}
             </h1>
-            <p className="text-muted-foreground text-base">
+            <p className="text-base text-muted-foreground">
               {dictionary.web.blog.meta.description}
             </p>
           </div>
@@ -58,7 +58,7 @@ const BlogIndex = async ({ params }: BlogProps) => {
               {posts.map((post, index) => (
                 <Link
                   className={[
-                    "flex cursor-pointer flex-col gap-4 rounded-2xl bg-muted p-6 hover:bg-muted/80 transition-colors",
+                    "flex cursor-pointer flex-col gap-4 rounded-2xl bg-muted p-6 transition-colors hover:bg-muted/80",
                     index === 0 ? "md:col-span-2" : "",
                   ]
                     .filter(Boolean)

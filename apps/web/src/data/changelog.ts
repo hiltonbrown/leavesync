@@ -1,12 +1,12 @@
 export interface ChangelogEntry {
-  version: string;
-  date: string;
-  title: string;
-  description: string;
   changes: {
     type: "feat" | "fix" | "improvement" | "chore";
     text: string;
   }[];
+  date: string;
+  description: string;
+  title: string;
+  version: string;
 }
 
 export const changelog: ChangelogEntry[] = [
@@ -23,8 +23,14 @@ export const changelog: ChangelogEntry[] = [
         text: "Feed preview panel showing exactly what subscribers will see",
       },
       { type: "feat", text: "Token revocation and regeneration for ICS feeds" },
-      { type: "improvement", text: "ICS SEQUENCE field incremented correctly on leave updates" },
-      { type: "fix", text: "Feed cache invalidated reliably when leave status changes" },
+      {
+        type: "improvement",
+        text: "ICS SEQUENCE field incremented correctly on leave updates",
+      },
+      {
+        type: "fix",
+        text: "Feed cache invalidated reliably when leave status changes",
+      },
     ],
   },
   {
@@ -46,7 +52,10 @@ export const changelog: ChangelogEntry[] = [
         type: "feat",
         text: "Employee availability dashboard showing leave and manual entries together",
       },
-      { type: "improvement", text: "Availability record model unified across leave and manual types" },
+      {
+        type: "improvement",
+        text: "Availability record model unified across leave and manual types",
+      },
     ],
   },
   {
@@ -56,12 +65,18 @@ export const changelog: ChangelogEntry[] = [
     description:
       "LeaveSync now publishes per-person ICS feeds. Feeds are secured with a signed token and compatible with Outlook, Google Calendar, and Apple Calendar.",
     changes: [
-      { type: "feat", text: "ICS feed generation using RFC 5545-compliant ical-generator" },
+      {
+        type: "feat",
+        text: "ICS feed generation using RFC 5545-compliant ical-generator",
+      },
       {
         type: "feat",
         text: "Per-person feed URLs with revocable signed tokens",
       },
-      { type: "feat", text: "Feed caching via Vercel KV with cache invalidation on leave change" },
+      {
+        type: "feat",
+        text: "Feed caching via Vercel KV with cache invalidation on leave change",
+      },
       {
         type: "feat",
         text: "Deterministic UID generation ensuring stable event identity across feed refreshes",
@@ -83,14 +98,20 @@ export const changelog: ChangelogEntry[] = [
         type: "feat",
         text: "OAuth connection to Xero Payroll AU, NZ, and UK",
       },
-      { type: "feat", text: "Employee sync from Xero with automatic updates on changes" },
+      {
+        type: "feat",
+        text: "Employee sync from Xero with automatic updates on changes",
+      },
       { type: "feat", text: "Approved leave inbound sync from Xero" },
       {
         type: "feat",
         text: "Leave submission, manager approval, and decline with Xero write-back",
       },
       { type: "feat", text: "Leave balance sync from Xero Payroll" },
-      { type: "feat", text: "Multi-tenant architecture with Clerk Organisation isolation" },
+      {
+        type: "feat",
+        text: "Multi-tenant architecture with Clerk Organisation isolation",
+      },
     ],
   },
 ];

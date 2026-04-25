@@ -1,5 +1,4 @@
 import { createMetadata } from "@repo/seo/metadata";
-import type { Metadata } from "next";
 import {
   Building2,
   Globe,
@@ -9,6 +8,7 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = createMetadata({
   title: "Security",
@@ -101,7 +101,7 @@ const SecurityPage = () => (
                 <Icon className="h-6 w-6 text-primary" strokeWidth={1.5} />
                 <div className="flex flex-col gap-2">
                   <h2 className="font-medium text-xl">{section.title}</h2>
-                  <p className="text-muted-foreground text-base leading-relaxed">
+                  <p className="text-base text-muted-foreground leading-relaxed">
                     {section.description}
                   </p>
                 </div>
@@ -119,12 +119,12 @@ const SecurityPage = () => (
           <h2 className="font-semibold text-3xl tracking-tight">
             Security questions or concerns
           </h2>
-          <p className="text-muted-foreground text-lg leading-relaxed">
+          <p className="text-lg text-muted-foreground leading-relaxed">
             If you have specific security requirements, a compliance obligation
             to assess, or want to report a vulnerability, please contact us
             directly. We take all reports seriously and respond promptly.
           </p>
-          <p className="text-muted-foreground text-base">
+          <p className="text-base text-muted-foreground">
             Contact:{" "}
             <a
               className="text-primary underline underline-offset-4"

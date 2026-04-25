@@ -45,14 +45,14 @@ const ChangelogPage = () => (
           {changelog.map((entry, index) => (
             <div
               className={`flex flex-col gap-8 py-12 lg:flex-row lg:gap-16 ${
-                index < changelog.length - 1 ? "border-b border-border" : ""
+                index < changelog.length - 1 ? "border-border border-b" : ""
               }`}
               key={entry.version}
             >
               {/* Date + version sidebar */}
               <div className="flex shrink-0 flex-col gap-1 lg:w-48">
                 <time
-                  className="font-medium text-sm text-muted-foreground"
+                  className="font-medium text-muted-foreground text-sm"
                   dateTime={entry.date}
                 >
                   {new Date(entry.date).toLocaleDateString("en-AU", {
@@ -78,10 +78,7 @@ const ChangelogPage = () => (
                   {entry.changes.map((change) => {
                     const tag = typeLabels[change.type];
                     return (
-                      <li
-                        className="flex items-start gap-3"
-                        key={change.text}
-                      >
+                      <li className="flex items-start gap-3" key={change.text}>
                         <span
                           className={`shrink-0 rounded-full px-2 py-0.5 font-medium text-xs ${tag.colour}`}
                         >

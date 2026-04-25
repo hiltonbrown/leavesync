@@ -1,5 +1,4 @@
 import { createMetadata } from "@repo/seo/metadata";
-import type { Metadata } from "next";
 import {
   ArrowLeftRight,
   Building2,
@@ -10,6 +9,7 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = createMetadata({
   title: "Xero Integration",
@@ -100,8 +100,7 @@ const XeroPage = () => (
           <p className="text-lg text-muted-foreground leading-relaxed">
             LeaveSync is built exclusively for Xero Payroll. It connects via
             OAuth, syncs leave data continuously, and writes approved leave
-            submissions back to Xero. Xero remains your payroll source of
-            truth.
+            submissions back to Xero. Xero remains your payroll source of truth.
           </p>
         </div>
       </div>
@@ -212,7 +211,7 @@ const XeroPage = () => (
                 className="flex gap-5 rounded-2xl bg-muted p-6"
                 key={step.step}
               >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground text-sm">
                   {step.step}
                 </div>
                 <div className="flex flex-col gap-2">
@@ -281,21 +280,18 @@ const XeroPage = () => (
         <div className="flex flex-col gap-6 rounded-2xl bg-muted p-8 lg:flex-row lg:items-center lg:gap-10 lg:p-12">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-3">
-              <ShieldCheck
-                className="h-6 w-6 text-primary"
-                strokeWidth={1.5}
-              />
+              <ShieldCheck className="h-6 w-6 text-primary" strokeWidth={1.5} />
               <Lock className="h-6 w-6 text-primary" strokeWidth={1.5} />
             </div>
             <h2 className="font-semibold text-2xl tracking-tight">
               Security and token handling
             </h2>
-            <p className="max-w-2xl text-muted-foreground text-base leading-relaxed">
+            <p className="max-w-2xl text-base text-muted-foreground leading-relaxed">
               Xero OAuth tokens are encrypted at rest using industry-standard
-              encryption. Tokens are never exposed to client-side code or
-              stored in plaintext. LeaveSync rotates tokens proactively before
-              expiry. If you revoke access in Xero, the connection is
-              deactivated immediately on the next sync attempt.
+              encryption. Tokens are never exposed to client-side code or stored
+              in plaintext. LeaveSync rotates tokens proactively before expiry.
+              If you revoke access in Xero, the connection is deactivated
+              immediately on the next sync attempt.
             </p>
           </div>
         </div>
