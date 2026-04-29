@@ -255,16 +255,6 @@
   overflow: hidden;
 }
 
-.marketing-hero__vine {
-  position: absolute;
-  top: -40px;
-  right: -60px;
-  z-index: 0;
-  width: min(520px, 60vw);
-  pointer-events: none;
-  opacity: 0.5;
-}
-
 .marketing-hero__grid {
   position: relative;
   z-index: 1;
@@ -302,7 +292,7 @@
   letter-spacing: -0.03em;
 }
 
-.marketing-hero__title span {
+.marketing-hero__title-line--2 {
   color: var(--marketing-primary);
 }
 
@@ -584,6 +574,18 @@
   height: 100%;
 }
 
+.marketing-week-days {
+  position: relative;
+  z-index: 0;
+}
+
+.marketing-week-events {
+  position: relative;
+  z-index: 1;
+  align-items: center;
+  pointer-events: none;
+}
+
 .marketing-week-days span {
   position: relative;
   min-width: 0;
@@ -607,11 +609,6 @@
   background: color-mix(in srgb, var(--marketing-primary) 42%, transparent);
   border-radius: 999px;
   transform: translateX(-50%);
-}
-
-.marketing-week-events {
-  align-items: center;
-  pointer-events: none;
 }
 
 .marketing-event {
@@ -825,6 +822,87 @@
   border-radius: 16px;
 }
 
+.marketing-workflow-section {
+  margin-top: 48px;
+}
+
+.marketing-workflow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  align-items: start;
+  padding: 40px;
+  background: var(--marketing-surface-low);
+  border-radius: 24px;
+}
+
+.marketing-workflow__intro {
+  max-width: none;
+}
+
+.marketing-workflow__intro h2 {
+  margin: 0;
+  font: 600 clamp(2rem, 4vw, 2.5rem) / 1.15 var(--marketing-font);
+  color: var(--marketing-on-surface);
+  letter-spacing: -0.02em;
+}
+
+.marketing-workflow__intro > p:last-child {
+  max-width: 680px;
+  margin: 16px 0 0;
+  font: 400 1rem / 1.6 var(--marketing-font);
+  color: var(--marketing-on-surface-variant);
+}
+
+.marketing-workflow__steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.marketing-workflow__steps li {
+  min-width: 0;
+  padding: 24px;
+  background: var(--marketing-surface-container);
+  border-radius: 16px;
+}
+
+.marketing-workflow__marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 28px;
+  font: 600 0.875rem / 1.4 var(--marketing-font);
+  color: var(--marketing-on-primary-container);
+  background: var(--marketing-primary-container);
+  border-radius: 12px;
+}
+
+.marketing-workflow__steps p {
+  margin: 0 0 10px;
+  font: 500 0.75rem / 1.3 var(--marketing-font);
+  color: var(--marketing-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.marketing-workflow__steps h3 {
+  margin: 0 0 10px;
+  font: 600 1.375rem / 1.35 var(--marketing-font);
+  color: var(--marketing-on-surface);
+}
+
+.marketing-workflow__steps span {
+  display: block;
+  font: 400 0.9375rem / 1.6 var(--marketing-font);
+  color: var(--marketing-on-surface-variant);
+}
+
 .marketing-feature-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1014,6 +1092,7 @@
   .marketing-hero__grid,
   .marketing-showcase-grid,
   .marketing-calendar-card,
+  .marketing-workflow,
   .marketing-pricing-grid,
   .marketing-footer__grid {
     grid-template-columns: 1fr;
@@ -1044,6 +1123,10 @@
 
   .marketing-image-card__media {
     min-height: 360px;
+  }
+
+  .marketing-workflow__intro {
+    max-width: none;
   }
 
   .marketing-footer__bottom {
@@ -1085,6 +1168,7 @@
   .marketing-image-card__copy,
   .marketing-image-card--sage .marketing-image-card__copy,
   .marketing-calendar-card,
+  .marketing-workflow,
   .marketing-price-card,
   .marketing-footer__grid,
   .marketing-footer__bottom {
@@ -1092,38 +1176,511 @@
     padding-left: 24px;
   }
 
+  .marketing-workflow__steps {
+    grid-template-columns: 1fr;
+  }
+
   .marketing-feature-grid {
     grid-template-columns: 1fr;
   }
 }
 
+/* ─── Overdrive: Marketing Motion Layer ─── */
+
+/* Layer 1: Hero entry animations */
+.marketing-hero__title-wrap {
+  display: block;
+  overflow: hidden;
+}
+
+.marketing-hero__title-line {
+  display: block;
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: 0.08s;
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(0.4em);
+  }
+}
+
+.marketing-hero__title-line--2 {
+  transition-delay: 0.18s;
+}
+
+.marketing-pill,
+.marketing-hero__copy,
+.marketing-actions,
+.marketing-portrait-wrap {
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+.marketing-pill {
+  transition-delay: 0s;
+}
+.marketing-hero__copy {
+  transition-delay: 0.28s;
+}
+.marketing-actions {
+  transition-delay: 0.4s;
+}
+.marketing-portrait-wrap {
+  transition-delay: 0.15s;
+}
+
+/* Layer 2: Portrait backdrop gradient drift */
+@property --backdrop-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 135deg;
+}
+
+@keyframes backdrop-shift {
+  0% {
+    --backdrop-angle: 125deg;
+  }
+  100% {
+    --backdrop-angle: 225deg;
+  }
+}
+
+.marketing-portrait-backdrop {
+  background: linear-gradient(var(--backdrop-angle), #c9bef7 0%, #c8e8c8 100%);
+  animation: backdrop-shift 12s ease-in-out infinite alternate;
+}
+
+/* Layer 3: Scroll-driven section reveals */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .marketing-workflow,
+  .marketing-section-intro,
+  .marketing-calendar-card,
+  .marketing-pricing-heading {
+    animation: reveal-up linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 35%;
+  }
+
+  .marketing-workflow__steps li {
+    animation: reveal-up linear both;
+    animation-timeline: view();
+  }
+
+  .marketing-workflow__steps li:nth-child(1) {
+    animation-range: entry 0% entry 35%;
+  }
+  .marketing-workflow__steps li:nth-child(2) {
+    animation-range: entry 8% entry 43%;
+  }
+  .marketing-workflow__steps li:nth-child(3) {
+    animation-range: entry 16% entry 51%;
+  }
+
+  .marketing-feature-grid .marketing-card {
+    animation: reveal-up linear both;
+    animation-timeline: view();
+  }
+
+  .marketing-feature-grid .marketing-card:nth-child(1) {
+    animation-range: entry 0% entry 35%;
+  }
+  .marketing-feature-grid .marketing-card:nth-child(2) {
+    animation-range: entry 5% entry 40%;
+  }
+  .marketing-feature-grid .marketing-card:nth-child(3) {
+    animation-range: entry 10% entry 45%;
+  }
+  .marketing-feature-grid .marketing-card:nth-child(4) {
+    animation-range: entry 15% entry 50%;
+  }
+
+  .marketing-showcase-grid .marketing-image-card:nth-child(1) {
+    animation: reveal-up linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 35%;
+  }
+
+  .marketing-showcase-grid .marketing-image-card:nth-child(2) {
+    animation: reveal-up linear both;
+    animation-timeline: view();
+    animation-range: entry 8% entry 43%;
+  }
+
+  .marketing-pricing-grid .marketing-price-card {
+    animation: reveal-up linear both;
+    animation-timeline: view();
+  }
+
+  .marketing-pricing-grid .marketing-price-card:nth-child(1) {
+    animation-range: entry 0% entry 35%;
+  }
+  .marketing-pricing-grid .marketing-price-card:nth-child(2) {
+    animation-range: entry 5% entry 40%;
+  }
+  .marketing-pricing-grid .marketing-price-card:nth-child(3) {
+    animation-range: entry 10% entry 45%;
+  }
+}
+
+/* Layer 4: Spring-physics CTA hover */
+.marketing-btn {
+  transition:
+    background 160ms cubic-bezier(0.2, 0, 0, 1),
+    color 160ms cubic-bezier(0.2, 0, 0, 1),
+    transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.marketing-btn--primary:hover {
+  background: color-mix(in oklch, var(--marketing-primary) 92%, black);
+  box-shadow: 0 8px 20px
+    color-mix(in oklch, var(--marketing-primary) 30%, transparent);
+  transform: translateY(-2px);
+}
+
+.marketing-btn--primary:active {
+  box-shadow: none;
+  transform: scale(0.97) translateY(0);
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  transition-duration: 80ms;
+}
+
+/* Layer 5: Product snapshot — row stagger & event arrival */
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.marketing-week-row {
+  animation: row-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.marketing-week-row:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.marketing-week-row:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.marketing-week-row:nth-child(3) {
+  animation-delay: 0.15s;
+}
+.marketing-week-row:nth-child(4) {
+  animation-delay: 0.2s;
+}
+.marketing-week-row:nth-child(5) {
+  animation-delay: 0.25s;
+}
+.marketing-week-row:nth-child(6) {
+  animation-delay: 0.3s;
+}
+.marketing-week-row:nth-child(7) {
+  animation-delay: 0.35s;
+}
+.marketing-week-row:nth-child(8) {
+  animation-delay: 0.4s;
+}
+
+@keyframes event-arrive {
+  0% {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-2px);
+    filter: brightness(1.18);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+    filter: brightness(1);
+  }
+}
+
+[data-arriving] {
+  animation: event-arrive 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes sync-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.marketing-browser-bar [data-syncing] svg {
+  animation: sync-spin 0.9s linear infinite;
+}
+
+/* Reduced motion: disable everything */
+@media (prefers-reduced-motion: reduce) {
+  .marketing-hero__title-line,
+  .marketing-pill,
+  .marketing-hero__copy,
+  .marketing-actions,
+  .marketing-portrait-wrap,
+  .marketing-portrait-backdrop,
+  .marketing-week-row,
+  [data-arriving],
+  .marketing-browser-bar [data-syncing] svg {
+    opacity: 1 !important;
+    filter: none !important;
+    stroke-dashoffset: 0 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ─── Overdrive: Direction A — 3D Hero Portrait Depth ─── */
+
+.marketing-hero__grid {
+  --cx: 0.5;
+  --cy: 0.5;
+}
+
+/* Portrait image card: deepest layer — most tilt */
+.marketing-portrait {
+  transform: perspective(1200px) rotateY(calc((var(--cx) - 0.5) * 14deg))
+    rotateX(calc((var(--cy) - 0.5) * -9deg));
+  transition: transform 90ms cubic-bezier(0.2, 0, 0, 1);
+  will-change: transform;
+}
+
+/* Specular highlight tracks cursor across portrait surface */
+.marketing-portrait::after {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  content: "";
+  background: radial-gradient(
+    circle at calc(var(--cx) * 100%) calc(var(--cy) * 100%),
+    rgba(255, 255, 255, 0.18) 0%,
+    transparent 52%
+  );
+  border-radius: inherit;
+}
+
+/* Backdrop: shallower tilt creates parallax separation */
+.marketing-portrait-backdrop {
+  transform: perspective(1800px) rotateY(calc((var(--cx) - 0.5) * 5deg))
+    rotateX(calc((var(--cy) - 0.5) * -3deg));
+  transition: transform 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* ─── Overdrive: Direction B — Product Snapshot 3D Tilt ─── */
+
+.marketing-product-snapshot {
+  --snap-cx: 0.5;
+  --snap-cy: 0.5;
+  --snap-active: 0;
+}
+
+.marketing-product-snapshot .marketing-card--low {
+  transform: perspective(900px) rotateY(calc((var(--snap-cx) - 0.5) * 6deg))
+    rotateX(calc((var(--snap-cy) - 0.5) * -3.5deg));
+  transition: transform 80ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Specular gloss layer on snapshot card */
+.marketing-product-snapshot .marketing-card--low::before {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  content: "";
+  background: radial-gradient(
+    ellipse at calc(var(--snap-cx) * 100%) calc(var(--snap-cy) * 100%),
+    rgba(255, 255, 255, 0.09) 0%,
+    transparent 46%
+  );
+  border-radius: inherit;
+  opacity: var(--snap-active);
+  transition: opacity 200ms ease;
+}
+
+/* ─── Overdrive: Direction C — Scroll-Orchestrated Cinematics ─── */
+
+/* Workflow step connector arrows — drawn between cards on scroll */
+.marketing-workflow__steps li {
+  overflow: visible;
+}
+
+.marketing-workflow__steps li:not(:last-child)::after {
+  position: absolute;
+  top: 28px;
+  right: -14px;
+  z-index: 2;
+  width: 10px;
+  height: 10px;
+  content: "";
+  border-top: 1.5px solid var(--marketing-outline-variant);
+  border-right: 1.5px solid var(--marketing-outline-variant);
+  opacity: 0;
+  transform: rotate(45deg) scale(0.4);
+}
+
+@supports (animation-timeline: view()) {
+  .marketing-workflow__steps li:not(:last-child)::after {
+    animation: connector-arrive 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-timeline: view(block);
+    animation-range: entry 22% entry 42%;
+  }
+}
+
+@keyframes connector-arrive {
+  from {
+    opacity: 0;
+    transform: rotate(45deg) scale(0.4);
+  }
+  to {
+    opacity: 0.65;
+    transform: rotate(45deg) scale(1);
+  }
+}
+
+/* Feature cards: 3D tilt-in on scroll (replaces reveal-up) */
+@keyframes card-tilt-in {
+  from {
+    opacity: 0;
+    transform: perspective(700px) rotateX(22deg) translateY(18px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(700px) rotateX(0deg) translateY(0) scale(1);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .marketing-feature-grid .marketing-card {
+    animation: card-tilt-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-timeline: view();
+  }
+
+  .marketing-feature-grid .marketing-card:nth-child(1) {
+    animation-range: entry 0% entry 38%;
+  }
+
+  .marketing-feature-grid .marketing-card:nth-child(2) {
+    animation-range: entry 5% entry 43%;
+  }
+
+  .marketing-feature-grid .marketing-card:nth-child(3) {
+    animation-range: entry 10% entry 48%;
+  }
+
+  .marketing-feature-grid .marketing-card:nth-child(4) {
+    animation-range: entry 15% entry 53%;
+  }
+}
+
+/* Pricing cards: blind reveal on scroll (replaces reveal-up) */
+@keyframes blind-reveal {
+  from {
+    clip-path: inset(0 0 100% 0 round 16px);
+    opacity: 0;
+  }
+  to {
+    clip-path: inset(0 0 0% 0 round 16px);
+    opacity: 1;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .marketing-pricing-grid .marketing-price-card {
+    animation: blind-reveal 0.52s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-timeline: view();
+  }
+
+  .marketing-pricing-grid .marketing-price-card:nth-child(1) {
+    animation-range: entry 0% entry 40%;
+  }
+
+  .marketing-pricing-grid .marketing-price-card:nth-child(2) {
+    animation-range: entry 7% entry 47%;
+  }
+
+  .marketing-pricing-grid .marketing-price-card:nth-child(3) {
+    animation-range: entry 14% entry 54%;
+  }
+}
+
+/* Overdrive: disable all depth/tilt on reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .marketing-portrait,
+  .marketing-portrait-backdrop,
+  .marketing-product-snapshot .marketing-card--low {
+    transform: none !important;
+    transition: none !important;
+    will-change: auto !important;
+  }
+
+  .marketing-portrait::after,
+  .marketing-product-snapshot .marketing-card--low::before {
+    display: none;
+  }
+
+  .marketing-workflow__steps li:not(:last-child)::after {
+    opacity: 0.5;
+    transform: rotate(45deg) scale(1);
+    animation: none;
+  }
+}
+
 /* LeaveSync Features Prototype */
 .features-prototype {
-  --primary: #7a6bd8;
-  --primary-container: #c9bef7;
+  --primary: #336a3b;
+  --primary-container: #6da671;
   --on-primary: #ffffff;
-  --on-primary-container: #241a5e;
-  --secondary: #6fa56f;
-  --secondary-container: #c8e8c8;
-  --on-secondary-container: #1f3e22;
-  --surface: #fbf8fe;
+  --on-primary-container: #1b3620;
+  --secondary: #4b6542;
+  --secondary-container: #cae8bc;
+  --on-secondary-container: #2a3d24;
+  --surface: #fcf8ff;
   --surface-container-lowest: #ffffff;
-  --surface-container-low: #f5f0fb;
-  --surface-container: #eee7f7;
-  --surface-container-high: #e7dff2;
-  --surface-container-highest: #e0d7ed;
-  --surface-variant: #ded6e8;
-  --on-surface: #1c1829;
-  --on-surface-variant: #4a4358;
-  --inverse-surface: #2d2840;
-  --inverse-on-surface: #f1ebfb;
-  --outline: #7a7482;
-  --outline-variant: #cdc4d9;
+  --surface-container-low: #f6f1ff;
+  --surface-container: #f1ebfd;
+  --surface-container-high: #ebe5f7;
+  --surface-container-highest: #e5e0f1;
+  --surface-variant: #e0dde6;
+  --on-surface: #1c1a26;
+  --on-surface-variant: #46454e;
+  --inverse-surface: #312f3c;
+  --inverse-on-surface: #f3eff8;
+  --outline: #777680;
+  --outline-variant: #c1c9bd;
   --error: #ba1a1a;
   --error-container: #ffdad6;
   --warning: #e8c46d;
   --danger-soft: #ffb4ab;
-  --shadow-ambient: 0 12px 32px rgba(45, 40, 64, 0.07);
+  --shadow-ambient: 0 12px 32px rgba(53, 51, 64, 0.06);
   --font-family: var(--font-plus-jakarta-sans), "Plus Jakarta Sans", sans-serif;
   min-height: 100vh;
   padding-bottom: 96px;
@@ -1134,22 +1691,14 @@
 
 .features-hero {
   position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(420px, 1.15fr);
+  gap: 48px;
+  align-items: center;
   max-width: 1200px;
   padding: 96px 48px 64px;
   margin: 0 auto;
   overflow: hidden;
-}
-
-.features-hero__botanical {
-  position: absolute;
-  top: -40px;
-  right: -80px;
-  z-index: 0;
-  width: 480px;
-  max-width: 55vw;
-  height: auto;
-  pointer-events: none;
-  opacity: 0.45;
 }
 
 .features-hero__copy {
@@ -1160,9 +1709,9 @@
 
 .features-hero h1 {
   margin: 0;
-  font: 600 clamp(3rem, 7vw, 4rem) / 1.05 var(--font-family);
+  font: 600 clamp(3rem, 7vw, 4.35rem) / 1.05 var(--font-family);
   color: var(--on-surface);
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   text-wrap: pretty;
 }
 
@@ -1177,33 +1726,149 @@
   color: var(--on-surface-variant);
 }
 
-.features-hero__chips {
-  position: relative;
-  z-index: 1;
+.features-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.features-hero__proof {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  max-width: 920px;
-  margin-top: 48px;
+  padding: 0;
+  margin-top: 20px;
+  list-style: none;
 }
 
-.features-hero__chips a {
-  text-decoration: none;
-}
-
-.features-hero__chip {
-  padding: 8px 14px;
-  font-size: 12px;
-  color: var(--on-surface);
+.features-hero__proof li {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 12px;
+  font: 500 0.75rem / 1.4 var(--font-family);
+  color: var(--on-surface-variant);
   background: var(--surface-container-low);
-  box-shadow: none;
+  border-radius: 12px;
 }
 
-.features-hero__chip span {
-  margin-right: 6px;
+.features-hero__visual {
+  min-width: 0;
+}
+
+.features-flow,
+.features-admin-strip {
+  max-width: 1200px;
+  padding: 0 48px;
+  margin: 0 auto;
+}
+
+.features-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+  gap: 48px;
+  align-items: end;
+  padding-top: 24px;
+}
+
+.features-flow__intro h2 {
+  max-width: 12ch;
+  margin: 0;
+  font: 600 clamp(2rem, 4vw, 2.5rem) / 1.15 var(--font-family);
+  color: var(--on-surface);
+  letter-spacing: 0;
+}
+
+.features-flow__intro p:last-child,
+.features-admin-strip__intro p {
+  max-width: 44ch;
+  margin: 16px 0 0;
+  font: 400 1rem / 1.6 var(--font-family);
+  color: var(--on-surface-variant);
+}
+
+.features-flow__steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.features-flow-step {
+  min-width: 0;
+  padding: 22px;
+  background: var(--surface-container-low);
+  border-radius: 16px;
+}
+
+.features-flow-step__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.features-flow-step__number {
   font: 500 0.6875rem / 1.3 var(--font-family);
   color: var(--on-surface-variant);
   letter-spacing: 0.1em;
+}
+
+.features-proof__icon,
+.features-admin-card span {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: var(--on-primary-container);
+  background: color-mix(in oklch, var(--primary-container) 40%, transparent);
+  border-radius: 12px;
+}
+
+.features-flow-step h3,
+.features-admin-card h3 {
+  margin: 0 0 6px;
+  font: 600 1rem / 1.35 var(--font-family);
+  color: var(--on-surface);
+}
+
+.features-flow-step p,
+.features-admin-card p {
+  margin: 0;
+  font: 400 0.9375rem / 1.55 var(--font-family);
+  color: var(--on-surface-variant);
+}
+
+.features-admin-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+  gap: 48px;
+  align-items: center;
+  padding-top: 104px;
+}
+
+.features-admin-strip__intro h2 {
+  max-width: 14ch;
+  margin: 0;
+  font: 600 clamp(1.875rem, 4vw, 2.25rem) / 1.15 var(--font-family);
+  color: var(--on-surface);
+  letter-spacing: 0;
+}
+
+.features-admin-strip__grid {
+  display: grid;
+  gap: 14px;
+}
+
+.features-admin-card {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 18px;
+  background: var(--surface-container-low);
+  border-radius: 16px;
 }
 
 .feat-section {
@@ -1266,7 +1931,7 @@
   margin: 0 0 16px;
   font: 600 clamp(2rem, 4vw, 2.5rem) / 1.15 var(--font-family);
   color: var(--on-surface);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .feat-summary {
@@ -2236,7 +2901,7 @@
   max-width: 620px;
   margin: 0 0 16px;
   font: 600 clamp(1.875rem, 4vw, 2.25rem) / 1.2 var(--font-family);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .features-cta p {
@@ -2273,13 +2938,18 @@
 @media (max-width: 980px) {
   .features-hero,
   .feat-section,
+  .features-flow,
+  .features-admin-strip,
   .features-cta-section {
     padding-right: 28px;
     padding-left: 28px;
   }
 
+  .features-hero,
+  .features-flow,
   .feat-grid,
-  .feat-grid--flip {
+  .feat-grid--flip,
+  .features-admin-strip {
     grid-template-columns: 1fr;
   }
 
@@ -2311,19 +2981,33 @@
     padding: 72px 20px 48px;
   }
 
-  .features-hero__botanical {
-    right: -180px;
-    max-width: 440px;
-  }
-
   .features-hero p {
     font-size: 1rem;
   }
 
   .feat-section,
+  .features-flow,
+  .features-admin-strip,
   .features-cta-section {
     padding-right: 20px;
     padding-left: 20px;
+  }
+
+  .features-hero__actions,
+  .features-hero__actions .feature-btn {
+    width: 100%;
+  }
+
+  .features-admin-strip {
+    padding-top: 72px;
+  }
+
+  .features-flow {
+    gap: 32px;
+  }
+
+  .features-flow__steps {
+    grid-template-columns: 1fr;
   }
 
   .feat-divider-rule {

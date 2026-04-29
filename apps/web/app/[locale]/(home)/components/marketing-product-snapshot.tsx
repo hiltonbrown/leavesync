@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type TeamTone = "forest" | "plum" | "sage" | "slate";
 type LeaveTypeId =
@@ -11,6 +11,7 @@ type LeaveTypeId =
   | "training"
   | "travel"
   | "wfh";
+type SyncState = "idle" | "syncing" | "just-synced";
 type IconId =
   | "briefcase"
   | "cake"
@@ -126,7 +127,7 @@ const leaveTypes: Record<LeaveTypeId, LeaveType> = {
   wfh: { icon: "home", label: "Working from home" },
 };
 
-const schedule: ScheduleEntry[] = [
+const baseSchedule: ScheduleEntry[] = [
   {
     person: 1,
     start: 1,
@@ -199,6 +200,22 @@ const schedule: ScheduleEntry[] = [
   },
 ];
 
+const arrivingPool: ScheduleEntry[] = [
+  { person: 3, start: 5, span: 2, type: "wfh", detail: "Remote days" },
+  {
+    person: 7,
+    start: 3,
+    span: 1,
+    type: "training",
+    detail: "Compliance course",
+  },
+  { person: 1, start: 0, span: 1, type: "travel", detail: "Sydney visit" },
+];
+
+function entryKey(e: ScheduleEntry): string {
+  return `${e.person}-${e.start}-${e.type}`;
+}
+
 const fallbackDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const weekdayFormatter = new Intl.DateTimeFormat(undefined, {
@@ -267,16 +284,72 @@ const iconPaths: Record<IconId, ReactNode> = {
 
 export const MarketingProductSnapshot = () => {
   const [today, setToday] = useState<Date | null>(null);
+  const [syncState, setSyncState] = useState<SyncState>("idle");
+  const [syncMinutes, setSyncMinutes] = useState(0);
+  const [arrivingIndex, setArrivingIndex] = useState(-1);
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const snapRef = useRef<HTMLDivElement>(null);
+
+  const onSnapMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const el = snapRef.current;
+    if (!el) {
+      return;
+    }
+    const r = el.getBoundingClientRect();
+    el.style.setProperty(
+      "--snap-cx",
+      ((e.clientX - r.left) / r.width).toFixed(3)
+    );
+    el.style.setProperty(
+      "--snap-cy",
+      ((e.clientY - r.top) / r.height).toFixed(3)
+    );
+    el.style.setProperty("--snap-active", "1");
+  }, []);
+
+  const onSnapLeave = useCallback(() => {
+    const el = snapRef.current;
+    if (!el) {
+      return;
+    }
+    el.style.setProperty("--snap-cx", "0.5");
+    el.style.setProperty("--snap-cy", "0.5");
+    el.style.setProperty("--snap-active", "0");
+  }, []);
 
   useEffect(() => {
-    const refreshToday = () => {
-      setToday(new Date());
-    };
-
+    const refreshToday = () => setToday(new Date());
     refreshToday();
-    const interval = window.setInterval(refreshToday, 60_000);
+    const todayInterval = window.setInterval(refreshToday, 60_000);
 
-    return () => window.clearInterval(interval);
+    // Minute counter for sync badge
+    const minuteInterval = window.setInterval(() => {
+      setSyncMinutes((m) => m + 1);
+    }, 60_000);
+
+    // Live sync simulation: every 9 seconds
+    const syncInterval = window.setInterval(() => {
+      setSyncState("syncing");
+
+      syncTimerRef.current = setTimeout(() => {
+        setArrivingIndex((i) => i + 1);
+        setSyncState("just-synced");
+        setSyncMinutes(0);
+
+        syncTimerRef.current = setTimeout(() => {
+          setSyncState("idle");
+        }, 2500);
+      }, 1200);
+    }, 9000);
+
+    return () => {
+      window.clearInterval(todayInterval);
+      window.clearInterval(minuteInterval);
+      window.clearInterval(syncInterval);
+      if (syncTimerRef.current) {
+        clearTimeout(syncTimerRef.current);
+      }
+    };
   }, []);
 
   const week = useMemo(() => {
@@ -311,8 +384,35 @@ export const MarketingProductSnapshot = () => {
       isToday: false,
     }));
 
+  const schedule = useMemo(() => {
+    if (arrivingIndex < 0) {
+      return baseSchedule;
+    }
+    const arriving = arrivingPool[arrivingIndex % arrivingPool.length];
+    return [...baseSchedule, arriving];
+  }, [arrivingIndex]);
+
+  const arrivingKey =
+    arrivingIndex >= 0
+      ? entryKey(arrivingPool[arrivingIndex % arrivingPool.length])
+      : null;
+
+  let syncLabel = `Synced ${syncMinutes} min ago`;
+  if (syncState === "syncing") {
+    syncLabel = "Syncing...";
+  } else if (syncState === "just-synced" || syncMinutes === 0) {
+    syncLabel = "Synced just now";
+  }
+
   return (
-    <div className="marketing-product-snapshot">
+    // biome-ignore lint/a11y/noStaticElementInteractions: mouse tracking for visual depth effect only
+    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: mouse tracking for visual depth effect only
+    <div
+      className="marketing-product-snapshot"
+      onMouseLeave={onSnapLeave}
+      onMouseMove={onSnapMove}
+      ref={snapRef}
+    >
       <div className="marketing-card marketing-card--low">
         <div className="marketing-browser-bar">
           <div aria-hidden="true" className="marketing-browser-dots">
@@ -326,9 +426,9 @@ export const MarketingProductSnapshot = () => {
               : "This week · Folder Creek"}
           </span>
           <div className="marketing-browser-meta">
-            <span>
+            <span data-syncing={syncState === "syncing" ? true : undefined}>
               <MarketingSnapshotIcon id="sync" size={14} />
-              Synced 4 min ago
+              {syncLabel}
             </span>
             <span>
               <MarketingSnapshotIcon id="shield" size={14} />
@@ -344,14 +444,29 @@ export const MarketingProductSnapshot = () => {
             <span>12 published events</span>
             <span>3 calendar feeds</span>
           </div>
-          <WeekGrid days={days} weekOf={week?.weekOf ?? "This week"} />
+          <WeekGrid
+            arrivingKey={arrivingKey}
+            days={days}
+            schedule={schedule}
+            weekOf={week?.weekOf ?? "This week"}
+          />
         </div>
       </div>
     </div>
   );
 };
 
-const WeekGrid = ({ days, weekOf }: { days: WeekDay[]; weekOf: string }) => (
+const WeekGrid = ({
+  arrivingKey,
+  days,
+  schedule,
+  weekOf,
+}: {
+  arrivingKey: string | null;
+  days: WeekDay[];
+  schedule: ScheduleEntry[];
+  weekOf: string;
+}) => (
   <div className="marketing-week-card">
     <div className="marketing-week-header">
       <div>
@@ -399,10 +514,13 @@ const WeekGrid = ({ days, weekOf }: { days: WeekDay[]; weekOf: string }) => (
             <div className="marketing-week-events">
               {entries.map((entry) => {
                 const leave = leaveTypes[entry.type];
+                const key = entryKey(entry);
+                const isArriving = key === arrivingKey;
                 return (
                   <div
                     className={`marketing-event marketing-event--${entry.type}`}
-                    key={`${entry.person}-${entry.start}-${entry.type}`}
+                    data-arriving={isArriving ? true : undefined}
+                    key={key}
                     style={{
                       gridColumn: `${entry.start + 1} / span ${entry.span}`,
                     }}

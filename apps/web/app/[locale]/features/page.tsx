@@ -8,16 +8,14 @@ import { env } from "@/env";
 export const metadata: Metadata = createMetadata({
   title: "LeaveSync — Features",
   description:
-    "Every page of LeaveSync, from dashboard and planning through calendar feeds, approvals, sync health, and analytics.",
+    "See team leave, travel, working from home, and availability in the calendars your organisation already uses.",
 });
 
 const signUpHref = env.NEXT_PUBLIC_APP_URL
   ? `${env.NEXT_PUBLIC_APP_URL}/sign-up`
   : "/";
 
-const walkthroughHref = env.NEXT_PUBLIC_APP_URL
-  ? `${env.NEXT_PUBLIC_APP_URL}/sign-up`
-  : "/contact";
+const walkthroughHref = "/contact";
 
 const iconPaths = {
   activity: <path d="M3 12h4l3-9 4 18 3-9h4" />,
@@ -156,19 +154,49 @@ interface FeatureSection {
   readonly title: string;
 }
 
-const heroSections = [
-  "Dashboard",
-  "My Plans",
-  "Calendar",
-  "Notifications",
-  "People",
-  "Calendar Feeds",
-  "Leave Approvals",
-  "Public Holidays",
-  "Sync Health",
-  "Leave Reports",
-  "Out of Office",
-] as const;
+const outcomeProofs = [
+  {
+    body: "Approved leave imports from the payroll source of truth, so the first calendar starts with real records.",
+    icon: "sync",
+    title: "Start with Xero",
+  },
+  {
+    body: "Leave, WFH, travel, training, and public holidays become one consistent availability model.",
+    icon: "users",
+    title: "Normalise availability",
+  },
+  {
+    body: "Scoped feeds keep Outlook, Google, Apple, and iCal calendars current without extra admin.",
+    icon: "calendar",
+    title: "Publish to calendars",
+  },
+] as const satisfies ReadonlyArray<{
+  readonly body: string;
+  readonly icon: IconId;
+  readonly title: string;
+}>;
+
+const adminConfidenceCards = [
+  {
+    body: "Sync status, feed usage, and exceptions stay visible to the people who maintain the system.",
+    icon: "activity",
+    title: "Operational health",
+  },
+  {
+    body: "Leave and out-of-office reports give managers a clean answer before anyone exports to Excel.",
+    icon: "download",
+    title: "Readable reports",
+  },
+  {
+    body: "Feed scopes and privacy modes control who sees names, types, or simple busy blocks.",
+    icon: "shield",
+    title: "Privacy by feed",
+  },
+] as const satisfies ReadonlyArray<{
+  readonly body: string;
+  readonly icon: IconId;
+  readonly title: string;
+}>;
 
 const Icon = ({ id, size = 20, stroke = 1.75 }: IconProps) => (
   <svg
@@ -203,12 +231,14 @@ const Avatar = ({ initials, size = 32, tone = "sage" }: AvatarProps) => (
 const FeaturesPage = () => (
   <main className="features-prototype">
     <FeaturesHero />
+    <OutcomeProofStrip />
     {featureSections.map((section) => (
       <div key={section.eyebrow}>
         <div className="feat-divider-rule" />
         <FeatureBlock {...section} />
       </div>
     ))}
+    <AdminConfidenceStrip />
     <div className="features-prototype__pre-cta" />
     <FeaturesCTA />
   </main>
@@ -216,37 +246,70 @@ const FeaturesPage = () => (
 
 const FeaturesHero = () => (
   <section className="features-hero">
-    <Image
-      alt=""
-      className="features-hero__botanical"
-      height={400}
-      src="/marketing/botanical-vine.svg"
-      width={400}
-    />
-    <div className="features-hero__copy">
-      <div className="feature-pill feature-pill--sage">
-        <span className="feature-dot" />
-        Eleven surfaces. One source of truth.
+    <div>
+      <div className="features-hero__copy">
+        <div className="feature-pill feature-pill--sage">
+          <span className="feature-dot" />
+          Xero to Outlook, Google, and Apple Calendar.
+        </div>
+        <h1>
+          Team availability,
+          <br />
+          <span>already in the calendar.</span>
+        </h1>
+        <p>
+          LeaveSync turns Xero-approved leave, travel, WFH, training, and public
+          holidays into clear, privacy-aware calendar feeds. Your team keeps
+          using the calendars already open on their screens.
+        </p>
+        <div className="features-hero__actions">
+          <Link className="feature-btn feature-btn--primary" href={signUpHref}>
+            START FREE TRIAL
+          </Link>
+          <Link
+            className="feature-btn feature-btn--tertiary"
+            href={walkthroughHref}
+          >
+            BOOK A WALKTHROUGH <Icon id="arrowUpRight" size={14} />
+          </Link>
+        </div>
+        <ul className="features-hero__proof">
+          <li>Recent leave imported from Xero</li>
+          <li>Subscribe once</li>
+          <li>Names, types, or busy-only feeds</li>
+        </ul>
       </div>
-      <h1>
-        Every page of LeaveSync,
-        <br />
-        <span>doing one quiet job well.</span>
-      </h1>
+    </div>
+    <div className="features-hero__visual">
+      <MockDashboard />
+    </div>
+  </section>
+);
+
+const OutcomeProofStrip = () => (
+  <section aria-label="How LeaveSync works" className="features-flow">
+    <div className="features-flow__intro">
+      <p className="feat-eyebrow">How it works</p>
+      <h2>From Xero to every team calendar.</h2>
       <p>
-        From the dashboard your team opens on Monday morning to the admin sync
-        console nobody should have to look at, here is the whole product. Eleven
-        surfaces, drawn from the live spec, in the order you would meet them.
+        LeaveSync sits between Xero and the calendars people already trust, so
+        availability is visible without another reporting routine.
       </p>
     </div>
-    <div className="features-hero__chips">
-      {heroSections.map((section, sectionIndex) => (
-        <Link href={`#s${sectionIndex + 1}`} key={section}>
-          <span className="feature-pill feature-pill--outline features-hero__chip">
-            <span>{String(sectionIndex + 1).padStart(2, "0")}</span>
-            {section}
-          </span>
-        </Link>
+    <div className="features-flow__steps">
+      {outcomeProofs.map((proof, index) => (
+        <article className="features-flow-step" key={proof.title}>
+          <div className="features-flow-step__top">
+            <span className="features-flow-step__number">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <span className="features-proof__icon">
+              <Icon id={proof.icon} size={18} />
+            </span>
+          </div>
+          <h3>{proof.title}</h3>
+          <p>{proof.body}</p>
+        </article>
       ))}
     </div>
   </section>
@@ -283,6 +346,32 @@ const FeatureBlock = ({
           ))}
         </ul>
       </div>
+    </div>
+  </section>
+);
+
+const AdminConfidenceStrip = () => (
+  <section className="features-admin-strip">
+    <div className="features-admin-strip__intro">
+      <p className="feat-eyebrow">Admin confidence</p>
+      <h2>The control layer stays calm.</h2>
+      <p>
+        The team gets simple calendar visibility. Admins still get the detail
+        they need to keep sync, reporting, and privacy under control.
+      </p>
+    </div>
+    <div className="features-admin-strip__grid">
+      {adminConfidenceCards.map((card) => (
+        <article className="features-admin-card" key={card.title}>
+          <span>
+            <Icon id={card.icon} size={18} />
+          </span>
+          <div>
+            <h3>{card.title}</h3>
+            <p>{card.body}</p>
+          </div>
+        </article>
+      ))}
     </div>
   </section>
 );
@@ -375,7 +464,7 @@ const MockDashboard = () => {
   );
 };
 
-const MockPlans = () => {
+const _MockPlans = () => {
   const rows = [
     {
       d: "Mon 5 – Fri 9 May",
@@ -574,7 +663,7 @@ const MockCalendar = () => {
   );
 };
 
-const MockNotifications = () => {
+const _MockNotifications = () => {
   const items = [
     {
       d: "Mon 5 – Fri 9 May. Awaiting your approval.",
@@ -947,7 +1036,7 @@ const MockApprovals = () => {
   );
 };
 
-const MockHolidays = () => {
+const _MockHolidays = () => {
   const holidays = [
     {
       d: "Fri 25 Apr",
@@ -1044,7 +1133,7 @@ const MockHolidays = () => {
   );
 };
 
-const MockSync = () => {
+const _MockSync = () => {
   const tenants = [
     {
       last: "2 min ago",
@@ -1120,7 +1209,7 @@ const MockSync = () => {
   );
 };
 
-const MockLeaveReports = () => {
+const _MockLeaveReports = () => {
   const months = [
     { label: "Jan", value: 22 },
     { label: "Feb", value: 18 },
@@ -1194,7 +1283,7 @@ const MockLeaveReports = () => {
   );
 };
 
-const MockOOO = () => {
+const _MockOOO = () => {
   const breakdown = [
     { c: "var(--primary)", k: "WFH", v: 188 },
     { c: "var(--secondary)", k: "Travelling", v: 64 },
@@ -1283,12 +1372,12 @@ const FeaturesCTA = () => (
       />
       <div className="features-cta__copy">
         <div className="feature-label features-cta__label">
-          Eleven surfaces. One install.
+          Ready when the team is.
         </div>
-        <h2>Connect Xero this afternoon. See the dashboard tomorrow.</h2>
+        <h2>Start with your real team calendar.</h2>
         <p>
-          Trial Premium for 14 days. We import the last 90 days of approved
-          leave so the calendars look real from day one.
+          Connect Xero, import recent approved leave, and publish availability
+          to the calendars your organisation already opens every day.
         </p>
         <div className="features-cta__actions">
           <Link className="feature-btn feature-btn--primary" href={signUpHref}>
@@ -1328,249 +1417,92 @@ const featureSections: FeatureSection[] = [
   {
     bullets: [
       {
-        b: "Three layouts derived from the same data, no extra configuration.",
-        t: "Role aware",
+        b: "Leave, WFH, travel, training, public holidays, and office days appear together before the day starts.",
+        t: "One readable week",
       },
       {
-        b: "Live availability for the people you actually work with.",
-        t: "Out today",
+        b: "Managers can move from today to week or month planning without rebuilding the same view in a spreadsheet.",
+        t: "Fast planning zoom",
       },
       {
-        b: "Connect Xero, invite your team, set the first holidays. Dismissible the moment they are done.",
-        t: "Quiet onboarding",
+        b: "People, teams, and locations stay visible enough for quick cover decisions.",
+        t: "Context included",
       },
     ],
-    eyebrow: "Dashboard",
+    eyebrow: "Calendar visibility",
     index: 1,
-    mock: <MockDashboard />,
-    title: "A first screen that already knows the answer.",
+    mock: <MockCalendar />,
+    title: "See the week without opening another system.",
     summary:
-      "The dashboard reshapes itself by role. Staff see their next leave and any onboarding nudges; managers see what is awaiting them and who is out today; admins see sync health at a glance.",
+      "The core advantage is simple: the team calendar becomes a live availability picture, not a stale export or a second place to check.",
   },
   {
     bullets: [
       {
-        b: "Two scopes, one workspace. Permission-aware.",
-        t: "My records and team records",
+        b: "Recent approved leave imports from Xero so the first calendar starts with trusted data.",
+        t: "Real data quickly",
       },
       {
-        b: "Every state transition is reversible until it is approved.",
-        t: "Submit, withdraw, restore",
+        b: "Managers can review requests near the calendar impact instead of turning payroll into a follow-up task.",
+        t: "Short approval loop",
       },
       {
-        b: "WFH, travelling, training, on-site. The record types your team actually has.",
-        t: "Manual availability",
+        b: "Failed writes and sync exceptions are visible to the person who can fix them.",
+        t: "Clear exceptions",
       },
     ],
-    eyebrow: "My Plans · /plans",
+    eyebrow: "Xero accuracy",
     flip: true,
     index: 2,
-    mock: <MockPlans />,
-    title: "A planning workspace that stays out of the way.",
-    summary:
-      "Draft, submit, withdraw, archive, and restore leave or manual availability records. Toggle between your own records and the team view when you have permission to see both.",
-  },
-  {
-    bullets: [
-      {
-        b: "Day for detail, week for planning, month for overview.",
-        t: "Three densities",
-      },
-      {
-        b: "Self, team, person, or location. Permissions enforced server side.",
-        t: "Scope switcher",
-      },
-      {
-        b: "Each record type has its own surface tone. No legends to memorise.",
-        t: "Tonal blocks, not stripes",
-      },
-    ],
-    eyebrow: "Calendar · /calendar",
-    index: 3,
-    mock: <MockCalendar />,
-    title: "Day, week, month. Always the right scope.",
-    summary:
-      "Approved leave, manual availability, and public holidays in one tonal calendar. Switch scope between yourself, a team, a person, or a location, and filter by record type when the grid gets busy.",
-  },
-  {
-    bullets: [
-      {
-        b: "Catch up after a week off without scrolling forever.",
-        t: "Unread filters",
-      },
-      {
-        b: "Per-event toggles, paired across both channels.",
-        t: "In-app and email controls",
-      },
-      {
-        b: "A single action, not a multi-step menu.",
-        t: "Mark all as read",
-      },
-    ],
-    eyebrow: "Notifications · /notifications",
-    flip: true,
-    index: 4,
-    mock: <MockNotifications />,
-    title: "A live feed, with a quiet preferences twin.",
-    summary:
-      "In-app events arrive in a chronological feed with unread filtering and one-click mark-as-read. The preferences tab beside it is where you decide what reaches your inbox and what stays in the app.",
-  },
-  {
-    bullets: [
-      {
-        b: "In office, on leave, WFH, travelling. Read at a glance.",
-        t: "Live availability",
-      },
-      {
-        b: "Linked, pending, or unlinked. Shown on every row.",
-        t: "Xero link state",
-      },
-      {
-        b: "The two cuts you actually use, made first-class.",
-        t: "Team and location filters",
-      },
-    ],
-    eyebrow: "People · /people",
-    index: 5,
-    mock: <MockPeople />,
-    title: "A directory that already knows who is around.",
-    summary:
-      "Every person, with team and location context, today's live availability, and a clear indicator of whether their Xero link is healthy. Filter, paginate, and drill into individuals without losing the list.",
-  },
-  {
-    bullets: [
-      {
-        b: "Two privacy modes per feed. Mix as your culture allows.",
-        t: "Names or busy only",
-      },
-      {
-        b: "Revoke a feed without breaking any of the others.",
-        t: "Signed and rotatable",
-      },
-      {
-        b: "Copy-pasteable instructions for every common calendar.",
-        t: "Subscribe in three clicks",
-      },
-    ],
-    eyebrow: "Calendar Feeds · /feed",
-    flip: true,
-    index: 6,
-    mock: <MockFeeds />,
-    title: "ICS feeds your people subscribe to once.",
-    summary:
-      "Create and manage signed ICS subscriptions, with a privacy toggle between names-and-types and busy-only. Filter by status, copy the URL, rotate when needed. Subscribe guidance for Outlook, Google, and Apple is built in.",
-  },
-  {
-    bullets: [
-      {
-        b: "The primary action is large. The rest are tucked away.",
-        t: "Approve in one tap",
-      },
-      {
-        b: "Xero outages do not become your problem.",
-        t: "Retry failed writes",
-      },
-      {
-        b: "A change of heart is a button, not a database query.",
-        t: "Revert when needed",
-      },
-    ],
-    eyebrow: "Leave Approvals · /leave-approvals",
-    index: 7,
     mock: <MockApprovals />,
-    title: "A review queue that respects your morning.",
+    title: "Keep payroll as the source of truth.",
     summary:
-      "Summary counts at the top, the awaiting queue beneath. Approve, decline, request more info, or revert a decision. Failed payroll writes surface here too, with a one-click retry instead of a support ticket.",
+      "LeaveSync does not ask the team to maintain a parallel leave system. Xero remains the payroll record, while LeaveSync makes approved availability useful day to day.",
   },
   {
     bullets: [
       {
-        b: "Pre-built lists for AU, NZ, UK, and more.",
-        t: "Import sources",
+        b: "Outlook, Google, Apple, and other iCal calendars receive the same up-to-date availability.",
+        t: "Subscribe once",
       },
       {
-        b: "Christmas Eve half-day, all-hands offsite, anything you observe.",
-        t: "Custom days",
+        b: "Whole organisation, team, and location feeds let each audience subscribe to the view they need.",
+        t: "Useful scopes",
       },
       {
-        b: "Reverse a decision next year without re-importing.",
-        t: "Suppress, do not delete",
+        b: "Publish names and types for trusted teams, or simple busy blocks where privacy matters more.",
+        t: "Practical privacy",
       },
     ],
-    eyebrow: "Public Holidays · /public-holidays",
-    flip: true,
-    index: 8,
-    mock: <MockHolidays />,
-    title: "The calendar your office actually keeps.",
+    eyebrow: "Calendar feeds",
+    index: 3,
+    mock: <MockFeeds />,
+    title: "Publish the right view to the right people.",
     summary:
-      "Import the holidays your tenants observe, add custom days for office closures, and suppress the ones that do not apply. Filter by year and location so you only see the ones that affect this office.",
+      "A single source can produce different subscriptions for the whole organisation, a team, a location, or a privacy-sensitive audience.",
   },
   {
     bullets: [
       {
-        b: "Healthy, warning, failed, with last-run timestamps.",
-        t: "Per-tenant status",
-      },
-      {
-        b: "Twelve hours of activity at a glance, twelve weeks on demand.",
-        t: "Run history",
-      },
-      {
-        b: "Sync or reconcile any tenant without leaving the console.",
-        t: "Manual dispatch",
-      },
-    ],
-    eyebrow: "Sync Health · /sync",
-    index: 9,
-    mock: <MockSync />,
-    title: "An admin console you visit on quiet weeks.",
-    summary:
-      "Monitor Xero sync health across every connected tenant. View run history, filter by status, and dispatch a manual sync or reconciliation when a tenant needs a nudge. Built for the people who fix things before anyone notices.",
-  },
-  {
-    bullets: [
-      {
-        b: "The two comparisons leadership keeps asking for.",
-        t: "Year-to-date and YoY",
-      },
-      {
-        b: "Every chart segment is a list of approved entries.",
-        t: "Drill into records",
-      },
-      {
-        b: "Real columns, real dates, no Excel surprises.",
-        t: "CSV that opens cleanly",
-      },
-    ],
-    eyebrow: "Leave Reports · /analytics/leave-reports",
-    flip: true,
-    index: 10,
-    mock: <MockLeaveReports />,
-    title: "Approved leave, ready to read.",
-    summary:
-      "Summary stats on top, a stacked monthly chart in the middle, the underlying records one click away. Filter by date range, team, or location, then export the slice you need as CSV for whoever needs it next.",
-  },
-  {
-    bullets: [
-      {
-        b: "The non-leave records that fill the gap between the calendar and reality.",
+        b: "Working from home, travelling, training, and client site days sit beside leave instead of living in side channels.",
         t: "Beyond leave",
       },
       {
-        b: "By team, by location, by month, with the percentages already worked out.",
-        t: "Cuts that matter",
+        b: "Location and holiday context helps people plan cover across offices, regions, and mixed work patterns.",
+        t: "Office reality",
       },
       {
-        b: "The pattern from leave reports, applied to the rest.",
-        t: "Same export, same drill-down",
+        b: "Reports show the patterns behind the calendar without forcing managers to rebuild the story in Excel.",
+        t: "Patterns included",
       },
     ],
-    eyebrow: "Out of Office · /analytics/out-of-office",
-    index: 11,
-    mock: <MockOOO />,
-    title: "The shape of how your team actually works.",
+    eyebrow: "Planning context",
+    flip: true,
+    index: 4,
+    mock: <MockPeople />,
+    title: "Plan for the work patterns leave does not explain.",
     summary:
-      "WFH, travelling, training, and client site work, broken down by team, location, and time. Use it to plan office days, justify travel budgets, or simply notice the patterns that have crept in over the year.",
+      "Annual leave is only part of the operational picture. LeaveSync captures the everyday availability signals that decide whether a week runs smoothly.",
   },
 ];
 
