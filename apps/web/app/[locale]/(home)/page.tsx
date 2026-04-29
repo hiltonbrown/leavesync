@@ -4,10 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { env } from "@/env";
+import { CursorDepthGrid } from "./components/cursor-depth-grid";
 import { MarketingProductSnapshot } from "./components/marketing-product-snapshot";
 
 export const metadata: Metadata = createMetadata({
-  title: "LeaveSync — Marketing UI Kit",
+  title: "LeaveSync — Team availability, synchronised with Xero",
   description:
     "Streamlined calendar and leave management. Publish staff leave, travel and team availability to every Outlook, Google, and Apple calendar your organisation already uses.",
 });
@@ -28,6 +29,12 @@ interface PricingTier {
   name: string;
   price: string;
   sub: string;
+}
+
+interface WorkflowStep {
+  body: string;
+  kicker: string;
+  title: string;
 }
 
 const features: Feature[] = [
@@ -58,7 +65,11 @@ const pricingTiers: PricingTier[] = [
     name: "Basic",
     price: "$9/month",
     sub: "Up to 10 people",
-    features: ["Xero Payroll sync", "Single calendar feed", "30-day history"],
+    features: [
+      "Xero Payroll sync",
+      "Single team calendar feed",
+      "30-day history",
+    ],
   },
   {
     name: "Premium",
@@ -66,8 +77,8 @@ const pricingTiers: PricingTier[] = [
     sub: "Up to 50 people",
     features: [
       "Everything in Basic",
-      "Unlimited calendar feeds",
-      "Full history",
+      "Unlimited team calendar feeds",
+      "1-year calendar history",
     ],
     featured: true,
   },
@@ -80,6 +91,24 @@ const pricingTiers: PricingTier[] = [
       "Dedicated environment",
       "Priority Support",
     ],
+  },
+];
+
+const workflowSteps: WorkflowStep[] = [
+  {
+    kicker: "Capture",
+    title: "Enter it once in LeaveSync.",
+    body: "Add annual leave, travel or client site visits to the app as soon as plans change.",
+  },
+  {
+    kicker: "Publish",
+    title: "Update Outlook for the team.",
+    body: "Details are automatically populated to team calendars in Outlook for the whole team.",
+  },
+  {
+    kicker: "Sync",
+    title: "Keep Xero ready.",
+    body: "Annual leave is entered into Xero automatically, or prepared for approval when your workflow requires it.",
   },
 ];
 
@@ -144,6 +173,7 @@ const iconPaths = {
 const Home = () => (
   <main className="marketing-home">
     <Hero />
+    <WorkflowSection />
     <ImageShowcase />
     <FeatureSection />
     <PricingSection />
@@ -152,23 +182,23 @@ const Home = () => (
 
 const Hero = () => (
   <section className="marketing-hero">
-    <Image
-      alt=""
-      className="marketing-hero__vine"
-      height={400}
-      src="/marketing/botanical-vine.svg"
-      width={400}
-    />
-    <div className="marketing-hero__grid">
+    <CursorDepthGrid>
       <div>
         <div className="marketing-pill">
           <span aria-hidden="true" />
           Now syncing with Xero Payroll
         </div>
         <h1 className="marketing-hero__title">
-          Team availability,
-          <br />
-          <span>syncronised with your calendar.</span>
+          <span className="marketing-hero__title-wrap">
+            <span className="marketing-hero__title-line">
+              Team availability,
+            </span>
+          </span>
+          <span className="marketing-hero__title-wrap">
+            <span className="marketing-hero__title-line marketing-hero__title-line--2">
+              synchronised with your calendar.
+            </span>
+          </span>
         </h1>
         <p className="marketing-hero__copy">
           Streamlined calendar and leave management. Publish staff leave, travel
@@ -198,12 +228,12 @@ const Hero = () => (
           <Image
             alt="A manager reviewing this week's team availability"
             height={1536}
-            src="/marketing/hero-portrait.png"
+            src="/marketing/hero_image.png"
             width={1024}
           />
         </div>
       </div>
-    </div>
+    </CursorDepthGrid>
 
     <div className="marketing-snapshot-intro">
       <SectionIntro
@@ -292,6 +322,33 @@ const ImageShowcase = () => (
         />
       </div>
     </article>
+  </section>
+);
+
+const WorkflowSection = () => (
+  <section className="marketing-section marketing-workflow-section">
+    <div className="marketing-workflow">
+      <div className="marketing-workflow__intro">
+        <p className="marketing-overline">Workflow</p>
+        <h2>From request to calendar to payroll.</h2>
+        <p>
+          LeaveSync keeps the operational loop short: the team sees the plan,
+          Outlook stays current and Xero gets the annual leave details it needs.
+        </p>
+      </div>
+      <ol className="marketing-workflow__steps">
+        {workflowSteps.map((step, index) => (
+          <li key={step.title}>
+            <div className="marketing-workflow__marker">
+              {String(index + 1).padStart(2, "0")}
+            </div>
+            <p>{step.kicker}</p>
+            <h3>{step.title}</h3>
+            <span>{step.body}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
   </section>
 );
 
