@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@repo/feeds", () => ({
+  cachedEtagForToken: vi.fn(() => Promise.resolve(null)),
   renderFeedForToken: vi.fn(),
 }));
 
