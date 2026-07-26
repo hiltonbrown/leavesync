@@ -6,6 +6,7 @@ import { database } from "@repo/database";
 import type { Prisma } from "@repo/database/generated/client";
 import { z } from "zod";
 import { invalidateFeedCache } from "../cache/feed-cache";
+import { scopedFeed } from "../scope/scoped-feed";
 
 export type FeedActorRole =
   | "admin"
@@ -420,18 +421,6 @@ export async function revokeAllFeedTokens(input: {
   } catch {
     return unknownError("Failed to revoke feed tokens.");
   }
-}
-
-function scopedFeed(input: {
-  clerkOrgId: string;
-  feedId: string;
-  organisationId: string;
-}) {
-  return {
-    clerk_org_id: input.clerkOrgId,
-    id: input.feedId,
-    organisation_id: input.organisationId,
-  };
 }
 
 async function feedNotFoundOrLeak(

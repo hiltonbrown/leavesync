@@ -10,6 +10,10 @@ const mocks = vi.hoisted(() => ({
   feedTokenUpdate: vi.fn(),
   feedTokenUpdateMany: vi.fn(),
   invalidateFeedCache: vi.fn(),
+  scopedTo: vi.fn((input: { clerkOrgId: string; organisationId: string }) => ({
+    clerk_org_id: input.clerkOrgId,
+    organisation_id: input.organisationId,
+  })),
   transaction: vi.fn(),
 }));
 
@@ -32,6 +36,7 @@ vi.mock("@repo/database", () => ({
       updateMany: mocks.feedTokenUpdateMany,
     },
   },
+  scopedTo: mocks.scopedTo,
 }));
 vi.mock("../cache/feed-cache", () => ({
   invalidateFeedCache: mocks.invalidateFeedCache,

@@ -11,4 +11,8 @@ export {
 export * from "./src/queries/billing";
 export * from "./src/seed/plan-sync";
 export * from "./src/seed/plans";
-export { type ScopedQueryResult, scopedQuery } from "./src/tenant-query";
+export {
+  type ScopedQueryResult,
+  scopedQuery,
+  scopedTo,
+} from "./src/tenant-query";

@@ -35,6 +35,12 @@ const mocks = vi.hoisted(() => {
       clerk_org_id: clerkOrgId,
       organisation_id: organisationId,
     })),
+    scopedTo: vi.fn(
+      (input: { clerkOrgId: string; organisationId: string }) => ({
+        clerk_org_id: input.clerkOrgId,
+        organisation_id: input.organisationId,
+      })
+    ),
   };
 });
 
@@ -49,6 +55,7 @@ vi.mock("@repo/database", () => ({
     person: { findFirst: mocks.personFindFirst },
   },
   scopedQuery: mocks.scopedQuery,
+  scopedTo: mocks.scopedTo,
 }));
 vi.mock("../xero-connection-state", () => ({
   hasActiveXeroConnection: mocks.hasActiveXeroConnection,
