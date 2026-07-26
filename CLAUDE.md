@@ -129,7 +129,9 @@ bun run dev                # Start all apps (Turbo)
 bun run build              # Build all apps and packages
 bun run check              # Biome/Ultracite lint checks
 bun run fix                # Auto-fix lint issues
+bun run typecheck          # TypeScript project references check
 bun run test               # Vitest across the monorepo
+bun run test:integration   # Integration test suite
 bunx vitest run <path>     # Single test file
 bun run migrate            # Prisma format + generate + migrate dev
 bun run migrate:deploy     # Generate + migrate deploy (production)
@@ -428,7 +430,7 @@ Optional variables with format constraints must be absent (commented out), not `
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | `packages/auth` | Clerk client-side auth |
 | `RESEND_TOKEN` | `packages/email` | Resend API key |
 | `RESEND_FROM` | `packages/email` | Sender address |
-| `SENTRY_DSN` | `packages/observability` | Sentry error tracking |
+| `NEXT_PUBLIC_SENTRY_DSN` | `packages/observability` | Sentry error tracking (client DSN) |
 | `XERO_CLIENT_ID` | `packages/xero` | Xero OAuth app ID |
 | `XERO_CLIENT_SECRET` | `packages/xero` | Xero OAuth app secret |
 | `XERO_TOKEN_ENCRYPTION_KEY` | `packages/xero` | AES-256-GCM key for encrypting Xero OAuth tokens at rest; must be 32 bytes, base64-encoded |
