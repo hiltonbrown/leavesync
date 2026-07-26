@@ -7,10 +7,7 @@ const resolveAppOrigin = (): string => {
   const configuredUrl = env.NEXT_PUBLIC_APP_URL ?? PRODUCTION_APP_ORIGIN;
   const appUrl = new URL(configuredUrl);
 
-  if (
-    process.env.NODE_ENV === "production" &&
-    LOCAL_APP_HOSTS.has(appUrl.hostname)
-  ) {
+  if (env.VERCEL_ENV === "production" && LOCAL_APP_HOSTS.has(appUrl.hostname)) {
     throw new Error(
       "NEXT_PUBLIC_APP_URL must point to the Team Calendar app domain in production."
     );
