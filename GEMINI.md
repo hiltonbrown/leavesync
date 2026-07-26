@@ -4,11 +4,11 @@ This file provides foundational mandates and procedural guidance for Gemini CLI 
 
 ## Project context
 
-**Team Calendar** is a multi-tenant availability publishing platform. It connects to Xero Payroll (AU, NZ, UK), syncs approved leave data, normalises it into a canonical availability model, and publishes through secure ICS calendar feeds.
+**Team Calendar** is a multi-tenant leave management and availability publishing platform. It connects to Xero Payroll (AU, NZ, UK), syncs approved leave data, normalises it into a canonical availability model, and publishes through secure ICS calendar feeds.
 
-The architecture is: **Xero sync layer > canonical availability model > feed projection layer > ICS publishing layer**.
+The architecture is: **Leave submission layer > bidirectional Xero sync layer > canonical availability model > feed projection layer > ICS publishing layer**.
 
-Team Calendar does not manage payroll, accruals, or leave approvals. Xero is the only provider. Manual availability entries (WFH, travelling, training, client site) are added directly by users.
+Employees submit and manage leave in Team Calendar; managers approve or decline; approved state writes back to Xero Payroll synchronously. Xero remains the payroll source of truth for balances and accruals, which Team Calendar reads but never calculates. Xero is the only provider. Manual availability entries (WFH, travelling, training, client site) are added directly by users, and both are standardised into one publishable calendar domain.
 
 ### Reference docs
 
@@ -305,7 +305,9 @@ bun run dev
 bun run build
 bun run check
 bun run fix
+bun run typecheck
 bun run test
+bun run test:integration
 bunx vitest run <path>
 bun run migrate
 bun run migrate:deploy
@@ -313,6 +315,8 @@ bun run db:push
 bun run analyze
 bun run clean
 ```
+
+`typecheck` and `test:integration` are both CI gates. A change is not verified until `bun run check`, `bun run typecheck`, `bun run test` and `bun run test:integration` all pass.
 
 ---
 
