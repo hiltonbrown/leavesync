@@ -14,6 +14,11 @@ import {
 import { projectFeedEvents } from "../projection/feed-projection";
 import { hashFeedToken } from "../tokens/token-service";
 
+// last_used_at is telemetry, not a correctness input. Writing it on every
+// calendar-client poll produces one row update per subscriber every few
+// minutes, forever. Hourly granularity carries the same information.
+const TOKEN_USE_DEBOUNCE_MS = 60 * 60 * 1000;
+
 export interface RenderedFeed {
   body: string;
   etag: string;
@@ -75,6 +80,35 @@ export async function renderFeedBody(input: {
   return { ok: true, value: { body, etag } };
 }
 
+export async function cachedEtagForToken(
+  token: string
+): Promise<null | string> {
+  const feedToken = await database.feedToken.findUnique({
+    where: { token_hash: hashFeedToken(token) },
+    include: { feed: true },
+  });
+
+  if (
+    !feedToken ||
+    feedToken.status !== "active" ||
+    (feedToken.expires_at && feedToken.expires_at < new Date()) ||
+    feedToken.feed.status !== "active"
+  ) {
+    return null;
+  }
+
+  const key = feedCacheKey({
+    feedId: feedToken.feed.id,
+    privacyMode: feedToken.feed.privacy_mode,
+  });
+  const cached = await getCachedFeedBody(key);
+  if (cached.ok && cached.value) {
+    return cached.value.etag;
+  }
+
+  return null;
+}
+
 export async function renderFeedForToken(
   token: string
 ): Promise<Result<RenderedFeed>> {
@@ -115,7 +149,10 @@ export async function renderFeedForToken(
   });
   const cached = await getCachedFeedBody(key);
   if (cached.ok && cached.value) {
-    await markTokenUsed(feedToken);
+    // Telemetry only: never block or fail the feed response on it.
+    markTokenUsed(feedToken).catch((error) => {
+      log.warn(`Feed token use write failed: ${String(error)}`);
+    });
     return { ok: true, value: { ...cached.value, status: "active" } };
   }
 
@@ -166,8 +203,16 @@ export async function renderFeedForToken(
 function markTokenUsed(token: {
   id: string;
   clerk_org_id: string;
+  last_used_at: Date | null;
   organisation_id: string;
 }): Promise<unknown> {
+  if (
+    token.last_used_at &&
+    Date.now() - token.last_used_at.getTime() < TOKEN_USE_DEBOUNCE_MS
+  ) {
+    return Promise.resolve();
+  }
+
   return database.feedToken.update({
     data: { last_used_at: new Date() },
     // Scope the write by clerk_org_id and organisation_id as well as the unique id.
