@@ -1007,8 +1007,6 @@ async function materialiseApprovalPublication(input: {
   }
 }
 
-// removed loadXeroTenant
-
 async function loadApprovalListContext(
   records: LoadedApprovalRecord[]
 ): Promise<ApprovalListContext> {
