@@ -65,6 +65,9 @@ export const keys = () =>
       XERO_REDIRECT_URI: process.env.XERO_REDIRECT_URI,
       XERO_TOKEN_ENCRYPTION_KEY: process.env.XERO_TOKEN_ENCRYPTION_KEY,
     },
+    // Treat an empty string (e.g. a blank Vercel env var) as unset so the
+    // format-constrained optional keys do not fail validation.
+    emptyStringAsUndefined: true,
   });
 
 // Validate immediately on module load to prevent boot if invalid or missing

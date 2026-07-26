@@ -11,4 +11,7 @@ export const keys = () =>
       RESEND_FROM: process.env.RESEND_FROM,
       RESEND_TOKEN: process.env.RESEND_TOKEN,
     },
+    // Treat an empty string (e.g. a blank Vercel env var) as unset so the
+    // format-constrained optional keys do not fail validation.
+    emptyStringAsUndefined: true,
   });
