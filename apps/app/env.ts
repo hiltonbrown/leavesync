@@ -4,7 +4,6 @@ import { keys as database } from "@repo/database/keys";
 import { keys as email } from "@repo/email/keys";
 import { keys as feeds } from "@repo/feeds/keys";
 import { keys as core } from "@repo/next-config/keys";
-import { keys as notifications } from "@repo/notifications/keys";
 import { keys as observability } from "@repo/observability/keys";
 import { keys as xero } from "@repo/xero/keys";
 import { createEnv } from "@t3-oss/env-nextjs";
@@ -17,7 +16,6 @@ export const env = createEnv({
     database(),
     email(),
     feeds(),
-    notifications(),
     observability(),
     xero(),
   ],
