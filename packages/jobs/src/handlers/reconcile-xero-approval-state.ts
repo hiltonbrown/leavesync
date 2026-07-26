@@ -2,7 +2,7 @@ import "server-only";
 
 import { clerkClient } from "@repo/auth/server";
 import type { Result } from "@repo/core";
-import { database } from "@repo/database";
+import { database, scopedTo as scoped } from "@repo/database";
 import { Prisma } from "@repo/database/generated/client";
 import {
   dispatchNotification,
@@ -773,13 +773,6 @@ function notificationBody(
     return `${name}'s leave request was declined in Xero Payroll.`;
   }
   return `${name}'s leave request was withdrawn in Xero Payroll.`;
-}
-
-function scoped(input: { clerkOrgId: string; organisationId: string }) {
-  return {
-    clerk_org_id: input.clerkOrgId,
-    organisation_id: input.organisationId,
-  };
 }
 
 function emptyResult(

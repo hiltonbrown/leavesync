@@ -8,6 +8,10 @@ const mocks = vi.hoisted(() => ({
   materialiseAvailabilityPublication: vi.fn(),
   normaliseInboundLeaveRecord: vi.fn(),
   publishOrganisationNotificationEvent: vi.fn(),
+  scopedTo: vi.fn((input: { clerkOrgId: string; organisationId: string }) => ({
+    clerk_org_id: input.clerkOrgId,
+    organisation_id: input.organisationId,
+  })),
   syncRunCreate: vi.fn(),
   syncRunFindFirst: vi.fn(),
   syncRunUpdateMany: vi.fn(),
@@ -38,6 +42,7 @@ vi.mock("@repo/database", () => ({
       findFirst: mocks.xeroTenantFindFirst,
     },
   },
+  scopedTo: mocks.scopedTo,
 }));
 vi.mock("@repo/notifications", () => ({
   publishOrganisationNotificationEvent:
