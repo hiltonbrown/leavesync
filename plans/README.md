@@ -2,7 +2,9 @@
 
 Advisory plans produced by the `improve` skill. Plan 001 was written on
 2026-07-21; plans 002 to 039 were written on 2026-07-25 against commit
-`75202db`.
+`75202db`. Plan 040 was written on 2026-07-26 against commit `887665f`, during
+execution of plan 024, when its Step 1 baseline surfaced a pre-existing build
+break shared with plan 033.
 
 Every plan is self-contained. An executor needs only the plan file, this
 repository, and a shell. Each plan opens with a drift check against the commit
@@ -54,7 +56,9 @@ Land these first. Each is a live defect with a bounded fix.
 
 | Plan | Title | Priority | Effort | Risk | Depends on | Status |
 |---|---|---|---|---|---|---|
-| [016](016-add-a-build-step-to-ci.md) | Add a build step to CI so typecheck sees generated route types | P2 | S | LOW | none | TODO |
+| [040](040-fix-the-node-env-guard-that-breaks-every-local-and-ci-build.md) | Fix the `NODE_ENV` guard in `apps/web` that breaks every local and CI build | P1 | S | LOW | none; unblocks 024, 033, helps 016 | DONE (commit `bad2224` on branch `fix/web-build-vercel-env-guard` in worktree, not merged; verified `bun run build` now succeeds for all 4 apps incl. all 22 `apps/web` routes) |
+| [041](041-move-emptystringasundefined-to-where-it-actually-works.md) | Move `emptyStringAsUndefined` to every package's own `keys.ts`, where it actually protects anything | P1 | M | LOW | after 040; supersedes 024 | DONE (commit `dc60b1b` on branch `fix/empty-string-env-vars-at-the-source` in worktree, on top of plan 040's `bad2224`, not merged; verified `check`/`typecheck`/`test`/`build` all green and all 4 before/after test-plan cases confirmed) |
+| [016](016-add-a-build-step-to-ci.md) | Add a build step to CI so typecheck sees generated route types | P2 | S | LOW | after 040 | TODO |
 | [035](035-fix-the-turborepo-task-graph.md) | Fix the Turborepo task graph for `test` and `typecheck` | P3 | S | LOW | none | TODO |
 | [015](015-enable-the-test-harness-in-six-untestable-workspaces.md) | Enable the test harness in the six workspaces that cannot run tests | P2 | M | LOW | 035 helps | TODO |
 | [020](020-run-the-xero-disconnect-integration-test.md) | Make the Xero disconnect integration test actually run | P2 | S | LOW | none | TODO |
@@ -64,7 +68,7 @@ Land these first. Each is a live defect with a bounded fix.
 | [010](010-return-auth-error-instead-of-throwing-on-token-decrypt.md) | Return a typed auth error instead of throwing when token decryption fails | P2 | S | LOW | none | TODO |
 | [019](019-close-two-tenant-scoping-gaps-in-server-actions.md) | Close two tenant-scoping gaps in server actions | P2 | S | LOW | none | TODO |
 | [027](027-validate-the-clerk-user-before-binding-it-to-a-person.md) | Validate the Clerk user before binding it to a Person record | P2 | S | LOW | adjacent to 019 | TODO |
-| [024](024-harden-env-validation-in-the-app-and-web-apps.md) | Harden env validation in `apps/app` and `apps/web` | P2 | S | LOW | after 023 | BLOCKED (Step 1 baseline: `bun run build` fails on `web#build` — same pre-existing `NEXT_PUBLIC_APP_URL` env validation error blocking 033, unrelated to plan scope) |
+| [024](024-harden-env-validation-in-the-app-and-web-apps.md) | Harden env validation in `apps/app` and `apps/web` | P2 | S | LOW | after 023, 040 | REJECTED (superseded by plan 041 — `emptyStringAsUndefined` at the app level cannot protect any field sourced via `extends`, since each extended package's own `createEnv()` call already validates and returns before the outer call's option ever runs; verified against the `@t3-oss/env-core` source. This plan's `billing()` extend insight was correct and is carried forward into plan 041's Step 6) |
 | [028](028-fix-three-test-quality-gaps.md) | Fix three test-quality gaps (role hierarchy, feed preview, tenant query helpers) | P2 | M | LOW | none | TODO |
 | [029](029-test-the-untested-server-actions.md) | Test the eleven untested server actions in `apps/app` | P2 | L | LOW | none | TODO |
 
@@ -93,9 +97,9 @@ repository.
 | [026](026-correct-the-agent-instruction-files.md) | Correct `AGENTS.md` and `GEMINI.md`, which describe the wrong product | P2 | S | LOW | none | DONE |
 | [025](025-stop-pointing-in-product-help-at-the-mintlify-starter-kit.md) | Stop pointing in-product Help at the Mintlify Starter Kit | P2 | S | LOW | none | DONE (Option B: `helpUrl` repointed at `webUrl("/help-centre")`, a real page; commit `532ae91` on branch `fix/unwire-starter-kit-help-link` in worktree, not merged) |
 | [022](022-align-the-lint-check-and-fix-commands.md) | Make `bun run fix` cover the same files as `bun run check` | P3 | S | LOW | none | DONE |
-| [033](033-dead-code-and-manifest-hygiene.md) | Dead code and manifest hygiene | P3 | S | LOW | none | DONE (executed with a user-approved deviation: Step 1/2/6 build verification scoped to `bunx turbo build --filter=app --filter=api` instead of plain `bun run build`, since `web#build` fails on a pre-existing, out-of-scope `NEXT_PUBLIC_APP_URL` env validation error; commits `fa140b9`, `462f5c9`) |
+| [033](033-dead-code-and-manifest-hygiene.md) | Dead code and manifest hygiene | P3 | S | LOW | after 040 | DONE (executed with a user-approved deviation: Step 1/2/6 build verification scoped to `bunx turbo build --filter=app --filter=api` instead of plain `bun run build`, since `web#build` fails on the pre-existing `NEXT_PUBLIC_APP_URL` issue plan 040 fixes; commits `fa140b9`, `462f5c9` on branch `chore/dead-code-and-manifest-hygiene` in worktree, not merged) |
 | [031](031-fix-the-database-package-boundary.md) | Fix the `@repo/database` package boundary | P3 | M | LOW | after 032 | TODO |
-| [021](021-consolidate-the-tenant-scoping-helpers.md) | Consolidate the ten local copies of the tenant-scoping helper | P3 | M | LOW | none | TODO |
+| [021](021-consolidate-the-tenant-scoping-helpers.md) | Consolidate the eleven local copies of the tenant-scoping helper | P3 | M | LOW | none | DONE |
 | [036](036-stop-returning-a-cross-tenant-existence-oracle.md) | Stop returning a cross-tenant existence oracle to callers | P3 | M | MED | none | TODO |
 | [039](039-decide-what-to-do-with-the-html-feed-renderer.md) | Decide what to do with the HTML feed renderer | P3 | S | LOW | needs a user decision | TODO |
 | [037](037-spike-nz-and-uk-payroll-write-back.md) | Spike NZ and UK payroll support | P3 | M | LOW | none | TODO |
@@ -107,6 +111,27 @@ repository.
 Only hard dependencies are listed. Everything not shown here is independent.
 
 ```
+040 (fix web build break)  ──> 024 (env validation), 033 (dead code hygiene)
+                                 hard: both plans' Step 1 baseline is `bun run
+                                 build`, which fails today on `web#build`
+                                 regardless of either plan's own changes; 040
+                                 fixes the underlying guard in
+                                 apps/web/src/lib/auth-links.ts
+                            ──> 016 (build step in CI), soft: 016 adds a CI
+                                 build gate that would otherwise be red from
+                                 its first run
+
+024 (env validation, REJECTED) ──> 041 (fix emptyStringAsUndefined properly)
+                                 024's fix didn't work: emptyStringAsUndefined
+                                 set on an app's outer createEnv() can't reach
+                                 fields sourced via extends(), since each
+                                 extended package's own createEnv() call has
+                                 already validated and returned by the time
+                                 the outer call's options run; 041 fixes it in
+                                 each package's own keys.ts instead. 041 also
+                                 depends on 040 (needs a working build to
+                                 verify against)
+
 032 (token leak)            ──> 031 (database package boundary)
                                  both edit the integrations client components;
                                  the security fix must land first
