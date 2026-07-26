@@ -560,8 +560,6 @@ async function materialiseSubmitPublication(
   }
 }
 
-// removed loadXeroTenant
-
 async function loadAndAuthorise(
   input: RecordActionInput,
   mode: "manager_allowed" | "owner_only"
