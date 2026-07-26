@@ -13,6 +13,10 @@ const mocks = vi.hoisted(() => ({
   personFindFirst: vi.fn(),
   resolveXeroEmployeeId: vi.fn(),
   resolveXeroLeaveTypeId: vi.fn(),
+  scopedTo: vi.fn((input: { clerkOrgId: string; organisationId: string }) => ({
+    clerk_org_id: input.clerkOrgId,
+    organisation_id: input.organisationId,
+  })),
   submitLeaveApplicationForRegion: vi.fn(),
   withdrawLeaveApplicationForRegion: vi.fn(),
   xeroTenantFindFirst: vi.fn(),
@@ -30,6 +34,7 @@ vi.mock("@repo/database", () => ({
     person: { findFirst: mocks.personFindFirst },
     xeroTenant: { findFirst: mocks.xeroTenantFindFirst },
   },
+  scopedTo: mocks.scopedTo,
 }));
 vi.mock("../duration/working-days", () => ({
   computeWorkingDays: mocks.computeWorkingDays,
