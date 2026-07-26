@@ -2,7 +2,7 @@ import "server-only";
 
 import { recordTypeFromLeaveType } from "@repo/availability";
 import type { Result } from "@repo/core";
-import { database } from "@repo/database";
+import { database, scopedTo as scoped } from "@repo/database";
 import { Prisma } from "@repo/database/generated/client";
 import { publishOrganisationNotificationEvent } from "@repo/notifications";
 import { log } from "@repo/observability/log";
@@ -608,16 +608,6 @@ function loadXeroTenant(context: SyncXeroLeaveBalancesInput) {
       organisation_id: context.organisationId,
     },
   });
-}
-
-function scoped(context: { clerkOrgId: string; organisationId: string }): {
-  clerk_org_id: string;
-  organisation_id: string;
-} {
-  return {
-    clerk_org_id: context.clerkOrgId,
-    organisation_id: context.organisationId,
-  };
 }
 
 function emptyCounts(): Counts {
