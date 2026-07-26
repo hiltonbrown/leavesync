@@ -4,11 +4,11 @@ This file provides shared instructions for coding agents working in the Team Cal
 
 ## Project overview
 
-**Team Calendar** is a multi-tenant availability publishing platform. It connects to Xero Payroll (AU, NZ, UK), syncs approved leave data, normalises it into a canonical availability model, and publishes through secure ICS calendar feeds.
+**Team Calendar** is a multi-tenant leave management and availability publishing platform. It connects to Xero Payroll (AU, NZ, UK), syncs approved leave data, normalises it into a canonical availability model, and publishes through secure ICS calendar feeds.
 
-The architecture is: **Xero sync layer > canonical availability model > feed projection layer > ICS publishing layer**.
+The architecture is: **Leave submission layer > bidirectional Xero sync layer > canonical availability model > feed projection layer > ICS publishing layer**.
 
-Team Calendar does not manage payroll, accruals, or leave approvals. Xero is the source of truth for approved leave. Team Calendar standardises both Xero leave and manual availability entries (WFH, travelling, training, client site) into one publishable calendar domain.
+Employees submit and manage leave in Team Calendar; managers approve or decline; approved state writes back to Xero Payroll synchronously. Xero remains the payroll source of truth for balances and accruals, which Team Calendar reads but never calculates. Alongside Xero-synced leave, Team Calendar captures manual availability entries (WFH, travelling, training, client site) and standardises both into one publishable calendar domain.
 
 ### Reference docs
 
@@ -365,7 +365,9 @@ bun run dev
 bun run build
 bun run check
 bun run fix
+bun run typecheck
 bun run test
+bun run test:integration
 bunx vitest run <path/to/test>
 bun run migrate
 bun run migrate:deploy
@@ -373,6 +375,8 @@ bun run db:push
 bun run analyze
 bun run clean
 ```
+
+`typecheck` and `test:integration` are both CI gates. A change is not verified until `bun run check`, `bun run typecheck`, `bun run test` and `bun run test:integration` all pass.
 
 ---
 
