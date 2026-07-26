@@ -37,8 +37,11 @@ export function CalendarMonthView({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl bg-muted p-1">
-        <div className="grid grid-cols-7 gap-1">
+      <section
+        aria-label="Month calendar"
+        className="overflow-x-auto rounded-2xl bg-muted p-1"
+      >
+        <div className="grid min-w-[56rem] grid-cols-7 gap-1">
           {dayLabels.map((label) => (
             <div
               className="p-2 text-center font-medium text-muted-foreground text-xs uppercase tracking-wide"
@@ -48,70 +51,75 @@ export function CalendarMonthView({
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-1">
+        <div className="mt-1 grid min-w-[56rem] grid-cols-7 gap-1">
           {data.days.map((day) => {
             const dateOnly = day.date.toISOString().slice(0, 10);
             const visibleEvents = day.events.slice(0, maxEventsPerDay);
             const hiddenCount = day.events.length - visibleEvents.length;
             return (
-              <CalendarCreateLauncher
+              <div
                 className={cn(
-                  "min-h-36 rounded-xl bg-background p-2 hover:bg-background/80",
+                  "flex min-h-36 flex-col justify-between rounded-xl bg-background p-2",
                   day.isToday && "ring-2 ring-primary/30",
                   firstVisibleMonth !== undefined &&
                     day.date.getUTCMonth() !== firstVisibleMonth &&
                     "opacity-50"
                 )}
                 key={dateOnly}
-                personId={createPersonId}
-                startsAt={dateOnly}
               >
-                <span className="flex items-center justify-between">
-                  <span
-                    className={cn(
-                      "flex size-7 items-center justify-center rounded-xl font-medium text-sm tabular-nums",
-                      day.isToday && "bg-primary text-primary-foreground",
-                      day.publicHolidays.length > 0 &&
-                        "underline decoration-2 decoration-on-accent-container underline-offset-4"
-                    )}
-                  >
-                    {day.date.getUTCDate()}
-                  </span>
-                  {day.publicHolidays.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
                     <span
-                      className={`rounded-lg px-1.5 py-0.5 text-xs ${statusToneClasses.holiday}`}
+                      className={cn(
+                        "flex size-7 items-center justify-center rounded-xl font-medium text-sm tabular-nums",
+                        day.isToday && "bg-primary text-primary-foreground",
+                        day.publicHolidays.length > 0 &&
+                          "underline decoration-2 decoration-on-accent-container underline-offset-4"
+                      )}
                     >
-                      Holiday
+                      {day.date.getUTCDate()}
                     </span>
-                  )}
-                </span>
-                <span className="mt-2 block space-y-1.5">
-                  {visibleEvents.map((event) => (
-                    <CalendarEventChip
-                      event={event}
-                      key={`${event.id}-${dateOnly}`}
-                      orgQueryValue={orgQueryValue}
-                    />
-                  ))}
-                  {hiddenCount > 0 && (
-                    <Button asChild size="sm" variant="ghost">
-                      <Link
-                        href={withOrg(
-                          `/calendar?view=day&anchor=${dateOnly}`,
-                          orgQueryValue
-                        )}
-                        onClick={(event) => event.stopPropagation()}
+                    {day.publicHolidays.length > 0 && (
+                      <span
+                        className={`rounded-lg px-1.5 py-0.5 text-xs ${statusToneClasses.holiday}`}
                       >
-                        +{hiddenCount} more
-                      </Link>
-                    </Button>
-                  )}
-                </span>
-              </CalendarCreateLauncher>
+                        Holiday
+                      </span>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    {visibleEvents.map((event) => (
+                      <CalendarEventChip
+                        event={event}
+                        key={`${event.id}-${dateOnly}`}
+                        orgQueryValue={orgQueryValue}
+                      />
+                    ))}
+                    {hiddenCount > 0 && (
+                      <Button asChild size="sm" variant="ghost">
+                        <Link
+                          href={withOrg(
+                            `/calendar?view=day&anchor=${dateOnly}`,
+                            orgQueryValue
+                          )}
+                        >
+                          +{hiddenCount} more
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <CalendarCreateLauncher
+                  className="mt-2 w-full"
+                  date={day.date}
+                  personId={createPersonId}
+                  startsAt={dateOnly}
+                />
+              </div>
             );
           })}
         </div>
-      </div>
+      </section>
     </section>
   );
 }

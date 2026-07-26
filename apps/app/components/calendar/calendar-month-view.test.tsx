@@ -12,8 +12,8 @@ vi.mock("next/navigation", () => ({
 describe("CalendarMonthView", () => {
   afterEach(() => cleanup());
 
-  it("renders public holiday badges, today and overflow", () => {
-    render(
+  it("renders public holiday badges, today, overflow link, and accessible scroll region", () => {
+    const { container } = render(
       <CalendarMonthView
         actingPersonId="00000000-0000-4000-8000-000000000011"
         data={calendarRange({ eventCount: 5 })}
@@ -24,6 +24,32 @@ describe("CalendarMonthView", () => {
 
     expect(screen.getByText("Holiday")).toBeDefined();
     expect(screen.getByText("+2 more")).toBeDefined();
+
+    const scrollRegion = screen.getByLabelText("Month calendar");
+    expect(scrollRegion).toBeDefined();
+    expect(scrollRegion.className).toContain("overflow-x-auto");
+
+    const grid = container.querySelector(".min-w-\\[56rem\\]");
+    expect(grid).not.toBeNull();
+  });
+
+  it("ensures calendar create control has no focusable interactive descendants", () => {
+    render(
+      <CalendarMonthView
+        actingPersonId="00000000-0000-4000-8000-000000000011"
+        data={calendarRange({ eventCount: 2 })}
+        orgQueryValue={null}
+        selectedPersonId={null}
+      />
+    );
+
+    const createBtn = screen.getByRole("button", {
+      name: "Add availability for 15 April 2026",
+    });
+    const interactiveDescendants = createBtn.querySelectorAll(
+      'button, a[href], [tabindex]:not([tabindex="-1"])'
+    );
+    expect(interactiveDescendants).toHaveLength(0);
   });
 
   it("renders the truncation banner", () => {
