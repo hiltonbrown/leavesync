@@ -207,7 +207,7 @@ export function LeaveApprovalsClient({
   };
 
   return (
-    <div className="flex flex-1 flex-col gap-6 transition-all duration-500 ease-in-out">
+    <div className="flex flex-1 flex-col gap-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h2 className="font-semibold text-foreground text-title-lg tracking-tight">

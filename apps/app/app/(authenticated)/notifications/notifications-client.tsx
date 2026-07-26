@@ -82,6 +82,38 @@ const CATEGORY_ORDER: NotificationCategory[] = [
   "system",
 ];
 
+export function usePrefersReducedMotion(): boolean {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) {
+      return;
+    }
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(mediaQuery.matches);
+
+    const listener = (event: MediaQueryListEvent) => {
+      setPrefersReducedMotion(event.matches);
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener("change", listener);
+    } else {
+      mediaQuery.addListener(listener);
+    }
+
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener("change", listener);
+      } else {
+        mediaQuery.removeListener(listener);
+      }
+    };
+  }, []);
+
+  return prefersReducedMotion;
+}
+
 export function NotificationsClient({
   filters,
   nextCursor,
@@ -150,12 +182,17 @@ export function NotificationsClient({
     [subscribe]
   );
 
+  const prefersReducedMotion = usePrefersReducedMotion();
+
   useEffect(() => {
     if (!(filters.focus && focusRef.current)) {
       return;
     }
-    focusRef.current.scrollIntoView({ block: "center", behavior: "smooth" });
-  }, [filters.focus]);
+    focusRef.current.scrollIntoView({
+      block: "center",
+      behavior: prefersReducedMotion ? "instant" : "smooth",
+    });
+  }, [filters.focus, prefersReducedMotion]);
 
   const groupedTypes = useMemo(
     () =>
@@ -340,9 +377,7 @@ export function NotificationsClient({
               {notifications.map((item) => (
                 <article
                   className={`flex gap-4 rounded-2xl p-4 ${
-                    item.isUnread
-                      ? "border-primary border-l-2 bg-primary/10"
-                      : "bg-muted"
+                    item.isUnread ? "bg-primary/10" : "bg-muted"
                   }`}
                   key={item.id}
                 >
