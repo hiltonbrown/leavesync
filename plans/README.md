@@ -93,7 +93,7 @@ repository.
 | [026](026-correct-the-agent-instruction-files.md) | Correct `AGENTS.md` and `GEMINI.md`, which describe the wrong product | P2 | S | LOW | none | DONE |
 | [025](025-stop-pointing-in-product-help-at-the-mintlify-starter-kit.md) | Stop pointing in-product Help at the Mintlify Starter Kit | P2 | S | LOW | none | DONE (Option B: `helpUrl` repointed at `webUrl("/help-centre")`, a real page; commit `532ae91` on branch `fix/unwire-starter-kit-help-link` in worktree, not merged) |
 | [022](022-align-the-lint-check-and-fix-commands.md) | Make `bun run fix` cover the same files as `bun run check` | P3 | S | LOW | none | DONE |
-| [033](033-dead-code-and-manifest-hygiene.md) | Dead code and manifest hygiene | P3 | S | LOW | none | BLOCKED (Step 1 baseline: `bun run build` fails on `web#build` — pre-existing `NEXT_PUBLIC_APP_URL` env validation error, unrelated to plan scope) |
+| [033](033-dead-code-and-manifest-hygiene.md) | Dead code and manifest hygiene | P3 | S | LOW | none | DONE (executed with a user-approved deviation: Step 1/2/6 build verification scoped to `bunx turbo build --filter=app --filter=api` instead of plain `bun run build`, since `web#build` fails on a pre-existing, out-of-scope `NEXT_PUBLIC_APP_URL` env validation error; commits `fa140b9`, `462f5c9`) |
 | [031](031-fix-the-database-package-boundary.md) | Fix the `@repo/database` package boundary | P3 | M | LOW | after 032 | TODO |
 | [021](021-consolidate-the-tenant-scoping-helpers.md) | Consolidate the ten local copies of the tenant-scoping helper | P3 | M | LOW | none | TODO |
 | [036](036-stop-returning-a-cross-tenant-existence-oracle.md) | Stop returning a cross-tenant existence oracle to callers | P3 | M | MED | none | TODO |
