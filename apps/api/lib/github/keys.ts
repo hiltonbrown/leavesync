@@ -13,4 +13,7 @@ export const keys = () =>
       GITHUB_REPO: process.env.GITHUB_REPO,
       GITHUB_TOKEN: process.env.GITHUB_TOKEN,
     },
+    // Treat an empty string (e.g. a blank Vercel env var) as unset so the
+    // format-constrained optional keys do not fail validation.
+    emptyStringAsUndefined: true,
   });
