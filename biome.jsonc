@@ -5,9 +5,6 @@
     "ultracite/biome/react",
     "ultracite/biome/next"
   ],
-  "javascript": {
-    "globals": ["Liveblocks"]
-  },
   "linter": {
     "rules": {
       "performance": {
@@ -16,16 +13,15 @@
     }
   },
   "files": {
+    // "**/*" then subtract: generated output (database client, docs JSON,
+    // email preview) and vendored shadcn/ui sources that are not ours to lint.
     "includes": [
       "**/*",
       "!packages/design-system/components/ui",
       "!packages/design-system/lib",
       "!packages/design-system/hooks",
-      "!packages/collaboration/config.ts",
-      "!docs",
       "!apps/docs/**/*.json",
       "!apps/email/.react-email",
-      "!packages/cms/basehub-types.d.ts",
       "!packages/database/generated"
     ]
   }
