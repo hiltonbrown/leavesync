@@ -6,7 +6,7 @@ import type {
   ProviderWriteError,
   Result,
 } from "@repo/core";
-import { database } from "@repo/database";
+import { database, scopedTo as scoped } from "@repo/database";
 import {
   type AvailabilityRecord,
   Prisma,
@@ -726,13 +726,6 @@ function auditData(
     },
     resource_id: input.recordId,
     resource_type: "availability_record",
-  };
-}
-
-function scoped(input: { clerkOrgId: string; organisationId: string }) {
-  return {
-    clerk_org_id: input.clerkOrgId,
-    organisation_id: input.organisationId,
   };
 }
 

@@ -23,6 +23,10 @@ const mocks = vi.hoisted(() => ({
     clerk_org_id: clerkOrgId,
     organisation_id: organisationId,
   })),
+  scopedTo: vi.fn((input: { clerkOrgId: string; organisationId: string }) => ({
+    clerk_org_id: input.clerkOrgId,
+    organisation_id: input.organisationId,
+  })),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -36,6 +40,7 @@ vi.mock("@repo/database", () => ({
     person: { findMany: mocks.personFindMany },
   },
   scopedQuery: mocks.scopedQuery,
+  scopedTo: mocks.scopedTo,
 }));
 vi.mock("../holidays/holiday-service", () => ({
   listForOrganisation: mocks.listForOrganisation,
