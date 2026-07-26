@@ -1,8 +1,8 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
-import { database, scopedQuery } from "@repo/database";
+import type { Result } from "@repo/core";
+import { database, scopedTo } from "@repo/database";
 import type {
   availability_approval_status,
   availability_contactability,
@@ -261,7 +261,10 @@ export async function listTeamRecords(input: {
 
     const reports = await database.person.findMany({
       where: {
-        ...scoped(input.clerkOrgId, input.organisationId),
+        ...scopedTo({
+          clerkOrgId: input.clerkOrgId,
+          organisationId: input.organisationId,
+        }),
         archived_at: null,
         manager_person_id: input.managerPersonId,
       },
@@ -340,7 +343,10 @@ export async function createRecord(
       await Promise.all([
         database.person.findFirst({
           where: {
-            ...scoped(parsed.data.clerkOrgId, parsed.data.organisationId),
+            ...scopedTo({
+              clerkOrgId: parsed.data.clerkOrgId,
+              organisationId: parsed.data.organisationId,
+            }),
             archived_at: null,
             id: parsed.data.personId,
           },
@@ -529,7 +535,10 @@ export async function updateRecord(
     await database.$transaction(async (tx) => {
       await tx.availabilityRecord.updateMany({
         where: {
-          ...scoped(parsed.data.clerkOrgId, parsed.data.organisationId),
+          ...scopedTo({
+            clerkOrgId: parsed.data.clerkOrgId,
+            organisationId: parsed.data.organisationId,
+          }),
           id: parsed.data.recordId,
         },
         data: {
@@ -633,7 +642,10 @@ export async function deleteDraftRecord(
     await database.$transaction(async (tx) => {
       await tx.availabilityRecord.deleteMany({
         where: {
-          ...scoped(parsed.data.clerkOrgId, parsed.data.organisationId),
+          ...scopedTo({
+            clerkOrgId: parsed.data.clerkOrgId,
+            organisationId: parsed.data.organisationId,
+          }),
           id: parsed.data.recordId,
         },
       });
@@ -690,7 +702,10 @@ export async function archiveRecord(
     await database.$transaction(async (tx) => {
       await tx.availabilityRecord.updateMany({
         where: {
-          ...scoped(parsed.data.clerkOrgId, parsed.data.organisationId),
+          ...scopedTo({
+            clerkOrgId: parsed.data.clerkOrgId,
+            organisationId: parsed.data.organisationId,
+          }),
           id: parsed.data.recordId,
         },
         data: {
@@ -745,7 +760,10 @@ export async function restoreRecord(
     await database.$transaction(async (tx) => {
       await tx.availabilityRecord.updateMany({
         where: {
-          ...scoped(parsed.data.clerkOrgId, parsed.data.organisationId),
+          ...scopedTo({
+            clerkOrgId: parsed.data.clerkOrgId,
+            organisationId: parsed.data.organisationId,
+          }),
           id: parsed.data.recordId,
         },
         data: {
@@ -801,7 +819,7 @@ async function listRecordsForScope({
   const hasXero = await hasActiveXeroConnection({ clerkOrgId, organisationId });
   const records = await database.availabilityRecord.findMany({
     where: {
-      ...scoped(clerkOrgId, organisationId),
+      ...scopedTo({ clerkOrgId, organisationId }),
       source_type: { in: ["manual", "team_calendar_leave"] },
       ...(filters.includeArchived ? {} : { archived_at: null }),
       ...(filters.approvalStatus?.length
@@ -875,7 +893,10 @@ async function balanceChipForRecord(
 
   const balance = await database.leaveBalance.findFirst({
     where: {
-      ...scoped(record.clerk_org_id, record.organisation_id),
+      ...scopedTo({
+        clerkOrgId: record.clerk_org_id,
+        organisationId: record.organisation_id,
+      }),
       person_id: record.person_id,
       record_type: record.record_type,
     },
@@ -908,7 +929,7 @@ function loadScopedRecord(
 ) {
   return database.availabilityRecord.findFirst({
     where: {
-      ...scoped(clerkOrgId, organisationId),
+      ...scopedTo({ clerkOrgId, organisationId }),
       id: recordId,
     },
     include: recordInclude,
@@ -951,7 +972,7 @@ function resolvePersonForUser(
 ) {
   return database.person.findFirst({
     where: {
-      ...scoped(clerkOrgId, organisationId),
+      ...scopedTo({ clerkOrgId, organisationId }),
       archived_at: null,
       clerk_user_id: userId,
     },
@@ -1200,13 +1221,6 @@ function canActOnPerson({
 
 function isAdminOrOwner(role?: string | null): boolean {
   return role === "org:admin" || role === "org:owner";
-}
-
-function scoped(clerkOrgId: string, organisationId: string) {
-  return scopedQuery(
-    clerkOrgId as ClerkOrgId,
-    organisationId as OrganisationId
-  );
 }
 
 function auditData(input: z.infer<typeof RecordActionSchema>, action: string) {
