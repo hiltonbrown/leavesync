@@ -30,6 +30,8 @@ interface FeedCacheClient {
 let cacheClient: FeedCacheClient | null = null;
 let cacheClientResolved = false;
 
+export const ALL_PRIVACY_MODES = ["named", "masked", "private"] as const;
+
 export function feedCacheKey(input: {
   feedId: string;
   privacyMode: string;
@@ -76,6 +78,7 @@ export async function setCachedFeedBody(input: {
 
 export async function invalidateFeedCache(input: {
   feedId: string;
+  privacyModes?: string[];
 }): Promise<Result<{ deletedCount: number }, FeedCacheError>> {
   try {
     const client = getFeedCacheClient();
@@ -83,20 +86,15 @@ export async function invalidateFeedCache(input: {
       return { ok: true, value: { deletedCount: 0 } };
     }
 
-    const keys: string[] = [];
-    let cursor = 0;
-    do {
-      const [nextCursor, batch] = await client.scan(cursor, {
-        count: 100,
-        match: `feed:${input.feedId}:*`,
-      });
-      cursor = nextCursor;
-      keys.push(...batch);
-    } while (cursor !== 0);
-
-    if (keys.length > 0) {
-      await client.del(...keys);
+    const modes = input.privacyModes ?? ALL_PRIVACY_MODES;
+    const keys = modes.map((privacyMode) =>
+      feedCacheKey({ feedId: input.feedId, privacyMode })
+    );
+    if (keys.length === 0) {
+      return { ok: true, value: { deletedCount: 0 } };
     }
+
+    await client.del(...keys);
     return { ok: true, value: { deletedCount: keys.length } };
   } catch {
     return cacheError("Failed to invalidate feed cache.");
