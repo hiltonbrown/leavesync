@@ -1,10 +1,20 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { NotificationsBell } from "./bell";
+
+const LEAVE_SUBMITTED_REGEX = /Leave submitted/i;
 
 const mocks = vi.hoisted(() => ({
   push: vi.fn(),
   subscribe: vi.fn(() => () => undefined),
+  markAsReadAction: vi.fn(),
+  markAllAsReadAction: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -19,18 +29,28 @@ vi.mock("@repo/notifications/components/provider", () => ({
 }));
 vi.mock("@/app/(authenticated)/notifications/_actions", () => ({
   listRecentUnreadAction: vi.fn(),
-  markAllAsReadAction: vi.fn(),
-  markAsReadAction: vi.fn(),
+  markAllAsReadAction: (args: unknown) => mocks.markAllAsReadAction(args),
+  markAsReadAction: (args: unknown) => mocks.markAsReadAction(args),
   refreshUnreadCountAction: vi.fn(),
 }));
 
 describe("NotificationsBell", () => {
-  it("renders server-provided badge and recent unread rows", async () => {
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
+  it("renders trigger with 44px touch target, opens list, and handles notification click", async () => {
+    mocks.markAsReadAction.mockResolvedValueOnce({
+      ok: true,
+      value: { unreadCount: 6 },
+    });
+
     render(
       <NotificationsBell
         initialRecent={[
           {
-            actionUrl: "/plans",
+            actionUrl: "/plans/123",
             body: "Ava submitted leave.",
             createdAt: new Date().toISOString(),
             iconKey: "inbox-in",
@@ -43,9 +63,29 @@ describe("NotificationsBell", () => {
       />
     );
 
-    expect(screen.getByLabelText("Notifications, 7 unread")).toBeDefined();
-    fireEvent.click(screen.getByLabelText("Notifications, 7 unread"));
-    expect(await screen.findByText("Leave submitted")).toBeDefined();
+    const trigger = screen.getByLabelText("Notifications, 7 unread");
+    expect(trigger.className).toContain("size-11");
+
+    fireEvent.click(trigger);
+
+    const listitem = await screen.findByRole("listitem");
+    expect(listitem).toBeDefined();
+
+    const notifBtn = screen.getByRole("button", {
+      name: LEAVE_SUBMITTED_REGEX,
+    });
+    expect(notifBtn).toBeDefined();
+
+    fireEvent.click(notifBtn);
+
+    expect(mocks.markAsReadAction).toHaveBeenCalledWith({
+      notificationId: "n_1",
+      organisationId: "00000000-0000-4000-8000-000000000001",
+    });
+
+    await waitFor(() => {
+      expect(mocks.push).toHaveBeenCalledWith("/plans/123");
+    });
   });
 
   it("formats large badges as 99+", () => {
@@ -58,5 +98,22 @@ describe("NotificationsBell", () => {
     );
 
     expect(screen.getByText("99+")).toBeDefined();
+  });
+
+  it("disables Mark all as read button when unread count is zero", () => {
+    render(
+      <NotificationsBell
+        initialRecent={[]}
+        initialUnreadCount={0}
+        organisationId="00000000-0000-4000-8000-000000000001"
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText("Notifications, 0 unread"));
+
+    const markAllBtn = screen.getByRole("button", {
+      name: "Mark all as read",
+    }) as HTMLButtonElement;
+    expect(markAllBtn.disabled).toBe(true);
   });
 });

@@ -284,7 +284,7 @@ export const MembersClient = ({
                           }
                           value={member.role}
                         >
-                          <SelectTrigger className="h-7 w-32 text-xs">
+                          <SelectTrigger className="h-11 w-32 text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -309,7 +309,7 @@ export const MembersClient = ({
                     <TableCell className="py-4 pr-4 text-right">
                       {!isSelf && (
                         <Button
-                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          className="h-11 w-11 text-muted-foreground hover:text-destructive"
                           disabled={isUpdating}
                           onClick={() => setRemoveTarget(member)}
                           size="icon"
