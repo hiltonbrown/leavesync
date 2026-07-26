@@ -50,7 +50,7 @@ Land these first. Each is a live defect with a bounded fix.
 | [006](006-stop-sync-overwriting-user-owned-privacy-fields.md) | Stop the inbound Xero sync overwriting user-owned privacy and feed fields | P1 | S | LOW | none | TODO |
 | [008](008-bind-xero-oauth-state-to-nonce-expiry-and-session.md) | Bind the Xero OAuth state to a nonce, an expiry, and the initiating browser | P1 | M | MED | none | TODO |
 | [005](005-refresh-vulnerable-dependency-pins.md) | Refresh the root dependency overrides that pin vulnerable versions | P1 | S | LOW | 016 helps | TODO |
-| [001](001-accessible-responsive-product-interactions.md) | Make calendar, contact, notification, and motion interactions accessible and responsive | P1 | M | MED | none | TODO |
+| [001](001-accessible-responsive-product-interactions.md) | Make calendar, contact, notification, and motion interactions accessible and responsive | P1 | M | MED | none | DONE (commit `2f8f12a` on branch `advisor/001-accessible-responsive-interactions` in worktree, not merged) |
 
 ### Tranche 2: correctness, verification and the CI gates that catch the rest
 
