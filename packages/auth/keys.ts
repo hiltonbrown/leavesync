@@ -35,4 +35,7 @@ export const keys = () =>
       NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL:
         process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL,
     },
+    // Treat an empty string (e.g. a blank Vercel env var) as unset so the
+    // format-constrained optional keys do not fail validation.
+    emptyStringAsUndefined: true,
   });

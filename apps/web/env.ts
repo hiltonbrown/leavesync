@@ -8,4 +8,8 @@ export const env = createEnv({
   server: {},
   client: {},
   runtimeEnv: {},
+  // Belt-and-braces: protects any field this app's own env.ts ever declares
+  // directly. The fields that matter today all come through `extends`, and
+  // are protected at the package level (see the nine files above).
+  emptyStringAsUndefined: true,
 });
