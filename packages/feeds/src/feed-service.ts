@@ -23,6 +23,7 @@ import {
   scopeSummary,
   validateScopes,
 } from "./scope/feed-scope";
+import { scopedFeed } from "./scope/scoped-feed";
 import {
   type ActiveTokenHint,
   createInitialTokenWithClient,
@@ -959,18 +960,6 @@ async function feedNotFoundOrLeak(input: {
   return {
     ok: false,
     error: { code: "feed_not_found", message: "Feed not found." },
-  };
-}
-
-function scopedFeed(input: {
-  clerkOrgId: string;
-  feedId: string;
-  organisationId: string;
-}) {
-  return {
-    clerk_org_id: input.clerkOrgId,
-    id: input.feedId,
-    organisation_id: input.organisationId,
   };
 }
 
