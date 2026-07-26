@@ -56,8 +56,8 @@ Land these first. Each is a live defect with a bounded fix.
 
 | Plan | Title | Priority | Effort | Risk | Depends on | Status |
 |---|---|---|---|---|---|---|
-| [040](040-fix-the-node-env-guard-that-breaks-every-local-and-ci-build.md) | Fix the `NODE_ENV` guard in `apps/web` that breaks every local and CI build | P1 | S | LOW | none; unblocks 024, 033, helps 016 | DONE (commit `bad2224` on branch `fix/web-build-vercel-env-guard` in worktree, not merged; verified `bun run build` now succeeds for all 4 apps incl. all 22 `apps/web` routes) |
-| [041](041-move-emptystringasundefined-to-where-it-actually-works.md) | Move `emptyStringAsUndefined` to every package's own `keys.ts`, where it actually protects anything | P1 | M | LOW | after 040; supersedes 024 | DONE (commit `dc60b1b` on branch `fix/empty-string-env-vars-at-the-source` in worktree, on top of plan 040's `bad2224`, not merged; verified `check`/`typecheck`/`test`/`build` all green and all 4 before/after test-plan cases confirmed) |
+| [040](040-fix-the-node-env-guard-that-breaks-every-local-and-ci-build.md) | Fix the `NODE_ENV` guard in `apps/web` that breaks every local and CI build | P1 | S | LOW | none; unblocks 024, 033, helps 016 | DONE, merged to `main` |
+| [041](041-move-emptystringasundefined-to-where-it-actually-works.md) | Move `emptyStringAsUndefined` to every package's own `keys.ts`, where it actually protects anything | P1 | M | LOW | after 040; supersedes 024 | DONE, merged to `main` |
 | [016](016-add-a-build-step-to-ci.md) | Add a build step to CI so typecheck sees generated route types | P2 | S | LOW | after 040 | TODO |
 | [035](035-fix-the-turborepo-task-graph.md) | Fix the Turborepo task graph for `test` and `typecheck` | P3 | S | LOW | none | TODO |
 | [015](015-enable-the-test-harness-in-six-untestable-workspaces.md) | Enable the test harness in the six workspaces that cannot run tests | P2 | M | LOW | 035 helps | TODO |
@@ -93,7 +93,7 @@ repository.
 
 | Plan | Title | Priority | Effort | Risk | Depends on | Status |
 |---|---|---|---|---|---|---|
-| [023](023-regenerate-the-env-examples-and-remove-dead-knock-config.md) | Regenerate the `.env.example` files and remove the dead Knock configuration | P3 | S | LOW | before 024 | DONE |
+| [023](023-regenerate-the-env-examples-and-remove-dead-knock-config.md) | Regenerate the `.env.example` files and remove the dead Knock configuration | P3 | S | LOW | before 024 | DONE, merged to `main` |
 | [026](026-correct-the-agent-instruction-files.md) | Correct `AGENTS.md` and `GEMINI.md`, which describe the wrong product | P2 | S | LOW | none | DONE |
 | [025](025-stop-pointing-in-product-help-at-the-mintlify-starter-kit.md) | Stop pointing in-product Help at the Mintlify Starter Kit | P2 | S | LOW | none | DONE (Option B: `helpUrl` repointed at `webUrl("/help-centre")`, a real page; commit `532ae91` on branch `fix/unwire-starter-kit-help-link` in worktree, not merged) |
 | [022](022-align-the-lint-check-and-fix-commands.md) | Make `bun run fix` cover the same files as `bun run check` | P3 | S | LOW | none | DONE |
