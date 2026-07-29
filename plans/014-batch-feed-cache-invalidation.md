@@ -268,13 +268,14 @@ grep -rn "feedIdsForPeople" packages apps --include=*.ts
 
 ### Step 3: Replace the `SCAN` with a keyed delete
 
-In `packages/feeds/src/cache/feed-cache.ts`, change `invalidateFeedCache` to
-accept the privacy modes to delete and issue a single `del` over computed keys:
+In `packages/feeds/src/cache/feed-cache.ts`, export `ALL_PRIVACY_MODES` (`["named", "masked", "private"] as const`) matching the `availability_privacy_mode` enum in `schema.prisma`. Change `invalidateFeedCache` to accept an optional `privacyModes?: string[]` (defaulting to `ALL_PRIVACY_MODES`) and issue a single `del` over computed keys:
 
 ```typescript
+export const ALL_PRIVACY_MODES = ["named", "masked", "private"] as const;
+
 export async function invalidateFeedCache(input: {
   feedId: string;
-  privacyModes: string[];
+  privacyModes?: string[];
 }): Promise<Result<{ deletedCount: number }, FeedCacheError>> {
   try {
     const client = getFeedCacheClient();
@@ -282,7 +283,8 @@ export async function invalidateFeedCache(input: {
       return { ok: true, value: { deletedCount: 0 } };
     }
 
-    const keys = input.privacyModes.map((privacyMode) =>
+    const modes = input.privacyModes ?? ALL_PRIVACY_MODES;
+    const keys = modes.map((privacyMode) =>
       feedCacheKey({ feedId: input.feedId, privacyMode })
     );
     if (keys.length === 0) {
@@ -297,15 +299,9 @@ export async function invalidateFeedCache(input: {
 }
 ```
 
-Callers pass the feed's current `privacy_mode`. To be safe against a feed whose
-privacy mode changed while a body was cached under the old mode, pass **every**
-member of the privacy-mode enum rather than just the current one. Get the enum
-members from `packages/database/prisma/schema.prisma`; deleting a key that does
-not exist is free.
+By making `privacyModes` optional and defaulting to `ALL_PRIVACY_MODES`, existing callers passing `{ feedId }` (such as in `feed-service.ts`, `token-service.ts`, and `rebuild-feed-cache.ts`) remain 100% valid without requiring signature changes or modifications outside `packages/feeds/src/cache/*`.
 
-That keeps the correctness property the `SCAN` was providing (catch bodies
-cached under any mode) while making the cost constant and independent of
-keyspace size.
+Deleting keys for all privacy modes keeps the correctness property the `SCAN` was providing (catch bodies cached under any mode) while making the cost constant and independent of keyspace size.
 
 **Verify**: `grep -n "client.scan" packages/feeds/src/cache/feed-cache.ts`
 returns no matches, and `bun run typecheck` → exit 0.
@@ -402,10 +398,7 @@ Stop and report back (do not improvise) if:
   `packages/feeds/src/cache/feed-cache.ts`. If it only takes one key, issue the
   deletes with `Promise.all` instead and note the change; do not fall back to
   `scan`.
-- `invalidateFeedCache` has callers outside `feed-invalidation.ts`. Confirm with
-  `grep -rn "invalidateFeedCache" packages apps --include=*.ts`. Every caller
-  must be updated for the new signature; if one is in a package outside the scope
-  list, report it rather than editing it.
+- `invalidateFeedCache`'s `privacyModes` parameter is optional (`privacyModes?: string[]`, defaulting to `ALL_PRIVACY_MODES = ["named", "masked", "private"]`), preserving backwards compatibility for callers passing `{ feedId }`. If a caller requires a breaking signature change outside `packages/feeds/src/cache/*`, stop and report.
 - The privacy-mode enum cannot be imported into `packages/feeds` without creating
   a dependency cycle. If so, define the list locally with a comment pointing at
   the schema, and add a test that fails if the two diverge.

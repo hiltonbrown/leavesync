@@ -4,7 +4,7 @@ type VercelEnv = "development" | "preview" | "production" | undefined;
 
 interface EnvMock {
   NEXT_PUBLIC_APP_URL: string | undefined;
-  VERCEL_ENV: VercelEnv;
+  NEXT_PUBLIC_VERCEL_ENV: VercelEnv;
 }
 
 async function importAuthLinks(envMock: EnvMock) {
@@ -21,7 +21,7 @@ describe("auth-links", () => {
   it("does not throw when VERCEL_ENV is unset and NEXT_PUBLIC_APP_URL points to localhost", async () => {
     const { signInHref, signUpHref } = await importAuthLinks({
       NEXT_PUBLIC_APP_URL: "http://localhost:3000",
-      VERCEL_ENV: undefined,
+      NEXT_PUBLIC_VERCEL_ENV: undefined,
     });
 
     expect(signInHref).toBe("http://localhost:3000/sign-in");
@@ -31,7 +31,7 @@ describe("auth-links", () => {
   it("does not throw when VERCEL_ENV is preview and NEXT_PUBLIC_APP_URL points to localhost", async () => {
     const { signInHref } = await importAuthLinks({
       NEXT_PUBLIC_APP_URL: "http://localhost:3000",
-      VERCEL_ENV: "preview",
+      NEXT_PUBLIC_VERCEL_ENV: "preview",
     });
 
     expect(signInHref).toBe("http://localhost:3000/sign-in");
@@ -41,7 +41,7 @@ describe("auth-links", () => {
     await expect(
       importAuthLinks({
         NEXT_PUBLIC_APP_URL: "http://localhost:3000",
-        VERCEL_ENV: "production",
+        NEXT_PUBLIC_VERCEL_ENV: "production",
       })
     ).rejects.toThrow(
       "NEXT_PUBLIC_APP_URL must point to the Team Calendar app domain in production."
@@ -51,7 +51,7 @@ describe("auth-links", () => {
   it("does not throw when VERCEL_ENV is production and NEXT_PUBLIC_APP_URL points to the real domain", async () => {
     const { signInHref } = await importAuthLinks({
       NEXT_PUBLIC_APP_URL: "https://app.teamcalendar.online",
-      VERCEL_ENV: "production",
+      NEXT_PUBLIC_VERCEL_ENV: "production",
     });
 
     expect(signInHref).toBe("https://app.teamcalendar.online/sign-in");
@@ -60,7 +60,7 @@ describe("auth-links", () => {
   it("falls back to the production origin when NEXT_PUBLIC_APP_URL is unset", async () => {
     const { signInHref } = await importAuthLinks({
       NEXT_PUBLIC_APP_URL: undefined,
-      VERCEL_ENV: "production",
+      NEXT_PUBLIC_VERCEL_ENV: "production",
     });
 
     expect(signInHref).toBe("https://app.teamcalendar.online/sign-in");

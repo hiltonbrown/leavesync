@@ -1,3 +1,4 @@
+import path from "node:path";
 import withBundleAnalyzer from "@next/bundle-analyzer";
 import type { NextConfig } from "next";
 
@@ -12,6 +13,9 @@ export const securityHeaders = [
 ];
 
 export const config: NextConfig = {
+  turbopack: {
+    root: path.resolve(import.meta.dirname, "../../"),
+  },
   serverExternalPackages: [
     "@prisma/client",
     "@prisma/adapter-neon",

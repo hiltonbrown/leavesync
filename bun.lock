@@ -497,6 +497,9 @@
       },
     },
   },
+  "patchedDependencies": {
+    "next-themes@0.4.6": "patches/next-themes@0.4.6.patch",
+  },
   "overrides": {
     "@grpc/grpc-js": "1.14.4",
     "fast-uri": "3.1.2",

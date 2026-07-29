@@ -17,6 +17,9 @@ export const keys = () =>
       VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
     },
     client: {
+      NEXT_PUBLIC_VERCEL_ENV: z
+        .enum(["development", "preview", "production"])
+        .optional(),
       NEXT_PUBLIC_APP_URL: z.string().url().optional(),
       NEXT_PUBLIC_WEB_URL: z.string().url().optional(),
       NEXT_PUBLIC_API_URL: z.string().url().optional(),
@@ -30,6 +33,8 @@ export const keys = () =>
       VERCEL_URL: process.env.VERCEL_URL,
       VERCEL_REGION: process.env.VERCEL_REGION,
       VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+      NEXT_PUBLIC_VERCEL_ENV:
+        process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.VERCEL_ENV,
       NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
       NEXT_PUBLIC_WEB_URL: process.env.NEXT_PUBLIC_WEB_URL,
       NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
