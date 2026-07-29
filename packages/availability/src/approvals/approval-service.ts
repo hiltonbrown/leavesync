@@ -8,7 +8,7 @@ import type {
   ProviderWriteError,
   Result,
 } from "@repo/core";
-import { database } from "@repo/database";
+import { database, scopedTo as scoped } from "@repo/database";
 import { Prisma } from "@repo/database/generated/client";
 import type {
   availability_approval_status,
@@ -1007,8 +1007,6 @@ async function materialiseApprovalPublication(input: {
   }
 }
 
-// removed loadXeroTenant
-
 async function loadApprovalListContext(
   records: LoadedApprovalRecord[]
 ): Promise<ApprovalListContext> {
@@ -1588,13 +1586,6 @@ function transitionWhere(input: CommandInput, record: LoadedApprovalRecord) {
     approval_status: record.approval_status,
     derived_sequence: record.derived_sequence,
     id: record.id,
-  };
-}
-
-function scoped(input: { clerkOrgId: string; organisationId: string }) {
-  return {
-    clerk_org_id: input.clerkOrgId,
-    organisation_id: input.organisationId,
   };
 }
 

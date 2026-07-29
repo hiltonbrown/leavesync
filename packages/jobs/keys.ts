@@ -15,6 +15,9 @@ export const keys = () => {
       INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,
       INNGEST_DEV: process.env.INNGEST_DEV,
     },
+    // Treat an empty string (e.g. a blank Vercel env var) as unset so the
+    // format-constrained optional keys do not fail validation.
+    emptyStringAsUndefined: true,
   });
 
   // In local development the Inngest Dev Server needs neither key, so both may

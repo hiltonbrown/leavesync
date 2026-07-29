@@ -5,7 +5,7 @@
     "build": "turbo build --filter=!email",
     "dev": "bunx turbo dev --ui=stream --filter=app --filter=api --filter=web --filter=email",
     "check": "ultracite check apps packages scripts tooling tsup.config.ts next-env.d.ts",
-    "fix": "ultracite fix",
+    "fix": "ultracite fix apps packages scripts tooling tsup.config.ts next-env.d.ts",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
     "test:integration": "turbo test:integration",
@@ -53,5 +53,8 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "patchedDependencies": {
+    "next-themes@0.4.6": "patches/next-themes@0.4.6.patch"
+  }
 }

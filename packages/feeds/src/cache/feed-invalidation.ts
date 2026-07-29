@@ -3,8 +3,12 @@ import "server-only";
 import type { Result } from "@repo/core";
 import { database } from "@repo/database";
 import type { Prisma } from "@repo/database/generated/client";
-import { resolvePeopleForFeed } from "../scope/feed-scope";
-import { type FeedCacheError, invalidateFeedCache } from "./feed-cache";
+import { loadFeedScopeData, resolvePeopleForFeed } from "../scope/feed-scope";
+import {
+  ALL_PRIVACY_MODES,
+  type FeedCacheError,
+  invalidateFeedCache,
+} from "./feed-cache";
 
 // Resolve the active feeds whose scope includes any of the given people, using the
 // canonical scope resolver so dynamic scopes (self, manager_team) are handled the same
@@ -14,10 +18,16 @@ export async function feedIdsForPeople(input: {
   clerkOrgId: string;
   organisationId: string;
   personIds: string[];
-}): Promise<string[]> {
+}): Promise<Array<{ id: string; privacyMode: string }>> {
   if (input.personIds.length === 0) {
     return [];
   }
+  const preloadedResult = await loadFeedScopeData({
+    clerkOrgId: input.clerkOrgId,
+    organisationId: input.organisationId,
+  });
+  const preloaded = preloadedResult.ok ? preloadedResult.value : undefined;
+
   const wanted = new Set(input.personIds);
   const feeds = await database.feed.findMany({
     select: feedScopeSelect,
@@ -29,12 +39,13 @@ export async function feedIdsForPeople(input: {
     },
   });
 
-  const matching: string[] = [];
+  const matching: Array<{ id: string; privacyMode: string }> = [];
   for (const feed of feeds) {
     const people = await resolvePeopleForFeed({
       clerkOrgId: input.clerkOrgId,
       createdByUserId: feed.created_by_user_id,
       organisationId: input.organisationId,
+      preloaded,
       scopes: feed.scopes.map((scope) => ({
         scopeType: scope.scope_type,
         scopeValue: scope.scope_value,
@@ -43,11 +54,11 @@ export async function feedIdsForPeople(input: {
     // If scope resolution fails we cannot prove the person is out of scope; invalidate
     // defensively so a transient error never leaves a stale feed body in the cache.
     if (!people.ok) {
-      matching.push(feed.id);
+      matching.push({ id: feed.id, privacyMode: feed.privacy_mode });
       continue;
     }
     if (people.value.some((person) => wanted.has(person.id))) {
-      matching.push(feed.id);
+      matching.push({ id: feed.id, privacyMode: feed.privacy_mode });
     }
   }
   return matching;
@@ -58,23 +69,30 @@ export async function invalidateFeedCachesForPerson(input: {
   organisationId: string;
   personId: string;
 }): Promise<Result<{ feedIds: string[] }, FeedCacheError>> {
-  const feedIds = await feedIdsForPeople({
+  const feeds = await feedIdsForPeople({
     clerkOrgId: input.clerkOrgId,
     organisationId: input.organisationId,
     personIds: [input.personId],
   });
-  for (const feedId of feedIds) {
-    const result = await invalidateFeedCache({ feedId });
-    if (!result.ok) {
-      return result;
-    }
+  const results = await Promise.all(
+    feeds.map((feed) =>
+      invalidateFeedCache({
+        feedId: feed.id,
+        privacyModes: [...ALL_PRIVACY_MODES],
+      })
+    )
+  );
+  const failed = results.filter((result) => !result.ok);
+  if (failed.length > 0) {
+    return failed[0];
   }
-  return { ok: true, value: { feedIds } };
+  return { ok: true, value: { feedIds: feeds.map((f) => f.id) } };
 }
 
 const feedScopeSelect = {
   created_by_user_id: true,
   id: true,
+  privacy_mode: true,
   scopes: {
     select: {
       scope_type: true,

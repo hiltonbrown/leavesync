@@ -22,4 +22,7 @@ export const keys = () =>
       SENTRY_PROJECT: process.env.SENTRY_PROJECT,
       NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     },
+    // Treat an empty string (e.g. a blank Vercel env var) as unset so the
+    // format-constrained optional keys do not fail validation.
+    emptyStringAsUndefined: true,
   });

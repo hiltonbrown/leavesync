@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { Result } from "@repo/core";
-import { database } from "@repo/database";
+import { database, scopedTo as scoped } from "@repo/database";
 import type { Prisma } from "@repo/database/generated/client";
 import { z } from "zod";
 import {
@@ -714,13 +714,6 @@ export async function cancelRun(
 
 function canUseSyncMonitor(role: SyncMonitorRole): boolean {
   return role === "admin" || role === "owner";
-}
-
-function scoped(input: { clerkOrgId: string; organisationId: string }) {
-  return {
-    clerk_org_id: input.clerkOrgId,
-    organisation_id: input.organisationId,
-  };
 }
 
 function auditBase(input: BaseInput, actingUserId: string) {

@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
-import { database, scopedQuery } from "@repo/database";
+import { database, scopedTo } from "@repo/database";
 import type {
   availability_approval_status,
   availability_contactability,
@@ -358,7 +358,10 @@ export async function getEventDetail(
     });
     const record = await database.availabilityRecord.findFirst({
       where: {
-        ...scoped(parsed.data.clerkOrgId, parsed.data.organisationId),
+        ...scopedTo({
+          clerkOrgId: parsed.data.clerkOrgId,
+          organisationId: parsed.data.organisationId,
+        }),
         archived_at: null,
         id: parsed.data.recordId,
       },
@@ -429,7 +432,10 @@ export async function getEventDetail(
 async function loadPeople(input: ParsedRangeInput): Promise<ScopedPerson[]> {
   return await database.person.findMany({
     where: {
-      ...scoped(input.clerkOrgId, input.organisationId),
+      ...scopedTo({
+        clerkOrgId: input.clerkOrgId,
+        organisationId: input.organisationId,
+      }),
       archived_at: null,
       is_active: true,
     },
@@ -568,7 +574,10 @@ async function loadRecords(
 
   return await database.availabilityRecord.findMany({
     where: {
-      ...scoped(input.clerkOrgId, input.organisationId),
+      ...scopedTo({
+        clerkOrgId: input.clerkOrgId,
+        organisationId: input.organisationId,
+      }),
       OR: approvalOr,
       archived_at: null,
       ends_at: { gt: range.start },
@@ -1017,13 +1026,6 @@ function lastDayOfMonth(dateOnly: string): string {
 function uniqueSorted(values: string[]): string[] {
   return [...new Set(values)].sort((first, second) =>
     first.localeCompare(second)
-  );
-}
-
-function scoped(clerkOrgId: string, organisationId: string) {
-  return scopedQuery(
-    clerkOrgId as ClerkOrgId,
-    organisationId as OrganisationId
   );
 }
 

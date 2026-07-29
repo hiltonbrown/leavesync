@@ -15,6 +15,10 @@ const mocks = vi.hoisted(() => ({
   personFindFirst: vi.fn(),
   personFindMany: vi.fn(),
   publishOrganisationNotificationEvent: vi.fn(),
+  scopedTo: vi.fn((input: { clerkOrgId: string; organisationId: string }) => ({
+    clerk_org_id: input.clerkOrgId,
+    organisation_id: input.organisationId,
+  })),
   syncRunCreate: vi.fn(),
   syncRunFindFirst: vi.fn(),
   syncRunUpdateMany: vi.fn(),
@@ -59,6 +63,7 @@ vi.mock("@repo/database", () => ({
       updateMany: mocks.xeroTenantUpdateMany,
     },
   },
+  scopedTo: mocks.scopedTo,
 }));
 vi.mock("@repo/database/generated/client", () => ({
   Prisma: { JsonNull: "JsonNull" },
