@@ -41,7 +41,7 @@ Land these first. Each is a live defect with a bounded fix.
 
 | Plan | Title | Priority | Effort | Risk | Depends on | Status |
 |---|---|---|---|---|---|---|
-| [032](032-stop-serialising-encrypted-xero-tokens-to-the-browser.md) | Stop serialising encrypted Xero tokens into the client payload | P1 | S | LOW | none | TODO |
+| [032](032-stop-serialising-encrypted-xero-tokens-to-the-browser.md) | Stop serialising encrypted Xero tokens into the client payload | P1 | S | LOW | none | DONE (commit `2a5b29b` on branch `fix/stop-leaking-xero-token-material` in `/tmp/teamcalendar-plan-032`, not merged; `check`, `typecheck` and `test` pass. Browser payload verification was unavailable, and production builds are blocked by sandbox font-download failures after validating the required environment schema.) |
 | [002](002-fix-null-actor-authorisation-bypass.md) | Deny record authorisation when the acting user has no linked person | P1 | S | LOW | none | TODO |
 | [004](004-prevent-manager-self-approval.md) | Prevent managers from approving or declining their own leave | P1 | S | LOW | none | TODO |
 | [017](017-make-leave-submission-idempotent.md) | Stop leave submission creating duplicate leave applications in Xero | P1 | M | MED | none | TODO |
