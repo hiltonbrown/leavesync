@@ -1,10 +1,5 @@
 "use client";
 
-import type {
-  Organisation,
-  XeroConnection,
-  XeroTenant,
-} from "@repo/database/generated/client";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   Card,
@@ -16,13 +11,10 @@ import {
 import Link from "next/link";
 import { ProviderStatusBadge } from "../components/provider-status-badge";
 import { SettingsSectionHeader } from "../components/settings-section-header";
-
-type OrganisationWithXero = Organisation & {
-  xero_connection: (XeroConnection & { xero_tenant: XeroTenant | null }) | null;
-};
+import type { OrganisationWithConnectionView } from "./_connection-view";
 
 interface IntegrationsClientProps {
-  organisations: OrganisationWithXero[];
+  organisations: OrganisationWithConnectionView[];
 }
 
 export const IntegrationsClient = ({
@@ -118,7 +110,7 @@ export const IntegrationsClient = ({
 };
 
 function statusForConnection(
-  connection: (XeroConnection & { xero_tenant: XeroTenant | null }) | null
+  connection: OrganisationWithConnectionView["xero_connection"]
 ): "connected" | "disconnected" | "error" | "expired" | "revoked" {
   if (!connection) {
     return "disconnected";
