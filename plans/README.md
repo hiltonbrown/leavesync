@@ -79,8 +79,8 @@ at the same time.
 
 | Plan | Title | Priority | Effort | Risk | Depends on | Status |
 |---|---|---|---|---|---|---|
-| [009](009-stop-database-writes-on-every-ics-feed-poll.md) | Stop writing to the database on every ICS feed poll | P2 | S | LOW | 014 related | TODO |
-| [014](014-batch-feed-cache-invalidation.md) | Batch feed-cache invalidation and replace keyspace scans with keyed deletes | P2 | M | MED | none | TODO |
+| [009](009-stop-database-writes-on-every-ics-feed-poll.md) | Stop writing to the database on every ICS feed poll | P2 | S | LOW | 014 related | DONE, merged to `main` |
+| [014](014-batch-feed-cache-invalidation.md) | Batch feed-cache invalidation and replace keyspace scans with keyed deletes | P2 | M | MED | none | DONE (commit `df05bf3` on branch `advisor/014-batch-feed-cache-invalidation` in worktree, not merged) |
 | [013](013-paginate-and-narrow-the-approvals-list-query.md) | Paginate the approvals list and stop shipping Xero payload blobs to the browser | P2 | M | MED | none | TODO |
 | [030](030-remove-three-avoidable-round-trip-patterns.md) | Remove three avoidable round-trip patterns | P2 | M | MED | none | TODO |
 | [034](034-bound-and-batch-the-feed-publication-reconciler.md) | Bound and batch the feed publication reconciler | P2 | M | MED | none | TODO |
