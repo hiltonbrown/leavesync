@@ -7,7 +7,7 @@
 > `plans/README.md`.
 >
 > **Drift check (run first)**:
-> `git diff --stat 75202db..HEAD -- packages/database/index.ts packages/database/package.json apps/app apps/api`
+> `git diff --stat f3a9a68..HEAD -- packages/database/index.ts packages/database/package.json apps/app apps/api packages/availability/src/slice-14-integration-flows.test.ts`
 > If any changed since this plan was written, re-check the "Current state"
 > facts before proceeding.
 
@@ -18,7 +18,7 @@
 - **Risk**: LOW
 - **Depends on**: plan 032 should land first (same files, security fix)
 - **Category**: tech debt, architecture
-- **Planned at**: commit `75202db`, 2026-07-25
+- **Planned at**: commit `f3a9a68`, 2026-07-29 (reconciled after plan 032 landed)
 
 ## Why this matters
 
@@ -29,8 +29,8 @@ that `packages/database` presents one surface and apps consume that surface.
 
 Two patterns cut across it.
 
-**1. Eighteen deep imports reach past the package root into its source tree.**
-Nine files in `apps/app` and `apps/api` import from
+**1. Nine deep query imports reach past the package root into its source tree.**
+Seven files in `apps/app` and `apps/api` import from
 `@repo/database/src/queries/...` directly. They do this because
 `packages/database/index.ts` re-exports only one of the ten query modules, so
 the others are unreachable through the front door. The deep path works because
@@ -60,14 +60,15 @@ is P3 tidying that can wait.
 
 ## Current state
 
-### The eighteen deep imports
+### The nine deep query imports and one test-fixture import
 
 ```
 grep -rn "@repo/[a-z-]*/src/" apps packages --include=*.ts --include=*.tsx | grep -v node_modules | wc -l
 ```
 
-At commit `75202db` this returns `18`, across nine files, every one of them
-reaching into `@repo/database`:
+At commit `f3a9a68` this returns ten occurrences: nine query imports across
+seven application files, plus one cross-package test-fixture import. The
+application files are:
 
 | File | Imports |
 |---|---|
@@ -78,6 +79,11 @@ reaching into `@repo/database`:
 | `apps/app/app/(authenticated)/layout.tsx` | `@repo/database/src/queries/organisations` |
 | `apps/app/lib/server/get-active-org-context.ts` | `@repo/database/src/queries/organisations` |
 | `apps/app/lib/server/require-active-org-page-context.ts` | `@repo/database/src/queries/organisations` |
+
+`packages/availability/src/slice-14-integration-flows.test.ts` also imports
+`@repo/database/src/test-fixtures/slice-14-fixture`. It is a legitimate
+cross-package test helper, but it must move to a dedicated public **test-only**
+subpath before the `exports` map closes `./src`.
 
 Regenerate the exact list before starting; the table above is a lead, not a
 contract.
@@ -178,9 +184,10 @@ Two independent changes.
 
 **Change A: give `packages/database` a front door.** Export the query modules
 from `index.ts` and rewrite the eighteen deep imports to use the package root.
-Then add an `exports` map to `package.json` that admits the root and
-`./generated/client` and nothing else, so the deep path stops resolving and the
-boundary becomes enforced rather than aspirational.
+Then add an `exports` map to `package.json` that admits the root, generated
+artefacts, `keys`, and the one dedicated test-fixture subpath, so arbitrary
+deep paths stop resolving and the boundary becomes enforced rather than
+aspirational.
 
 **Change B: give the three client components view models.** Plan 032 already
 creates `_connection-view.ts` with a view type for two of them; this change
@@ -209,16 +216,30 @@ apply it to all ten.
 All run from the repo root.
 
 ```
-bun install                # run first if you hit "Cannot find module '@repo/observability/log'"
+bun install --frozen-lockfile
 bun run check
 bun run typecheck
 bun run test
-bun run build
+task_key="$(openssl rand -base64 32)"
+DATABASE_URL="postgresql://teamcalendar:teamcalendar@127.0.0.1:5432/teamcalendar" XERO_TOKEN_ENCRYPTION_KEY="$task_key" bunx turbo build --filter=app --filter=api
 ```
 
-`bun run build` matters here: an `exports` map that is wrong breaks module
-resolution in ways `typecheck` may not catch, because TypeScript and the
-bundler resolve differently.
+In a fresh isolated worktree, run `bun install --frozen-lockfile` before the
+baseline. If it fails solely because Bun says the lockfile would change, run
+`bun install`, then immediately run `git restore bun.lock` before continuing.
+Do not commit a lockfile rewrite for this plan.
+
+The final command is the **synthetic app/API build**. It supplies an ephemeral
+32-byte encryption key and a syntactically valid local PostgreSQL URL only to
+pass startup validation. It must not connect to a database or use a production
+credential. It deliberately excludes `web`, which is unrelated to this
+package-boundary change and requires Google Font downloads. If the isolated
+sandbox cannot fetch the app's Google Fonts, rerun that exact command with
+normal outbound network access; do not modify the font configuration.
+
+The synthetic app/API build matters here: an `exports` map that is wrong
+breaks module resolution in ways `typecheck` may not catch, because TypeScript
+and the bundler resolve differently.
 
 ## Scope
 
@@ -226,7 +247,10 @@ bundler resolve differently.
 
 - `packages/database/index.ts`
 - `packages/database/package.json` (the `exports` map)
-- The nine files holding deep imports
+- The seven application files holding query deep imports
+- `packages/availability/src/slice-14-integration-flows.test.ts` (rewrite its
+  test-fixture import to the public test-only subpath)
+- `packages/database/index.test.ts` (create the public-surface boundary test)
 - `apps/app/app/(authenticated)/settings/integrations/xero/matches/matches-client.tsx`
   and the page that renders it
 - The two integrations client components, **only** to the extent plan 032 has
@@ -278,7 +302,8 @@ Do not push or open a pull request unless the user asks.
 bun run check
 bun run typecheck
 bun run test
-bun run build
+task_key="$(openssl rand -base64 32)"
+DATABASE_URL="postgresql://teamcalendar:teamcalendar@127.0.0.1:5432/teamcalendar" XERO_TOKEN_ENCRYPTION_KEY="$task_key" bunx turbo build --filter=app --filter=api
 ```
 
 **Expected**: all four exit 0. Record the test count.
@@ -289,11 +314,13 @@ Then regenerate the deep-import list:
 grep -rn "@repo/[a-z-]*/src/" apps packages --include=*.ts --include=*.tsx | grep -v node_modules | grep -v "\.test\."
 ```
 
-**Expected**: eighteen occurrences, all `@repo/database/src/queries/...`.
+**Expected**: nine `@repo/database/src/queries/...` imports in the seven
+application files listed above. The documented test-fixture import is excluded
+by `grep -v "\.test\."` and is handled separately in Step 4.
 
 If any hit reaches into a package other than `@repo/database`, **report it and
-leave it alone**. That is a second instance of the same problem in a package
-this plan has not analysed.
+leave it alone**. If it is another `@repo/database/src/...` import beyond the
+ten documented above, report it and stop: this plan has not classified it.
 
 ### Step 2: Check for export name collisions
 
@@ -343,7 +370,7 @@ duplicate-export error.
 
 ### Step 4: Rewrite the eighteen deep imports
 
-For each of the nine files, change:
+For each of the seven application files, change:
 
 ```typescript
 import { getOrganisationById } from "@repo/database/src/queries/organisations";
@@ -358,11 +385,17 @@ import { getOrganisationById } from "@repo/database";
 Merge with an existing `@repo/database` import in the same file where there is
 one, keeping the import list alphabetical as the surrounding code does.
 
-**Do this one file at a time**, running `bun run typecheck` after each. Nine
+**Do this one file at a time**, running `bun run typecheck` after each. Seven
 files is few enough that per-file verification costs little and localises any
 failure.
 
-**Verify after all nine**:
+In `packages/availability/src/slice-14-integration-flows.test.ts`, change the
+test-only helper import from
+`@repo/database/src/test-fixtures/slice-14-fixture` to
+`@repo/database/test-fixtures/slice-14-fixture`. This is the only permitted
+non-root database subpath added by this plan, and it must remain test-only.
+
+**Verify after all eight imports**:
 
 ```
 grep -rn "@repo/database/src/" apps packages --include=*.ts --include=*.tsx | grep -v node_modules
@@ -385,7 +418,8 @@ Edit `packages/database/package.json`:
     ".": "./index.ts",
     "./generated/client": "./generated/client/index.ts",
     "./generated/enums": "./generated/enums.ts",
-    "./keys": "./keys.ts"
+    "./keys": "./keys.ts",
+    "./test-fixtures/slice-14-fixture": "./src/test-fixtures/slice-14-fixture.ts"
   }
 }
 ```
@@ -409,18 +443,19 @@ stops resolving.
 
 ```
 bun run typecheck
-bun run build
 bun run test
+task_key="$(openssl rand -base64 32)"
+DATABASE_URL="postgresql://teamcalendar:teamcalendar@127.0.0.1:5432/teamcalendar" XERO_TOKEN_ENCRYPTION_KEY="$task_key" bunx turbo build --filter=app --filter=api
 ```
 
-**Expected**: all three exit 0. **`bun run build` is the one that matters
-here**: TypeScript and the bundler resolve `exports` differently, and a map
-that satisfies `tsc` can still break a Next.js build.
+**Expected**: all three exit 0. **The synthetic app/API build is the one that
+matters here**: TypeScript and the bundler resolve `exports` differently, and a
+map that satisfies `tsc` can still break a Next.js build.
 
 If the build fails on a path you did not anticipate, add it to the map only if
-it is a legitimate public subpath (a generated artefact, a `keys.ts`). If it is
-another `src/...` path, that is a deep import Step 4 missed: fix the import,
-not the map.
+it is a legitimate public subpath (a generated artefact, `keys.ts`, or the
+explicit test-only fixture above). If it is another `src/...` path, that is a
+deep import Step 4 missed: fix the import, not the map.
 
 ### Step 6: Give `matches-client.tsx` a view model
 
@@ -480,7 +515,8 @@ report it.
 bun run check
 bun run typecheck
 bun run test
-bun run build
+task_key="$(openssl rand -base64 32)"
+DATABASE_URL="postgresql://teamcalendar:teamcalendar@127.0.0.1:5432/teamcalendar" XERO_TOKEN_ENCRYPTION_KEY="$task_key" bunx turbo build --filter=app --filter=api
 git diff --name-only
 ```
 
@@ -529,7 +565,7 @@ All of the following, verbatim:
    added from the test plan.
 4. `grep -rn "@repo/database/src/" apps packages --include=*.ts --include=*.tsx | grep -v node_modules`
    returns nothing.
-5. `bun run build` exits 0.
+5. The synthetic app/API build command from "Commands you will need" exits 0.
 6. `node -e "console.log(Boolean(require('./packages/database/package.json').exports))"`
    prints `true`, and the map contains no `./src` entry.
 7. `grep -rln "\"use client\"" apps/app --include=*.tsx | grep -v node_modules | xargs grep -ln "@repo/database" 2>/dev/null`
@@ -554,9 +590,10 @@ Stop and report back rather than improvising if any of these occur:
 - **Two query modules export the same identifier** and namespacing them would
   change more call sites than Step 4 anticipates. Report the collisions and the
   call-site count; the user may prefer flat exports with a rename.
-- **A file outside `apps/` deep-imports `@repo/database/src/...`**, for example
-  another package. Report it. Package-to-package deep imports are a different
-  problem (a dependency-graph question) and may be load-bearing.
+- **A file outside `apps/` deep-imports `@repo/database/src/...` other than
+  `packages/availability/src/slice-14-integration-flows.test.ts` importing the
+  documented fixture.** Report it. Package-to-package deep imports are a
+  different problem (a dependency-graph question) and may be load-bearing.
 - **A client component imports a runtime value from `@repo/database`**, not
   just a type. That is a bundling defect with its own consequences (the Prisma
   client is large and server-only). Report it separately.
