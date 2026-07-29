@@ -2,6 +2,7 @@ import { auth } from "@repo/auth/server";
 import { database } from "@repo/database";
 import type { Metadata } from "next";
 import { requirePageRole } from "@/lib/auth/require-page-role";
+import { organisationWithConnectionSelect } from "./_connection-view";
 import { IntegrationsClient } from "./integrations-client";
 
 export const metadata: Metadata = {
@@ -23,13 +24,7 @@ export default async function IntegrationsPage() {
       clerk_org_id: orgId,
     },
     orderBy: [{ created_at: "asc" }, { name: "asc" }],
-    include: {
-      xero_connection: {
-        include: {
-          xero_tenant: true,
-        },
-      },
-    },
+    select: organisationWithConnectionSelect,
   });
 
   return <IntegrationsClient organisations={organisations} />;
