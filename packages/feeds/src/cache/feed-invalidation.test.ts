@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   feedFindMany: vi.fn(),
+  personFindMany: vi.fn(),
+  loadFeedScopeData: vi.fn(),
   invalidateFeedCache: vi.fn(() =>
     Promise.resolve({ ok: true, value: { deletedCount: 1 } })
   ),
@@ -10,12 +12,17 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("server-only", () => ({}));
 vi.mock("@repo/database", () => ({
-  database: { feed: { findMany: mocks.feedFindMany } },
+  database: {
+    feed: { findMany: mocks.feedFindMany },
+    person: { findMany: mocks.personFindMany },
+  },
 }));
 vi.mock("../scope/feed-scope", () => ({
+  loadFeedScopeData: mocks.loadFeedScopeData,
   resolvePeopleForFeed: mocks.resolvePeopleForFeed,
 }));
 vi.mock("./feed-cache", () => ({
+  ALL_PRIVACY_MODES: ["named", "masked", "private"],
   invalidateFeedCache: mocks.invalidateFeedCache,
 }));
 
@@ -33,12 +40,20 @@ function feedFixtures() {
     {
       created_by_user_id: null,
       id: "feed-a",
+      privacy_mode: "named",
       scopes: [{ scope_type: "person", scope_value: PERSON_IN_SCOPE }],
     },
     {
       created_by_user_id: null,
       id: "feed-b",
+      privacy_mode: "masked",
       scopes: [{ scope_type: "person", scope_value: "p-other" }],
+    },
+    {
+      created_by_user_id: null,
+      id: "feed-c",
+      privacy_mode: "private",
+      scopes: [{ scope_type: "person", scope_value: PERSON_IN_SCOPE }],
     },
   ];
 }
@@ -47,6 +62,17 @@ describe("feed cache invalidation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.feedFindMany.mockResolvedValue(feedFixtures());
+    mocks.loadFeedScopeData.mockResolvedValue({
+      ok: true,
+      value: {
+        people: [{ id: PERSON_IN_SCOPE, is_active: true }],
+        teams: [],
+      },
+    });
+    mocks.invalidateFeedCache.mockResolvedValue({
+      ok: true,
+      value: { deletedCount: 1 },
+    });
     // Mirror person-scope resolution: a feed includes exactly the people named in its scopes.
     mocks.resolvePeopleForFeed.mockImplementation(
       (input: { scopes: Array<{ scopeType: string; scopeValue: string }> }) =>
@@ -66,10 +92,18 @@ describe("feed cache invalidation", () => {
       personId: PERSON_IN_SCOPE,
     });
 
-    expect(result).toEqual({ ok: true, value: { feedIds: ["feed-a"] } });
-    expect(mocks.invalidateFeedCache).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({
+      ok: true,
+      value: { feedIds: ["feed-a", "feed-c"] },
+    });
+    expect(mocks.invalidateFeedCache).toHaveBeenCalledTimes(2);
     expect(mocks.invalidateFeedCache).toHaveBeenCalledWith({
       feedId: "feed-a",
+      privacyModes: ["named", "masked", "private"],
+    });
+    expect(mocks.invalidateFeedCache).toHaveBeenCalledWith({
+      feedId: "feed-c",
+      privacyModes: ["named", "masked", "private"],
     });
   });
 
@@ -103,28 +137,97 @@ describe("feed cache invalidation", () => {
   });
 
   it("returns no feeds when there are no people to match", async () => {
-    const feedIds = await feedIdsForPeople({
+    const feeds = await feedIdsForPeople({
       clerkOrgId: CLERK_ORG_ID,
       organisationId: ORGANISATION_ID,
       personIds: [],
     });
 
-    expect(feedIds).toEqual([]);
+    expect(feeds).toEqual([]);
     expect(mocks.feedFindMany).not.toHaveBeenCalled();
   });
 
-  it("invalidates defensively when scope resolution fails", async () => {
-    mocks.resolvePeopleForFeed.mockResolvedValue({
-      ok: false,
-      error: { code: "unknown_error", message: "boom" },
-    });
-
-    const feedIds = await feedIdsForPeople({
+  it("calls loadFeedScopeData once across all active feeds rather than once per feed", async () => {
+    await feedIdsForPeople({
       clerkOrgId: CLERK_ORG_ID,
       organisationId: ORGANISATION_ID,
       personIds: [PERSON_IN_SCOPE],
     });
 
-    expect(feedIds).toEqual(["feed-a", "feed-b"]);
+    expect(mocks.loadFeedScopeData).toHaveBeenCalledTimes(1);
+    expect(mocks.resolvePeopleForFeed).toHaveBeenCalledTimes(3);
+    for (const call of mocks.resolvePeopleForFeed.mock.calls) {
+      expect(call[0].preloaded).toBeDefined();
+    }
+  });
+
+  it("proceeds with invalidation when loadFeedScopeData fails", async () => {
+    mocks.loadFeedScopeData.mockResolvedValue({
+      ok: false,
+      error: { code: "unknown_error", message: "scope load failed" },
+    });
+
+    const feeds = await feedIdsForPeople({
+      clerkOrgId: CLERK_ORG_ID,
+      organisationId: ORGANISATION_ID,
+      personIds: [PERSON_IN_SCOPE],
+    });
+
+    expect(feeds).toEqual([
+      { id: "feed-a", privacyMode: "named" },
+      { id: "feed-c", privacyMode: "private" },
+    ]);
+    expect(mocks.resolvePeopleForFeed).toHaveBeenCalledTimes(3);
+    for (const call of mocks.resolvePeopleForFeed.mock.calls) {
+      expect(call[0].preloaded).toBeUndefined();
+    }
+  });
+
+  it("invalidates defensively when scope resolution fails for a feed", async () => {
+    mocks.resolvePeopleForFeed.mockResolvedValue({
+      ok: false,
+      error: { code: "unknown_error", message: "boom" },
+    });
+
+    const feeds = await feedIdsForPeople({
+      clerkOrgId: CLERK_ORG_ID,
+      organisationId: ORGANISATION_ID,
+      personIds: [PERSON_IN_SCOPE],
+    });
+
+    expect(feeds).toEqual([
+      { id: "feed-a", privacyMode: "named" },
+      { id: "feed-b", privacyMode: "masked" },
+      { id: "feed-c", privacyMode: "private" },
+    ]);
+  });
+
+  it("attempts invalidation for all feeds even when one feed invalidation fails", async () => {
+    mocks.invalidateFeedCache
+      .mockResolvedValueOnce({
+        ok: false,
+        error: { code: "unknown_error", message: "KV error on feed-a" },
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        value: { deletedCount: 1 },
+      });
+
+    const result = await invalidateFeedCachesForPerson({
+      clerkOrgId: CLERK_ORG_ID,
+      organisationId: ORGANISATION_ID,
+      personId: PERSON_IN_SCOPE,
+    });
+
+    expect(result.ok).toBe(false);
+    expect(mocks.invalidateFeedCache).toHaveBeenCalledTimes(2);
+    expect(mocks.invalidateFeedCache).toHaveBeenNthCalledWith(1, {
+      feedId: "feed-a",
+      privacyModes: ["named", "masked", "private"],
+    });
+    expect(mocks.invalidateFeedCache).toHaveBeenNthCalledWith(2, {
+      feedId: "feed-c",
+      privacyModes: ["named", "masked", "private"],
+    });
   });
 });

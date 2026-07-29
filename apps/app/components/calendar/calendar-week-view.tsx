@@ -65,16 +65,14 @@ export function CalendarWeekView({
           const allDayEvents = day.events.filter((event) => event.allDay);
           const timedEvents = day.events.filter((event) => !event.allDay);
           return (
-            <CalendarCreateLauncher
+            <div
               className={cn(
-                "min-h-72 rounded-xl bg-background p-2 hover:bg-background/80",
+                "flex min-h-72 flex-col justify-between rounded-xl bg-background p-2",
                 day.isToday && "ring-2 ring-primary/30"
               )}
               key={dateOnly}
-              personId={createPersonId}
-              startsAt={dateOnly}
             >
-              <span className="block space-y-2">
+              <div className="space-y-2">
                 {allDayEvents.map((event) => (
                   <CalendarEventChip
                     event={event}
@@ -89,8 +87,14 @@ export function CalendarWeekView({
                     orgQueryValue={orgQueryValue}
                   />
                 ))}
-              </span>
-            </CalendarCreateLauncher>
+              </div>
+              <CalendarCreateLauncher
+                className="mt-2 w-full"
+                date={day.date}
+                personId={createPersonId}
+                startsAt={dateOnly}
+              />
+            </div>
           );
         })}
       </div>

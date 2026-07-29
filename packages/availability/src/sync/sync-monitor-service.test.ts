@@ -5,6 +5,10 @@ const mocks = vi.hoisted(() => ({
   dispatchSyncEvent: vi.fn(),
   failedRecordFindMany: vi.fn(),
   getRegisteredSyncEventName: vi.fn(),
+  scopedTo: vi.fn((input: { clerkOrgId: string; organisationId: string }) => ({
+    clerk_org_id: input.clerkOrgId,
+    organisation_id: input.organisationId,
+  })),
   syncRunFindMany: vi.fn(),
   xeroTenantFindFirst: vi.fn(),
   xeroTenantFindMany: vi.fn(),
@@ -21,6 +25,7 @@ vi.mock("@repo/database", () => ({
       findMany: mocks.xeroTenantFindMany,
     },
   },
+  scopedTo: mocks.scopedTo,
 }));
 vi.mock("./sync-events", () => ({
   dispatchCancelSyncRun: vi.fn(),

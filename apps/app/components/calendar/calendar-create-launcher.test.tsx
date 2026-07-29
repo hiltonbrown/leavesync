@@ -17,18 +17,39 @@ describe("CalendarCreateLauncher", () => {
     vi.clearAllMocks();
   });
 
-  it("navigates to the new record route with date and person prefilled", () => {
+  it("navigates to the new record route with date and person prefilled and accessible name", () => {
     render(
       <CalendarCreateLauncher
         personId="00000000-0000-4000-8000-000000000011"
         startsAt="2026-04-15"
-      >
-        Add
-      </CalendarCreateLauncher>
+      />
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Add" }));
+    const button = screen.getByRole("button", {
+      name: "Add availability for 15 April 2026",
+    });
+    expect(button).toBeDefined();
 
+    fireEvent.click(button);
+
+    expect(mocks.push).toHaveBeenCalledWith(
+      "/plans/new?startsAt=2026-04-15&personId=00000000-0000-4000-8000-000000000011&org=org_1"
+    );
+  });
+
+  it("activates via keyboard activation", () => {
+    render(
+      <CalendarCreateLauncher
+        personId="00000000-0000-4000-8000-000000000011"
+        startsAt="2026-04-15"
+      />
+    );
+
+    const button = screen.getByRole("button", {
+      name: "Add availability for 15 April 2026",
+    });
+
+    fireEvent.click(button);
     expect(mocks.push).toHaveBeenCalledWith(
       "/plans/new?startsAt=2026-04-15&personId=00000000-0000-4000-8000-000000000011&org=org_1"
     );

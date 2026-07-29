@@ -6,6 +6,8 @@ import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
 import { Textarea } from "@repo/design-system/components/ui/textarea";
 import {
+  ArrowDownIcon,
+  ArrowUpIcon,
   GripVerticalIcon,
   PencilIcon,
   PlusIcon,
@@ -56,6 +58,7 @@ export function AlternativeContactsPanel({
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] =
     useState<AlternativeContactSnapshot | null>(null);
+  const [announceMessage, setAnnounceMessage] = useState<string | null>(null);
 
   const startAdd = () => {
     setEditingId(null);
@@ -123,8 +126,51 @@ export function AlternativeContactsPanel({
     });
   };
 
+  const moveContact = (
+    contact: AlternativeContactSnapshot,
+    direction: "up" | "down"
+  ) => {
+    if (isPending) {
+      return;
+    }
+    const currentIds = contacts.map((c) => c.id);
+    const index = currentIds.indexOf(contact.id);
+    if (index === -1) {
+      return;
+    }
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= currentIds.length) {
+      return;
+    }
+
+    const newIds = [...currentIds];
+    const [movedId] = newIds.splice(index, 1);
+    if (movedId) {
+      newIds.splice(targetIndex, 0, movedId);
+    }
+
+    setDraggedId(null);
+    setError(null);
+    setAnnounceMessage(null);
+
+    startTransition(async () => {
+      const result = await reorderAlternativeContactsAction({
+        orderedContactIds: newIds,
+        organisationId,
+        personId,
+      });
+      if (result.ok) {
+        const newPos = newIds.indexOf(contact.id) + 1;
+        setAnnounceMessage(`${contact.name} moved to position ${newPos}`);
+      } else {
+        setError(result.error.message);
+        setAnnounceMessage("Order was not changed");
+      }
+    });
+  };
+
   const persistDrop = (targetId: string) => {
-    if (!draggedId || draggedId === targetId) {
+    if (isPending || !draggedId || draggedId === targetId) {
       setDraggedId(null);
       return;
     }
@@ -135,8 +181,12 @@ export function AlternativeContactsPanel({
       setDraggedId(null);
       return;
     }
+    const movedContact = contacts.find((c) => c.id === draggedId);
     ids.splice(to, 0, ids.splice(from, 1)[0] ?? draggedId);
     setDraggedId(null);
+    setError(null);
+    setAnnounceMessage(null);
+
     startTransition(async () => {
       const result = await reorderAlternativeContactsAction({
         orderedContactIds: ids,
@@ -145,12 +195,20 @@ export function AlternativeContactsPanel({
       });
       if (!result.ok) {
         setError(result.error.message);
+        setAnnounceMessage("Order was not changed");
+      } else if (movedContact) {
+        const newPos = ids.indexOf(draggedId) + 1;
+        setAnnounceMessage(`${movedContact.name} moved to position ${newPos}`);
       }
     });
   };
 
   return (
     <div className="flex flex-col gap-4">
+      <div aria-live="polite" className="sr-only" role="status">
+        {announceMessage}
+      </div>
+
       <div className="flex items-center justify-between gap-4">
         <div>
           <h3 className="font-semibold text-foreground text-sm">
@@ -273,13 +331,12 @@ export function AlternativeContactsPanel({
           )}
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          {contacts.map((contact) => (
-            // biome-ignore lint/a11y/noStaticElementInteractions: HTML drag/drop needs a stable drop target around the contact row.
+        <ul className="flex flex-col gap-3">
+          {contacts.map((contact, index) => (
             // biome-ignore lint/a11y/noNoninteractiveElementInteractions: HTML drag/drop needs a stable drop target around the contact row.
-            <div
+            <li
               className="rounded-2xl bg-surface-container-high p-4"
-              draggable={canManage}
+              draggable={canManage && !isPending}
               key={contact.id}
               onDragOver={(event) => event.preventDefault()}
               onDragStart={() => setDraggedId(contact.id)}
@@ -289,8 +346,6 @@ export function AlternativeContactsPanel({
                   setDraggedId(null);
                 }
               }}
-              role={canManage ? "button" : "listitem"}
-              tabIndex={canManage ? 0 : undefined}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
@@ -316,9 +371,30 @@ export function AlternativeContactsPanel({
                   )}
                 </div>
                 {canManage && (
-                  <div className="flex shrink-0 gap-1">
+                  <div className="flex shrink-0 items-center gap-1">
+                    <Button
+                      aria-label={`Move ${contact.name} up`}
+                      disabled={index === 0 || isPending}
+                      onClick={() => moveContact(contact, "up")}
+                      size="icon"
+                      type="button"
+                      variant="ghost"
+                    >
+                      <ArrowUpIcon className="size-4" />
+                    </Button>
+                    <Button
+                      aria-label={`Move ${contact.name} down`}
+                      disabled={index === contacts.length - 1 || isPending}
+                      onClick={() => moveContact(contact, "down")}
+                      size="icon"
+                      type="button"
+                      variant="ghost"
+                    >
+                      <ArrowDownIcon className="size-4" />
+                    </Button>
                     <Button
                       aria-label={`Edit ${contact.name}`}
+                      disabled={isPending}
                       onClick={() => startEdit(contact)}
                       size="icon"
                       type="button"
@@ -328,6 +404,7 @@ export function AlternativeContactsPanel({
                     </Button>
                     <Button
                       aria-label={`Delete ${contact.name}`}
+                      disabled={isPending}
                       onClick={() => setDeleteTarget(contact)}
                       size="icon"
                       type="button"
@@ -364,9 +441,9 @@ export function AlternativeContactsPanel({
                   </div>
                 </div>
               )}
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

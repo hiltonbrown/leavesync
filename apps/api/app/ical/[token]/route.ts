@@ -1,6 +1,16 @@
-import { renderFeedForToken } from "@repo/feeds";
+import { cachedEtagForToken, renderFeedForToken } from "@repo/feeds";
 
 const weakEtagPrefixPattern = /^W\//;
+
+function etagMatches(
+  ifNoneMatchHeader: string,
+  expectedQuotedEtag: string
+): boolean {
+  return ifNoneMatchHeader
+    .split(",")
+    .map((candidate) => candidate.trim().replace(weakEtagPrefixPattern, ""))
+    .includes(expectedQuotedEtag);
+}
 
 /**
  * GET /ical/:token.ics
@@ -21,6 +31,20 @@ export async function GET(
     ? tokenParam.slice(0, -".ics".length)
     : tokenParam;
 
+  const ifNoneMatch = request.headers.get("if-none-match");
+  if (ifNoneMatch) {
+    const cachedEtag = await cachedEtagForToken(token);
+    if (cachedEtag && etagMatches(ifNoneMatch, `"${cachedEtag}"`)) {
+      return new Response(null, {
+        status: 304,
+        headers: {
+          ETag: `"${cachedEtag}"`,
+          "Cache-Control": "max-age=3600, must-revalidate",
+        },
+      });
+    }
+  }
+
   // Render the feed for this token
   const feedResult = await renderFeedForToken(token);
 
@@ -37,13 +61,7 @@ export async function GET(
   }
 
   const quotedEtag = `"${etag}"`;
-  const ifNoneMatch = request.headers.get("if-none-match");
-  const matches = ifNoneMatch
-    ?.split(",")
-    .map((candidate) => candidate.trim().replace(weakEtagPrefixPattern, ""))
-    .includes(quotedEtag);
-
-  if (matches) {
+  if (ifNoneMatch && etagMatches(ifNoneMatch, quotedEtag)) {
     return new Response(null, {
       status: 304,
       headers: {

@@ -7,7 +7,7 @@ import {
   normaliseInboundLeaveRecord,
 } from "@repo/availability";
 import type { Result } from "@repo/core";
-import { database } from "@repo/database";
+import { database, scopedTo as scoped } from "@repo/database";
 import { Prisma } from "@repo/database/generated/client";
 import { publishOrganisationNotificationEvent } from "@repo/notifications";
 import { log } from "@repo/observability/log";
@@ -965,13 +965,6 @@ async function publishRunStatusChanged(
       runId,
     });
   }
-}
-
-function scoped(input: { clerkOrgId: string; organisationId: string }) {
-  return {
-    clerk_org_id: input.clerkOrgId,
-    organisation_id: input.organisationId,
-  };
 }
 
 function emptyCounts(): Counts {

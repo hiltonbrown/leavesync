@@ -149,12 +149,12 @@ export function NotificationsBell({
       <PopoverTrigger asChild>
         <button
           aria-label={`Notifications, ${unreadCount} unread`}
-          className="relative inline-flex size-9 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          className="relative inline-flex size-11 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground"
           type="button"
         >
           <BellIcon className="size-4" />
           {badge && (
-            <span className="absolute -top-1 -right-1 min-w-5 rounded-full bg-red-600 px-1.5 py-0.5 text-center font-semibold text-[0.625rem] text-white">
+            <span className="absolute top-0.5 right-0.5 min-w-5 rounded-full bg-red-600 px-1.5 py-0.5 text-center font-semibold text-[0.625rem] text-white">
               {badge}
             </span>
           )}
@@ -172,31 +172,31 @@ export function NotificationsBell({
             No new notifications
           </div>
         ) : (
-          <div role="menu">
+          <ul className="divide-y divide-border">
             {recent.map((item) => (
-              <button
-                className="flex w-full items-start gap-3 p-4 text-left transition hover:bg-muted"
-                disabled={isPending}
-                key={item.id}
-                onClick={() => openNotification(item)}
-                role="menuitem"
-                type="button"
-              >
-                <NotificationIcon iconKey={item.iconKey} />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-medium text-sm">
-                    {item.title}
+              <li key={item.id}>
+                <button
+                  className="flex w-full items-start gap-3 p-4 text-left transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  disabled={isPending}
+                  onClick={() => openNotification(item)}
+                  type="button"
+                >
+                  <NotificationIcon iconKey={item.iconKey} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-medium text-sm">
+                      {item.title}
+                    </span>
+                    <span className="block truncate text-muted-foreground text-xs">
+                      {item.body}
+                    </span>
+                    <span className="mt-1 block text-muted-foreground text-xs">
+                      {relativeTime(item.createdAt)}
+                    </span>
                   </span>
-                  <span className="block truncate text-muted-foreground text-xs">
-                    {item.body}
-                  </span>
-                  <span className="mt-1 block text-muted-foreground text-xs">
-                    {relativeTime(item.createdAt)}
-                  </span>
-                </span>
-              </button>
+                </button>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
         <div className="flex items-center justify-between border-border border-t p-3">
           <Button

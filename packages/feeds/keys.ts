@@ -11,6 +11,9 @@ export const keys = () => {
       KV_REST_API_URL: process.env.KV_REST_API_URL,
       KV_REST_API_TOKEN: process.env.KV_REST_API_TOKEN,
     },
+    // Treat an empty string (e.g. a blank Vercel env var) as unset so the
+    // format-constrained optional keys do not fail validation.
+    emptyStringAsUndefined: true,
   });
 
   // Caching is optional, but a partially configured pair is a

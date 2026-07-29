@@ -2,6 +2,8 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CalendarWeekView } from "./calendar-week-view";
 
+const ADD_AVAILABILITY_REGEX = /Add availability for/i;
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
@@ -22,6 +24,27 @@ describe("CalendarWeekView", () => {
 
     expect(screen.getByText("Ari Report")).toBeDefined();
     expect(screen.getByText("Queensland Day")).toBeDefined();
+  });
+
+  it("ensures calendar create control has no focusable interactive descendants", () => {
+    render(
+      <CalendarWeekView
+        actingPersonId="00000000-0000-4000-8000-000000000011"
+        data={weekRange()}
+        orgQueryValue={null}
+        selectedPersonId={null}
+      />
+    );
+
+    const createBtn = screen.getAllByRole("button", {
+      name: ADD_AVAILABILITY_REGEX,
+    })[0];
+    expect(createBtn).toBeDefined();
+
+    const interactiveDescendants = createBtn?.querySelectorAll(
+      'button, a[href], [tabindex]:not([tabindex="-1"])'
+    );
+    expect(interactiveDescendants).toHaveLength(0);
   });
 });
 

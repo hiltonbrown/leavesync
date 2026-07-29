@@ -18,9 +18,15 @@ const RootLayout = ({ children }: RootLayoutProperties) => (
   <html className={fonts} lang="en" suppressHydrationWarning>
     <body suppressHydrationWarning>
       <AnalyticsProvider>
+        {/*
+          helpUrl points at the marketing site's help centre, not
+          NEXT_PUBLIC_DOCS_URL. apps/docs is still the unmodified Mintlify
+          Starter Kit, so linking Help there would send users to Mintlify's
+          tutorial content and support address instead of Team Calendar's own.
+        */}
         <DesignSystemProvider
           afterSignOutUrl={env.NEXT_PUBLIC_WEB_URL}
-          helpUrl={env.NEXT_PUBLIC_DOCS_URL}
+          helpUrl={webUrl("/help-centre")}
           privacyUrl={webUrl("/legal/privacy")}
           termsUrl={webUrl("/legal/terms")}
         >

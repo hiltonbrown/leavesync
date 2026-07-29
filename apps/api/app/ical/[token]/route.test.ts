@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  cachedEtagForToken: vi.fn(),
   renderFeedForToken: vi.fn(),
 }));
 
 vi.mock("@repo/feeds", () => ({
+  cachedEtagForToken: mocks.cachedEtagForToken,
   renderFeedForToken: mocks.renderFeedForToken,
 }));
 
@@ -36,6 +38,7 @@ function getFeed(token = "feed-token.ics", ifNoneMatch?: string) {
 describe("GET /ical/:token.ics", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.cachedEtagForToken.mockResolvedValue(null);
     mocks.renderFeedForToken.mockResolvedValue(activeFeedResult());
   });
 
@@ -53,7 +56,7 @@ describe("GET /ical/:token.ics", () => {
     );
   });
 
-  it("returns 304 with an empty body when If-None-Match matches", async () => {
+  it("returns 304 with an empty body when If-None-Match matches post-render ETag", async () => {
     const response = await getFeed("feed-token.ics", '"feed-hash"');
 
     expect(response.status).toBe(304);
@@ -64,14 +67,14 @@ describe("GET /ical/:token.ics", () => {
     );
   });
 
-  it("returns 304 when If-None-Match is a weak validator", async () => {
+  it("returns 304 when If-None-Match is a weak validator on post-render ETag", async () => {
     const response = await getFeed("feed-token.ics", 'W/"feed-hash"');
 
     expect(response.status).toBe(304);
     expect(await response.text()).toBe("");
   });
 
-  it("returns 304 when If-None-Match is a list containing the feed ETag", async () => {
+  it("returns 304 when If-None-Match is a list containing the post-render feed ETag", async () => {
     const response = await getFeed("feed-token.ics", '"other", "feed-hash"');
 
     expect(response.status).toBe(304);
@@ -117,5 +120,40 @@ describe("GET /ical/:token.ics", () => {
     await getFeed("calendar-token.ics");
 
     expect(mocks.renderFeedForToken).toHaveBeenCalledWith("calendar-token");
+  });
+
+  it("short-circuits to 304 without rendering when cachedEtagForToken matches If-None-Match", async () => {
+    mocks.cachedEtagForToken.mockResolvedValue("cached-etag");
+    const response = await getFeed("feed-token.ics", '"cached-etag"');
+
+    expect(response.status).toBe(304);
+    expect(await response.text()).toBe("");
+    expect(response.headers.get("ETag")).toBe('"cached-etag"');
+    expect(mocks.cachedEtagForToken).toHaveBeenCalledWith("feed-token");
+    expect(mocks.renderFeedForToken).not.toHaveBeenCalled();
+  });
+
+  it("renders the feed when cachedEtagForToken does not match If-None-Match", async () => {
+    mocks.cachedEtagForToken.mockResolvedValue("old-etag");
+    const response = await getFeed("feed-token.ics", '"new-etag"');
+
+    expect(response.status).toBe(200);
+    expect(mocks.renderFeedForToken).toHaveBeenCalledWith("feed-token");
+  });
+
+  it("does not call cachedEtagForToken when If-None-Match is absent", async () => {
+    const response = await getFeed("feed-token.ics");
+
+    expect(response.status).toBe(200);
+    expect(mocks.cachedEtagForToken).not.toHaveBeenCalled();
+    expect(mocks.renderFeedForToken).toHaveBeenCalledWith("feed-token");
+  });
+
+  it("matches weak ETags when short-circuiting with cachedEtagForToken", async () => {
+    mocks.cachedEtagForToken.mockResolvedValue("cached-etag");
+    const response = await getFeed("feed-token.ics", 'W/"cached-etag"');
+
+    expect(response.status).toBe(304);
+    expect(mocks.renderFeedForToken).not.toHaveBeenCalled();
   });
 });

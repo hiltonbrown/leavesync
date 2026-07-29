@@ -48,7 +48,7 @@ export function CalendarScanPanel({
         </div>
         <Link
           aria-label={`Open ${scanTitle(day).toLowerCase()} in day view`}
-          className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl text-primary hover:bg-background focus-visible:outline-2 focus-visible:outline-ring"
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-primary hover:bg-background focus-visible:outline-2 focus-visible:outline-ring"
           href={dayHref}
         >
           <ArrowUpRightIcon className="size-4" />

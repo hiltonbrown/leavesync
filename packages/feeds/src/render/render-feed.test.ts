@@ -55,7 +55,9 @@ vi.mock("../projection/feed-projection", () => ({
   projectFeedEvents: mocks.projectFeedEvents,
 }));
 
-const { renderFeedForToken } = await import("./render-feed");
+const { cachedEtagForToken, renderFeedForToken } = await import(
+  "./render-feed"
+);
 
 function feedTokenFixture(overrides: Record<string, unknown> = {}) {
   return {
@@ -70,6 +72,7 @@ function feedTokenFixture(overrides: Record<string, unknown> = {}) {
     },
     feed_id: "20000000-0000-4000-8000-000000000001",
     id: "30000000-0000-4000-8000-000000000001",
+    last_used_at: null,
     organisation_id: "40000000-0000-4000-8000-000000000001",
     status: "active",
     ...overrides,
@@ -175,5 +178,138 @@ describe("renderFeedForToken", () => {
     expect(mocks.logWarn).toHaveBeenCalledWith(
       "Feed cache write failed for feed 20000000-0000-4000-8000-000000000001: Error: KV unavailable"
     );
+  });
+
+  it("skips writing last_used_at on a cache hit when last_used_at was 5 minutes ago", async () => {
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    mocks.feedTokenFindUnique.mockResolvedValue(
+      feedTokenFixture({ last_used_at: fiveMinutesAgo })
+    );
+    mocks.getCachedFeedBody.mockResolvedValue({
+      ok: true,
+      value: { body: "cached-ics", etag: "cached-etag" },
+    });
+
+    const result = await renderFeedForToken("plaintext-token");
+
+    expect(result).toEqual({
+      ok: true,
+      value: { body: "cached-ics", etag: "cached-etag", status: "active" },
+    });
+    expect(mocks.feedTokenUpdate).not.toHaveBeenCalled();
+  });
+
+  it("writes last_used_at on a cache hit when last_used_at was 2 hours ago", async () => {
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    mocks.feedTokenFindUnique.mockResolvedValue(
+      feedTokenFixture({ last_used_at: twoHoursAgo })
+    );
+    mocks.getCachedFeedBody.mockResolvedValue({
+      ok: true,
+      value: { body: "cached-ics", etag: "cached-etag" },
+    });
+
+    const result = await renderFeedForToken("plaintext-token");
+
+    expect(result.ok).toBe(true);
+    expect(mocks.feedTokenUpdate).toHaveBeenCalledTimes(1);
+    expect(mocks.feedTokenUpdate).toHaveBeenCalledWith({
+      data: { last_used_at: expect.any(Date) },
+      where: {
+        clerk_org_id: "org_render",
+        id: "30000000-0000-4000-8000-000000000001",
+        organisation_id: "40000000-0000-4000-8000-000000000001",
+      },
+    });
+  });
+
+  it("writes last_used_at on a cache hit when last_used_at is null", async () => {
+    mocks.feedTokenFindUnique.mockResolvedValue(
+      feedTokenFixture({ last_used_at: null })
+    );
+    mocks.getCachedFeedBody.mockResolvedValue({
+      ok: true,
+      value: { body: "cached-ics", etag: "cached-etag" },
+    });
+
+    const result = await renderFeedForToken("plaintext-token");
+
+    expect(result.ok).toBe(true);
+    expect(mocks.feedTokenUpdate).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns ok when the telemetry write rejects on a cache hit and logs a warning", async () => {
+    mocks.feedTokenFindUnique.mockResolvedValue(
+      feedTokenFixture({ last_used_at: null })
+    );
+    mocks.getCachedFeedBody.mockResolvedValue({
+      ok: true,
+      value: { body: "cached-ics", etag: "cached-etag" },
+    });
+    mocks.feedTokenUpdate.mockRejectedValue(new Error("DB timeout"));
+
+    const result = await renderFeedForToken("plaintext-token");
+
+    expect(result).toEqual({
+      ok: true,
+      value: { body: "cached-ics", etag: "cached-etag", status: "active" },
+    });
+    // Wait microtask tick for floating promise catch handler
+    await new Promise((r) => setTimeout(r, 10));
+    expect(mocks.logWarn).toHaveBeenCalledWith(
+      "Feed token use write failed: Error: DB timeout"
+    );
+  });
+});
+
+describe("cachedEtagForToken", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.feedTokenFindUnique.mockResolvedValue(feedTokenFixture());
+    mocks.getCachedFeedBody.mockResolvedValue({ ok: true, value: null });
+  });
+
+  it("returns null for a missing token", async () => {
+    mocks.feedTokenFindUnique.mockResolvedValue(null);
+    expect(await cachedEtagForToken("unknown")).toBeNull();
+  });
+
+  it("returns null for a revoked token", async () => {
+    mocks.feedTokenFindUnique.mockResolvedValue(
+      feedTokenFixture({ status: "revoked" })
+    );
+    expect(await cachedEtagForToken("revoked")).toBeNull();
+  });
+
+  it("returns null for an expired token", async () => {
+    mocks.feedTokenFindUnique.mockResolvedValue(
+      feedTokenFixture({
+        expires_at: new Date("2026-01-01T00:00:00.000Z"),
+        status: "active",
+      })
+    );
+    expect(await cachedEtagForToken("expired")).toBeNull();
+  });
+
+  it("returns null for an inactive feed", async () => {
+    mocks.feedTokenFindUnique.mockResolvedValue(
+      feedTokenFixture({
+        feed: { id: "feed_1", privacy_mode: "named", status: "inactive" },
+      })
+    );
+    expect(await cachedEtagForToken("token")).toBeNull();
+  });
+
+  it("returns null on a cache miss", async () => {
+    mocks.getCachedFeedBody.mockResolvedValue({ ok: true, value: null });
+    expect(await cachedEtagForToken("token")).toBeNull();
+  });
+
+  it("returns the cached ETag on a cache hit", async () => {
+    mocks.getCachedFeedBody.mockResolvedValue({
+      ok: true,
+      value: { body: "cached-body", etag: "hash123" },
+    });
+    expect(await cachedEtagForToken("token")).toBe("hash123");
   });
 });
