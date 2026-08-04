@@ -31,7 +31,7 @@
     "inngest": "^4.12.1",
     "next": "16.2.12",
     "react": "19.2.7",
-    "react-dom": "19.2.7",
+    "react-dom": "19.2.8",
     "require-in-the-middle": "8.0.1",
     "server-only": "^0.0.1",
     "svix": "^1.96.1",
