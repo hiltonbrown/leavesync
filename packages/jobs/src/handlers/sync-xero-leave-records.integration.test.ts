@@ -85,6 +85,7 @@ describeWithDatabase("sync-xero-leave-records database flow", () => {
     mockFetchLeaveRecordsForRegion.mockResolvedValue({
       ok: true,
       value: {
+        complete: true,
         leaveRecords: [xeroLeaveRecord(tenantA)],
         rawResponse: {},
       },
@@ -168,6 +169,7 @@ describeWithDatabase("sync-xero-leave-records database flow", () => {
     mockFetchLeaveRecordsForRegion.mockResolvedValue({
       ok: true,
       value: {
+        complete: true,
         leaveRecords: [
           xeroLeaveRecord(tenantA),
           {
@@ -213,6 +215,7 @@ describeWithDatabase("sync-xero-leave-records database flow", () => {
     mockFetchLeaveRecordsForRegion.mockResolvedValue({
       ok: true,
       value: {
+        complete: true,
         leaveRecords: [xeroLeaveRecord(tenantA)],
         rawResponse: {},
       },
@@ -247,7 +250,11 @@ describeWithDatabase("sync-xero-leave-records database flow", () => {
     });
     mockFetchLeaveRecordsForRegion.mockResolvedValue({
       ok: true,
-      value: { leaveRecords: [xeroLeaveRecord(tenantA)], rawResponse: {} },
+      value: {
+        complete: true,
+        leaveRecords: [xeroLeaveRecord(tenantA)],
+        rawResponse: {},
+      },
     });
 
     const result = await syncXeroLeaveRecords(syncInput(tenantA));
@@ -279,7 +286,11 @@ describeWithDatabase("sync-xero-leave-records database flow", () => {
     });
     mockFetchLeaveRecordsForRegion.mockResolvedValue({
       ok: true,
-      value: { leaveRecords: [xeroLeaveRecord(tenantA)], rawResponse: {} },
+      value: {
+        complete: true,
+        leaveRecords: [xeroLeaveRecord(tenantA)],
+        rawResponse: {},
+      },
     });
 
     const result = await syncXeroLeaveRecords(syncInput(tenantA));
