@@ -1,262 +1,276 @@
-# Implementation Plans
+# Team Calendar implementation and go-live plans
 
-Advisory plans produced by the `improve` skill. Plan 001 was written on
-2026-07-21; plans 002 to 039 were written on 2026-07-25 against commit
-`75202db`. Plan 040 was written on 2026-07-26 against commit `887665f`, during
-execution of plan 024, when its Step 1 baseline surfaced a pre-existing build
-break shared with plan 033.
+This directory is the implementation backlog produced by the `improve` skill.
+Every plan is self-contained and must be drift-checked before execution.
 
-Every plan is self-contained. An executor needs only the plan file, this
-repository, and a shell. Each plan opens with a drift check against the commit
-it was written for; run it first.
+This index was reconciled on 2026-08-04 against local `main` at commit
+`b261792`. It classifies all 46 plans by release stage and records the current
+go-live decision.
 
-**These plans are written for an executor who has not read the audit.** They
-inline the code excerpts, the conventions to follow, the verification commands
-and the stop conditions. If a plan tells you something that contradicts the
-repository as you find it, believe the repository and report the discrepancy.
+## Current go-live decision
 
----
+**NO-GO for production today.**
 
-## How to use this directory
+The recommended first production release is a **closed AU early access**, not
+unrestricted general availability:
 
-1. Pick a plan from the execution order below.
-2. Run its drift check. If files have moved since `75202db`, re-verify its
-   "Current state" section before editing.
-3. Follow its steps in order, running every verification command.
-4. Update this file's status row when you finish.
+- AU Xero Payroll only;
+- a small, named customer cohort with guided onboarding;
+- no paid self-service checkout;
+- monitored support and explicit incident ownership;
+- cohort expansion only after the later gates in this index are complete.
 
-**Statuses**: TODO, IN PROGRESS, DONE, BLOCKED, REJECTED.
+Go-live becomes a **GO** only when every plan in the required go-live table is
+DONE on the release commit and plan 046 completes its deployment and 72-hour
+review. A small cohort is not permission to waive an authorisation, payroll,
+privacy, feed, test, migration, backup or support gate.
 
----
+## At a glance
+
+| Stage | Requirement | Current state |
+|---|---|---|
+| Closed AU early access | Complete plans 002-008, 010-013, 015-020, 027, 035, 038 and 042-046 | NO-GO, all listed plans are TODO |
+| Broader cohort or public GA | Complete plans 028, 029, 034 and 036 after the early-access gate | Not started |
+| Scale-triggered work | Reassess and execute plan 030 when production data shows the named round trips matter | Deferred pending evidence |
+| Architecture maintenance | Complete plans 031 and 039 when launch stabilises or the affected area changes | Deferred |
+| NZ or UK launch | Complete plan 037 and create follow-on implementation plans from the spike | Outside AU scope |
+
+Completed plans remain part of the release baseline. Plan 024 is rejected and
+must not be executed because plan 041 supersedes it.
+
+## Required before closed AU early-access go-live
+
+These are release blockers. `TODO` means the app remains a no-go.
+
+### Product safety, privacy and payroll integrity
+
+| Plan | Required outcome | Status |
+|---|---|---|
+| [002](002-fix-null-actor-authorisation-bypass.md) | An unlinked Clerk user cannot pass the nullable manager check | TODO |
+| [003](003-stop-mass-archive-on-unparseable-xero-page.md) | A malformed Xero page cannot be treated as a complete sync or trigger mass archive | TODO |
+| [004](004-prevent-manager-self-approval.md) | Managers cannot approve or decline their own leave | TODO |
+| [006](006-stop-sync-overwriting-user-owned-privacy-fields.md) | Inbound sync preserves user-owned privacy and feed choices | TODO |
+| [007](007-guard-reconciler-transitions-with-optimistic-concurrency.md) | Approval reconciliation cannot overwrite a newer local transition | TODO |
+| [008](008-bind-xero-oauth-state-to-nonce-expiry-and-session.md) | Xero OAuth state is time-bound, browser-bound and replay-resistant | TODO |
+| [010](010-return-auth-error-instead-of-throwing-on-token-decrypt.md) | Token decryption failures remain typed, diagnosable Xero errors | TODO |
+| [011](011-fail-closed-on-decline-reason-policy.md) | A settings failure cannot disable the decline-reason policy | TODO |
+| [012](012-move-failure-notifications-out-of-the-state-transaction.md) | Notification failure cannot roll back durable Xero failure state | TODO |
+| [013](013-paginate-and-narrow-the-approvals-list-query.md) | Raw Xero and write-error audit payloads never cross the manager browser boundary; the list is bounded | TODO |
+| [017](017-make-leave-submission-idempotent.md) | Retries and concurrent requests cannot create duplicate Xero leave applications | TODO |
+| [018](018-clear-stale-xero-write-errors-on-status-change.md) | Reconciled records do not retain misleading stale write errors | TODO |
+| [019](019-close-two-tenant-scoping-gaps-in-server-actions.md) | Feed and Xero-match actions enforce both tenant keys | TODO |
+| [027](027-validate-the-clerk-user-before-binding-it-to-a-person.md) | A Person can bind only to a valid Clerk member of the active organisation | TODO |
+| [038](038-bound-the-approval-reconciler-so-it-can-be-enabled.md) | Approval reconciliation is bounded, resumable and safe to schedule | TODO |
+| [042](042-correct-all-day-ics-date-boundaries.md) | One-day and multi-day all-day leave emit correct exclusive ICS end dates | TODO |
+| [043](043-preserve-retryable-feed-errors.md) | Transient feed failures return a retryable response instead of permanent 404 | TODO |
+
+Plan 013 is deliberately in this table, not the later performance table. Its
+pagination work is scale-related, but its explicit projection also prevents
+`source_payload_json` and `xero_write_error_raw` from being serialised to a
+client component. That data-minimisation boundary is required before the first
+customer.
+
+Plans 007, 018 and 038 are also deliberate launch gates because the current
+release decision includes nightly approval reconciliation through plan 044.
+Moving that chain later requires an explicit product decision to launch with
+reconciliation disabled, followed by consistent changes to PRODUCT.md, plans
+044 and 046, the pilot acceptance script and the customer support model.
+
+### Reproducible verification and dependency safety
+
+| Plan | Required outcome | Status |
+|---|---|---|
+| [005](005-refresh-vulnerable-dependency-pins.md) | Manifests, overrides and lockfile agree; a fresh approved production audit and build pass | TODO, drift review required |
+| [015](015-enable-the-test-harness-in-six-untestable-workspaces.md) | Root and CI tests enter every owned workspace, including auth and web | TODO |
+| [016](016-add-a-build-step-to-ci.md) | CI requires a production build for all deployable apps | TODO |
+| [020](020-run-the-xero-disconnect-integration-test.md) | Destructive Xero disconnect isolation runs in the integration lane | TODO |
+| [035](035-fix-the-turborepo-task-graph.md) | Test and typecheck tasks express their real dependencies and do not false-green | TODO |
+
+Plan 005 was written against older dependency versions. Reconcile it against
+the current manifests and `bun.lock` before execution. The release requirement
+is the outcome in this table, not the stale version numbers in its old audit
+excerpt.
+
+### Production behaviour and launch controls
+
+| Plan | Required outcome | Status |
+|---|---|---|
+| [044](044-schedule-au-xero-syncs.md) | Active AU tenants receive bounded people, leave and balance syncs; nightly approval reconciliation is enabled only after 007, 018 and 038 | TODO |
+| [045](045-make-closed-au-early-access-truthful-and-deployable.md) | Public journeys, billing controls, production preflight, help and telemetry match closed early access | TODO |
+| [046](046-execute-closed-au-early-access-go-live.md) | Clean release gates, migration and restore rehearsal, production configuration, pilot acceptance, staged deployment, rollback and 72-hour review all pass | TODO |
+
+Plan 046 is the final release-control plan. It must not be used to discover or
+implement an unfinished dependency during the launch window.
 
 ## Recommended execution order
 
-Ordered by leverage, with dependencies respected. The four tranches are
-independent of one another; within a tranche, order is a suggestion except
-where a dependency is noted.
+Different owners may run independent plans in parallel, but preserve these
+hard sequences:
 
-### Tranche 1: security and data-integrity defects
+1. **Establish trustworthy gates**: 035, then 015; also complete 016 and 020.
+   Refresh and execute 005 once the build gate is available.
+2. **Close direct product risks**: 002, 004, 008, 010-013, 017, 019, then 027,
+   plus 042 and 043.
+3. **Make inbound sync safe**: complete 003 and 006 before activating any
+   scheduler.
+4. **Make reconciliation safe**: execute 007, then 018, then 038.
+5. **Add production scheduling**: execute 044 only after 003 and 006. Enable
+   nightly approval reconciliation only after the 007, 018 and 038 chain.
+6. **Make the release truthful and operable**: execute 045. It can proceed in
+   parallel with most code fixes but must be complete before deployment.
+7. **Release**: execute 046 only after every preceding go-live row is DONE on
+   the same release commit.
 
-Land these first. Each is a live defect with a bounded fix.
+### Hard dependency graph
 
-| Plan | Title | Priority | Effort | Risk | Depends on | Status |
-|---|---|---|---|---|---|---|
-| [032](032-stop-serialising-encrypted-xero-tokens-to-the-browser.md) | Stop serialising encrypted Xero tokens into the client payload | P1 | S | LOW | none | DONE (commit `2a5b29b` on branch `fix/stop-leaking-xero-token-material` in `/tmp/teamcalendar-plan-032`, not merged; `check`, `typecheck` and `test` pass. Browser payload verification was unavailable, and production builds are blocked by sandbox font-download failures after validating the required environment schema.) |
-| [002](002-fix-null-actor-authorisation-bypass.md) | Deny record authorisation when the acting user has no linked person | P1 | S | LOW | none | TODO |
-| [004](004-prevent-manager-self-approval.md) | Prevent managers from approving or declining their own leave | P1 | S | LOW | none | TODO |
-| [017](017-make-leave-submission-idempotent.md) | Stop leave submission creating duplicate leave applications in Xero | P1 | M | MED | none | TODO |
-| [003](003-stop-mass-archive-on-unparseable-xero-page.md) | Stop treating an unparseable Xero page as the end of pagination | P1 | M | LOW | none | TODO |
-| [007](007-guard-reconciler-transitions-with-optimistic-concurrency.md) | Guard reconciler transitions with an optimistic-concurrency predicate | P1 | S | LOW | none | TODO |
-| [006](006-stop-sync-overwriting-user-owned-privacy-fields.md) | Stop the inbound Xero sync overwriting user-owned privacy and feed fields | P1 | S | LOW | none | TODO |
-| [008](008-bind-xero-oauth-state-to-nonce-expiry-and-session.md) | Bind the Xero OAuth state to a nonce, an expiry, and the initiating browser | P1 | M | MED | none | TODO |
-| [005](005-refresh-vulnerable-dependency-pins.md) | Refresh the root dependency overrides that pin vulnerable versions | P1 | S | LOW | 016 helps | TODO |
-| [001](001-accessible-responsive-product-interactions.md) | Make calendar, contact, notification, and motion interactions accessible and responsive | P1 | M | MED | none | DONE (commit `2f8f12a` on branch `advisor/001-accessible-responsive-interactions` in worktree, not merged) |
+```text
+035 -> 015
+040 (DONE) -> 016 -> 005 verification
 
-### Tranche 2: correctness, verification and the CI gates that catch the rest
+019 -> 027
+007 -> 018 -> 038
+003 + 006 -> 044 inbound scheduling
+007 + 018 + 038 -> 044 nightly approval reconciliation
 
-| Plan | Title | Priority | Effort | Risk | Depends on | Status |
-|---|---|---|---|---|---|---|
-| [040](040-fix-the-node-env-guard-that-breaks-every-local-and-ci-build.md) | Fix the `NODE_ENV` guard in `apps/web` that breaks every local and CI build | P1 | S | LOW | none; unblocks 024, 033, helps 016 | DONE, merged to `main` |
-| [041](041-move-emptystringasundefined-to-where-it-actually-works.md) | Move `emptyStringAsUndefined` to every package's own `keys.ts`, where it actually protects anything | P1 | M | LOW | after 040; supersedes 024 | DONE, merged to `main` |
-| [016](016-add-a-build-step-to-ci.md) | Add a build step to CI so typecheck sees generated route types | P2 | S | LOW | after 040 | TODO |
-| [035](035-fix-the-turborepo-task-graph.md) | Fix the Turborepo task graph for `test` and `typecheck` | P3 | S | LOW | none | TODO |
-| [015](015-enable-the-test-harness-in-six-untestable-workspaces.md) | Enable the test harness in the six workspaces that cannot run tests | P2 | M | LOW | 035 helps | TODO |
-| [020](020-run-the-xero-disconnect-integration-test.md) | Make the Xero disconnect integration test actually run | P2 | S | LOW | none | TODO |
-| [011](011-fail-closed-on-decline-reason-policy.md) | Fail closed when the decline-reason policy cannot be loaded | P2 | S | LOW | none | TODO |
-| [012](012-move-failure-notifications-out-of-the-state-transaction.md) | Move failure notifications out of the transaction that records Xero write failures | P2 | S | LOW | none | TODO |
-| [018](018-clear-stale-xero-write-errors-on-status-change.md) | Clear stale Xero write errors when sync moves a record out of the failed state | P2 | S | LOW | after 007 | TODO |
-| [010](010-return-auth-error-instead-of-throwing-on-token-decrypt.md) | Return a typed auth error instead of throwing when token decryption fails | P2 | S | LOW | none | TODO |
-| [019](019-close-two-tenant-scoping-gaps-in-server-actions.md) | Close two tenant-scoping gaps in server actions | P2 | S | LOW | none | TODO |
-| [027](027-validate-the-clerk-user-before-binding-it-to-a-person.md) | Validate the Clerk user before binding it to a Person record | P2 | S | LOW | adjacent to 019 | TODO |
-| [024](024-harden-env-validation-in-the-app-and-web-apps.md) | Harden env validation in `apps/app` and `apps/web` | P2 | S | LOW | after 023, 040 | REJECTED (superseded by plan 041 — `emptyStringAsUndefined` at the app level cannot protect any field sourced via `extends`, since each extended package's own `createEnv()` call already validates and returns before the outer call's option ever runs; verified against the `@t3-oss/env-core` source. This plan's `billing()` extend insight was correct and is carried forward into plan 041's Step 6) |
-| [028](028-fix-three-test-quality-gaps.md) | Fix three test-quality gaps (role hierarchy, feed preview, tenant query helpers) | P2 | M | LOW | none | TODO |
-| [029](029-test-the-untested-server-actions.md) | Test the eleven untested server actions in `apps/app` | P2 | L | LOW | none | TODO |
-
-### Tranche 3: performance
-
-Each degrades with tenant size, so none is urgent today and all become urgent
-at the same time.
-
-| Plan | Title | Priority | Effort | Risk | Depends on | Status |
-|---|---|---|---|---|---|---|
-| [009](009-stop-database-writes-on-every-ics-feed-poll.md) | Stop writing to the database on every ICS feed poll | P2 | S | LOW | 014 related | DONE, merged to `main` |
-| [014](014-batch-feed-cache-invalidation.md) | Batch feed-cache invalidation and replace keyspace scans with keyed deletes | P2 | M | MED | none | DONE (commit `df05bf3` on branch `advisor/014-batch-feed-cache-invalidation` in worktree, not merged) |
-| [013](013-paginate-and-narrow-the-approvals-list-query.md) | Paginate the approvals list and stop shipping Xero payload blobs to the browser | P2 | M | MED | none | TODO |
-| [030](030-remove-three-avoidable-round-trip-patterns.md) | Remove three avoidable round-trip patterns | P2 | M | MED | none | TODO |
-| [034](034-bound-and-batch-the-feed-publication-reconciler.md) | Bound and batch the feed publication reconciler | P2 | M | MED | none | TODO |
-| [038](038-bound-the-approval-reconciler-so-it-can-be-enabled.md) | Bound the approval reconciler so it can be enabled | P2 | M | MED | after 007, 018 | TODO |
-
-### Tranche 4: hygiene, docs and direction
-
-Cheap, low risk, and each removes a piece of misinformation from the
-repository.
-
-| Plan | Title | Priority | Effort | Risk | Depends on | Status |
-|---|---|---|---|---|---|---|
-| [023](023-regenerate-the-env-examples-and-remove-dead-knock-config.md) | Regenerate the `.env.example` files and remove the dead Knock configuration | P3 | S | LOW | before 024 | DONE, merged to `main` |
-| [026](026-correct-the-agent-instruction-files.md) | Correct `AGENTS.md` and `GEMINI.md`, which describe the wrong product | P2 | S | LOW | none | DONE |
-| [025](025-stop-pointing-in-product-help-at-the-mintlify-starter-kit.md) | Stop pointing in-product Help at the Mintlify Starter Kit | P2 | S | LOW | none | DONE (Option B: `helpUrl` repointed at `webUrl("/help-centre")`, a real page; commit `532ae91` on branch `fix/unwire-starter-kit-help-link` in worktree, not merged) |
-| [022](022-align-the-lint-check-and-fix-commands.md) | Make `bun run fix` cover the same files as `bun run check` | P3 | S | LOW | none | DONE |
-| [033](033-dead-code-and-manifest-hygiene.md) | Dead code and manifest hygiene | P3 | S | LOW | after 040 | DONE (executed with a user-approved deviation: Step 1/2/6 build verification scoped to `bunx turbo build --filter=app --filter=api` instead of plain `bun run build`, since `web#build` fails on the pre-existing `NEXT_PUBLIC_APP_URL` issue plan 040 fixes; commits `fa140b9`, `462f5c9` on branch `chore/dead-code-and-manifest-hygiene` in worktree, not merged) |
-| [031](031-fix-the-database-package-boundary.md) | Fix the `@repo/database` package boundary | P3 | M | LOW | after 032 | TODO (reconciled 2026-07-29: use the documented synthetic app/API build in an isolated worktree; no production environment values required) |
-| [021](021-consolidate-the-tenant-scoping-helpers.md) | Consolidate the eleven local copies of the tenant-scoping helper | P3 | M | LOW | none | DONE |
-| [036](036-stop-returning-a-cross-tenant-existence-oracle.md) | Stop returning a cross-tenant existence oracle to callers | P3 | M | MED | none | TODO |
-| [039](039-decide-what-to-do-with-the-html-feed-renderer.md) | Decide what to do with the HTML feed renderer | P3 | S | LOW | needs a user decision | TODO |
-| [037](037-spike-nz-and-uk-payroll-write-back.md) | Spike NZ and UK payroll support | P3 | M | LOW | none | TODO |
-
----
-
-## Dependency graph
-
-Only hard dependencies are listed. Everything not shown here is independent.
-
-```
-040 (fix web build break)  ──> 024 (env validation), 033 (dead code hygiene)
-                                 hard: both plans' Step 1 baseline is `bun run
-                                 build`, which fails today on `web#build`
-                                 regardless of either plan's own changes; 040
-                                 fixes the underlying guard in
-                                 apps/web/src/lib/auth-links.ts
-                            ──> 016 (build step in CI), soft: 016 adds a CI
-                                 build gate that would otherwise be red from
-                                 its first run
-
-024 (env validation, REJECTED) ──> 041 (fix emptyStringAsUndefined properly)
-                                 024's fix didn't work: emptyStringAsUndefined
-                                 set on an app's outer createEnv() can't reach
-                                 fields sourced via extends(), since each
-                                 extended package's own createEnv() call has
-                                 already validated and returned by the time
-                                 the outer call's options run; 041 fixes it in
-                                 each package's own keys.ts instead. 041 also
-                                 depends on 040 (needs a working build to
-                                 verify against)
-
-032 (token leak)            ──> 031 (database package boundary)
-                                 both edit the integrations client components;
-                                 the security fix must land first
-
-007 (reconciler concurrency) ──> 018 (clear stale write errors)
-                                 ──> 038 (bound the approval reconciler)
-                                 all three edit reconcile-xero-approval-state.ts;
-                                 007 is structural, 018 additive, 038 above both
-
-023 (env examples)          ──> 024 (env validation)
-                                 both edit apps/app/env.ts; 023 removes a line,
-                                 024 adds two
-
-035 (turbo task graph)      ──> 015 (test harness in six workspaces)
-                                 soft: 015 works either way, but its new test
-                                 scripts run in parallel only after 035
-
-016 (build step in CI)      ──> 005 (dependency pins)
-                                 soft: 005 needs a green build as its gate, and
-                                 016 makes CI enforce it
-
-019 (tenant scoping)        <──> 027 (validate Clerk user)
-                                 both edit the Xero matches action; either order,
-                                 the second one rebases
+002 + 003 + 004 + 005 + 006 + 007 + 008
++ 010 + 011 + 012 + 013 + 015 + 016 + 017
++ 018 + 019 + 020 + 027 + 035 + 038
++ 042 + 043 + 044 + 045
+-> 046
 ```
 
-**Independent clusters** that can be worked in parallel by different people:
+## Required after early access
 
-- 002, 004, 006, 008, 017 (security and Xero write correctness)
-- 009, 013, 014, 030, 034 (performance)
-- 020, 028, 029 (test coverage)
-- 021, 022, 025, 026, 033 (hygiene and docs)
+These plans do not block a small, supervised AU cohort. They become mandatory
+at the trigger stated below.
 
----
+### Before broader self-service or unrestricted general availability
 
-## Notes on how these plans were written
+| Plan | Trigger and required outcome | Status |
+|---|---|---|
+| [028](028-fix-three-test-quality-gaps.md) | Before GA: pin role hierarchy, feed-preview privacy and tenant-query behaviour with meaningful tests | TODO |
+| [029](029-test-the-untested-server-actions.md) | Before GA: cover authenticated mutation boundaries after plans 019 and 027 settle their final shape | TODO |
+| [034](034-bound-and-batch-the-feed-publication-reconciler.md) | Before enabling global feed reconciliation or materially increasing tenant count: bound and batch the job | TODO |
+| [036](036-stop-returning-a-cross-tenant-existence-oracle.md) | Before unrestricted GA: keep server-side detection but return indistinguishable not-found errors | TODO |
 
-**Every excerpt was read from the file it cites**, not taken from a summary.
-Line numbers are from commit `75202db`.
+Plan 034 should move into the go-live gate if global feed-publication
+reconciliation is enabled for the first cohort. Plan 028 should move into the
+go-live gate if acceptance testing cannot independently prove its role,
+privacy-preview and tenant-isolation cases.
 
-**Subagent findings were vetted before they became plans.** Several were
-rejected or substantially narrowed:
+### Scale-triggered performance work
 
-- An initial report of "roughly twelve unscoped database writes" was checked
-  call site by call site and reduced to **two** genuine gaps, both reads, both
-  in `apps/app` server actions (plan 019). The rest use a scoping helper or
-  follow a check-then-act pattern inside a transaction, which is correct.
-  Plan 019 documents this explicitly so the finding is not re-raised.
-- A baseline failure of `bun run typecheck` and `bun run test` with
-  `Cannot find module '@repo/observability/log'` was investigated and found to
-  be a stale local `node_modules` symlink, **not a repository defect**. CI runs
-  `bun install --frozen-lockfile` and is unaffected. Every plan's "Commands"
-  section carries a note telling the executor to run `bun install` if they hit
-  it.
-- `reconciliationEnabled={false}` was initially read as an oversight. The git
-  history shows it is a **deliberate gate**, recorded in a prior spike
-  (`git show 3772377:plans/005-findings.md`) that stopped at a rate-limit STOP
-  condition. Plan 038 was reframed to remove the blocker rather than to flip the
-  flag, and it explicitly forbids changing the flag.
+| Plan | Trigger and required outcome | Status |
+|---|---|---|
+| [030](030-remove-three-avoidable-round-trip-patterns.md) | Re-profile after real early-access traffic; execute the affected parts before organisation lookup, holiday import or people-directory costs breach agreed service targets | TODO |
 
----
+Do not execute plan 030 solely because it exists. Capture production timings
+first and retain only the changes supported by measured cost.
 
-## Findings considered and rejected
+### Architecture and product decisions after launch stabilisation
 
-Recorded so they are not re-audited on a future run.
+| Plan | When it becomes required | Status |
+|---|---|---|
+| [031](031-fix-the-database-package-boundary.md) | Before the next material database export/client-boundary refactor; plan 032 is already complete | TODO |
+| [039](039-decide-what-to-do-with-the-html-feed-renderer.md) | Before exposing, extending or relying on the HTML renderer; otherwise choose deletion as maintenance | TODO, decision required |
 
-**From the 2026-07-21 run (plan 001):**
+### Before expanding beyond AU Payroll
 
-- The auth panel's gradients and literal colours are documented, scoped brand
-  treatment, not theming drift.
-- The floating sidebar's stronger shadow is permitted as transient navigation
-  elevation by `DESIGN.md`.
-- The shared component-library motion system was not changed. Its broader
-  review warrants a separately scoped design-system plan.
+| Plan | When it becomes required | Status |
+|---|---|---|
+| [037](037-spike-nz-and-uk-payroll-write-back.md) | Before committing to an NZ or UK launch; use the spike to produce separate implementation plans | TODO |
 
-**From the 2026-07-25 run:**
+The current release must continue to present AU as the only supported payroll
+write-back region.
 
-- **"Twelve unscoped database writes."** Over-reported. Verified down to two
-  reads (plan 019). Every `update`/`delete` using `where: { id }` is preceded by
-  a tenant-scoped read in the same transaction, which is the idiomatic shape
-  given that Prisma's `update` accepts only unique fields in `where`.
-- **An end-to-end test lane (Playwright or similar).** Not proposed. The repo
-  has roughly fifty test files in `apps/app` alone plus five integration
-  suites; the gaps are specific and addressable with the existing harness
-  (plans 028, 029). Adding a browser lane would be a large ongoing cost against
-  a well-covered codebase.
-- **`biome.jsonc` exclusions for `packages/collaboration` and `packages/cms`.**
-  Real, but inert: neither package exists. Folded into plan 022 as cleanup
-  rather than raised as a defect.
-- **A composite index on `xero_person_matches`.** Considered and dropped. The
-  table is small, queried by primary key, and adding an index inside an
-  unrelated plan hides a schema change in a diff nobody expects one in.
-- **Timing side channels on the not-found path** (plan 036). The extra query on
-  the cross-tenant path makes it marginally slower than a plain miss. Closing
-  that would require constant-time behaviour across a database query, which is
-  not achievable and not warranted for UUIDv4 keys. Explicitly out of scope.
-- **Rate limiting on resource-id guessing.** Not warranted: all ids are
-  UUIDv4 and every path is authenticated.
-- **Bulk conversion of `update({ where: { id } })` to
-  `updateMany({ where: { ...scoped, id } })`.** Legitimate defence in depth and
-  a large, mostly mechanical diff. Recorded in plan 019's maintenance notes as a
-  possible follow-up rather than executed, because it would touch about thirty
-  call sites for no confirmed defect.
-- **`packages/core`'s `vitest` range and the `@types/*` caret drift.** Noted in
-  plan 033's "Current state" and deliberately left alone. Neither is worth a
-  change on its own.
+## Completed and retired plans
 
----
+These rows were spot-checked against local `main`. They require no execution,
+but their behaviour remains part of the release baseline.
 
-## What was not audited
+| Plan | Outcome | Status |
+|---|---|---|
+| [001](001-accessible-responsive-product-interactions.md) | Core calendar, contact and notification interactions made accessible and responsive | DONE, merged (`2f8f12a`) |
+| [009](009-stop-database-writes-on-every-ics-feed-poll.md) | Feed token telemetry debounced and matching ETags short-circuit to 304 | DONE, merged (`2e063fe`) |
+| [014](014-batch-feed-cache-invalidation.md) | Feed invalidation batched and keyspace scans removed | DONE, merged (`df05bf3`) |
+| [021](021-consolidate-the-tenant-scoping-helpers.md) | Shared two-key tenant-scoping helper adopted | DONE, merged (`6ab940c`) |
+| [022](022-align-the-lint-check-and-fix-commands.md) | Check and fix commands cover the same source scope | DONE, merged (`65afb84`) |
+| [023](023-regenerate-the-env-examples-and-remove-dead-knock-config.md) | Environment examples corrected and dead Knock configuration removed | DONE, merged (`84d0907`, `c4f5f3b`) |
+| [024](024-harden-env-validation-in-the-app-and-web-apps.md) | App-level approach was ineffective and replaced by plan 041 | REJECTED, do not execute |
+| [025](025-stop-pointing-in-product-help-at-the-mintlify-starter-kit.md) | Product Help now points to the real web help centre | DONE, merged (`532ae91`) |
+| [026](026-correct-the-agent-instruction-files.md) | Repository agent documentation corrected for Team Calendar | DONE, merged (`abaded2`) |
+| [032](032-stop-serialising-encrypted-xero-tokens-to-the-browser.md) | Client Xero connection projection uses an explicit safe allowlist | DONE, merged (`2a5b29b`) |
+| [033](033-dead-code-and-manifest-hygiene.md) | Dead code and manifest hygiene completed | DONE, merged (`fa140b9`, `462f5c9`) |
+| [040](040-fix-the-node-env-guard-that-breaks-every-local-and-ci-build.md) | Web build environment guard corrected | DONE, merged (`bad2224`) |
+| [041](041-move-emptystringasundefined-to-where-it-actually-works.md) | Empty-string environment handling moved to package-owned schemas | DONE, merged (`dc60b1b`) |
 
-Stated so nobody assumes coverage that does not exist.
+## Status rules
 
-- **`packages/design-system`** beyond the three integrations client components.
-  Plan 001 covers some of its interaction and accessibility surface; the
-  component library as a whole was not reviewed.
-- **`apps/web`** (the marketing site) beyond its `env.ts`.
-- **`apps/docs`** content, beyond establishing that it is the unmodified
-  Mintlify Starter Kit (plan 025).
-- **`packages/email` templates**, `packages/seo`, `packages/analytics`.
-- **Export surfaces of packages other than `@repo/database`.** None is
-  deep-imported today, but none has an `exports` map either. Noted in plan 031.
-- **The Prisma schema as a whole.** Individual models were read where a plan
-  needed them; no systematic review of indexes, constraints or normalisation
-  was done.
-- **Runtime behaviour.** Everything here is derived from reading code, git
-  history and configuration. Nothing was profiled, and no production data was
-  examined.
+- `TODO`: not started or not evidenced on the current release commit.
+- `IN PROGRESS`: an executor is actively working on it.
+- `DONE`: implementation and done criteria are merged into the release branch.
+- `BLOCKED`: a STOP condition prevents execution; include a one-line reason.
+- `REJECTED`: the approach is superseded or no longer worth executing; include
+  a one-line rationale.
+
+Executors must:
+
+1. read the selected plan completely;
+2. run its drift check against current `HEAD`;
+3. stop on a material mismatch and refresh the plan rather than improvising;
+4. run every required verification gate;
+5. update this index only after evidence exists on the target branch.
+
+## Reconciliation notes
+
+- Every TODO finding in the tables above was rechecked against current source.
+- Plan 005 still requires a fresh dependency audit. No current vulnerability
+  verdict is claimed by this index.
+- The checked-in Prisma migration history was compared with `schema.prisma` and
+  is structurally aligned. Plan 046 still requires the exact production
+  `_prisma_migrations` ledger, drift and restore checks. `db:push` is not
+  acceptable release evidence.
+- Plans 042 to 046 were added during the 2026-08-04 go-live review and remain
+  TODO until implementation and release evidence exist.
+- The current working tree also contains unrelated user changes. Executors must
+  preserve them and use an isolated branch or worktree where appropriate.
+
+## Findings considered and rejected or deferred
+
+Recorded to prevent low-value re-audits:
+
+- The earlier report of roughly twelve unscoped writes was reduced to the two
+  genuine action gaps in plan 019. Other id-only writes follow a tenant-scoped
+  read in the same transaction.
+- A stale local `node_modules` link previously caused missing-module failures.
+  That was an installation artefact, not a repository defect.
+- `reconciliationEnabled={false}` is deliberate. Plans 007, 018 and 038 remove
+  the reasons it is unsafe; do not merely flip the flag.
+- Plan 024 is rejected because an outer app `createEnv()` cannot repair values
+  already validated by package-level `createEnv()` calls. Plan 041 is the
+  implemented replacement.
+- A new Playwright lane is not required for the closed cohort. The immediate
+  gaps are the concrete unit, integration and build lanes in plans 015, 016,
+  020, 028, 029 and 035.
+- Constant-time behaviour for a database-backed UUID existence check is not a
+  practical goal. Plan 036 keeps internal detection and removes the caller
+  distinction.
+- Unrestricted general availability and paid self-service are rejected for the
+  first release. Plan 045 encodes a closed, no-checkout early-access state.
+- Completing the Mintlify documentation application is deferred. The existing
+  web help centre must contain the guided early-access path before launch.
+
+## What this review did not verify
+
+- Live Vercel, Clerk, Xero, Inngest, Neon, KV, Resend, Sentry, DNS, email-domain
+  or backup configuration. Plan 046 requires operator evidence for each.
+- Production data, load, browser performance or support volume.
+- A current third-party dependency audit, because approved registry access was
+  unavailable during the review.
+- Full marketing-site brand, SEO and accessibility quality outside the
+  go-live-critical pricing, contact, legal and help paths.
+- The Mintlify documentation content in depth.
+
+These unknowns are not implicit approvals. Plan 046 converts the launch-critical
+ones into explicit no-go checks; later expansion requires a fresh capacity,
+support, accessibility and legal review.

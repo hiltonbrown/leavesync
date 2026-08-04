@@ -20,6 +20,8 @@ export const config: NextConfig = {
     "@prisma/client",
     "@prisma/adapter-neon",
     "@prisma/adapter-pg",
+    "require-in-the-middle",
+    "import-in-the-middle",
   ],
 
   images: {
