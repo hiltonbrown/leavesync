@@ -20,6 +20,13 @@
   benefits from this landing first; either order works.
 - **Category**: dx, ci
 - **Planned at**: commit `75202db`, 2026-07-25
+- **Reconciled**: 2026-08-05 against `2095b1f`. Finding confirmed still present.
+  `turbo.json` is unchanged: `test`, `typecheck` and `test:integration` still
+  declare only `dependsOn: ["^<same task>"]`, with no dependency on `build` or
+  on the Prisma client generation that `packages/database` performs, so a
+  workspace can report green against a stale generated client. Only dependency
+  versions moved in `package.json` and `packages/database/package.json`
+  (plan 047). `.github/workflows/ci.yml` is unchanged.
 
 ## Why this matters
 

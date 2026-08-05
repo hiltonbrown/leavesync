@@ -19,6 +19,14 @@
 - **Depends on**: none
 - **Category**: perf
 - **Planned at**: commit `75202db`, 2026-07-25
+- **Reconciled**: 2026-08-05 against `2095b1f`. Finding confirmed still present.
+  `approval-service.ts:258-278` is still an unbounded
+  `database.availabilityRecord.findMany` with no `take`, and it still uses
+  `include: recordInclude` (defined at line 1706), which selects every scalar
+  column on the record including `source_payload_json` and
+  `xero_write_error_raw`. Both the service file and
+  `leave-approvals-client.tsx` changed since this plan was written (plans 004
+  and 007), so re-read them before editing.
 
 ## Why this matters
 

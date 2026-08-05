@@ -20,6 +20,26 @@
   land first; plan 018 touches the same `data` objects. See "Git workflow".
 - **Category**: direction, performance
 - **Planned at**: commit `75202db`, 2026-07-25
+- **Reconciled**: 2026-08-05 against `2095b1f`. Plan 007 has since landed and
+  changed this handler. Two things in the sections below are now partly done and
+  three are not; read this note before Step 1.
+  - **Already present**: `BATCH_SIZE = 50` at line 53, an in-memory batching
+    loop at lines 258-330, a per-batch cancellation check against `syncRun`,
+    and a `limit: 100` on the Xero-side call at line 613.
+  - **Also new from plan 007**: `transitionRecord` returns a `boolean`,
+    `OptimisticConflictError` exists, and each branch of `reconcileRecord`
+    returns `transitioned ? "<outcome>" : "matched"`. Preserve that shape.
+  - **Still unbounded, and still this plan's job**: the candidate query at
+    lines 228-247 is a bare `database.availabilityRecord.findMany` with
+    `orderBy: { created_at: "asc" }` and **no `take` and no cursor**. It loads
+    every active record with a `source_remote_id` into memory before the
+    batching loop ever runs, so the batching bounds concurrency but not the
+    working set or the total request volume for a run.
+  - **Still true**: `reconciliationEnabled={false}` is hard-coded at
+    `apps/app/app/(authenticated)/leave-approvals/page.tsx:151`, and the job is
+    still not scheduled.
+  Scope your change to the candidate query, resumability and the run-level
+  request budget. Do not re-add batching that already exists.
 
 ## Why this matters
 

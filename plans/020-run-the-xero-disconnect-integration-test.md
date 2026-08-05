@@ -19,6 +19,13 @@
 - **Depends on**: none
 - **Category**: tests
 - **Planned at**: commit `75202db`, 2026-07-25
+- **Reconciled**: 2026-08-05 against `2095b1f`. Finding confirmed still present.
+  `packages/xero/package.json` still declares no `test:integration` script, so
+  `packages/xero/src/oauth/disconnect.integration.test.ts` never runs. Only
+  four workspaces declare that script today: `packages/database`,
+  `packages/jobs`, `packages/availability` and `packages/feeds`. Note that
+  `packages/xero/package.json` gained an `@repo/observability` dependency in
+  `2095b1f`; leave it in place.
 
 ## Why this matters
 

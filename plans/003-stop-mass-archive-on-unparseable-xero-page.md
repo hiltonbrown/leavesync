@@ -19,6 +19,16 @@
 - **Depends on**: none
 - **Category**: bug
 - **Planned at**: commit `75202db`, 2026-07-25
+- **Execution status**: DONE. Implemented in `5f5bdd7`, merged in `3568795`.
+  The undeclared workspace dependency that blocked the first attempt was fixed
+  separately in `2095b1f` (`@repo/observability` added to
+  `packages/xero/package.json`). Verified on 2026-08-05 against `2095b1f`:
+  `tryMapXeroEmployees` and the leave-record mapper return
+  `{ ok: false }` instead of an empty page,
+  `packages/xero/src/au/read.ts` carries `complete: boolean` through the
+  pagination result and logs `"Xero employee page could not be parsed"` and
+  `"Xero leave record page could not be parsed"` warnings, and
+  `bun run test` passes 16 of 17 xero suites with 159 tests.
 
 ## Why this matters
 

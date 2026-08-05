@@ -20,11 +20,14 @@
 - **Category**: bug
 - **Planned at**: commit `7821f3a`, 2026-08-05 (refreshed after the shared
   tenant-scoping helper moved from this handler into `@repo/database`)
-- **Execution status**: BLOCKED on 2026-08-05. Isolated implementation
-  `f903a8f` passes typecheck, lint and the targeted 9-test handler suite, but
-  the required root unit-test gate fails before app tests load because installed
-  `react` and `react-dom` patch versions differ. Resolve the dependency baseline
-  and rerun the full gate before accepting this change.
+- **Execution status**: DONE. Implemented in `f903a8f`, merged in `0e0ea09`.
+  Verified on 2026-08-05 against `2095b1f`:
+  `packages/jobs/src/handlers/sync-xero-leave-records.ts:591-625` splits the
+  upsert payload into `xeroOwned` and `locallyOwned`, selects `source_type` on
+  the existing-record lookup, and applies only `xeroOwned` when the existing
+  record is `team_calendar_leave`. `bun run test` exits 0 with the jobs suite at
+  9 files / 40 tests. The earlier react/react-dom mismatch is resolved by
+  plan 047.
 
 ## Why this matters
 

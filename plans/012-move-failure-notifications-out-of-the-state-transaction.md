@@ -19,6 +19,11 @@
 - **Depends on**: none
 - **Category**: bug
 - **Planned at**: commit `75202db`, 2026-07-25
+- **Reconciled**: 2026-08-05 against `2095b1f`. Finding confirmed still present:
+  notification calls still sit inside `database.$transaction` at
+  `approval-service.ts:523-524` and `931-955`. Both files changed since this
+  plan was written (plans 004, 007 and 017's neighbours), so re-read them before
+  editing; the transaction boundaries themselves are unchanged.
 
 ## Why this matters
 

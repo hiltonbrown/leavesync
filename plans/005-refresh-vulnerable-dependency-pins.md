@@ -18,12 +18,15 @@
 - **Depends on**: none
 - **Category**: security
 - **Planned at**: commit `7821f3a`, 2026-08-05 (refreshed after dependency drift)
-- **Execution status**: BLOCKED on 2026-08-05. The isolated update clears the
-  `next`, `hono` and `fast-uri` audit entries, but `bun audit` still reports a
-  high-severity `sharp` advisory through `workspace:api > next`. The shared Next
-  config enables production image optimisation, so this meets the plan's
-  runtime-reachable-advisory STOP condition. Create and complete a narrowly
-  scoped sharp/Next remediation plan, then rerun this plan's full gate.
+- **Execution status**: DONE. The targeted pins landed in `daa3985`, merged in
+  `fbaace4`; the `next 16.3.0` override that clears the `sharp` advisory landed
+  in `f1884db`. Verified on 2026-08-05 at `f1884db`: `bun audit` reports **2
+  vulnerabilities (1 moderate, 1 low)**, down from 43, and neither `next`,
+  `hono`, `fast-uri` nor `sharp` appears. The required "Advisories accepted"
+  section is at the bottom of this file. One done criterion is deferred rather
+  than met: `bun run build` cannot be used as a gate until plan 049 lands,
+  because the build crashes the Bun runtime for reasons unrelated to any
+  dependency. Do not re-execute the steps below; they are complete.
 
 ## Why this matters
 
@@ -321,3 +324,23 @@ Stop and report back (do not improvise) if:
   exit the advisory range with minimum blast radius. Moving to 4.x is a major
   bump across `prisma`, `react-email` and `@sentry/nextjs` and deserves its own
   evaluation.
+
+## Advisories accepted at 2026-08-05
+
+Measured with `bun audit` at commit `f1884db`. The full result is **2
+vulnerabilities (1 moderate, 1 low)**, down from the 43 recorded when this plan
+was written. Neither `next`, `hono`, `fast-uri` nor `sharp` appears. The two
+that remain are accepted, with reasons:
+
+| Package | Severity | Reached through | Why it is accepted |
+|---|---|---|---|
+| `esbuild` `>=0.27.3 <0.28.1` | low | `vitest`, `tsup`, `@turbo/gen`, `mdx-bundler`, `@sentry/nextjs`, `@vitejs/plugin-react`, and the `email` workspace | The advisory is arbitrary file read **when running the esbuild development server on Windows** (GHSA-g7r4-m6w7-qqqr). This repository never starts the esbuild dev server, deploys on Linux, and reaches esbuild only at build and test time. No production runtime path. |
+| `uuid` `<11.1.1` | moderate | `workspace:web › mdx-bundler` only | Missing buffer bounds check in v3/v5/v6 when an explicit `buf` argument is supplied (GHSA-w5hq-g745-h8pq). Reached only while bundling the marketing site's own MDX at build time, over repository-owned content, with no caller passing `buf`. No untrusted input and no production runtime path. |
+
+Neither is high severity, and neither is reachable from application runtime
+code, so neither meets this plan's STOP condition. The `sharp` advisory that
+previously blocked this plan is resolved: raising the root `next` override to
+`16.3.0` resolves `sharp@0.35.3`, which is outside the advisory range.
+
+Re-check both when `mdx-bundler` publishes a release that moves off `uuid` 10,
+and whenever the `overrides` block is next revisited.
