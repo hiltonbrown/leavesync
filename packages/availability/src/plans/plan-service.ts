@@ -1215,7 +1215,8 @@ function canActOnPerson({
   return (
     isAdminOrOwner(actingOrgRole) ||
     targetPerson.id === actingPersonId ||
-    targetPerson.manager_person_id === actingPersonId
+    (Boolean(actingPersonId) &&
+      targetPerson.manager_person_id === actingPersonId)
   );
 }
 
