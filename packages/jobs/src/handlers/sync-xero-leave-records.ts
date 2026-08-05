@@ -476,6 +476,7 @@ async function loadExistingRecordsBySourceRemoteId(
       id: true,
       source_remote_hash: true,
       source_remote_id: true,
+      source_type: true,
     },
   });
   const recordsBySourceRemoteId = new Map<string, (typeof records)[number]>();
@@ -587,31 +588,42 @@ async function processLeaveRecord(
     }
     const changed =
       existing?.source_remote_hash !== normalised.sourceRemoteHash;
-    const data = {
+    const xeroOwned = {
       all_day: normalised.allDay,
       approval_status: approvalStatusToPersist,
       archived_at: normalised.publishStatus === "archived" ? new Date() : null,
       contactability: normalised.contactability,
       derived_uid_key: normalised.derivedUidKey,
       ends_at: normalised.endsAt,
-      include_in_feed:
-        normalised.includeInFeed && person.include_in_feeds_by_default,
       person_id: normalised.personId,
-      privacy_mode: person.default_privacy_mode,
       publish_status: normalised.publishStatus,
       record_type: normalised.recordType,
       source_last_modified_at: normalised.sourceLastModifiedAt,
       source_payload_json: toPrismaJsonValue(normalised.rawPayload),
       source_remote_hash: normalised.sourceRemoteHash,
       starts_at: normalised.startsAt,
-      title: normalised.title,
       updated_at: new Date(),
     };
+    // Privacy mode, feed inclusion and title are set by the person who owns the
+    // record. Xero is not the source of truth for them, so they are seeded on
+    // create and on Xero-sourced records, but never overwritten on a record the
+    // user authored in Team Calendar.
+    const locallyOwned = {
+      include_in_feed:
+        normalised.includeInFeed && person.include_in_feeds_by_default,
+      privacy_mode: person.default_privacy_mode,
+      title: normalised.title,
+    };
+    const data = { ...xeroOwned, ...locallyOwned };
 
     const recordId = existing?.id;
     if (recordId) {
+      const updateData =
+        existing.source_type === "team_calendar_leave"
+          ? xeroOwned
+          : { ...xeroOwned, ...locallyOwned };
       await database.availabilityRecord.updateMany({
-        data,
+        data: updateData,
         where: { ...scoped(context), id: recordId },
       });
       existingRecordsBySourceRemoteId.set(normalised.sourceRemoteId, {
@@ -620,6 +632,7 @@ async function processLeaveRecord(
         id: recordId,
         source_remote_hash: normalised.sourceRemoteHash,
         source_remote_id: normalised.sourceRemoteId,
+        source_type: existing.source_type,
       });
     } else {
       const created = await database.availabilityRecord.create({
@@ -638,6 +651,7 @@ async function processLeaveRecord(
         id: created.id,
         source_remote_hash: normalised.sourceRemoteHash,
         source_remote_id: normalised.sourceRemoteId,
+        source_type: normalised.sourceType,
       });
       await materialiseSyncedPublication(context, created.id);
     }
