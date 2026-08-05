@@ -19,6 +19,12 @@
 - **Depends on**: none
 - **Category**: bug, tests
 - **Planned at**: commit `75202db`, 2026-07-25
+- **Reconciled**: 2026-08-05 against `2095b1f`. Finding confirmed still present.
+  `packages/availability/src/approvals/approval-service.ts:442-446` still reads
+  `settingsResult.ok && settingsResult.value.requireDeclineReason && ...`, so a
+  failed settings lookup silently disables the policy. The surrounding file has
+  changed since this plan was written (plans 004 and 007), but this condition
+  has not.
 
 ## Why this matters
 

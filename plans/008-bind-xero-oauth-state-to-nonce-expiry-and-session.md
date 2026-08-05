@@ -19,13 +19,16 @@
 - **Depends on**: none
 - **Category**: security
 - **Planned at**: commit `7821f3a`, 2026-08-05
-- **Execution status**: BLOCKED on 2026-08-05. The isolated retry passes
-  typecheck, lint and 55 focused OAuth and confirmation-flow tests, but the
-  required direct API test command fails in two unrelated support suites and
-  the root unit-test gate fails before app tests load because installed `react`
-  and `react-dom` patch versions differ. The retry also exposed that the
-  required nonce-mismatch warning needs the undeclared observability workspace
-  dependency; scope and steps now include that manifest and lockfile change.
+- **Execution status**: DONE. Implemented in `f183e2b`, merged in `832c9ff`;
+  the observability workspace dependency it needed landed in `2095b1f`.
+  Verified on 2026-08-05 against `2095b1f`: `packages/xero/src/oauth/service.ts`
+  binds the OAuth state to a nonce with an expiry and to the session, and the
+  callback route at `apps/api/app/api/xero/oauth/callback/route.ts` validates
+  it. New coverage landed in `route.test.ts` for both the start and callback
+  routes and in `packages/xero/src/oauth/service.test.ts`. The api workspace now
+  reports 13 files / 101 tests green, so the two unrelated support-suite
+  failures noted previously are also resolved. The react/react-dom mismatch is
+  resolved by plan 047.
 
 ## Why this matters
 

@@ -19,12 +19,13 @@
 - **Depends on**: none
 - **Category**: security
 - **Planned at**: commit `75202db`, 2026-07-25
-- **Execution status**: BLOCKED on 2026-08-05. The isolated implementation at
-  `f880889` passes typecheck, lint, and all targeted tests, but `bun run test`
-  cannot enter the app suites because the installed `react` (19.2.7) and
-  `react-dom` (19.2.8) versions differ. Resolve plan 005's manifest and
-  lockfile consistency outcome, then rerun the full gate before treating this
-  plan as DONE.
+- **Execution status**: DONE. Implemented in `f880889`, merged in `c151225`.
+  Verified on 2026-08-05 against `2095b1f`: `managerScopePersonIds` in
+  `packages/availability/src/settings/manager-scope.ts` takes an `excludeSelf`
+  option, `transitiveReportIds` refuses to walk back to the manager itself, and
+  `approval-service.ts:1346-1349` passes `excludeSelf: true`. `bun run test`
+  now enters the app suites (53 files, 175 tests) and exits 0. The earlier
+  react/react-dom mismatch is resolved by plan 047.
 
 ## Why this matters
 

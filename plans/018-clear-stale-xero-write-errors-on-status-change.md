@@ -87,34 +87,48 @@ Xero still shows the application as approved, so the local record must stay in
 the failed state until the withdraw succeeds or is reconciled. It is the only
 case where the record deliberately remains `xero_sync_failed`.
 
-Then the update payload:
+Then the update payload. **Refreshed 2026-08-05**: plan 006 split this object
+into `xeroOwned` and `locallyOwned` so that inbound sync stops overwriting
+user-owned privacy, feed and title choices. The shape below is the current code
+at lines 591-630, and it is the shape you must edit:
 
 ```typescript
-    const data = {
+    const xeroOwned = {
       all_day: normalised.allDay,
       approval_status: approvalStatusToPersist,
       archived_at: normalised.publishStatus === "archived" ? new Date() : null,
       contactability: normalised.contactability,
       derived_uid_key: normalised.derivedUidKey,
       ends_at: normalised.endsAt,
-      include_in_feed:
-        normalised.includeInFeed && person.include_in_feeds_by_default,
       person_id: normalised.personId,
-      privacy_mode: person.default_privacy_mode,
       publish_status: normalised.publishStatus,
       record_type: normalised.recordType,
       source_last_modified_at: normalised.sourceLastModifiedAt,
       source_payload_json: toPrismaJsonValue(normalised.rawPayload),
       source_remote_hash: normalised.sourceRemoteHash,
       starts_at: normalised.startsAt,
-      title: normalised.title,
       updated_at: new Date(),
     };
+    // Privacy mode, feed inclusion and title are set by the person who owns the
+    // record. Xero is not the source of truth for them, so they are seeded on
+    // create and on Xero-sourced records, but never overwritten on a record the
+    // user authored in Team Calendar.
+    const locallyOwned = {
+      include_in_feed:
+        normalised.includeInFeed && person.include_in_feeds_by_default,
+      privacy_mode: person.default_privacy_mode,
+      title: normalised.title,
+    };
+    const data = { ...xeroOwned, ...locallyOwned };
 
     const recordId = existing?.id;
     if (recordId) {
+      const updateData =
+        existing.source_type === "team_calendar_leave"
+          ? xeroOwned
+          : { ...xeroOwned, ...locallyOwned };
       await database.availabilityRecord.updateMany({
-        data,
+        data: updateData,
         where: { ...scoped(context), id: recordId },
       });
       existingRecordsBySourceRemoteId.set(normalised.sourceRemoteId, {
@@ -123,13 +137,21 @@ Then the update payload:
         id: recordId,
         source_remote_hash: normalised.sourceRemoteHash,
         source_remote_id: normalised.sourceRemoteId,
+        source_type: existing.source_type,
       });
 ```
 
 No `failed_action`, no `xero_write_error`, no `xero_write_error_raw`.
 
+**Where your change belongs**: the three error fields are Xero-owned state, not
+user-owned, so they go in `xeroOwned` and are therefore applied on **both**
+update branches. Do not add them to `locallyOwned`; a Team Calendar authored
+record that failed a Xero write must still have its error cleared when Xero
+later reports success.
+
 The existing-record lookup already selects `failed_action`, so the information
-needed to decide is in hand. Lines 463-480:
+needed to decide is in hand. It now also selects `source_type` (added by plan
+006). Lines 468-490:
 
 ```typescript
 async function loadExistingRecordsBySourceRemoteId(
@@ -148,13 +170,21 @@ async function loadExistingRecordsBySourceRemoteId(
       id: true,
       source_remote_hash: true,
       source_remote_id: true,
+      source_type: true,
     },
   });
 ```
 
 ### The reconciler is inconsistent across its four branches
 
-`packages/jobs/src/handlers/reconcile-xero-approval-state.ts` lines 371-455.
+`packages/jobs/src/handlers/reconcile-xero-approval-state.ts` lines 362-455.
+
+**Refreshed 2026-08-05**: plan 007 added optimistic concurrency to this handler.
+`transitionRecord` now returns a `boolean` indicating whether the transition
+actually applied, and every branch reads
+`return transitioned ? "<outcome>" : "matched";`. The `data` objects quoted
+below are otherwise unchanged, and they remain exactly where your edit belongs.
+Preserve the `transitioned` return shape.
 
 Branch 1, approved. **Correct** — clears all three:
 

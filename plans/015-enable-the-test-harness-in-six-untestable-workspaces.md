@@ -18,6 +18,14 @@
 - **Depends on**: none
 - **Category**: tests, dx
 - **Planned at**: commit `75202db`, 2026-07-25
+- **Reconciled**: 2026-08-05 against `2095b1f`. Finding confirmed still present.
+  These workspaces still declare no `test` script: `packages/analytics`,
+  `packages/auth`, `packages/design-system`, `packages/email`,
+  `packages/next-config`, `packages/observability`, `packages/seo`,
+  `packages/typescript-config`, `apps/docs`, `apps/email` and `apps/web`. Only
+  the manifests' dependency versions have moved since this plan was written
+  (plan 047), plus a small change to `packages/auth/keys.ts`. The plan's own
+  target list is unchanged.
 
 ## Why this matters
 

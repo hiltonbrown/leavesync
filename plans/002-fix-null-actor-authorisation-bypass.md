@@ -19,6 +19,13 @@
 - **Depends on**: none
 - **Category**: security
 - **Planned at**: commit `75202db`, 2026-07-25
+- **Execution status**: DONE. Implemented in `4b84e49`, merged in `b14e7c0`.
+  Verified on 2026-08-05 against `2095b1f`: `canActOnPerson` in
+  `packages/availability/src/plans/plan-service.ts:1215-1220` now requires
+  `Boolean(actingPersonId)` before matching `manager_person_id`, and
+  `packages/availability/src/plans/plan-service.test.ts` carries the regression
+  cases. The earlier BLOCKED note was a dependency-baseline problem, not a
+  problem with this change; see plan 047.
 
 ## Why this matters
 

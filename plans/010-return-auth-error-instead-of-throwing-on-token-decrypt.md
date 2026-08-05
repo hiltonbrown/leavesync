@@ -19,6 +19,11 @@
 - **Depends on**: none
 - **Category**: bug
 - **Planned at**: commit `75202db`, 2026-07-25
+- **Reconciled**: 2026-08-05 against `2095b1f`. Finding confirmed still present:
+  `packages/xero/src/crypto/tokens.ts` still throws at lines 42 and 65.
+  `packages/xero/src/au/read.ts` has changed since this plan was written (plan
+  003 added pagination completeness handling and observability logging), so
+  re-read that file before editing it; `tokens.ts` itself is unchanged.
 
 ## Why this matters
 

@@ -19,6 +19,14 @@
 - **Depends on**: none
 - **Category**: security
 - **Planned at**: commit `75202db`, 2026-07-25
+- **Reconciled**: 2026-08-05 against `2095b1f`. Finding confirmed still present.
+  `apps/app/app/(authenticated)/feeds/_actions.ts:158-163` still queries
+  `database.feed.findFirst` with `organisation_id` only and no `clerk_org_id`.
+  Neither server-action file has changed since this plan was written.
+  `packages/database/src/tenant-query.ts` has gained 21 lines from plan 021's
+  shared helper, so use that helper rather than writing the two-key filter by
+  hand; see its exported `scopedQuery`/`scopedTo` usage in
+  `packages/availability/src/settings/manager-scope.ts`.
 
 ## A note on scope, read this first
 

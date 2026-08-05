@@ -19,6 +19,13 @@
 - **Depends on**: none
 - **Category**: correctness
 - **Planned at**: commit `75202db`, 2026-07-25
+- **Reconciled**: 2026-08-05 against `2095b1f`. Finding confirmed still present:
+  `packages/availability/src/plans/submit-service.ts` has no idempotency key and
+  no unique constraint guarding a concurrent second submit. The file changed
+  slightly since this plan was written (an 11-line diff in the notification
+  path), so re-read it before editing.
+  `packages/xero/src/au/write.ts`, `packages/xero/src/rate-limit/xero-fetch.ts`
+  and `packages/database/prisma/schema.prisma` are unchanged.
 
 ## Why this matters
 

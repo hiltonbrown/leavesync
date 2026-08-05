@@ -21,12 +21,16 @@
 - **Planned at**: commit `7821f3a`, 2026-08-05 (refreshed after the shared
   tenant-scoping helper replaced the local helper, and after confirming the
   handler interface must explicitly carry the already-loaded sequence)
-- **Execution status**: BLOCKED on 2026-08-05. Isolated implementation passes
-  typecheck and the four focused regression tests, but the required root unit
-  test gate fails before app tests load because installed `react` and
-  `react-dom` patch versions differ. The root lint gate also reports pre-existing
-  diagnostics outside this plan's scope. Resolve the verification baseline and
-  rerun the full gate before accepting the change.
+- **Execution status**: DONE. Implemented in `ef0bdab`, merged in `6f181ff`.
+  Verified on 2026-08-05 against `2095b1f`:
+  `packages/jobs/src/handlers/reconcile-xero-approval-state.ts` defines
+  `OptimisticConflictError`, `transitionRecord` returns a boolean indicating
+  whether the transition applied, and all four branches of `reconcileRecord`
+  map a lost race to `"matched"` rather than overwriting. A new 194-line
+  regression suite landed in `reconcile-xero-approval-state.test.ts`, and the
+  jobs workspace passes 9 files / 40 tests. Both blockers named in the old note
+  were environmental, not defects in this change: the react/react-dom mismatch is
+  resolved by plan 047, and the repo-wide lint backlog is owned by plan 048.
 
 ## Why this matters
 
