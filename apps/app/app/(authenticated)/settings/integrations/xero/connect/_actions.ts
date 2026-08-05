@@ -54,6 +54,7 @@ export async function completeTenantSelectionAction(input: {
     organisationId: parsed.data.organisationId ?? null,
     sessionId: parsed.data.sessionId,
     tenantId: parsed.data.tenantId,
+    userId: user.id,
   });
   if (!result.ok) {
     return {

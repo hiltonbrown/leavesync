@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createHmac, hkdfSync, timingSafeEqual } from "node:crypto";
+import { createHmac, hkdfSync, randomBytes, timingSafeEqual } from "node:crypto";
 import { ensureDefaultPublicHolidaysForOrganisation } from "@repo/availability";
 import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
 import { database } from "@repo/database";
@@ -24,9 +24,12 @@ const XERO_SCOPES = [
   "payroll.settings",
   "payroll.settings.read",
 ].join(" ");
+const STATE_MAX_AGE_MS = 10 * 60 * 1000;
 
 interface OAuthStatePayload {
   clerkOrgId: string;
+  issuedAt: number;
+  nonce: string;
   organisationId: null | string;
   returnTo: string;
   userId: null | string;
@@ -83,7 +86,7 @@ export function buildXeroOAuthStartUrl(input: {
   organisationId?: null | string;
   returnTo?: string;
   userId?: null | string;
-}): Result<{ redirectUrl: string }, XeroOAuthError> {
+}): Result<{ nonce: string; redirectUrl: string }, XeroOAuthError> {
   if (isPreviewDeployment()) {
     return xeroConnectDisabled();
   }
@@ -99,11 +102,14 @@ export function buildXeroOAuthStartUrl(input: {
   url.searchParams.set("redirect_uri", callbackUrl());
   url.searchParams.set("response_type", "code");
   url.searchParams.set("scope", XERO_SCOPES);
+  const nonce = randomBytes(32).toString("base64url");
   url.searchParams.set(
     "state",
     signState(
       {
         clerkOrgId: input.clerkOrgId,
+        issuedAt: Date.now(),
+        nonce,
         organisationId: input.organisationId ?? null,
         returnTo: input.returnTo ?? "/settings/integrations/xero",
         userId: input.userId ?? null,
@@ -112,16 +118,24 @@ export function buildXeroOAuthStartUrl(input: {
     )
   );
 
-  return { ok: true, value: { redirectUrl: url.toString() } };
+  return { ok: true, value: { nonce, redirectUrl: url.toString() } };
 }
 
 export async function completeXeroOAuth(input: {
   code: string;
+  nonce: null | string;
   state: string;
 }): Promise<Result<{ redirectTo: string; sessionId: string }, XeroOAuthError>> {
   const state = verifyState(input.state);
   if (!state.ok) {
     return state;
+  }
+  const nonceMatches =
+    input.nonce !== null &&
+    state.value.nonce.length === input.nonce.length &&
+    timingSafeEqual(Buffer.from(state.value.nonce), Buffer.from(input.nonce));
+  if (!nonceMatches) {
+    return invalidState();
   }
 
   const orgKey = orgRateLimitKey({
@@ -187,6 +201,7 @@ export async function completeXeroOAuth(input: {
 export async function getPendingXeroOAuthSession(input: {
   clerkOrgId: string;
   sessionId: string;
+  userId: string;
 }): Promise<
   Result<
     {
@@ -241,6 +256,7 @@ export async function completeXeroTenantSelection(input: {
   organisationId?: null | string;
   sessionId: string;
   tenantId: string;
+  userId: string;
 }): Promise<
   Result<
     {
@@ -255,6 +271,7 @@ export async function completeXeroTenantSelection(input: {
   const sessionResult = await loadPendingSession({
     clerkOrgId: input.clerkOrgId,
     sessionId: input.sessionId,
+    userId: input.userId,
   });
   if (!sessionResult.ok) {
     return sessionResult;
@@ -1151,6 +1168,7 @@ async function inferPayrollRegionForTenant(input: {
 async function loadPendingSession(input: {
   clerkOrgId: string;
   sessionId: string;
+  userId: string;
 }): Promise<
   Result<
     {
@@ -1173,6 +1191,7 @@ async function loadPendingSession(input: {
   const session = await database.xeroOAuthSession.findFirst({
     where: {
       clerk_org_id: input.clerkOrgId,
+      created_by_user_id: input.userId,
       expires_at: { gt: new Date() },
       id: input.sessionId,
       status: "pending",
@@ -1508,7 +1527,10 @@ function verifyState(value: string): Result<OAuthStatePayload, XeroOAuthError> {
     ) as Partial<OAuthStatePayload>;
     if (
       typeof payload.clerkOrgId !== "string" ||
-      typeof payload.returnTo !== "string"
+      typeof payload.returnTo !== "string" ||
+      typeof payload.nonce !== "string" ||
+      typeof payload.issuedAt !== "number" ||
+      Date.now() - payload.issuedAt > STATE_MAX_AGE_MS
     ) {
       return invalidState();
     }
@@ -1516,6 +1538,8 @@ function verifyState(value: string): Result<OAuthStatePayload, XeroOAuthError> {
       ok: true,
       value: {
         clerkOrgId: payload.clerkOrgId,
+        issuedAt: payload.issuedAt,
+        nonce: payload.nonce,
         organisationId:
           typeof payload.organisationId === "string"
             ? payload.organisationId

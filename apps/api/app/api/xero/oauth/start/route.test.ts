@@ -87,6 +87,7 @@ describe("Xero OAuth start route", () => {
     mocks.buildXeroOAuthStartUrl.mockReturnValue({
       ok: true,
       value: {
+        nonce: "nonce_123",
         redirectUrl:
           "https://login.xero.com/identity/connect/authorize?foo=bar",
       },
@@ -102,6 +103,9 @@ describe("Xero OAuth start route", () => {
     expect(response.headers.get("location")).toBe(
       "https://login.xero.com/identity/connect/authorize?foo=bar"
     );
+    expect(response.headers.get("set-cookie")).toContain("xero_oauth_nonce=");
+    expect(response.headers.get("set-cookie")).toContain("HttpOnly");
+    expect(response.headers.get("set-cookie")).toContain("Max-Age=600");
     expect(mocks.buildXeroOAuthStartUrl).toHaveBeenCalledWith({
       clerkOrgId: "org_clerk_123",
       organisationId: null,
