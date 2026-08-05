@@ -20,14 +20,15 @@ export default async function XeroConnectPage({
 }: XeroConnectPageProps) {
   await requirePageRole("org:admin");
 
-  const [{ orgId }, { session }] = await Promise.all([auth(), searchParams]);
-  if (!(orgId && session)) {
+  const [{ orgId, userId }, { session }] = await Promise.all([auth(), searchParams]);
+  if (!(orgId && session && userId)) {
     notFound();
   }
 
   const pending = await getPendingXeroOAuthSession({
     clerkOrgId: orgId,
     sessionId: session,
+    userId,
   });
   if (!pending.ok) {
     notFound();

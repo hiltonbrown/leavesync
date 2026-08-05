@@ -68,6 +68,9 @@ describe("completeTenantSelectionAction", () => {
 
     expect(result.ok).toBe(true);
     expect(mocks.dispatchManualSync).toHaveBeenCalledTimes(1);
+    expect(mocks.completeXeroTenantSelection).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: "user_1" })
+    );
     expect(mocks.dispatchManualSync).toHaveBeenCalledWith(
       expect.objectContaining({
         actingRole: "admin",

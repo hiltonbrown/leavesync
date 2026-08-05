@@ -166,6 +166,7 @@ describe("buildXeroOAuthStartUrl", () => {
     try {
       const result = await completeXeroOAuth({
         code: "authorisation-code",
+        nonce: start.value.nonce,
         state: state ?? "",
       });
 
@@ -229,6 +230,7 @@ describe("completeXeroOAuth", () => {
 
     const result = await completeXeroOAuth({
       code: "authorisation-code",
+      nonce: start.value.nonce,
       state: state ?? "",
     });
 
@@ -251,6 +253,89 @@ describe("completeXeroOAuth", () => {
         }),
       })
     );
+  });
+
+  it("rejects a missing nonce before exchanging the authorisation code", async () => {
+    const start = buildXeroOAuthStartUrl({ clerkOrgId: "org_1" });
+    expect(start.ok).toBe(true);
+    if (!start.ok) return;
+
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    const result = await completeXeroOAuth({
+      code: "authorisation-code",
+      nonce: null,
+      state: new URL(start.value.redirectUrl).searchParams.get("state") ?? "",
+    });
+
+    expect(result).toMatchObject({ ok: false, error: { code: "invalid_state" } });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("rejects a mismatched nonce before exchanging the authorisation code", async () => {
+    const start = buildXeroOAuthStartUrl({ clerkOrgId: "org_1" });
+    expect(start.ok).toBe(true);
+    if (!start.ok) return;
+
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    const result = await completeXeroOAuth({
+      code: "authorisation-code",
+      nonce: "mismatched-nonce",
+      state: new URL(start.value.redirectUrl).searchParams.get("state") ?? "",
+    });
+
+    expect(result).toMatchObject({ ok: false, error: { code: "invalid_state" } });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe("Xero OAuth state", () => {
+  it("mints distinct states for identical inputs", () => {
+    const first = buildXeroOAuthStartUrl({ clerkOrgId: "org_1" });
+    const second = buildXeroOAuthStartUrl({ clerkOrgId: "org_1" });
+    expect(first.ok && second.ok).toBe(true);
+    if (!(first.ok && second.ok)) return;
+
+    expect(first.value.nonce).not.toBe(second.value.nonce);
+    expect(new URL(first.value.redirectUrl).searchParams.get("state")).not.toBe(
+      new URL(second.value.redirectUrl).searchParams.get("state")
+    );
+  });
+
+  it("rejects an eleven-minute-old state before exchanging the authorisation code", async () => {
+    const nowSpy = vi.spyOn(Date, "now");
+    nowSpy.mockReturnValueOnce(1_000_000).mockReturnValue(1_660_000);
+    const start = buildXeroOAuthStartUrl({ clerkOrgId: "org_1" });
+    expect(start.ok).toBe(true);
+    if (!start.ok) return;
+
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    const result = await completeXeroOAuth({
+      code: "authorisation-code",
+      nonce: start.value.nonce,
+      state: new URL(start.value.redirectUrl).searchParams.get("state") ?? "",
+    });
+
+    expect(result).toMatchObject({ ok: false, error: { code: "invalid_state" } });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("rejects a tampered state", async () => {
+    const start = buildXeroOAuthStartUrl({ clerkOrgId: "org_1" });
+    expect(start.ok).toBe(true);
+    if (!start.ok) return;
+
+    const state = new URL(start.value.redirectUrl).searchParams.get("state") ?? "";
+    const [encoded, signature] = state.split(".");
+    const result = await completeXeroOAuth({
+      code: "authorisation-code",
+      nonce: start.value.nonce,
+      state: `${encoded.slice(0, -1)}x.${signature}`,
+    });
+
+    expect(result).toMatchObject({ ok: false, error: { code: "invalid_state" } });
   });
 });
 
@@ -1125,6 +1210,7 @@ describe("completeXeroTenantSelection", () => {
       clerkOrgId,
       sessionId,
       tenantId,
+      userId: "user_1",
     });
 
     expect(result).toMatchObject({
@@ -1185,6 +1271,7 @@ describe("completeXeroTenantSelection", () => {
       clerkOrgId,
       sessionId,
       tenantId,
+      userId: "user_1",
     });
 
     expect(result).toEqual({
@@ -1215,6 +1302,7 @@ describe("completeXeroTenantSelection", () => {
       clerkOrgId,
       sessionId,
       tenantId,
+      userId: "user_1",
     });
 
     expect(result).toMatchObject({
@@ -1244,6 +1332,7 @@ describe("completeXeroTenantSelection", () => {
       clerkOrgId,
       sessionId,
       tenantId,
+      userId: "user_1",
     });
 
     expect(result).toMatchObject({
