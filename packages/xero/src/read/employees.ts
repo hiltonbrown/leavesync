@@ -32,12 +32,21 @@ export const XeroEmployeesResponseSchema = z
   })
   .passthrough();
 
+export type MapXeroEmployeesResult =
+  | { ok: true; employees: XeroEmployee[] }
+  | { ok: false };
+
 export function mapXeroEmployees(payload: unknown): XeroEmployee[] {
+  const result = tryMapXeroEmployees(payload);
+  return result.ok ? result.employees : [];
+}
+
+export function tryMapXeroEmployees(payload: unknown): MapXeroEmployeesResult {
   const parsed = XeroEmployeesResponseSchema.safeParse(payload);
   if (!parsed.success) {
-    return [];
+    return { ok: false };
   }
-  return parsed.data.Employees.map((e) => ({
+  const employees = parsed.data.Employees.map((e) => ({
     employeeId: e.EmployeeID ?? e.EmployeeId ?? "",
     firstName: e.FirstName ?? "",
     lastName: e.LastName ?? "",
@@ -63,4 +72,6 @@ export function mapXeroEmployees(payload: unknown): XeroEmployee[] {
         : null,
     rawPayload: e,
   }));
+
+  return { ok: true, employees };
 }
