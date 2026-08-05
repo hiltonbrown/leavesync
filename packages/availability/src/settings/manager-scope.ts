@@ -6,6 +6,7 @@ import { getSettings } from "./organisation-settings-service";
 export async function managerScopePersonIds(input: {
   actingPersonId: string;
   clerkOrgId: string;
+  excludeSelf?: boolean;
   organisationId: string;
 }): Promise<string[]> {
   const [settingsResult, people] = await Promise.all([
@@ -25,22 +26,25 @@ export async function managerScopePersonIds(input: {
   ]);
 
   if (!settingsResult.ok) {
-    return [input.actingPersonId];
+    return input.excludeSelf ? [] : [input.actingPersonId];
   }
 
-  if (settingsResult.value.managerVisibilityScope === "all_team_leave") {
-    return [
-      input.actingPersonId,
-      ...transitiveReportIds(people, input.actingPersonId),
-    ];
-  }
+  const personIds =
+    settingsResult.value.managerVisibilityScope === "all_team_leave"
+      ? [
+          input.actingPersonId,
+          ...transitiveReportIds(people, input.actingPersonId),
+        ]
+      : [
+          input.actingPersonId,
+          ...people
+            .filter((person) => person.manager_person_id === input.actingPersonId)
+            .map((person) => person.id),
+        ];
 
-  return [
-    input.actingPersonId,
-    ...people
-      .filter((person) => person.manager_person_id === input.actingPersonId)
-      .map((person) => person.id),
-  ];
+  return input.excludeSelf
+    ? personIds.filter((personId) => personId !== input.actingPersonId)
+    : personIds;
 }
 
 function transitiveReportIds(
