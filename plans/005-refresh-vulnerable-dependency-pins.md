@@ -6,8 +6,8 @@
 > report, do not improvise. When done, update this plan's status row in
 > `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 75202db..HEAD -- package.json bun.lock`
-> If either changed since this plan was written, re-run `bun audit` and compare
+> **Drift check (run first)**: `git diff --stat 7821f3a..HEAD -- package.json bun.lock apps/*/package.json packages/*/package.json`
+> If any manifest or the lockfile changed since this plan was written, re-run `bun audit` and compare
 > against the "Current state" figures before proceeding.
 
 ## Status
@@ -17,7 +17,13 @@
 - **Risk**: LOW
 - **Depends on**: none
 - **Category**: security
-- **Planned at**: commit `75202db`, 2026-07-25
+- **Planned at**: commit `7821f3a`, 2026-08-05 (refreshed after dependency drift)
+- **Execution status**: BLOCKED on 2026-08-05. The isolated update clears the
+  `next`, `hono` and `fast-uri` audit entries, but `bun audit` still reports a
+  high-severity `sharp` advisory through `workspace:api > next`. The shared Next
+  config enables production image optimisation, so this meets the plan's
+  runtime-reachable-advisory STOP condition. Create and complete a narrowly
+  scoped sharp/Next remediation plan, then rerun this plan's full gate.
 
 ## Why this matters
 
@@ -29,8 +35,9 @@ versions that are themselves inside published advisory ranges, and because they
 are overrides they actively hold the whole monorepo at those versions even
 though patched releases exist.
 
-The most significant is `next`, pinned at `16.2.10`. The advisory range is
-`>=16.0.0 <16.2.11`, so the pin sits one patch below the fix. That range carries
+The most significant is `next`, which resolves to `16.2.10` from the stale root
+override even though every direct workspace declaration has moved to `16.2.12`.
+The advisory range is `>=16.0.0 <16.2.11`, so the override sits below the fix. That range carries
 four high-severity advisories relevant to this codebase:
 
 - Middleware / Proxy bypass in App Router applications. `apps/app/proxy.ts` is
@@ -63,18 +70,18 @@ Server Function endpoints.
   },
 ```
 
-### The three stale pins, verified against `bun audit` on 2026-07-25
+### The three stale pins, verified against `bun audit` on 2026-08-05
 
 | Package | Pinned | Advisory range | Fixed at | Latest published |
 |---|---|---|---|---|
-| `next` | `16.2.10` | `>=16.0.0 <16.2.11` | `16.2.11` | `16.2.11` |
-| `hono` | `4.12.25` | `>=4.3.3 <4.12.27` | `4.12.27` | `4.12.32` |
-| `fast-uri` | `3.1.2` | `>=3.0.0 <=3.1.3` | `3.1.4` | `4.1.1` |
+| `next` | `16.2.10` (resolved) | `>=16.0.0 <16.2.11` | `16.2.11` | direct workspaces use `16.2.12` |
+| `hono` | `4.12.25` | `<4.12.34` | `4.12.34` | `4.12.34` |
+| `fast-uri` | `3.1.2` | `>=3.0.0 <3.1.5` | `3.1.5` | `3.1.5` |
 
 The other five pins (`@grpc/grpc-js`, `parse5`, `protobufjs`, `vite`, `ws`) do
 not appear in the current `bun audit` output and need no change.
 
-`next` is also declared directly in five workspace manifests. Confirm with:
+`next` is also declared directly in seven workspace manifests. Confirm with:
 
 ```
 grep -rn '"next":' apps/*/package.json packages/*/package.json
@@ -86,8 +93,9 @@ through `overrides` rather than direct dependencies.
 
 ### Baseline audit figures
 
-At commit `75202db`, `bun audit` reports **26 vulnerabilities (11 high, 13
-moderate, 2 low)**. Record the exact output before you change anything so you
+At commit `7821f3a`, `bun audit` reports **43 vulnerabilities (18 high, 23
+moderate, 2 low)**. This includes four high `next` advisories and three high
+`fast-uri` advisories. Record the exact output before you change anything so you
 can show the delta afterwards.
 
 ### Repo conventions that apply here
@@ -135,9 +143,9 @@ can show the delta afterwards.
   three pins deliberately; a blanket update is a different, much riskier change.
 - Any application or package source file. If a version bump requires a code
   change, that is a STOP condition, not something to fix inline.
-- The remaining advisories (`js-yaml`, `dompurify`, `postcss`, `brace-expansion`,
-  `esbuild`, `valibot`, `@hono/node-server`). Step 5 documents them; it does not
-  fix them.
+- The remaining advisories (`@hono/node-server`, `brace-expansion`, `dompurify`,
+  `esbuild`, `js-yaml`, `postcss`, `sharp`, `socket.io-parser`, `undici`, `uuid`
+  and `valibot`). Step 5 documents them; it does not fix them.
 
 ## Git workflow
 
@@ -157,7 +165,7 @@ bun audit > /tmp/audit-before.txt 2>&1; tail -5 /tmp/audit-before.txt
 ```
 
 **Verify**: the last lines report a vulnerability count. At the planned commit
-that was `26 vulnerabilities (11 high, 13 moderate, 2 low)`. If your baseline
+that was `43 vulnerabilities (18 high, 23 moderate, 2 low)`. If your baseline
 differs substantially, note the actual figure and carry on; the delta is what
 matters, not the absolute number.
 
@@ -166,14 +174,14 @@ matters, not the absolute number.
 In the root `package.json`, change exactly three values inside `overrides`:
 
 ```json
-    "fast-uri": "3.1.4",
-    "hono": "4.12.27",
-    "next": "16.2.11",
+    "fast-uri": "3.1.5",
+    "hono": "4.12.34",
+    "next": "16.2.12",
 ```
 
 Use these exact versions. Do not use `^` ranges here: every existing entry in
 this block is an exact pin, and the block's purpose is to force a specific
-resolution. Do not bump `fast-uri` to `4.x` — `3.1.4` is the patch release that
+resolution. Do not bump `fast-uri` to `4.x` — `3.1.5` is the patch release that
 exits the advisory range, and a major bump is a different decision.
 
 **Verify**: `git diff package.json` shows exactly three changed lines.
@@ -186,12 +194,12 @@ Find every workspace that declares `next` directly:
 grep -rn '"next":' apps/*/package.json packages/*/package.json
 ```
 
-Change each to `"16.2.11"`, preserving whatever prefix style that manifest
-already uses (if it reads `"next": "16.2.10"`, write `"next": "16.2.11"`; if it
-reads `"^16.2.10"`, write `"^16.2.11"`).
+All seven direct declarations currently use `"16.2.12"`; do not modify them
+unless a fresh worktree differs. If one does differ, align it to `"16.2.12"`,
+preserving its existing prefix style.
 
-**Verify**: `grep -rn '"next": "\^\?16\.2\.10"' apps packages --include=package.json`
-returns no matches.
+**Verify**: `grep -rn '"next": "\^\?16\.2\.1[01]"' apps packages --include=package.json`
+returns no matches, and every direct declaration reports `16.2.12`.
 
 ### Step 3: Regenerate the lockfile
 
@@ -217,8 +225,8 @@ diff /tmp/audit-before.txt /tmp/audit-after.txt
 ```
 
 **Verify**: the `next`, `hono` and `fast-uri` sections are gone from the audit
-output, and the high-severity count has dropped by at least 5 (four `next` highs
-plus one `fast-uri` high). `hono`'s three entries were moderate.
+output, and the high-severity count has dropped by at least 7 (four `next` highs
+plus three `fast-uri` highs). `hono` currently contributes four moderate entries.
 
 Then run the full gate, in this order:
 
@@ -309,7 +317,7 @@ Stop and report back (do not improvise) if:
 - If a future Next bump requires source changes, do it as its own plan rather
   than widening this one; separating "move the pin" from "adapt to the new
   version" keeps the rollback story clean.
-- Deliberately deferred: `fast-uri` 4.x. This plan takes the `3.1.4` patch to
+- Deliberately deferred: `fast-uri` 4.x. This plan takes the `3.1.5` patch to
   exit the advisory range with minimum blast radius. Moving to 4.x is a major
   bump across `prisma`, `react-email` and `@sentry/nextjs` and deserves its own
   evaluation.

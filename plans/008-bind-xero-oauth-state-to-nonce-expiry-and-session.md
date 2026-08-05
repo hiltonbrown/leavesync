@@ -6,7 +6,7 @@
 > report, do not improvise. When done, update this plan's status row in
 > `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 75202db..HEAD -- packages/xero/src/oauth/service.ts apps/api/app/api/xero/oauth/start/route.ts apps/api/app/api/xero/oauth/callback/route.ts`
+> **Drift check (run first)**: `git diff --stat 7821f3a..HEAD -- packages/xero/src/oauth/service.ts apps/api/app/api/xero/oauth/start/route.ts apps/api/app/api/xero/oauth/callback/route.ts 'apps/app/app/(authenticated)/settings/integrations/xero/connect/page.tsx' 'apps/app/app/(authenticated)/settings/integrations/xero/connect/_actions.ts'`
 > If any changed since this plan was written, compare the "Current state"
 > excerpts against the live code before proceeding. On a mismatch, treat it as a
 > STOP condition.
@@ -18,7 +18,14 @@
 - **Risk**: MED
 - **Depends on**: none
 - **Category**: security
-- **Planned at**: commit `75202db`, 2026-07-25
+- **Planned at**: commit `7821f3a`, 2026-08-05
+- **Execution status**: BLOCKED on 2026-08-05. The isolated retry passes
+  typecheck, lint and 55 focused OAuth and confirmation-flow tests, but the
+  required direct API test command fails in two unrelated support suites and
+  the root unit-test gate fails before app tests load because installed `react`
+  and `react-dom` patch versions differ. The retry also exposed that the
+  required nonce-mismatch warning needs the undeclared observability workspace
+  dependency; scope and steps now include that manifest and lockfile change.
 
 ## Why this matters
 
@@ -53,6 +60,10 @@ leaked value is not a durable capability.
 - `apps/api/app/api/xero/oauth/start/route.ts` — the authenticated entry point.
 - `apps/api/app/api/xero/oauth/callback/route.ts` — the unauthenticated
   callback.
+- `apps/app/app/(authenticated)/settings/integrations/xero/connect/page.tsx` —
+  the authenticated pending-session reader.
+- `apps/app/app/(authenticated)/settings/integrations/xero/connect/_actions.ts`
+  — the authenticated tenant-selection writer.
 
 ### The state payload has no nonce and no timestamp
 
@@ -218,10 +229,15 @@ with an error mentioning `Cannot find module '@repo/observability/log'`, run
 
 - `packages/xero/src/oauth/service.ts`
 - `packages/xero/src/oauth/service.test.ts` (create if absent)
+- `packages/xero/package.json`
+- `bun.lock`
 - `apps/api/app/api/xero/oauth/start/route.ts`
 - `apps/api/app/api/xero/oauth/start/route.test.ts`
 - `apps/api/app/api/xero/oauth/callback/route.ts`
 - `apps/api/app/api/xero/oauth/callback/route.test.ts` (create)
+- `apps/app/app/(authenticated)/settings/integrations/xero/connect/page.tsx`
+- `apps/app/app/(authenticated)/settings/integrations/xero/connect/_actions.ts`
+- `apps/app/app/(authenticated)/settings/integrations/xero/connect/_actions.test.ts`
 - `packages/xero/index.ts` — only if a new export is genuinely required
 
 **Out of scope** (do NOT touch, even though they look related):
@@ -234,8 +250,10 @@ with an error mentioning `Cannot find module '@repo/observability/log'`, run
 - Any database migration. This plan deliberately achieves single-use through a
   browser-bound cookie rather than a new replay-store table, because a schema
   change here is a larger and riskier unit of work. See "Maintenance notes".
-- `apps/app/app/(authenticated)/settings/integrations/xero/connect/*` — the
-  confirmation screen. Its `returnTo` handling is already safe.
+- `apps/app/app/(authenticated)/settings/integrations/xero/connect/connect-client.tsx`
+  and any other confirmation-flow UI files. The page, action and action test
+  explicitly named above are the only permitted exceptions; its `returnTo`
+  handling is already safe and must not change.
 
 ## Git workflow
 
@@ -408,20 +426,40 @@ Log the rejection at `warn` with `clerkOrgId` from the state, so a genuine
 attack or a misconfigured deployment is visible. Do not log the nonce or the
 state value.
 
+`packages/xero/package.json` does not currently declare the logger package.
+Before importing it, add `"@repo/observability": "*"` to its `dependencies`
+next to the other workspace packages, then run `bun install` so `bun.lock`
+records the workspace edge. Import `log` from `@repo/observability/log` and
+match the existing service call shape, for example
+`log.warn("Rejected Xero OAuth callback with mismatched nonce", { clerkOrgId })`.
+The log data must contain only `clerkOrgId`; never include the state, nonce,
+authorisation code or tokens.
+
 **Verify**: `bun run typecheck` → exit 0.
 
 ### Step 7: Scope pending sessions to their creator
 
 In `loadPendingSession` (line 1173), add `created_by_user_id` to the `where`
-clause, taking the acting user id from the caller. Trace the callers first:
+clause, taking a required acting user id from the caller. Add the required
+`userId` input to both public callers, then thread it through to
+`loadPendingSession`:
+
+- In `connect/page.tsx`, destructure `userId` from the existing `auth()`
+  result, require it alongside `orgId` and `session`, and pass it to
+  `getPendingXeroOAuthSession`.
+- In `connect/_actions.ts`, pass the already-resolved `user.id` to
+  `completeXeroTenantSelection`.
+
+The page remains protected by `requirePageRole("org:admin")`; do not weaken
+that guard. The new `userId` inputs must not be optional. Trace the callers
+before editing:
 
 ```
 grep -n "loadPendingSession" packages/xero/src/oauth/service.ts
 ```
 
-If a caller does not currently have the acting user id available, thread it
-through from the route rather than making the filter optional. A filter that can
-be skipped is not a filter.
+If a caller does not currently have the acting user id available, STOP rather
+than making the filter optional. A filter that can be skipped is not a filter.
 
 If a pending session exists but belongs to another user, return the existing
 not-found error rather than a distinct one, so the response does not
@@ -449,6 +487,9 @@ In `apps/api/app/api/xero/oauth/callback/route.test.ts` (create), cover:
    and does NOT call the token exchange.
 8. A callback with a matching nonce proceeds and redirects.
 9. The preview-deployment gate still returns 403 before anything else runs.
+
+Update `connect/_actions.test.ts` to assert that the call to
+`completeXeroTenantSelection` includes the authenticated `user.id`.
 
 Update `apps/api/app/api/xero/oauth/start/route.test.ts` for the cookie on the
 redirect response.
@@ -484,6 +525,10 @@ Machine-checkable. ALL must hold:
       returns matches in both files
 - [ ] `grep -n "created_by_user_id" packages/xero/src/oauth/service.ts` returns
       a match inside `loadPendingSession`
+- [ ] `rg -n '"@repo/observability": "\*"' packages/xero/package.json`
+      confirms the Xero package declares its logger dependency
+- [ ] `rg -n "userId" 'apps/app/app/(authenticated)/settings/integrations/xero/connect/page.tsx' 'apps/app/app/(authenticated)/settings/integrations/xero/connect/_actions.ts'`
+      shows each caller passes an acting user id to the Xero package
 - [ ] `bunx vitest run packages/xero apps/api` passes with at least 9 new cases
 - [ ] `git status --short` shows only in-scope files modified
 - [ ] Status row for plan 008 updated in `plans/README.md`

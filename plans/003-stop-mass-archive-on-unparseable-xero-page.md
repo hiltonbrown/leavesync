@@ -221,8 +221,10 @@ Do not change this function. It is correct given a trustworthy `complete` flag.
 | Lint | `bun run check` | exit 0 |
 
 If `bun run typecheck` or `bun run test` fails before you have made any change
-with an error mentioning `Cannot find module '@repo/observability/log'`, run
-`bun install` first. That error is a stale-install artifact, not a code defect.
+with an error mentioning `Cannot find module '@repo/observability/log'`, check
+that `packages/xero/package.json` declares `"@repo/observability": "*"` and
+run `bun install`. A stale install can cause this error, but an undeclared
+workspace dependency must be fixed in the manifest rather than bypassed.
 
 ## Scope
 
@@ -234,6 +236,8 @@ with an error mentioning `Cannot find module '@repo/observability/log'`, run
 - `packages/xero/src/au/read.test.ts`
 - `packages/xero/src/read/leave-records.test.ts` (create if absent)
 - `packages/jobs/src/handlers/sync-xero-leave-records.test.ts`
+- `packages/xero/package.json`
+- `bun.lock`
 
 **Out of scope** (do NOT touch, even though they look related):
 
@@ -309,6 +313,14 @@ reduce `mapXeroEmployees` to a wrapper returning `[]` on failure.
 
 In `packages/xero/src/au/read.ts`, in the leave-records pagination loop
 (currently lines 138-190):
+
+Before importing the structured logger, add `"@repo/observability": "*"` to
+`packages/xero/package.json` alongside the other `@repo/*` runtime
+dependencies, then run `bun install` to update `bun.lock`. `@repo/xero` does
+not currently declare this workspace dependency, so importing
+`@repo/observability/log` without this manifest change fails the package
+typecheck. Keep both manifest files within this plan's scope; do not accept an
+unrelated lockfile rewrite.
 
 1. Replace `const leaveRecordPage = mapXeroLeaveRecords(rawPayload);` with a call
    to `tryMapXeroLeaveRecords`.
@@ -388,18 +400,16 @@ mocking pattern already in that file, add:
 
 ### Step 7: Test that the sync handler does not archive on an incomplete fetch
 
-In `packages/jobs/src/handlers/sync-xero-leave-records.test.ts`, following the
-existing mocking pattern in that file, add a test where
-`fetchLeaveRecordsForRegion` is mocked to resolve
+In `packages/jobs/src/handlers/sync-xero-leave-records.test.ts`, the current
+suite already has both required directions: its `"skips stale archival when the
+Xero leave fetch is truncated"` test verifies an incomplete result does not
+issue the archive-shaped `findMany` query, and `"uses a notIn query for stale
+archival when Xero returns records"` verifies the complete path. Keep those
+assertions passing. Strengthen either test only if the changed behaviour makes
+its intent unclear; do not add duplicate tests merely to satisfy a count.
+
+The incomplete fixture shape is:
 `{ ok: true, value: { complete: false, leaveRecords: [...], rawResponse: {} } }`.
-
-Assert that the archive query is never issued: the mocked
-`availabilityRecord.findMany` call used by `archiveStaleRecords` must not be
-called with `source_type: "xero_leave"` and a `source_remote_id: { notIn: ... }`
-clause, and the run's `archived` count must be `0`.
-
-Add the mirror test with `complete: true` asserting archiving does run, so the
-pair pins both directions.
 
 **Verify**: `bunx vitest run packages/jobs` → all pass.
 
@@ -430,8 +440,9 @@ Machine-checkable. ALL must hold:
 - [ ] `grep -n "while (true)" packages/xero/src/au/read.ts` returns no matches
 - [ ] `grep -n "complete: false" packages/xero/src/au/read.ts` returns at least
       one match
-- [ ] `bunx vitest run packages/xero packages/jobs` passes with at least 14 new
-      test cases across the four files
+- [ ] `bunx vitest run packages/xero packages/jobs` passes and covers all four
+      mapper outcomes, all four AU-pagination outcomes, and the existing paired
+      handler tests for incomplete and complete archival behaviour
 - [ ] `git status --short` shows only in-scope files modified
 - [ ] Status row for plan 003 updated in `plans/README.md`
 

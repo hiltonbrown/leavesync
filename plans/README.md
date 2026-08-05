@@ -29,7 +29,7 @@ privacy, feed, test, migration, backup or support gate.
 
 | Stage | Requirement | Current state |
 |---|---|---|
-| Closed AU early access | Complete plans 002-008, 010-013, 015-020, 027, 035, 038 and 042-046 | NO-GO, all listed plans are TODO |
+| Closed AU early access | Complete plans 002-008, 010-013, 015-020, 027, 035, 038 and 042-046 | NO-GO, plan 002 is BLOCKED and remaining listed plans are TODO |
 | Broader cohort or public GA | Complete plans 028, 029, 034 and 036 after the early-access gate | Not started |
 | Scale-triggered work | Reassess and execute plan 030 when production data shows the named round trips matter | Deferred pending evidence |
 | Architecture maintenance | Complete plans 031 and 039 when launch stabilises or the affected area changes | Deferred |
@@ -46,12 +46,12 @@ These are release blockers. `TODO` means the app remains a no-go.
 
 | Plan | Required outcome | Status |
 |---|---|---|
-| [002](002-fix-null-actor-authorisation-bypass.md) | An unlinked Clerk user cannot pass the nullable manager check | TODO |
-| [003](003-stop-mass-archive-on-unparseable-xero-page.md) | A malformed Xero page cannot be treated as a complete sync or trigger mass archive | TODO |
-| [004](004-prevent-manager-self-approval.md) | Managers cannot approve or decline their own leave | TODO |
-| [006](006-stop-sync-overwriting-user-owned-privacy-fields.md) | Inbound sync preserves user-owned privacy and feed choices | TODO |
-| [007](007-guard-reconciler-transitions-with-optimistic-concurrency.md) | Approval reconciliation cannot overwrite a newer local transition | TODO |
-| [008](008-bind-xero-oauth-state-to-nonce-expiry-and-session.md) | Xero OAuth state is time-bound, browser-bound and replay-resistant | TODO |
+| [002](002-fix-null-actor-authorisation-bypass.md) | An unlinked Clerk user cannot pass the nullable manager check | BLOCKED: implementation is verified by typecheck, lint and 11 targeted tests, but the required root test gate fails before app tests load because installed `react` and `react-dom` patch versions differ |
+| [003](003-stop-mass-archive-on-unparseable-xero-page.md) | A malformed Xero page cannot be treated as a complete sync or trigger mass archive | BLOCKED: executor found the planned structured log requires an undeclared `@repo/observability` workspace dependency; plan refined to scope the manifest and lockfile update before retrying |
+| [004](004-prevent-manager-self-approval.md) | Managers cannot approve or decline their own leave | BLOCKED: isolated implementation `f880889` passes typecheck, lint and 53 targeted tests, but the required root test gate fails before app tests load because installed `react` and `react-dom` patch versions differ |
+| [006](006-stop-sync-overwriting-user-owned-privacy-fields.md) | Inbound sync preserves user-owned privacy and feed choices | BLOCKED: isolated implementation `f903a8f` passes typecheck, lint and 9 targeted tests, but the required root test gate fails before app tests load because installed `react` and `react-dom` patch versions differ |
+| [007](007-guard-reconciler-transitions-with-optimistic-concurrency.md) | Approval reconciliation cannot overwrite a newer local transition | BLOCKED: isolated implementation passes typecheck and 4 focused regression tests, but root unit tests fail before app tests load because installed `react` and `react-dom` patch versions differ; root lint also has pre-existing out-of-scope diagnostics |
+| [008](008-bind-xero-oauth-state-to-nonce-expiry-and-session.md) | Xero OAuth state is time-bound, browser-bound and replay-resistant | BLOCKED: focused OAuth tests, typecheck and lint pass, but direct API tests fail in two unrelated support suites and root tests fail on the installed React patch-version mismatch; plan also now scopes the missing observability dependency |
 | [010](010-return-auth-error-instead-of-throwing-on-token-decrypt.md) | Token decryption failures remain typed, diagnosable Xero errors | TODO |
 | [011](011-fail-closed-on-decline-reason-policy.md) | A settings failure cannot disable the decline-reason policy | TODO |
 | [012](012-move-failure-notifications-out-of-the-state-transaction.md) | Notification failure cannot roll back durable Xero failure state | TODO |
@@ -80,7 +80,7 @@ reconciliation disabled, followed by consistent changes to PRODUCT.md, plans
 
 | Plan | Required outcome | Status |
 |---|---|---|
-| [005](005-refresh-vulnerable-dependency-pins.md) | Manifests, overrides and lockfile agree; a fresh approved production audit and build pass | TODO, drift review required |
+| [005](005-refresh-vulnerable-dependency-pins.md) | Manifests, overrides and lockfile agree; a fresh approved production audit and build pass | BLOCKED: targeted pins clear in an isolated worktree, but a high-severity `sharp` advisory remains reachable through production Next image optimisation |
 | [015](015-enable-the-test-harness-in-six-untestable-workspaces.md) | Root and CI tests enter every owned workspace, including auth and web | TODO |
 | [016](016-add-a-build-step-to-ci.md) | CI requires a production build for all deployable apps | TODO |
 | [020](020-run-the-xero-disconnect-integration-test.md) | Destructive Xero disconnect isolation runs in the integration lane | TODO |
