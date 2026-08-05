@@ -1,8 +1,9 @@
 import { keys } from "../../keys";
+import { log } from "@repo/observability/log";
 import { decryptXeroToken } from "../crypto/tokens";
 import { orgRateLimitKey, xeroFetch } from "../rate-limit/xero-fetch";
 import type { XeroEmployee } from "../read/employees";
-import { mapXeroEmployees } from "../read/employees";
+import { tryMapXeroEmployees } from "../read/employees";
 import {
   type FetchLeaveApplicationStatusInput,
   mapLeaveApplicationStatus,
@@ -13,7 +14,7 @@ import {
 import type { XeroLeaveBalance } from "../read/leave-balances";
 import { mapXeroLeaveBalances } from "../read/leave-balances";
 import type { XeroLeaveRecord } from "../read/leave-records";
-import { mapXeroLeaveRecords } from "../read/leave-records";
+import { tryMapXeroLeaveRecords } from "../read/leave-records";
 import type {
   XeroTenantForWrite,
   XeroWriteError,
@@ -22,6 +23,7 @@ import type {
 
 const XERO_DEFAULT_BASE_URL = "https://api.xero.com";
 const XERO_PAGE_SIZE = 100;
+const XERO_MAX_PAGES = 200;
 
 // Xero permits 60 calls/min per connected organisation. Space the per-employee
 // detail reads at least this far apart so a full balance sync stays within that
@@ -63,7 +65,7 @@ export async function fetchEmployees(input: {
     let page = 1;
     let rawResponse: unknown = null;
 
-    while (true) {
+    while (page <= XERO_MAX_PAGES) {
       const response = await xeroFetch({
         init: {
           headers: {
@@ -89,15 +91,42 @@ export async function fetchEmployees(input: {
       }
 
       rawResponse ??= rawPayload;
-      const employeePage = mapXeroEmployees(rawPayload);
-      employees.push(...employeePage);
+      const mappedPage = tryMapXeroEmployees(rawPayload);
+      if (!mappedPage.ok) {
+        log.warn("Xero employee page could not be parsed", {
+          clerkOrgId: input.xeroTenant.clerk_org_id,
+          organisationId: input.xeroTenant.organisation_id,
+          page,
+        });
+        return {
+          ok: false,
+          error: {
+            code: "unknown_error",
+            message: "Xero returned an employee page that could not be read.",
+          },
+        };
+      }
+      employees.push(...mappedPage.employees);
 
-      if (employeePage.length < XERO_PAGE_SIZE) {
+      if (mappedPage.employees.length < XERO_PAGE_SIZE) {
         return { ok: true, value: { employees, rawResponse } };
       }
 
       page += 1;
     }
+
+    log.warn("Xero employee pagination exceeded the maximum page count", {
+      clerkOrgId: input.xeroTenant.clerk_org_id,
+      organisationId: input.xeroTenant.organisation_id,
+      page: XERO_MAX_PAGES,
+    });
+    return {
+      ok: false,
+      error: {
+        code: "unknown_error",
+        message: "Xero returned an employee page that could not be read.",
+      },
+    };
   } catch (error) {
     return {
       ok: false,
@@ -141,7 +170,7 @@ export async function fetchLeaveRecords(input: {
     let page = 1;
     let rawResponse: unknown = null;
 
-    while (true) {
+    while (page <= XERO_MAX_PAGES) {
       const response = await xeroFetch({
         init: {
           headers: {
@@ -167,10 +196,21 @@ export async function fetchLeaveRecords(input: {
       }
 
       rawResponse ??= rawPayload;
-      const leaveRecordPage = mapXeroLeaveRecords(rawPayload);
-      leaveRecords.push(...leaveRecordPage);
+      const mappedPage = tryMapXeroLeaveRecords(rawPayload);
+      if (!mappedPage.ok) {
+        log.warn("Xero leave record page could not be parsed", {
+          clerkOrgId: input.xeroTenant.clerk_org_id,
+          organisationId: input.xeroTenant.organisation_id,
+          page,
+        });
+        return {
+          ok: true,
+          value: { complete: false, leaveRecords, rawResponse },
+        };
+      }
+      leaveRecords.push(...mappedPage.records);
 
-      if (leaveRecordPage.length < XERO_PAGE_SIZE) {
+      if (mappedPage.records.length < XERO_PAGE_SIZE) {
         return {
           ok: true,
           value: { complete: true, leaveRecords, rawResponse },
@@ -179,6 +219,16 @@ export async function fetchLeaveRecords(input: {
 
       page += 1;
     }
+
+    log.warn("Xero leave record pagination exceeded the maximum page count", {
+      clerkOrgId: input.xeroTenant.clerk_org_id,
+      organisationId: input.xeroTenant.organisation_id,
+      page: XERO_MAX_PAGES,
+    });
+    return {
+      ok: true,
+      value: { complete: false, leaveRecords, rawResponse },
+    };
   } catch (error) {
     return {
       ok: false,
