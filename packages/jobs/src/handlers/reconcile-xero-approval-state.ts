@@ -4,6 +4,7 @@ import { clerkClient } from "@repo/auth/server";
 import type { Result } from "@repo/core";
 import { database, scopedTo as scoped } from "@repo/database";
 import { Prisma } from "@repo/database/generated/client";
+import type { availability_approval_status } from "@repo/database/generated/enums";
 import {
   dispatchNotification,
   type NotificationDispatchDatabase,
@@ -79,7 +80,8 @@ const FailedRecordTypeSchema = z.enum([
 ]);
 
 interface ReconciliationRecord {
-  approval_status: string;
+  approval_status: availability_approval_status;
+  derived_sequence: number;
   failed_action: string | null;
   id: string;
   person: {
@@ -374,7 +376,7 @@ async function reconcileRecord(
       (record.approval_status === "xero_sync_failed" &&
         record.failed_action === "approve"))
   ) {
-    await transitionRecord(context, runId, record, {
+    const transitioned = await transitionRecord(context, runId, record, {
       action: "availability_records.reconciled_to_approved",
       data: {
         approval_status: "approved",
@@ -387,7 +389,7 @@ async function reconcileRecord(
       notificationType: "leave_approved",
       xeroLeaveApplicationId: xero.xeroLeaveApplicationId,
     });
-    return "approved";
+    return transitioned ? "approved" : "matched";
   }
 
   if (
@@ -396,7 +398,7 @@ async function reconcileRecord(
       (record.approval_status === "xero_sync_failed" &&
         record.failed_action === "decline"))
   ) {
-    await transitionRecord(context, runId, record, {
+    const transitioned = await transitionRecord(context, runId, record, {
       action: "availability_records.reconciled_to_declined",
       data: {
         approval_note: "Declined in Xero Payroll",
@@ -407,7 +409,7 @@ async function reconcileRecord(
       notificationType: "leave_declined",
       xeroLeaveApplicationId: xero.xeroLeaveApplicationId,
     });
-    return "declined";
+    return transitioned ? "declined" : "matched";
   }
 
   if (
@@ -417,7 +419,7 @@ async function reconcileRecord(
     record.approval_status === "xero_sync_failed" &&
     record.failed_action === "withdraw"
   ) {
-    await transitionRecord(context, runId, record, {
+    const transitioned = await transitionRecord(context, runId, record, {
       action: "availability_records.reconciled_to_withdrawn",
       data: {
         approval_status: "withdrawn",
@@ -430,7 +432,7 @@ async function reconcileRecord(
       notificationType: "leave_withdrawn",
       xeroLeaveApplicationId: xero.xeroLeaveApplicationId,
     });
-    return "withdrawn";
+    return transitioned ? "withdrawn" : "matched";
   }
 
   if (
@@ -438,7 +440,7 @@ async function reconcileRecord(
     record.approval_status !== "withdrawn" &&
     record.approval_status !== "xero_sync_failed"
   ) {
-    await transitionRecord(context, runId, record, {
+    const transitioned = await transitionRecord(context, runId, record, {
       action: "availability_records.reconciled_to_withdrawn",
       data: {
         approval_status: "withdrawn",
@@ -448,7 +450,7 @@ async function reconcileRecord(
       notificationType: "leave_withdrawn",
       xeroLeaveApplicationId: xero.xeroLeaveApplicationId,
     });
-    return "withdrawn";
+    return transitioned ? "withdrawn" : "matched";
   }
 
   return "matched";
@@ -465,11 +467,26 @@ async function transitionRecord(
     xeroLeaveApplicationId: string;
   }
 ) {
-  await database.$transaction(async (tx) => {
-    await tx.availabilityRecord.updateMany({
+  return await database.$transaction(async (tx) => {
+    const updated = await tx.availabilityRecord.updateMany({
       data: options.data,
-      where: { ...scoped(context), id: record.id },
+      where: {
+        ...scoped(context),
+        approval_status: record.approval_status,
+        derived_sequence: record.derived_sequence,
+        id: record.id,
+      },
     });
+    if (updated.count !== 1) {
+      log.info("Skipped stale reconciliation transition", {
+        attemptedAction: options.action,
+        clerkOrgId: context.clerkOrgId,
+        organisationId: context.organisationId,
+        recordId: record.id,
+        snapshotApprovalStatus: record.approval_status,
+      });
+      return false;
+    }
     await tx.auditEvent.create({
       data: {
         ...auditBase(context, options.action, runId, record.id),
@@ -480,6 +497,7 @@ async function transitionRecord(
       },
     });
     await notifyRecordOwner(tx, context, record, options.notificationType);
+    return true;
   });
 }
 
@@ -490,13 +508,28 @@ async function archiveMissing(
   xeroLeaveApplicationId: string
 ) {
   await database.$transaction(async (tx) => {
-    await tx.availabilityRecord.updateMany({
+    const updated = await tx.availabilityRecord.updateMany({
       data: {
         archived_at: new Date(),
         publish_status: "archived",
       },
-      where: { ...scoped(context), id: record.id },
+      where: {
+        ...scoped(context),
+        approval_status: record.approval_status,
+        derived_sequence: record.derived_sequence,
+        id: record.id,
+      },
     });
+    if (updated.count !== 1) {
+      log.info("Skipped stale reconciliation archival", {
+        attemptedAction: "availability_records.reconciled_to_archived_missing",
+        clerkOrgId: context.clerkOrgId,
+        organisationId: context.organisationId,
+        recordId: record.id,
+        snapshotApprovalStatus: record.approval_status,
+      });
+      return;
+    }
     await tx.auditEvent.create({
       data: {
         ...auditBase(
