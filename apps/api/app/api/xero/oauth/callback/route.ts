@@ -27,11 +27,20 @@ export async function GET(request: Request) {
     );
   }
 
-  const result = await completeXeroOAuth({ code, state });
+  const nonce = request.headers
+    .get("cookie")
+    ?.split(";")
+    .map((cookie) => cookie.trim().split("=", 2))
+    .find(([name]) => name === "xero_oauth_nonce")?.[1];
+  const result = await completeXeroOAuth({ code, nonce: nonce ?? null, state });
   if (!result.ok) {
     return NextResponse.json({ error: result.error.message }, { status: 400 });
   }
 
   const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? request.url;
-  return NextResponse.redirect(new URL(result.value.redirectTo, appBaseUrl));
+  const response = NextResponse.redirect(
+    new URL(result.value.redirectTo, appBaseUrl)
+  );
+  response.cookies.delete({ name: "xero_oauth_nonce", path: "/api/xero/oauth" });
+  return response;
 }
