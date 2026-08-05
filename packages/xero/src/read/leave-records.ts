@@ -53,13 +53,24 @@ const LeaveApplicationsResponseSchema = z
   })
   .passthrough();
 
+export type MapXeroLeaveRecordsResult =
+  | { ok: true; records: XeroLeaveRecord[] }
+  | { ok: false };
+
 export function mapXeroLeaveRecords(payload: unknown): XeroLeaveRecord[] {
+  const result = tryMapXeroLeaveRecords(payload);
+  return result.ok ? result.records : [];
+}
+
+export function tryMapXeroLeaveRecords(
+  payload: unknown
+): MapXeroLeaveRecordsResult {
   const parsed = LeaveApplicationsResponseSchema.safeParse(payload);
   if (!parsed.success) {
-    return [];
+    return { ok: false };
   }
 
-  return parsed.data.LeaveApplications.map((application) => ({
+  const records = parsed.data.LeaveApplications.map((application) => ({
     employeeId: text(application.EmployeeID ?? application.EmployeeId),
     endDate: text(application.EndDate),
     leaveApplicationId: text(
@@ -76,6 +87,8 @@ export function mapXeroLeaveRecords(payload: unknown): XeroLeaveRecord[] {
       application.UpdatedDateUTC ?? application.UpdatedDateUtc
     ),
   }));
+
+  return { ok: true, records };
 }
 
 function text(value: string | null | undefined): string {
