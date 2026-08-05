@@ -1346,6 +1346,7 @@ async function canActOnRecord(
   const visiblePersonIds = await managerScopePersonIds({
     actingPersonId: input.actingPersonId,
     clerkOrgId: input.clerkOrgId,
+    excludeSelf: true,
     organisationId: input.organisationId,
   });
 
