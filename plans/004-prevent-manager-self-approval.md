@@ -19,6 +19,12 @@
 - **Depends on**: none
 - **Category**: security
 - **Planned at**: commit `75202db`, 2026-07-25
+- **Execution status**: BLOCKED on 2026-08-05. The isolated implementation at
+  `f880889` passes typecheck, lint, and all targeted tests, but `bun run test`
+  cannot enter the app suites because the installed `react` (19.2.7) and
+  `react-dom` (19.2.8) versions differ. Resolve plan 005's manifest and
+  lockfile consistency outcome, then rerun the full gate before treating this
+  plan as DONE.
 
 ## Why this matters
 

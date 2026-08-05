@@ -6,7 +6,7 @@
 > report, do not improvise. When done, update this plan's status row in
 > `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 75202db..HEAD -- packages/jobs/src/handlers/reconcile-xero-approval-state.ts packages/availability/src/approvals/approval-service.ts`
+> **Drift check (run first)**: `git diff --stat 7821f3a..HEAD -- packages/jobs/src/handlers/reconcile-xero-approval-state.ts packages/availability/src/approvals/approval-service.ts`
 > If either changed since this plan was written, compare the "Current state"
 > excerpts against the live code before proceeding. On a mismatch, treat it as a
 > STOP condition.
@@ -18,7 +18,15 @@
 - **Risk**: LOW
 - **Depends on**: none
 - **Category**: bug
-- **Planned at**: commit `75202db`, 2026-07-25
+- **Planned at**: commit `7821f3a`, 2026-08-05 (refreshed after the shared
+  tenant-scoping helper replaced the local helper, and after confirming the
+  handler interface must explicitly carry the already-loaded sequence)
+- **Execution status**: BLOCKED on 2026-08-05. Isolated implementation passes
+  typecheck and the four focused regression tests, but the required root unit
+  test gate fails before app tests load because installed `react` and
+  `react-dom` patch versions differ. The root lint gate also reports pre-existing
+  diagnostics outside this plan's scope. Resolve the verification baseline and
+  rerun the full gate before accepting the change.
 
 ## Why this matters
 
@@ -87,8 +95,10 @@ predicate. The reconciler is the outlier.
 ```
 
 Because this uses `include` with no `select`, every scalar column is loaded,
-including `approval_status` and `derived_sequence`. You do not need to widen the
-query to implement this plan.
+including `approval_status` and `derived_sequence`. The narrower
+`ReconciliationRecord` interface currently omits `derived_sequence`; add
+`derived_sequence: number` to that interface before using it in the guarded
+predicate. Do not widen the query.
 
 ### The decision branches on the stale snapshot
 
@@ -189,7 +199,7 @@ pattern.
   under Inngest retries.
 - Record-level failures must not fail the whole run.
 - Every tenant-scoped query carries `clerk_org_id` and `organisation_id` via the
-  local `scoped(context)` helper.
+  imported `scoped(context)` helper from `@repo/database`.
 - Service and handler code returns `Result`; do not throw for expected outcomes.
 - Structured logging via `@repo/observability/log`. No `console.log`.
 - TypeScript strict mode, no `any`, named exports only.
@@ -201,7 +211,7 @@ pattern.
 |---|---|---|
 | Install | `bun install` | exit 0 |
 | Typecheck | `bun run typecheck` | exit 0, no errors |
-| Jobs tests | `bunx vitest run packages/jobs` | all pass |
+| Jobs unit tests | `bun --cwd packages/jobs run test` | all pass (integration tests excluded by the package script) |
 | Full unit tests | `bun run test` | exit 0 |
 | Lint | `bun run check` | exit 0 |
 
@@ -239,8 +249,10 @@ with an error mentioning `Cannot find module '@repo/observability/log'`, run
 
 ### Step 1: Make `transitionRecord` guard on the snapshot state
 
-Change `transitionRecord` so its `updateMany` predicate pins the values the
-decision was based on, and so it does nothing further when the row has moved on.
+First add `derived_sequence: number` to `ReconciliationRecord`. Then change
+`transitionRecord` so its `updateMany` predicate pins the values the decision
+was based on, and so it does nothing further when the row has moved on. The
+snapshot query already supplies this scalar, so no query change is required.
 
 Target shape:
 
@@ -357,7 +369,9 @@ Cases:
    `organisation_id`. Use `expect.objectContaining`.
 4. `archiveMissing` with `{ count: 0 }`: assert no audit event is written.
 
-**Verify**: `bunx vitest run packages/jobs` → all pass.
+**Verify**: `bunx vitest run packages/jobs/src/handlers/reconcile-xero-approval-state.test.ts`
+→ 4 tests pass, then `bun --cwd packages/jobs run test` → all package unit
+tests pass (the package script excludes `*.integration.test.ts`).
 
 ### Step 6: Confirm nothing else regressed
 
@@ -387,7 +401,10 @@ Machine-checkable. ALL must hold:
       returns 2 (one in `transitionRecord`, one in `archiveMissing`)
 - [ ] `grep -n "updated.count !== 1\|count !== 1" packages/jobs/src/handlers/reconcile-xero-approval-state.ts`
       returns at least 2 matches
-- [ ] `bunx vitest run packages/jobs` passes with at least 4 new test cases
+- [ ] `bunx vitest run packages/jobs/src/handlers/reconcile-xero-approval-state.test.ts`
+      passes 4 new test cases
+- [ ] `bun --cwd packages/jobs run test` passes (the package's unit-test script
+      excludes integration suites that require `DATABASE_URL`)
 - [ ] `git status --short` shows only in-scope files modified
 - [ ] Status row for plan 007 updated in `plans/README.md`
 
@@ -396,11 +413,10 @@ Machine-checkable. ALL must hold:
 Stop and report back (do not improvise) if:
 
 - `transitionRecord` or `archiveMissing` does not match the excerpts above.
-- `ReciliationRecord`'s type does not carry `derived_sequence`. Confirm with
-  `grep -n "ReconciliationRecord" packages/jobs/src/handlers/reconcile-xero-approval-state.ts`
-  and read the type. The snapshot query uses `include` with no `select`, so it
-  should be present; if it is not, report rather than widening the query
-  yourself.
+- The snapshot query no longer uses `include` without a scalar-limiting
+  `select`, or its result cannot supply `derived_sequence`. Confirm the query
+  still loads the scalar before adding it to `ReconciliationRecord`; if it does
+  not, report rather than widening the query yourself.
 - The existing integration test
   (`reconcile-xero-approval-state.integration.test.ts`) fails after your change.
   It runs against a real Postgres and may not run in your environment at all; if

@@ -6,7 +6,7 @@
 > report, do not improvise. When done, update this plan's status row in
 > `plans/README.md`.
 >
-> **Drift check (run first)**: `git diff --stat 75202db..HEAD -- packages/jobs/src/handlers/sync-xero-leave-records.ts packages/jobs/src/handlers/sync-xero-leave-records.test.ts`
+> **Drift check (run first)**: `git diff --stat 7821f3a..HEAD -- packages/jobs/src/handlers/sync-xero-leave-records.ts packages/jobs/src/handlers/sync-xero-leave-records.test.ts`
 > If either changed since this plan was written, compare the "Current state"
 > excerpts against the live code before proceeding. On a mismatch, treat it as a
 > STOP condition.
@@ -18,7 +18,13 @@
 - **Risk**: LOW
 - **Depends on**: none
 - **Category**: bug
-- **Planned at**: commit `75202db`, 2026-07-25
+- **Planned at**: commit `7821f3a`, 2026-08-05 (refreshed after the shared
+  tenant-scoping helper moved from this handler into `@repo/database`)
+- **Execution status**: BLOCKED on 2026-08-05. Isolated implementation
+  `f903a8f` passes typecheck, lint and the targeted 9-test handler suite, but
+  the required root unit-test gate fails before app tests load because installed
+  `react` and `react-dom` patch versions differ. Resolve the dependency baseline
+  and rerun the full gate before accepting this change.
 
 ## Why this matters
 
@@ -51,7 +57,8 @@ split the write into fields Xero owns and fields the user owns.
   existing-record loader (line 463), the unconditional write payload (line 590)
   and the update path (line 612).
 - `packages/jobs/src/handlers/sync-xero-leave-records.test.ts` — existing
-  co-located unit tests; new tests go here.
+  co-located unit tests; new tests go here. Its database mock now also exposes
+  `scopedTo`, which the handler imports as `scoped` from `@repo/database`.
 - `packages/availability/src/plans/plan-service.ts` — the user-facing setter
   that this sync currently overwrites (line 544).
 
