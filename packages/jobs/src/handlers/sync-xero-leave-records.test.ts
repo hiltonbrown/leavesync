@@ -381,6 +381,125 @@ describe("leave records stale archival", () => {
     expect(mocks.availabilityRecordCreate).not.toHaveBeenCalled();
     expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalled();
   });
+
+  it("preserves user-owned fields when updating a Team Calendar leave", async () => {
+    mocks.fetchLeaveRecordsForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: true,
+        leaveRecords: [xeroLeaveRecord()],
+        rawResponse: {},
+      },
+    });
+    mocks.personFindMany.mockResolvedValue([person(PERSON_ID, XERO_EMPLOYEE_ID)]);
+    mocks.availabilityRecordFindMany
+      .mockResolvedValueOnce([
+        {
+          approval_status: "approved",
+          failed_action: null,
+          id: "80000000-0000-4000-8000-000000000001",
+          source_remote_hash: "hash-before-update",
+          source_remote_id: LEAVE_APPLICATION_ID,
+          source_type: "team_calendar_leave",
+        },
+      ])
+      .mockResolvedValueOnce([]);
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    const data = mocks.availabilityRecordUpdateMany.mock.calls[0]?.[0]?.data;
+    expect(data).not.toHaveProperty("privacy_mode");
+    expect(data).not.toHaveProperty("include_in_feed");
+    expect(data).not.toHaveProperty("title");
+  });
+
+  it("keeps person defaults when updating a Xero leave", async () => {
+    mocks.fetchLeaveRecordsForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: true,
+        leaveRecords: [xeroLeaveRecord()],
+        rawResponse: {},
+      },
+    });
+    mocks.personFindMany.mockResolvedValue([person(PERSON_ID, XERO_EMPLOYEE_ID)]);
+    mocks.availabilityRecordFindMany
+      .mockResolvedValueOnce([
+        {
+          approval_status: "approved",
+          failed_action: null,
+          id: "80000000-0000-4000-8000-000000000001",
+          source_remote_hash: "hash-before-update",
+          source_remote_id: LEAVE_APPLICATION_ID,
+          source_type: "xero_leave",
+        },
+      ])
+      .mockResolvedValueOnce([]);
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    expect(mocks.availabilityRecordUpdateMany.mock.calls[0]?.[0]?.data).toMatchObject({
+      privacy_mode: "named",
+    });
+  });
+
+  it("seeds user-owned fields when creating a leave record", async () => {
+    mocks.fetchLeaveRecordsForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: true,
+        leaveRecords: [xeroLeaveRecord()],
+        rawResponse: {},
+      },
+    });
+    mocks.personFindMany.mockResolvedValue([person(PERSON_ID, XERO_EMPLOYEE_ID)]);
+    mocks.availabilityRecordFindMany.mockResolvedValue([]);
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    expect(mocks.availabilityRecordCreate.mock.calls[0]?.[0]?.data).toMatchObject({
+      include_in_feed: true,
+      privacy_mode: "named",
+      title: "Annual leave",
+    });
+  });
+
+  it("continues syncing Xero-owned fields for a Team Calendar leave", async () => {
+    mocks.fetchLeaveRecordsForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: true,
+        leaveRecords: [xeroLeaveRecord()],
+        rawResponse: {},
+      },
+    });
+    mocks.personFindMany.mockResolvedValue([person(PERSON_ID, XERO_EMPLOYEE_ID)]);
+    mocks.availabilityRecordFindMany
+      .mockResolvedValueOnce([
+        {
+          approval_status: "approved",
+          failed_action: null,
+          id: "80000000-0000-4000-8000-000000000001",
+          source_remote_hash: "hash-before-update",
+          source_remote_id: LEAVE_APPLICATION_ID,
+          source_type: "team_calendar_leave",
+        },
+      ])
+      .mockResolvedValueOnce([]);
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    expect(mocks.availabilityRecordUpdateMany.mock.calls[0]?.[0]?.data).toMatchObject({
+      approval_status: "approved",
+      ends_at: new Date("2026-05-08T00:00:00.000Z"),
+      source_remote_hash: `hash-${LEAVE_APPLICATION_ID}`,
+      starts_at: new Date("2026-05-07T00:00:00.000Z"),
+    });
+  });
 });
 
 function person(id: string, xeroEmployeeId: string) {
