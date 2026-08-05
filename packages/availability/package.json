@@ -16,7 +16,7 @@
     "@repo/notifications": "*",
     "@repo/observability": "*",
     "@repo/seo": "*",
-    "inngest": "^4.12.1",
+    "inngest": "^4.15.0",
     "server-only": "^0.0.1",
     "zod": "^4.4.3",
     "@repo/auth": "*"
@@ -25,6 +25,6 @@
     "@repo/typescript-config": "*",
     "dotenv": "^17.4.2",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.10"
   }
 }
