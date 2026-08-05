@@ -56,5 +56,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: result.error.message }, { status });
   }
 
-  return NextResponse.redirect(result.value.redirectUrl);
+  const response = NextResponse.redirect(result.value.redirectUrl);
+  response.cookies.set("xero_oauth_nonce", result.value.nonce, {
+    httpOnly: true,
+    maxAge: 600,
+    path: "/api/xero/oauth",
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
+  return response;
 }
