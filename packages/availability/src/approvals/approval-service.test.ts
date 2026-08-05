@@ -262,6 +262,69 @@ describe("approval-service", () => {
     );
   });
 
+  it.each([
+    ["approve", () => approve(input, mockPort)],
+    ["retry approval", () => retryApproval(input, mockPort)],
+    ["decline", () => decline({ ...input, reason: "Unavailable" }, mockPort)],
+    ["retry decline", () => retryDecline(input, mockPort)],
+    ["request more information", () =>
+      requestMoreInfo({ ...input, question: "Could you clarify this leave?" })],
+    ["revert an approval attempt", () => revertApprovalAttempt(input)],
+  ])("does not let a manager %s their own leave", async (_action, command) => {
+    mocks.availabilityFindFirst.mockResolvedValue({
+      ...record,
+      person: { ...record.person, id: input.actingPersonId },
+      person_id: input.actingPersonId,
+    });
+    mocks.managerScopePersonIds.mockResolvedValue([]);
+
+    const result = await command();
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "not_authorised" },
+    });
+    expect(mocks.managerScopePersonIds).toHaveBeenCalledWith(
+      expect.objectContaining({ excludeSelf: true })
+    );
+  });
+
+  it("lets a manager approve direct-report leave using a self-excluding scope", async () => {
+    mocks.availabilityFindFirst
+      .mockResolvedValueOnce(record)
+      .mockResolvedValueOnce({ ...record, approval_status: "approved" });
+    mocks.approveLeaveApplicationForRegion.mockResolvedValue({
+      ok: true,
+      value: undefined,
+    });
+
+    const result = await approve(input, mockPort);
+
+    expect(result.ok).toBe(true);
+    expect(mocks.managerScopePersonIds).toHaveBeenCalledWith(
+      expect.objectContaining({ excludeSelf: true })
+    );
+  });
+
+  it("lets an admin approve their own leave", async () => {
+    mocks.availabilityFindFirst
+      .mockResolvedValueOnce({
+        ...record,
+        person: { ...record.person, id: input.actingPersonId },
+        person_id: input.actingPersonId,
+      })
+      .mockResolvedValueOnce({ ...record, approval_status: "approved" });
+    mocks.approveLeaveApplicationForRegion.mockResolvedValue({
+      ok: true,
+      value: undefined,
+    });
+
+    const result = await approve({ ...input, role: "admin" }, mockPort);
+
+    expect(result.ok).toBe(true);
+    expect(mocks.managerScopePersonIds).not.toHaveBeenCalled();
+  });
+
   it("keeps an approved transition when notification dispatch fails", async () => {
     mocks.availabilityFindFirst
       .mockResolvedValueOnce(record)
