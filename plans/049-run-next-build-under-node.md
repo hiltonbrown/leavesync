@@ -111,11 +111,65 @@ wrapper under Bun buys no build speed. It costs a hard crash on this platform.
 ### Deployment context
 
 `apps/app/vercel.json`, `apps/api/vercel.json` and `apps/web/vercel.json` each
-set `"bunVersion": "1.x"`, so Vercel runs the build command under Bun too. The
-observed crash is on `Linux arm64`, and Vercel's build machines are x64, so
-production builds may not currently be hitting it. That is luck, not a
-guarantee, and plan 046 explicitly must not be discovering build failures during
-a launch window.
+set `"bunVersion": "1.x"`, so Vercel runs the build command under Bun too.
+
+**Confirmed on Vercel, 2026-08-06.** An earlier draft of this plan speculated
+that Vercel's x64 build machines might not be hitting the crash, since the local
+reproduction was `Linux arm64`. That was wrong, and the correction matters: this
+is not a preventive change, it is an active production outage.
+
+Every Vercel deployment of `main` since `754a5aac` has failed, including the
+production build of `fb9f1cc`
+(`dpl_88jvowzxWwv63RKNLQFUT3vmMsGV`, target `production`, state `ERROR`). All
+three deployable apps fail, not just `apps/app`:
+
+| App | Deployment | Exit |
+|---|---|---|
+| `apps/app` | `dpl_63eqWpwesZme9ooFJV3PWTqvF6HT` | `next` exited 1 |
+| `apps/api` | `dpl_ELdJu9ZgGgTVnYLGQMnRXnjrKhgP` | `next` exited 1 |
+| `apps/web` | `dpl_FAkE1f4YLiE5wkAspkmEQHjd3ovM` | SIGILL, exit 137 |
+
+**The exit code is not a reliable signature; the message is.** `apps/web` exited
+137 via SIGILL on one deployment and plain 1 on another from the same branch, so
+match on the `Expected CommonJS module to have a function wrapper` text rather
+than on an exit code.
+
+All three fail at the same point, collecting page data, with the same message:
+
+```
+Error: Failed to load external module next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:
+TypeError: Expected CommonJS module to have a function wrapper.
+If you weren't messing around with Bun's internals, this is a bug in Bun
+> Build error occurred
+Error: Failed to collect page data for /_not-found
+```
+
+The x64 symptom differs from the arm64 one (a module-loading `TypeError` rather
+than a segfault), but the cause is identical: `next build` running under the Bun
+runtime. Bun's own error text names Bun as the culprit.
+
+Three further details from the full Vercel logs, all of which support the fix:
+
+- **The compile succeeds.** Every app reports `✓ Compiled successfully` and
+  `Finished TypeScript` before failing. The failure is at `Collecting page
+  data`, which is where Next first *executes* the built server bundle. So this
+  is not a compile error, a type error or an environment-validation failure;
+  it is the Bun runtime failing to load a module Next just emitted, exactly as
+  this plan's premise states.
+- **Vercel runs `bun install v1.3.12`**, while the local reproduction was
+  `v1.3.14`. Two different Bun versions on two architectures produce the same
+  failure.
+- **It is Turbopack-specific.** All three builds report
+  `▲ Next.js 16.3.0 (Turbopack)`, the failing module is
+  `app-page-turbo.runtime.prod.js`, and the stack enters through
+  `externalRequire` in `[turbopack]_runtime.js`. Turbopack's runtime performs a
+  CommonJS `require` that Bun mishandles. Do not treat switching bundlers as the
+  fix here; removing `--bun` is smaller and is what this plan does.
+
+This raises the stakes on the fix rather than changing it. Removing `--bun` is
+still the whole change, and it now restores deployment for all three apps.
+Plan 046 must not be discovering this during a launch window, and plan 016 must
+not add a CI build step until it is done.
 
 ### Repo conventions that apply here
 
@@ -289,7 +343,10 @@ build itself, which is exactly the gate that was failing:
 Machine-checkable. ALL must hold:
 
 - [ ] `bun run build` exits 0 and reports `4 successful, 4 total`
-- [ ] `grep -c 'bun --bun next build' apps/*/package.json` returns 0
+- [ ] `grep -l 'bun --bun next build' apps/app/package.json apps/api/package.json apps/web/package.json`
+      prints nothing. Do not use `grep -c` with a `apps/*/package.json` glob:
+      that prints a `path:count` line per file, never a bare `0`, and the glob
+      also picks up `apps/docs` and `apps/email`, which this plan does not touch
 - [ ] `grep -c '"build": "next build"' apps/app/package.json apps/api/package.json apps/web/package.json` returns 1 for each
 - [ ] `bun run typecheck` exits 0
 - [ ] `bun run test` exits 0 and reports `10 successful, 10 total`
@@ -303,8 +360,22 @@ Machine-checkable. ALL must hold:
 
 Stop and report back (do not improvise) if:
 
-- `bun run build` succeeds at Step 0. You are not reproducing the failure and
-  the change would be unverified.
+- `bun run build` succeeds at Step 0 **and** a fresh Vercel deployment of the
+  current commit also succeeds. Only then are you failing to reproduce, and only
+  then is the change unverified.
+
+  A locally succeeding build on its own is **not** a reason to stop. The crash
+  is platform-sensitive: it appears as a segfault on `Linux arm64` and as a
+  module-loading `TypeError` on Vercel's x64 builders, so an executor on a third
+  platform may see a clean local build while every deployment still fails. As of
+  2026-08-06 the authoritative reproduction is Vercel, where all three apps fail
+  on every deployment of `main`, evidence recorded under "Deployment context".
+
+  If your local build passes, verify against a deployment rather than stopping:
+  push the branch and read the Vercel result, or check the most recent
+  deployments of `main`. If those fail with the message quoted in this plan, you
+  have reproduced it and should proceed. Do not let a clean local build block
+  the queue, because every plan behind this one is waiting on it.
 - Node is not installed, or reports a version below the `engines.node` range
   (`22 || >=24.0.0`).
 - The build fails after Step 1 with a **code** error (a type error, a missing
@@ -327,9 +398,13 @@ Stop and report back (do not improvise) if:
   longer forces the Bun runtime for `next build`, so production picks up the
   same protection. A reviewer should confirm the next preview deployment builds
   cleanly.
-- The crash is `Bun v1.3.14` on `Linux arm64`. If Bun ships a fix, restoring
-  `--bun` is possible but pointless: `next build` is compiler-bound, so the flag
-  buys no measurable time. Prefer leaving it off.
+- The crash spans **at least two Bun versions and two architectures**:
+  `v1.3.14` on `Linux arm64` locally, and `v1.3.12` on Vercel's x64 builders.
+  Do not read it as a single-version regression, and do not go looking for a
+  good version to pin. That reinforces the rejection of pinning or downgrading
+  Bun recorded in `plans/README.md`. If Bun ships a fix, restoring `--bun` is
+  possible but pointless: `next build` is compiler-bound, so the flag buys no
+  measurable time. Prefer leaving it off.
 - Plan 016 adds `bun run build` to CI. It should be executed **after** this
   plan, otherwise it adds a step that fails immediately.
 - Deliberately deferred: filing the Bun crash report. The crash URL is in the

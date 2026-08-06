@@ -43,11 +43,11 @@ Three code paths move a record out of `xero_sync_failed` without clearing them:
 3. **The reconciler's withdraw-from-Xero branch.** It clears none of the three.
 
 `xero_write_error` is not an internal field. It is read out to users in four
-places: `packages/availability/src/plans/plan-service.ts:322`,
-`packages/availability/src/calendar/calendar-service.ts:753`,
+places: `packages/availability/src/plans/plan-service.ts:325`,
+`packages/availability/src/calendar/calendar-service.ts:762`,
 `packages/availability/src/people/people-service.ts:849` and
 `apps/app/app/(authenticated)/plans/_actions.ts:406`. `failed_action` drives
-`mutedNoteForRecord` in `packages/availability/src/approvals/approval-service.ts:1327-1335`.
+`mutedNoteForRecord` in `packages/availability/src/approvals/approval-service.ts:1325-1333`.
 
 The visible result is an approved or declined leave record that still displays
 "this failed to sync to Xero". Users cannot tell whether the record is settled
@@ -60,11 +60,43 @@ The fix is small and mechanical. It is worth doing because the same three
 fields are already cleared correctly everywhere else, which makes these three
 sites look intentional to a reader when they are not.
 
+## Drift warning
+
+**The `## Current state` excerpts here were verified on 2026-08-06 against
+`fb9f1cc`. Re-verify them immediately before executing this plan.**
+
+This plan runs at position 13 of the serial queue and shares a file with the
+plan that follows it:
+
+- `packages/jobs/src/handlers/reconcile-xero-approval-state.ts` is edited here
+  and again by plan 038 at position 15. That is why `018 -> 038` exists. This
+  plan changes what each reconciler branch writes; 038 bounds the candidate
+  query. Land this one first, as the order requires.
+- `packages/jobs/src/handlers/sync-xero-leave-records.ts` is edited by no other
+  queued plan.
+
+**This plan does not modify
+`packages/availability/src/approvals/approval-service.ts`.** It only reads
+`mutedNoteForRecord` there (lines 1325-1333) to explain why a stale
+`failed_action` is visible to users, and `packages/availability` is explicitly
+out of scope. Plans 011, 013 and 012 do modify that file, at positions 11, 12
+and 14. This plan sits among them by execution order, not by shared code, so a
+change to `approval-service.ts` is not a reason to widen this plan.
+
+Before executing this plan:
+
+1. Re-run the drift check at the top of this file against current `HEAD`, not
+   against the commit named in the Status block.
+2. Re-read every file quoted under `## Current state` and confirm the excerpts
+   still match. Line numbers alone are not enough; check the code shape.
+3. Treat a mismatch as a refresh task, not a licence to improvise. Update the
+   excerpts, then execute.
+
 ## Current state
 
 ### Inbound sync never clears the error fields
 
-`packages/jobs/src/handlers/sync-xero-leave-records.ts` lines 577-623.
+`packages/jobs/src/handlers/sync-xero-leave-records.ts` lines 578-636.
 
 The status decision first:
 
@@ -90,7 +122,7 @@ case where the record deliberately remains `xero_sync_failed`.
 Then the update payload. **Refreshed 2026-08-05**: plan 006 split this object
 into `xeroOwned` and `locallyOwned` so that inbound sync stops overwriting
 user-owned privacy, feed and title choices. The shape below is the current code
-at lines 591-630, and it is the shape you must edit:
+at lines 591-636, and it is the shape you must edit:
 
 ```typescript
     const xeroOwned = {
@@ -151,7 +183,7 @@ later reports success.
 
 The existing-record lookup already selects `failed_action`, so the information
 needed to decide is in hand. It now also selects `source_type` (added by plan
-006). Lines 468-490:
+006). Lines 463-481:
 
 ```typescript
 async function loadExistingRecordsBySourceRemoteId(
@@ -177,7 +209,7 @@ async function loadExistingRecordsBySourceRemoteId(
 
 ### The reconciler is inconsistent across its four branches
 
-`packages/jobs/src/handlers/reconcile-xero-approval-state.ts` lines 362-455.
+`packages/jobs/src/handlers/reconcile-xero-approval-state.ts` lines 373-454.
 
 **Refreshed 2026-08-05**: plan 007 added optimistic concurrency to this handler.
 `transitionRecord` now returns a `boolean` indicating whether the transition
@@ -558,7 +590,8 @@ All of the following, verbatim:
 6. `grep -n "approvalStatusToPersist = \"xero_sync_failed\"" packages/jobs/src/handlers/sync-xero-leave-records.ts`
    still matches, confirming the failed-withdraw exception survived.
 7. `git diff --name-only` lists exactly the four files in the "In scope" list
-   (or fewer, if a test file needed no change).
+   (or fewer, if a test file needed no change), plus this plan file and
+   `plans/README.md` for the status update.
 
 ## STOP conditions
 

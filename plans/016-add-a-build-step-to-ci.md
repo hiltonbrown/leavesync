@@ -16,9 +16,22 @@
 - **Priority**: P2
 - **Effort**: S
 - **Risk**: LOW
-- **Depends on**: none
+- **Depends on**: plan 049. This plan adds `bun run build` to CI, and
+  `bun run build` currently crashes the Bun runtime on `apps/app`. Plan 049
+  removes that crash. Adding the step first would add a CI stage that fails on
+  its first run. See "Execute these first" in `plans/README.md`.
 - **Category**: dx, ci
 - **Planned at**: commit `75202db`, 2026-07-25
+- **Reviewed**: 2026-08-06 against `fb9f1cc`. Every "Current state" excerpt still
+  matches live code: `.github/workflows/ci.yml` is unchanged and still contains
+  no `bun run build`, and all three app `tsconfig.json` files still include
+  `.next/types/**/*.ts`. No excerpt content changed. Four things were edited in
+  that review: the `Depends on` line was corrected from `none` to plan 049 to
+  match the recorded execution order; a `## Drift warning` section was added,
+  because plan 015 edits this same workflow file at an earlier queue position;
+  the `packages/xero/keys.ts` citation was corrected from 45-59 to 46-59, since
+  line 45 is `XERO_REDIRECT_URI`; and done criterion 7 now allows this plan file
+  and `plans/README.md`, which the plan's own status-row instruction requires.
 
 ## Why this matters
 
@@ -43,6 +56,23 @@ error, and the signal that gates merges does not.
 
 Adding a build step fixes both problems at once, provided it runs *before* the
 typecheck so the generated types exist when `tsc` runs.
+
+## Drift warning
+
+Plan 015 runs at position 2 and this plan at position 3, and **both edit
+`.github/workflows/ci.yml`**. Plan 015 adds a workspace guard step to that file,
+so the full step list quoted under `## Current state` will have one more step in
+it than shown by the time you execute.
+
+That does not touch this plan's finding: CI still has no `bun run build`, and the
+build must still be inserted before the typecheck so `.next/types` exists when
+`tsc` runs. Place the new step relative to the real `Lint` and `Typecheck` steps
+in the live file rather than by the line numbers quoted here. Done criterion 2
+asserts the resulting Lint, Build, Typecheck order, so verify it against the file
+you actually edited.
+
+Plan 049 must already be merged. This plan adds a CI step that runs
+`bun run build`, and that command crashes the Bun runtime until 049 lands.
 
 ## Current state
 
@@ -178,7 +208,7 @@ export const keys = () =>
 
 `DATABASE_URL` is already set at the job level, so this one is satisfied.
 
-`packages/xero/keys.ts` lines 45-59 declares a **required** key:
+`packages/xero/keys.ts` lines 46-59 declares a **required** key:
 
 ```typescript
       XERO_TOKEN_ENCRYPTION_KEY: z.string().refine(
@@ -449,7 +479,9 @@ All of the following, verbatim:
 4. `bun run check` exits 0.
 5. `bun run build` exits 0.
 6. `bun run typecheck` exits 0 when run immediately after step 5.
-7. `git diff --name-only` lists exactly one file: `.github/workflows/ci.yml`.
+7. `git diff --name-only` lists exactly one source file,
+   `.github/workflows/ci.yml`, plus this plan file and `plans/README.md` for the
+   status update.
 
 ## STOP conditions
 

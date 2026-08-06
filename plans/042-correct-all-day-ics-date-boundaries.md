@@ -33,12 +33,15 @@ holiday path.
 
 ## Current state
 
-- `apps/app/app/(authenticated)/plans/_schemas.ts:125-134` stores an all-day
-  form end at `23:59:59.999` on the selected final date.
-- `packages/jobs/src/handlers/sync-xero-leave-records.ts:842-846` stores a Xero
-  date-only end at midnight on the named final date.
-- `packages/feeds/src/projection/feed-projection.ts:171-201` copies
-  `record.ends_at` directly into the projected event.
+- `apps/app/app/(authenticated)/plans/_schemas.ts:125-135` (`buildFormDate`,
+  all-day branch at line 132) stores an all-day form end at `23:59:59.999` on
+  the selected final date.
+- `packages/jobs/src/handlers/sync-xero-leave-records.ts:856-861`
+  (`parseXeroDate`) stores a Xero date-only end at midnight on the named final
+  date by appending `T00:00:00.000Z`.
+- `packages/feeds/src/projection/feed-projection.ts:171-202`
+  (`projectAvailabilityRecord`) copies `record.ends_at` directly into the
+  projected event at line 185.
 - `packages/feeds/src/render/render-feed.ts:63-75` passes that value to
   `ical-generator` with `allDay: true`.
 - `packages/feeds/src/projection/feed-projection.ts:277-278` already advances

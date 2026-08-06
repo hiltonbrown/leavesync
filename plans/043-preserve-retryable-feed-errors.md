@@ -24,6 +24,17 @@ returns 404 for every error. Calendar clients can interpret a 404 as a removed
 subscription and stop polling. A transient database or projection failure must
 remain a retryable server response.
 
+## Drift warning
+
+Plan 042 runs at position 6 and this plan at position 7. **Both edit
+`packages/feeds/src/render/render-feed.test.ts`**: 042 adds exact `DTSTART` and
+`DTEND` assertions for all-day events, this plan adds render-error cases.
+
+The two do not conflict, but the file will already contain 042's cases when you
+open it. Add to it rather than assuming it matches what is quoted here, and leave
+042's all-day assertions intact. If an all-day assertion fails after your change,
+that is a real regression in the render path, not a stale test to update.
+
 ## Current state
 
 - `packages/feeds/src/projection/feed-projection.ts:142-149` returns
@@ -59,7 +70,7 @@ The token lifecycle contract remains:
 | Purpose | Command | Expected on success |
 |---|---|---|
 | Feed tests | `bunx vitest run packages/feeds/src/render/render-feed.test.ts` | all pass |
-| Route tests | `bunx vitest run apps/api/app/ical/[token]/route.test.ts` | all pass |
+| Route tests | `bunx vitest run 'apps/api/app/ical/[token]/route.test.ts'` | all pass |
 | Unit suite | `bun run test` | exit 0 |
 | Typecheck | `bun run typecheck` | exit 0 |
 | Lint | `bun run check` | exit 0 |

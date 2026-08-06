@@ -51,17 +51,71 @@ The success paths in these same two files already get this right: they notify
 failure paths are the only ones that do not, which makes this an inconsistency
 to remove rather than a design question to settle.
 
+## Drift warning
+
+**The `## Current state` excerpts here were verified on 2026-08-06 against
+`fb9f1cc`, and that verification expires as soon as any earlier plan in the queue
+merges. Re-verify immediately before executing.**
+
+This plan runs last of the four that touch the approvals area, at position 14,
+and it is the only one that edits two shared files:
+
+- `packages/availability/src/approvals/approval-service.ts` is edited by plan 011
+  at position 11 and plan 013 at position 12 before you open it. 013 in
+  particular replaces the list query's `include` with an explicit projection and
+  adds pagination, so line numbers through the front half of the file will move.
+- `packages/availability/src/plans/submit-service.ts` is edited by plan 017 at
+  position 8, which adds a claim before the Xero write and touches the same
+  `persistXeroFailure` region this plan quotes.
+
+This plan is ordered last deliberately: moving notifications out of the state
+transaction is the largest structural change of the four, so it absorbs the
+drift rather than creating it for the others. Expect the excerpts to have moved
+and re-read both files in full.
+
+Before executing this plan:
+
+1. Re-run the drift check at the top of this file against current `HEAD`, not
+   against the commit named in the Status block.
+2. Re-read every file quoted under `## Current state` and confirm the excerpts
+   still match. Line numbers alone are not enough; check the code shape.
+3. Treat a mismatch as a refresh task, not a licence to improvise. Update the
+   excerpts, then execute.
+
+### How this interacts with the header's STOP-on-mismatch rule
+
+The executor instructions at the top of this file say to compare the excerpts
+against live code and, on a mismatch, "treat it as a STOP condition". That rule
+exists to catch **unexpected** drift, where a mismatch may mean the finding
+itself has moved or been fixed. It is not the right response to drift this
+review has already predicted and attributed to a named predecessor plan.
+
+So, for the files named above only:
+
+- **Expected drift is a refresh.** The excerpt moved or changed shape because a
+  named earlier plan edited that file. Update the excerpt and continue.
+- **Unexpected drift is still a STOP.** Report and do not improvise if the
+  mismatch is in a file not named above, if the finding no longer holds because
+  the defect is already gone, or if the surrounding code has been restructured
+  enough that this plan's fix no longer applies as written.
+
+If you cannot tell which case you are in, that is itself a STOP: say what you
+found and let a human decide. The rule of thumb is that refreshing a line number
+or re-quoting a moved block is routine, while changing what the plan does is
+not.
+
 ## Current state
 
 ### Relevant files
 
 - `packages/availability/src/approvals/approval-service.ts` —
-  `persistApprovalFailure` (line 925), the throwing `notifyUser` (line 1396),
-  the existing best-effort helper `notifyApprovalBestEffort` (line 1444) and the
+  `persistApprovalFailure` (line 922), the throwing `notifyUser` (its
+  `NotificationCreateError` throw is at line 1396),
+  the existing best-effort helper `notifyApprovalBestEffort` (line 1443) and the
   catch that swallows the detail (line 754).
 - `packages/availability/src/plans/submit-service.ts` — `persistXeroFailure`
-  (line 450) and the equivalent best-effort helper `notifyManagerBestEffort`
-  (line 645).
+  (line 446) and the equivalent best-effort helper `notifyManagerBestEffort`
+  (line 643).
 
 ### The failure transaction in the approval service
 
@@ -104,7 +158,7 @@ correct. Keep it.
 
 ### The notification helper throws on an expected failure
 
-`packages/availability/src/approvals/approval-service.ts:1396-1398`:
+`packages/availability/src/approvals/approval-service.ts:1395-1397`:
 
 ```typescript
   if (!result.ok) {
@@ -132,7 +186,7 @@ A `NotificationCreateError` falls through to `unknownError`, so the original
 
 ### The identical shape in the submit service
 
-`packages/availability/src/plans/submit-service.ts:455-494`:
+`packages/availability/src/plans/submit-service.ts:456-495`:
 
 ```typescript
   await database.$transaction(async (tx) => {
@@ -394,7 +448,8 @@ Machine-checkable. ALL must hold:
 - [ ] `grep -n "notifyOwnerAndManager(\s*tx" packages/availability/src/plans/submit-service.ts`
       returns no matches
 - [ ] `bunx vitest run packages/availability` passes with at least 6 new cases
-- [ ] `git status --short` shows only the four in-scope files modified
+- [ ] `git status --short` shows only the four in-scope files modified, plus this
+      plan file and `plans/README.md` for the status update
 - [ ] Status row for plan 012 updated in `plans/README.md`
 
 ## STOP conditions

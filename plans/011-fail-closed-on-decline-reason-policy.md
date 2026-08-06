@@ -59,27 +59,80 @@ is presented to admins in the settings UI, but the server action's Zod schema
 requires a reason unconditionally, so turning the toggle off changes nothing a
 user can observe. Both branches of a repo-mandated invariant are also untested.
 
+## Drift warning
+
+**The `## Current state` excerpts in this plan were verified on 2026-08-06
+against `fb9f1cc`. Re-verify them immediately before executing.**
+
+Three queued plans modify
+`packages/availability/src/approvals/approval-service.ts`: this one at position
+11, plan 013 at position 12 and plan 012 at position 14. **This plan is the
+first of the three**, and no plan at positions 1 to 10 touches that file, so its
+excerpts should still hold when you reach it. Confirm that rather than assuming
+it.
+
+Plan 018 runs between them at position 13. It is grouped with this set by
+execution order only: it edits the job handlers in `packages/jobs` and does not
+modify `approval-service.ts`.
+
+Land this plan cleanly. Plans 013 and 012 both refresh against whatever you
+leave behind, and both carry the matching warning.
+
+Before executing this plan:
+
+1. Re-run the drift check at the top of this file against current `HEAD`, not
+   against the commit named in the Status block.
+2. Re-read every file quoted under `## Current state` and confirm the excerpts
+   still match. Line numbers alone are not enough; check the code shape.
+3. Treat a mismatch as a refresh task, not a licence to improvise. Update the
+   excerpts, then execute.
+
+### How this interacts with the header's STOP-on-mismatch rule
+
+The executor instructions at the top of this file say to compare the excerpts
+against live code and, on a mismatch, "treat it as a STOP condition". That rule
+exists to catch **unexpected** drift, where a mismatch may mean the finding
+itself has moved or been fixed. It is not the right response to drift this
+review has already predicted and attributed to a named predecessor plan.
+
+So, for the files named above only:
+
+- **Expected drift is a refresh.** The excerpt moved or changed shape because a
+  named earlier plan edited that file. Update the excerpt and continue.
+- **Unexpected drift is still a STOP.** Report and do not improvise if the
+  mismatch is in a file not named above, if the finding no longer holds because
+  the defect is already gone, or if the surrounding code has been restructured
+  enough that this plan's fix no longer applies as written.
+
+If you cannot tell which case you are in, that is itself a STOP: say what you
+found and let a human decide. The rule of thumb is that refreshing a line number
+or re-quoting a moved block is routine, while changing what the plan does is
+not.
+
 ## Current state
 
 ### Relevant files
 
 - `packages/availability/src/approvals/approval-service.ts` — the fail-open
-  decline check (line 438) and the fail-open list default (line 239).
+  decline check (line 442) and the fail-open list default (line 239).
 - `packages/availability/src/approvals/approval-service.test.ts` — has a
-  `requireDeclineReason: true` fixture at line 195 but never exercises either
+  `requireDeclineReason: true` fixture at line 200 but never exercises either
   branch.
 - `apps/app/app/(authenticated)/leave-approvals/_actions.ts` — the server
   action's Zod schema, which requires a reason unconditionally (lines 28-30).
 - `apps/app/app/(authenticated)/settings/leave-approval/leave-approval-settings-client.tsx`
   — the admin-facing toggle (around line 200).
-- `packages/database/src/organisation-settings/repository.ts` — defaults
-  `requireDeclineReason` to `true` (line 45).
+- `packages/database/prisma/schema.prisma:314` sets the database default for
+  `require_decline_reason` to `@default(true)`, so the restrictive direction is
+  already the schema's own choice. Note that
+  `packages/database/src/organisation-settings/repository.ts:45` is a Prisma
+  `select` map entry, not a default; do not read it as one.
 - `packages/availability/src/settings/manager-scope.ts` — the correct
-  fail-closed convention (lines 27-29).
+  fail-closed convention (lines 28-30).
 
 ### The fail-open decline check
 
-`packages/availability/src/approvals/approval-service.ts:436-454`:
+`packages/availability/src/approvals/approval-service.ts:436-455`:
 
 ```typescript
     return validationError(parsed.error);
@@ -117,15 +170,17 @@ user can observe. Both branches of a repo-mandated invariant are also untested.
 
 ### The conservative convention this restores
 
-`packages/availability/src/settings/manager-scope.ts:27-29`:
+`packages/availability/src/settings/manager-scope.ts:28-30`:
 
 ```typescript
   if (!settingsResult.ok) {
-    return [input.actingPersonId];
+    return input.excludeSelf ? [] : [input.actingPersonId];
   }
 ```
 
-The failure is handled explicitly and degrades to the narrowest safe answer.
+Plan 004 added the `excludeSelf` branch here. The failure is still handled
+explicitly, and both arms still degrade to the narrowest safe answer, which is
+the property this plan copies.
 
 ### The server action makes the toggle inert
 
@@ -308,8 +363,8 @@ Append a section to the bottom of this plan file titled
 - New tests: 7 cases in
   `packages/availability/src/approvals/approval-service.test.ts`.
 - Structural pattern to copy: the existing decline tests in that file (around
-  lines 305, 386, 439 and 542), which already construct a decline command and
-  assert on the `Result`. The fixture at line 195 already sets
+  lines 359, 434, 500 and 534), which already construct a decline command and
+  assert on the `Result`. The fixture at line 200 already sets
   `requireDeclineReason: true`; your new cases need to vary it.
 - The load-bearing assertion: with `getSettings` failing, an empty-reason
   decline is rejected and no Xero write is attempted.
@@ -326,7 +381,8 @@ Machine-checkable. ALL must hold:
 - [ ] `bunx vitest run packages/availability/src/approvals/approval-service.test.ts`
       passes with at least 7 new test cases
 - [ ] The "Open question" section has been added to this file
-- [ ] `git status --short` shows only the two in-scope files modified
+- [ ] `git status --short` shows only the two in-scope files modified, plus this
+      plan file and `plans/README.md` for the status update
 - [ ] Status row for plan 011 updated in `plans/README.md`
 
 ## STOP conditions
@@ -361,3 +417,25 @@ Stop and report back (do not improvise) if:
   to the server action schema.
 - If `getSettings` gains caching later, the failure branch becomes rarer but not
   impossible, and these guards should stay.
+
+## Open question: the requireDeclineReason toggle is currently inert
+
+Recorded during the queue review on 2026-08-06, ahead of execution, so that the
+decision is captured whether or not this plan runs. Step 5 asks for exactly this
+section; it already exists, so Step 5's verification passes without appending a
+second copy.
+
+**This is an unresolved product decision. Do not resolve it while executing this
+plan.**
+
+- `apps/app/app/(authenticated)/leave-approvals/_actions.ts:28-30` requires a
+  reason of at least 3 characters unconditionally, before the service reads the
+  org setting.
+- Therefore an admin who turns `requireDeclineReason` off in the settings UI sees
+  no behaviour change.
+- The service-layer branch that the setting controls is tested by case 5 above,
+  but is unreachable from the product.
+- Two coherent resolutions: make the action schema conditional on the setting so
+  the toggle becomes real, or remove the toggle from the settings UI because the
+  product has decided a reason is always required.
+- Do not pick one. This is a product decision.

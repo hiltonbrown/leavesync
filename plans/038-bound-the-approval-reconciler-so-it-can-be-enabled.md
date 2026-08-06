@@ -84,6 +84,27 @@ there, leaves Team Calendar showing a stale state forever, and Team Calendar's
 availability feeds are what the rest of the business plans around. The
 reconciler is the only mechanism that closes that loop, and it is switched off.
 
+## Drift warning
+
+This plan runs at position 15, after two plans that edit files it quotes:
+
+- **Plan 018 at position 13** edits
+  `packages/jobs/src/handlers/reconcile-xero-approval-state.ts`, adding cleared
+  write-error fields to the reconciler's declined and withdrawn branches. The
+  four `data` objects quoted under `## Current state` will have changed. That is
+  why `018 -> 038` exists.
+- **Plan 013 at position 12** paginates the approvals list and edits both
+  `apps/app/app/(authenticated)/leave-approvals/page.tsx` and
+  `leave-approvals-client.tsx`. The `reconciliationEnabled={false}` gate and the
+  disabled-button excerpts quoted here will have moved.
+
+Neither changes this plan's finding: the candidate query is still an unbounded
+`findMany` with no `take` and no cursor, and the gate is still hard-coded off.
+Re-read all four files before editing. Preserve both plan 007's `transitioned`
+return shape and plan 018's cleared error fields when you touch the branches;
+this plan bounds the query and adds resumability, it does not change what a
+branch writes.
+
 ## Current state
 
 ### The gate
@@ -134,7 +155,7 @@ either is touched.
 
 ### The unbounded candidate query
 
-`packages/jobs/src/handlers/reconcile-xero-approval-state.ts` lines 226-245:
+`packages/jobs/src/handlers/reconcile-xero-approval-state.ts` lines 228-247:
 
 ```typescript
     const records = await database.availabilityRecord.findMany({
