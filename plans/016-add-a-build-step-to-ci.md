@@ -52,6 +52,23 @@ error, and the signal that gates merges does not.
 Adding a build step fixes both problems at once, provided it runs *before* the
 typecheck so the generated types exist when `tsc` runs.
 
+## Drift warning
+
+Plan 015 runs at position 2 and this plan at position 3, and **both edit
+`.github/workflows/ci.yml`**. Plan 015 adds a workspace guard step to that file,
+so the full step list quoted under `## Current state` will have one more step in
+it than shown by the time you execute.
+
+That does not touch this plan's finding: CI still has no `bun run build`, and the
+build must still be inserted before the typecheck so `.next/types` exists when
+`tsc` runs. Place the new step relative to the real `Lint` and `Typecheck` steps
+in the live file rather than by the line numbers quoted here. Done criterion 2
+asserts the resulting Lint, Build, Typecheck order, so verify it against the file
+you actually edited.
+
+Plan 049 must already be merged. This plan adds a CI step that runs
+`bun run build`, and that command crashes the Bun runtime until 049 lands.
+
 ## Current state
 
 ### `.github/workflows/ci.yml` (verified at commit `75202db`)

@@ -65,6 +65,22 @@ Approve, decline and withdraw are not affected in the same way. They POST to
 application: a duplicate call fails with a conflict rather than creating
 anything. Only submission creates.
 
+## Drift warning
+
+Plan 010 runs at position 5 and this plan at position 8. **Plan 010 rewrites the
+`decryptXeroToken` call inside `xeroRequest`** to a non-throwing variant, so
+`packages/xero/src/au/write.ts` will already have changed when you open it. The
+`xeroRequest` excerpt under `## Current state` shows the pre-010 shape.
+
+The two findings are independent: 010 changes how a decryption failure is
+reported, this plan changes whether the creating POST is retried. Re-read
+`write.ts` as it then stands and add `retryOnAmbiguousFailure: false` to the
+submit call in place.
+
+Plan 012 at position 14 edits
+`packages/availability/src/plans/submit-service.ts` after you do, and carries the
+matching warning. Land this plan first, as the order requires.
+
 ## Current state
 
 ### `xeroFetch` retries every request, including creating POSTs

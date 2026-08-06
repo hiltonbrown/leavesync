@@ -53,15 +53,25 @@ to remove rather than a design question to settle.
 
 ## Drift warning
 
-**The `## Current state` excerpts in this plan were verified on 2026-08-06
-against `fb9f1cc`, and that verification expires the moment any other plan in
-the approvals cluster merges.**
+**The `## Current state` excerpts here were verified on 2026-08-06 against
+`fb9f1cc`, and that verification expires as soon as any earlier plan in the queue
+merges. Re-verify immediately before executing.**
 
-Plans 011, 013, 018 and 012 all modify
-`packages/availability/src/approvals/approval-service.ts`. They execute serially
-in that order, each merged to `main` before the next begins, so every plan after
-the first opens a file its predecessors have already changed. Line numbers in
-this plan will move, and the surrounding code may be restructured.
+This plan runs last of the four that touch the approvals area, at position 14,
+and it is the only one that edits two shared files:
+
+- `packages/availability/src/approvals/approval-service.ts` is edited by plan 011
+  at position 11 and plan 013 at position 12 before you open it. 013 in
+  particular replaces the list query's `include` with an explicit projection and
+  adds pagination, so line numbers through the front half of the file will move.
+- `packages/availability/src/plans/submit-service.ts` is edited by plan 017 at
+  position 8, which adds a claim before the Xero write and touches the same
+  `persistXeroFailure` region this plan quotes.
+
+This plan is ordered last deliberately: moving notifications out of the state
+transaction is the largest structural change of the four, so it absorbs the
+drift rather than creating it for the others. Expect the excerpts to have moved
+and re-read both files in full.
 
 Before executing this plan:
 
@@ -71,9 +81,6 @@ Before executing this plan:
    still match. Line numbers alone are not enough; check the code shape.
 3. Treat a mismatch as a refresh task, not a licence to improvise. Update the
    excerpts, then execute.
-
-Do not rely on the 2026-08-06 pass. It confirmed the finding still holds at that
-commit; it cannot speak for the tree you will actually be editing.
 
 ## Current state
 

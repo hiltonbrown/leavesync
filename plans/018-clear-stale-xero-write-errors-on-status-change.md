@@ -62,15 +62,26 @@ sites look intentional to a reader when they are not.
 
 ## Drift warning
 
-**The `## Current state` excerpts in this plan were verified on 2026-08-06
-against `fb9f1cc`, and that verification expires the moment any other plan in
-the approvals cluster merges.**
+**The `## Current state` excerpts here were verified on 2026-08-06 against
+`fb9f1cc`. Re-verify them immediately before executing this plan.**
 
-Plans 011, 013, 018 and 012 all modify
-`packages/availability/src/approvals/approval-service.ts`. They execute serially
-in that order, each merged to `main` before the next begins, so every plan after
-the first opens a file its predecessors have already changed. Line numbers in
-this plan will move, and the surrounding code may be restructured.
+This plan runs at position 13 of the serial queue and shares a file with the
+plan that follows it:
+
+- `packages/jobs/src/handlers/reconcile-xero-approval-state.ts` is edited here
+  and again by plan 038 at position 15. That is why `018 -> 038` exists. This
+  plan changes what each reconciler branch writes; 038 bounds the candidate
+  query. Land this one first, as the order requires.
+- `packages/jobs/src/handlers/sync-xero-leave-records.ts` is edited by no other
+  queued plan.
+
+**This plan does not modify
+`packages/availability/src/approvals/approval-service.ts`.** It only reads
+`mutedNoteForRecord` there (lines 1325-1333) to explain why a stale
+`failed_action` is visible to users, and `packages/availability` is explicitly
+out of scope. Plans 011, 013 and 012 do modify that file, at positions 11, 12
+and 14. This plan sits among them by execution order, not by shared code, so a
+change to `approval-service.ts` is not a reason to widen this plan.
 
 Before executing this plan:
 
@@ -80,9 +91,6 @@ Before executing this plan:
    still match. Line numbers alone are not enough; check the code shape.
 3. Treat a mismatch as a refresh task, not a licence to improvise. Update the
    excerpts, then execute.
-
-Do not rely on the 2026-08-06 pass. It confirmed the finding still holds at that
-commit; it cannot speak for the tree you will actually be editing.
 
 ## Current state
 

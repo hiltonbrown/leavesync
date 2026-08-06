@@ -62,14 +62,21 @@ user can observe. Both branches of a repo-mandated invariant are also untested.
 ## Drift warning
 
 **The `## Current state` excerpts in this plan were verified on 2026-08-06
-against `fb9f1cc`, and that verification expires the moment any other plan in
-the approvals cluster merges.**
+against `fb9f1cc`. Re-verify them immediately before executing.**
 
-Plans 011, 013, 018 and 012 all modify
-`packages/availability/src/approvals/approval-service.ts`. They execute serially
-in that order, each merged to `main` before the next begins, so every plan after
-the first opens a file its predecessors have already changed. Line numbers in
-this plan will move, and the surrounding code may be restructured.
+Three queued plans modify
+`packages/availability/src/approvals/approval-service.ts`: this one at position
+11, plan 013 at position 12 and plan 012 at position 14. **This plan is the
+first of the three**, and no plan at positions 1 to 10 touches that file, so its
+excerpts should still hold when you reach it. Confirm that rather than assuming
+it.
+
+Plan 018 runs between them at position 13. It is grouped with this set by
+execution order only: it edits the job handlers in `packages/jobs` and does not
+modify `approval-service.ts`.
+
+Land this plan cleanly. Plans 013 and 012 both refresh against whatever you
+leave behind, and both carry the matching warning.
 
 Before executing this plan:
 
@@ -79,9 +86,6 @@ Before executing this plan:
    still match. Line numbers alone are not enough; check the code shape.
 3. Treat a mismatch as a refresh task, not a licence to improvise. Update the
    excerpts, then execute.
-
-Do not rely on the 2026-08-06 pass. It confirmed the finding still holds at that
-commit; it cannot speak for the tree you will actually be editing.
 
 ## Current state
 

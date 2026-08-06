@@ -55,14 +55,24 @@ component at all, even if the UI does not render them.
 ## Drift warning
 
 **The `## Current state` excerpts in this plan were verified on 2026-08-06
-against `fb9f1cc`, and that verification expires the moment any other plan in
-the approvals cluster merges.**
+against `fb9f1cc`, and that verification expires as soon as plan 011 merges.
+Re-verify immediately before executing.**
 
-Plans 011, 013, 018 and 012 all modify
-`packages/availability/src/approvals/approval-service.ts`. They execute serially
-in that order, each merged to `main` before the next begins, so every plan after
-the first opens a file its predecessors have already changed. Line numbers in
-this plan will move, and the surrounding code may be restructured.
+Three queued plans modify
+`packages/availability/src/approvals/approval-service.ts`: plan 011 at position
+11, this one at position 12 and plan 012 at position 14. **Plan 011 lands
+first**, changing the two `settingsResult.ok &&` sites, one of which is the
+`showDeclinedOnApprovals` default quoted here at lines 239-243. Expect that
+excerpt in particular to have changed shape, not merely moved.
+
+Plan 018 runs at position 13. It is grouped with this set by execution order
+only: it edits the job handlers in `packages/jobs` and does not modify
+`approval-service.ts`.
+
+This plan also edits
+`apps/app/app/(authenticated)/leave-approvals/page.tsx` and
+`leave-approvals-client.tsx`, which plan 038 quotes at position 15. Plan 038
+carries the matching warning.
 
 Before executing this plan:
 
@@ -72,9 +82,6 @@ Before executing this plan:
    still match. Line numbers alone are not enough; check the code shape.
 3. Treat a mismatch as a refresh task, not a licence to improvise. Update the
    excerpts, then execute.
-
-Do not rely on the 2026-08-06 pass. It confirmed the finding still holds at that
-commit; it cannot speak for the tree you will actually be editing.
 
 ## Current state
 

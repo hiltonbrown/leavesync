@@ -205,6 +205,26 @@ mutates and deletes rows. It scopes every delete to its two fixture
 `DATABASE_URL` at anything you care about. If you do not have a throwaway
 database, go to STOP conditions.
 
+Check the execution environment before concluding you have none. A
+`DATABASE_URL` may already be exported there, or configured in
+`packages/database/.env`; `packages/database/.env.example` documents the shape.
+Confirm presence without printing the value:
+
+```
+[ -n "$DATABASE_URL" ] && echo present
+```
+
+**Unlike plan 017, presence is not sufficient here.** This test is destructive by
+design, so you must also establish that the database is disposable before
+pointing the test at it. A shared development or staging database is not
+disposable. If you cannot confirm that, treat it as "no throwaway database" and
+go to STOP conditions.
+
+Deferring this plan blocks nothing. It sits at position 4 of the serial queue,
+but no other plan depends on it, so if no disposable database is available when
+you reach it, skip to position 5 and run this one standalone later. It remains a
+required go-live row before plan 046.
+
 ## Scope
 
 **In scope:**
