@@ -58,9 +58,9 @@ mode must be an explicit later switch with its own preflight requirements.
 
 ## Current state
 
-- `apps/web/app/pricing/constants.ts:29,47` links the Basic and Premium CTAs to
-  `/sign-up` even though `apps/web/src/lib/auth-links.ts:23` already exposes the
-  canonical cross-origin sign-up URL.
+- `apps/web/app/pricing/constants.ts:30,48` links the Basic and Premium CTAs to
+  `/sign-up` even though `apps/web/src/lib/auth-links.ts:24` already exposes the
+  canonical cross-origin sign-up URL as `signUpHref`.
 - `apps/web/app/pricing/components/pricing-experience.tsx:207-231` prevents the
   form submission and displays success without storing or sending the lead.
 - `apps/web/app/contact/components/contact-form.tsx:80-142` renders controls

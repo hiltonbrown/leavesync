@@ -57,10 +57,10 @@ component at all, even if the UI does not render them.
 ### Relevant files
 
 - `packages/availability/src/approvals/approval-service.ts` — the unbounded
-  query (line 257), the status defaults (line 239), `recordInclude` (line 1714),
+  query (line 258), the status defaults (line 239), `recordInclude` (line 1706),
   and `toApprovalListItem`, which defines what the UI actually needs.
 - `apps/app/app/(authenticated)/leave-approvals/page.tsx` — passes the result
-  into the client component (around line 122).
+  into the client component (around line 143).
 - `apps/app/app/(authenticated)/leave-approvals/leave-approvals-client.tsx` —
   the consumer.
 - `packages/availability/src/analytics/leave-reports-service.ts` — contains the
@@ -71,7 +71,7 @@ component at all, even if the UI does not render them.
 
 ### The unbounded query
 
-`packages/availability/src/approvals/approval-service.ts:257-278`:
+`packages/availability/src/approvals/approval-service.ts:258-281`:
 
 ```typescript
     const records = await database.availabilityRecord.findMany({
@@ -115,7 +115,7 @@ approved is returned, forever.
 
 ### `recordInclude` does not constrain the record's own columns
 
-`packages/availability/src/approvals/approval-service.ts:1714-1737`:
+`packages/availability/src/approvals/approval-service.ts:1706-1729`:
 
 ```typescript
 const recordInclude = {

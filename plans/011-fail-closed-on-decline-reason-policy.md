@@ -64,22 +64,25 @@ user can observe. Both branches of a repo-mandated invariant are also untested.
 ### Relevant files
 
 - `packages/availability/src/approvals/approval-service.ts` — the fail-open
-  decline check (line 438) and the fail-open list default (line 239).
+  decline check (line 442) and the fail-open list default (line 239).
 - `packages/availability/src/approvals/approval-service.test.ts` — has a
-  `requireDeclineReason: true` fixture at line 195 but never exercises either
+  `requireDeclineReason: true` fixture at line 200 but never exercises either
   branch.
 - `apps/app/app/(authenticated)/leave-approvals/_actions.ts` — the server
   action's Zod schema, which requires a reason unconditionally (lines 28-30).
 - `apps/app/app/(authenticated)/settings/leave-approval/leave-approval-settings-client.tsx`
   — the admin-facing toggle (around line 200).
-- `packages/database/src/organisation-settings/repository.ts` — defaults
-  `requireDeclineReason` to `true` (line 45).
+- `packages/database/prisma/schema.prisma:314` sets the database default for
+  `require_decline_reason` to `@default(true)`, so the restrictive direction is
+  already the schema's own choice. Note that
+  `packages/database/src/organisation-settings/repository.ts:45` is a Prisma
+  `select` map entry, not a default; do not read it as one.
 - `packages/availability/src/settings/manager-scope.ts` — the correct
-  fail-closed convention (lines 27-29).
+  fail-closed convention (lines 28-30).
 
 ### The fail-open decline check
 
-`packages/availability/src/approvals/approval-service.ts:436-454`:
+`packages/availability/src/approvals/approval-service.ts:436-455`:
 
 ```typescript
     return validationError(parsed.error);
@@ -117,13 +120,16 @@ user can observe. Both branches of a repo-mandated invariant are also untested.
 
 ### The conservative convention this restores
 
-`packages/availability/src/settings/manager-scope.ts:27-29`:
+`packages/availability/src/settings/manager-scope.ts:28-30`:
 
 ```typescript
   if (!settingsResult.ok) {
-    return [input.actingPersonId];
+    return input.excludeSelf ? [] : [input.actingPersonId];
   }
 ```
+
+Plan 004 added the `excludeSelf` branch here. Both arms still degrade to the
+narrowest safe answer, which is the property this plan copies.
 
 The failure is handled explicitly and degrades to the narrowest safe answer.
 
@@ -308,8 +314,8 @@ Append a section to the bottom of this plan file titled
 - New tests: 7 cases in
   `packages/availability/src/approvals/approval-service.test.ts`.
 - Structural pattern to copy: the existing decline tests in that file (around
-  lines 305, 386, 439 and 542), which already construct a decline command and
-  assert on the `Result`. The fixture at line 195 already sets
+  lines 359, 434, 500 and 534), which already construct a decline command and
+  assert on the `Result`. The fixture at line 200 already sets
   `requireDeclineReason: true`; your new cases need to vary it.
 - The load-bearing assertion: with `getSettings` failing, an empty-reason
   decline is rejected and no Xero write is attempted.
@@ -361,3 +367,25 @@ Stop and report back (do not improvise) if:
   to the server action schema.
 - If `getSettings` gains caching later, the failure branch becomes rarer but not
   impossible, and these guards should stay.
+
+## Open question: the requireDeclineReason toggle is currently inert
+
+Recorded during the queue review on 2026-08-06, ahead of execution, so that the
+decision is captured whether or not this plan runs. Step 5 asks for exactly this
+section; it already exists, so Step 5's verification passes without appending a
+second copy.
+
+**This is an unresolved product decision. Do not resolve it while executing this
+plan.**
+
+- `apps/app/app/(authenticated)/leave-approvals/_actions.ts:28-30` requires a
+  reason of at least 3 characters unconditionally, before the service reads the
+  org setting.
+- Therefore an admin who turns `requireDeclineReason` off in the settings UI sees
+  no behaviour change.
+- The service-layer branch that the setting controls is tested by case 5 above,
+  but is unreachable from the product.
+- Two coherent resolutions: make the action schema conditional on the setting so
+  the toggle becomes real, or remove the toggle from the settings UI because the
+  product has decided a reason is always required.
+- Do not pick one. This is a product decision.

@@ -16,9 +16,17 @@
 - **Priority**: P2
 - **Effort**: S
 - **Risk**: LOW
-- **Depends on**: none
+- **Depends on**: plan 049. This plan adds `bun run build` to CI, and
+  `bun run build` currently crashes the Bun runtime on `apps/app`. Plan 049
+  removes that crash. Adding the step first would add a CI stage that fails on
+  its first run. See "Execute these first" in `plans/README.md`.
 - **Category**: dx, ci
 - **Planned at**: commit `75202db`, 2026-07-25
+- **Reviewed**: 2026-08-06 against `fb9f1cc`. Every "Current state" excerpt still
+  matches live code: `.github/workflows/ci.yml` is unchanged and still contains
+  no `bun run build`, and all three app `tsconfig.json` files still include
+  `.next/types/**/*.ts`. The `Depends on` line was corrected from `none` to plan
+  049 to match the recorded execution order; no other change.
 
 ## Why this matters
 

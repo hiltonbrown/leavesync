@@ -56,12 +56,13 @@ to remove rather than a design question to settle.
 ### Relevant files
 
 - `packages/availability/src/approvals/approval-service.ts` —
-  `persistApprovalFailure` (line 925), the throwing `notifyUser` (line 1396),
-  the existing best-effort helper `notifyApprovalBestEffort` (line 1444) and the
+  `persistApprovalFailure` (line 922), the throwing `notifyUser` (its
+  `NotificationCreateError` throw is at line 1396),
+  the existing best-effort helper `notifyApprovalBestEffort` (line 1443) and the
   catch that swallows the detail (line 754).
 - `packages/availability/src/plans/submit-service.ts` — `persistXeroFailure`
-  (line 450) and the equivalent best-effort helper `notifyManagerBestEffort`
-  (line 645).
+  (line 446) and the equivalent best-effort helper `notifyManagerBestEffort`
+  (line 643).
 
 ### The failure transaction in the approval service
 
@@ -104,7 +105,7 @@ correct. Keep it.
 
 ### The notification helper throws on an expected failure
 
-`packages/availability/src/approvals/approval-service.ts:1396-1398`:
+`packages/availability/src/approvals/approval-service.ts:1395-1397`:
 
 ```typescript
   if (!result.ok) {
@@ -132,7 +133,7 @@ A `NotificationCreateError` falls through to `unknownError`, so the original
 
 ### The identical shape in the submit service
 
-`packages/availability/src/plans/submit-service.ts:455-494`:
+`packages/availability/src/plans/submit-service.ts:456-495`:
 
 ```typescript
   await database.$transaction(async (tx) => {

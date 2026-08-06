@@ -56,7 +56,7 @@ returns the error the guard below already produces.
 - `packages/xero/src/crypto/tokens.ts` — `decryptXeroToken` (line 33) and
   `readKey` (line 61), both of which throw.
 - `packages/xero/src/au/write.ts` — one call site (line 150).
-- `packages/xero/src/au/read.ts` — four call sites (lines 45, 123, 212, 308).
+- `packages/xero/src/au/read.ts` — four call sites (lines 47, 152, 262, 358).
 
 ### The thrower
 
@@ -123,7 +123,7 @@ below each call site handles `""`. That path is already fine.
 ```
 
 The `try` begins at line 166, after the decrypt. The four sites in
-`packages/xero/src/au/read.ts` (lines 45, 123, 212, 308) have the same shape:
+`packages/xero/src/au/read.ts` (lines 47, 152, 262, 358) have the same shape:
 decrypt, then an `auth_error` guard, then `try`.
 
 The error object in that guard is the exact value the new code should return.

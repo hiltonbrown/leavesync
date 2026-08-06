@@ -134,7 +134,7 @@ either is touched.
 
 ### The unbounded candidate query
 
-`packages/jobs/src/handlers/reconcile-xero-approval-state.ts` lines 226-245:
+`packages/jobs/src/handlers/reconcile-xero-approval-state.ts` lines 228-247:
 
 ```typescript
     const records = await database.availabilityRecord.findMany({

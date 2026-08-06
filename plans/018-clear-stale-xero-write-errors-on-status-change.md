@@ -43,11 +43,11 @@ Three code paths move a record out of `xero_sync_failed` without clearing them:
 3. **The reconciler's withdraw-from-Xero branch.** It clears none of the three.
 
 `xero_write_error` is not an internal field. It is read out to users in four
-places: `packages/availability/src/plans/plan-service.ts:322`,
-`packages/availability/src/calendar/calendar-service.ts:753`,
+places: `packages/availability/src/plans/plan-service.ts:325`,
+`packages/availability/src/calendar/calendar-service.ts:762`,
 `packages/availability/src/people/people-service.ts:849` and
 `apps/app/app/(authenticated)/plans/_actions.ts:406`. `failed_action` drives
-`mutedNoteForRecord` in `packages/availability/src/approvals/approval-service.ts:1327-1335`.
+`mutedNoteForRecord` in `packages/availability/src/approvals/approval-service.ts:1325-1333`.
 
 The visible result is an approved or declined leave record that still displays
 "this failed to sync to Xero". Users cannot tell whether the record is settled
@@ -64,7 +64,7 @@ sites look intentional to a reader when they are not.
 
 ### Inbound sync never clears the error fields
 
-`packages/jobs/src/handlers/sync-xero-leave-records.ts` lines 577-623.
+`packages/jobs/src/handlers/sync-xero-leave-records.ts` lines 578-636.
 
 The status decision first:
 
@@ -90,7 +90,7 @@ case where the record deliberately remains `xero_sync_failed`.
 Then the update payload. **Refreshed 2026-08-05**: plan 006 split this object
 into `xeroOwned` and `locallyOwned` so that inbound sync stops overwriting
 user-owned privacy, feed and title choices. The shape below is the current code
-at lines 591-630, and it is the shape you must edit:
+at lines 591-636, and it is the shape you must edit:
 
 ```typescript
     const xeroOwned = {
@@ -151,7 +151,7 @@ later reports success.
 
 The existing-record lookup already selects `failed_action`, so the information
 needed to decide is in hand. It now also selects `source_type` (added by plan
-006). Lines 468-490:
+006). Lines 463-481:
 
 ```typescript
 async function loadExistingRecordsBySourceRemoteId(
@@ -177,7 +177,7 @@ async function loadExistingRecordsBySourceRemoteId(
 
 ### The reconciler is inconsistent across its four branches
 
-`packages/jobs/src/handlers/reconcile-xero-approval-state.ts` lines 362-455.
+`packages/jobs/src/handlers/reconcile-xero-approval-state.ts` lines 373-454.
 
 **Refreshed 2026-08-05**: plan 007 added optimistic concurrency to this handler.
 `transitionRecord` now returns a `boolean` indicating whether the transition

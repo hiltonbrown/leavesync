@@ -313,7 +313,7 @@ export async function retrySubmission(
 
 ### The failure path also guards on `derived_sequence`
 
-`persistXeroFailure`, lines 456-481, uses the same guard shape:
+`persistXeroFailure` (line 446) uses the same guard shape at lines 472-478:
 
 ```typescript
       where: {
@@ -418,6 +418,31 @@ cd packages/database && bunx prisma migrate dev --name add_xero_write_claim
 > If a test or typecheck fails with `Cannot find module
 > '@repo/observability/log'`, that is a stale local `node_modules` symlink, not
 > a repository defect. Run `bun install` once and retry.
+
+### Database connection for the migration step
+
+**Use the `DATABASE_URL` already provided in the execution environment's
+environment variables.** This plan adds a column and generates a migration, so
+Steps 6 and 7 need a reachable database. Do not ask for a connection string, do
+not copy one out of a deployment dashboard, and do not write one into a file in
+the repository.
+
+Resolve it in this order:
+
+1. `DATABASE_URL` exported in the environment you are running in. Confirm with
+   `[ -n "$DATABASE_URL" ] && echo present` (print the check, never the value).
+2. If it is not exported, a `.env` or `.env.local` in `packages/database`, which
+   Prisma loads automatically. `packages/database/.env.example` documents the
+   expected shape.
+
+Only if neither is available does the "No reachable `DATABASE_URL`" STOP
+condition apply. Treat the environment variable as the normal path and stopping
+as the exception, not the reverse.
+
+The target must be a **disposable or development** database. `prisma migrate
+dev` is destructive on drift: it will offer to reset. Never point it at
+production, and never run it against a database whose contents you would mind
+losing.
 
 ## Scope
 
@@ -678,8 +703,10 @@ ALTER TABLE "availability_records" ADD COLUMN "xero_write_claimed_at" TIMESTAMP(
 Read the generated file and confirm it contains **only** that. Never hand-edit
 a generated migration; if it contains anything else, go to STOP conditions.
 
-This requires a reachable `DATABASE_URL`. If you do not have one, stop and
-report rather than inventing a connection string.
+This requires a reachable `DATABASE_URL`. Use the one in the execution
+environment's environment variables, as described under "Database connection for
+the migration step". Stop and report only if that variable is genuinely absent
+and `packages/database` carries no `.env`; never invent a connection string.
 
 **Verify** the schema and migrations agree:
 
@@ -974,9 +1001,11 @@ Stop and report back rather than improvising if any of these occur:
 - **`prisma migrate dev` generates anything beyond the single `ALTER TABLE ADD
   COLUMN`.** That means the schema has drifted from the migrations and this
   plan's migration would carry unrelated changes. Report the generated SQL.
-- **No reachable `DATABASE_URL`.** The migration cannot be generated. Report
-  and stop; do not fabricate a connection string or hand-write the migration
-  directory.
+- **No reachable `DATABASE_URL`.** Check the environment variables first: this
+  plan expects to use the `DATABASE_URL` already present there, and a
+  `packages/database/.env` is the documented fallback. Only when neither exists
+  can the migration not be generated. Report and stop at that point; do not
+  fabricate a connection string or hand-write the migration directory.
 - **An existing test in `packages/xero/src/au/write.test.ts` asserts that a 5xx
   is retried.** Updating it is correct (that assertion encodes the bug), but
   say so explicitly in your report rather than quietly changing it.
