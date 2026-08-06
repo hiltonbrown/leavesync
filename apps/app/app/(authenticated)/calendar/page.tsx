@@ -224,8 +224,7 @@ function DisconnectedXeroBanner({
     <div className="rounded-2xl bg-muted p-5 text-muted-foreground text-sm">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <p>
-          Xero is not connected. Leave records will save locally only. Connect
-          Xero from the integrations settings to enable submission for approval.
+          Xero is not connected. Connect Xero in Integration Settings to enable leave submission for manager approval.
         </p>
         {canConnect && (
           <a

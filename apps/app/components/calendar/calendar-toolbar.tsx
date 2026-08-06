@@ -530,7 +530,7 @@ function FilterSelect({
         <span className="text-muted-foreground text-xs">{description}</span>
       ) : null}
       <Select onValueChange={onValueChange} value={value}>
-        <SelectTrigger>
+        <SelectTrigger aria-label={label}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
