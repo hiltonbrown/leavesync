@@ -314,21 +314,21 @@ async function resolveActionContext(organisationId: string): Promise<
 
   if (!(user && canUsePlans(orgRole))) {
     return {
-      ok: false,
       error: {
         code: "not_authorised",
         message: "You do not have permission to manage plans",
       },
+      ok: false,
     };
   }
 
   if (!context.ok) {
     return {
-      ok: false,
       error: {
         code: "not_authorised",
         message: context.error.message,
       },
+      ok: false,
     };
   }
 
@@ -410,10 +410,10 @@ function submissionValue(record: {
 
 function validationError(message?: string): PlanActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: message ?? "Invalid plan record",
     },
+    ok: false,
   };
 }

@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
+    "@repo/auth": "*",
     "@repo/core": "*",
     "@repo/database": "*",
     "@repo/feeds": "*",
@@ -18,8 +19,7 @@
     "@repo/seo": "*",
     "inngest": "^4.15.0",
     "server-only": "^0.0.1",
-    "zod": "^4.4.3",
-    "@repo/auth": "*"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",

@@ -74,9 +74,9 @@ describe("encryptXeroToken and decryptXeroToken", () => {
     delete process.env.XERO_TOKEN_ENCRYPTION_KEY;
     expect(() =>
       decryptXeroToken({
+        authTag: "abc",
         encrypted: "abc",
         iv: "abc",
-        authTag: "abc",
       })
     ).toThrowError("Invalid environment variables");
   });

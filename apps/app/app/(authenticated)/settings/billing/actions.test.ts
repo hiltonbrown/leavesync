@@ -76,8 +76,8 @@ describe("billing actions", () => {
 
     it("throws the billing error without redirecting when checkout fails", async () => {
       mocks.createCheckoutSession.mockResolvedValue({
-        ok: false,
         error: { message: "Checkout unavailable" },
+        ok: false,
       });
 
       await expect(startCheckout("basic")).rejects.toThrow(
@@ -116,8 +116,8 @@ describe("billing actions", () => {
 
     it("throws the billing error without redirecting when portal creation fails", async () => {
       mocks.createPortalSession.mockResolvedValue({
-        ok: false,
         error: { message: "Portal unavailable" },
+        ok: false,
       });
 
       await expect(startPortal()).rejects.toThrow("Portal unavailable");

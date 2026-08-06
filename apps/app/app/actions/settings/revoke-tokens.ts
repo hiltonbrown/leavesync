@@ -18,28 +18,28 @@ export const revokeAllTokens = async (
   const parsed = RevokeTokensSchema.safeParse(input);
 
   if (!parsed.success) {
-    return { ok: false, error: "Invalid organisation" };
+    return { error: "Invalid organisation", ok: false };
   }
 
   const { orgId, orgRole } = await auth();
   if (!orgId) {
-    return { ok: false, error: "Not authenticated" };
+    return { error: "Not authenticated", ok: false };
   }
   if (orgRole !== "org:owner" && orgRole !== "org:admin") {
     return {
-      ok: false,
       error: "You do not have permission to revoke feed tokens",
+      ok: false,
     };
   }
 
   const contextResult = await getActiveOrgContext(parsed.data.organisationId);
   if (!contextResult.ok) {
-    return { ok: false, error: contextResult.error.message };
+    return { error: contextResult.error.message, ok: false };
   }
 
   const result = await revokeAllFeedTokens(contextResult.value);
   if (!result.ok) {
-    return { ok: false, error: result.error.message };
+    return { error: result.error.message, ok: false };
   }
 
   for (const path of ["/", "/feeds", "/calendar", "/settings/feeds"]) {

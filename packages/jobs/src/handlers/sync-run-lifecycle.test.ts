@@ -8,9 +8,9 @@ const mocks = vi.hoisted(() => ({
   materialiseAvailabilityPublication: vi.fn(),
   normaliseInboundLeaveRecord: vi.fn(),
   publishOrganisationNotificationEvent: vi.fn(),
-  scopedTo: vi.fn((input: { clerkOrgId: string; organisationId: string }) => ({
-    clerk_org_id: input.clerkOrgId,
-    organisation_id: input.organisationId,
+  scopedTo: vi.fn((scope: { clerkOrgId: string; organisationId: string }) => ({
+    clerk_org_id: scope.clerkOrgId,
+    organisation_id: scope.organisationId,
   })),
   syncRunCreate: vi.fn(),
   syncRunFindFirst: vi.fn(),
@@ -87,11 +87,11 @@ describe("sync run lifecycle guards", () => {
     const result = await syncXeroLeaveRecords(input());
 
     expect(result).toEqual({
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to sync Xero leave records.",
       },
+      ok: false,
     });
     expect(mocks.syncRunUpdateMany).toHaveBeenCalledWith(
       expect.objectContaining({

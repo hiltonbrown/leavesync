@@ -8,19 +8,19 @@ interface ProblemCard {
 
 const cards: ProblemCard[] = [
   {
+    copy: "Some use a form, some send a text, some just don't. You find out when someone doesn't turn up.",
     icon: "check",
     title: "Staff flag leave inconsistently",
-    copy: "Some use a form, some send a text, some just don't. You find out when someone doesn't turn up.",
   },
   {
+    copy: "Approved leave gets entered twice, or not at all. The two drift, and payroll pays for it.",
     icon: "sync",
     title: "The calendar and Xero disagree",
-    copy: "Approved leave gets entered twice, or not at all. The two drift, and payroll pays for it.",
   },
   {
+    copy: "Availability lives in your head, a spreadsheet and three chat threads. Nobody can answer who is off next week quickly.",
     icon: "calendar",
     title: "No single view of who is in",
-    copy: "Availability lives in your head, a spreadsheet and three chat threads. Nobody can answer who is off next week quickly.",
   },
 ];
 

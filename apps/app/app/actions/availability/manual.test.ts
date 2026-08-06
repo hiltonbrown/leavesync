@@ -67,8 +67,8 @@ describe("manual availability actions", () => {
     });
 
     expect(result).toEqual({
-      ok: true,
       id: "44444444-4444-4444-8444-444444444444",
+      ok: true,
     });
     expect(mocks.createManualAvailability).toHaveBeenCalledWith(
       {

@@ -6,21 +6,21 @@ describe("exportAnalyticsToCsv", () => {
   const mockRecord = (
     overrides?: Partial<AnalyticsRecordListItem>
   ): AnalyticsRecordListItem => ({
-    id: "record-1",
-    personId: "person-1",
-    personFirstName: "John",
-    personLastName: "Doe",
-    teamName: "Engineering",
-    locationName: "Sydney",
-    recordType: "annual_leave",
-    sourceType: "xero",
-    startsAt: new Date("2026-05-10T09:00:00Z"),
-    endsAt: new Date("2026-05-12T17:00:00Z"),
-    workingDays: 3,
-    submittedAt: new Date("2026-05-01T09:00:00Z"),
     approvedAt: new Date("2026-05-02T10:00:00Z"),
     approvedByFirstName: "Jane",
     approvedByLastName: "Smith",
+    endsAt: new Date("2026-05-12T17:00:00Z"),
+    id: "record-1",
+    locationName: "Sydney",
+    personFirstName: "John",
+    personId: "person-1",
+    personLastName: "Doe",
+    recordType: "annual_leave",
+    sourceType: "xero",
+    startsAt: new Date("2026-05-10T09:00:00Z"),
+    submittedAt: new Date("2026-05-01T09:00:00Z"),
+    teamName: "Engineering",
+    workingDays: 3,
     ...overrides,
   });
 
@@ -45,9 +45,9 @@ describe("exportAnalyticsToCsv", () => {
 
   it("escapes fields containing commas, quotes, and newlines correctly", () => {
     const record = mockRecord({
+      locationName: "New\nYork",
       personFirstName: 'John "CEO"',
       teamName: "Sales, Marketing & PR",
-      locationName: "New\nYork",
     });
     const csv = exportAnalyticsToCsv([record]);
     // New York contains newline, which will span lines, but let's parse or verify string includes quotes
@@ -58,12 +58,12 @@ describe("exportAnalyticsToCsv", () => {
 
   it("handles null values and missing approvers correctly", () => {
     const record = mockRecord({
-      teamName: null,
-      locationName: null,
-      submittedAt: null,
       approvedAt: null,
       approvedByFirstName: null,
       approvedByLastName: null,
+      locationName: null,
+      submittedAt: null,
+      teamName: null,
     });
     const csv = exportAnalyticsToCsv([record]);
     const lines = csv.split("\r\n");

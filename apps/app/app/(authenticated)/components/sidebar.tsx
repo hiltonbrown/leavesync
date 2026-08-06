@@ -87,11 +87,11 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                     />
                   </svg>
                 </div>
-                {sidebar.open && (
+                {sidebar.open ? (
                   <span className="font-semibold text-[0.9375rem] tracking-[-0.01em]">
                     {brandNameDisplay}
                   </span>
-                )}
+                ) : null}
               </div>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -100,9 +100,9 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
         <SidebarContent>
           {navGroups.map((group) => (
             <SidebarGroup key={group.label ?? "__home"}>
-              {group.label && (
+              {group.label ? (
                 <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
-              )}
+              ) : null}
               <SidebarGroupContent>
                 <SidebarMenu>
                   {group.items

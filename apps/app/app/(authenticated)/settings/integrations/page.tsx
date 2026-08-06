@@ -19,12 +19,12 @@ export default async function IntegrationsPage() {
   }
 
   const organisations = await database.organisation.findMany({
+    orderBy: [{ created_at: "asc" }, { name: "asc" }],
+    select: organisationWithConnectionSelect,
     where: {
       archived_at: null,
       clerk_org_id: orgId,
     },
-    orderBy: [{ created_at: "asc" }, { name: "asc" }],
-    select: organisationWithConnectionSelect,
   });
 
   return <IntegrationsClient organisations={organisations} />;

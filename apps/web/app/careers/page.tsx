@@ -4,26 +4,26 @@ import { BriefcaseBusiness, Mail, MapPin } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = createMetadata({
-  title: "Careers",
   description:
     "Careers at Team Calendar. We are building calm, precise availability software for small businesses on Xero Payroll.",
+  title: "Careers",
 });
 
 const values = [
   {
+    copy: "We prefer narrow, reliable product work over broad feature sprawl. Every shipped detail should lower cognitive load.",
     icon: BriefcaseBusiness,
     title: "Product judgement over noise",
-    copy: "We prefer narrow, reliable product work over broad feature sprawl. Every shipped detail should lower cognitive load.",
   },
   {
+    copy: "The product starts with Xero Payroll teams across Australia, New Zealand, and the United Kingdom, with a practical bias toward real operations.",
     icon: MapPin,
     title: "Grounded in Australian business",
-    copy: "The product starts with Xero Payroll teams across Australia, New Zealand, and the United Kingdom, with a practical bias toward real operations.",
   },
   {
+    copy: "Leave, payroll, and availability data deserve clear boundaries, direct language, and conservative engineering choices.",
     icon: Mail,
     title: "Careful with customer data",
-    copy: "Leave, payroll, and availability data deserve clear boundaries, direct language, and conservative engineering choices.",
   },
 ];
 

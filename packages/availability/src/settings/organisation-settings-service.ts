@@ -81,6 +81,8 @@ export async function updateSettings(
       data: {
         action: "organisation_settings.updated",
         actor_user_id: parsed.data.actingUserId,
+        after_value: mapOrganisationSettingsRow(after),
+        before_value: mapOrganisationSettingsRow(before),
         clerk_org_id: parsed.data.clerkOrgId,
         entity_id: parsed.data.organisationId,
         entity_type: "organisation_settings",
@@ -88,8 +90,6 @@ export async function updateSettings(
           actingUserId: parsed.data.actingUserId,
           changedKeys: Object.keys(parsed.data.patch).sort(),
         },
-        before_value: mapOrganisationSettingsRow(before),
-        after_value: mapOrganisationSettingsRow(after),
         organisation_id: parsed.data.organisationId,
         payload: {
           actingUserId: parsed.data.actingUserId,
@@ -181,24 +181,24 @@ function validationError(
   error: z.ZodError
 ): Result<never, SettingsServiceError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid settings input.",
     },
+    ok: false,
   };
 }
 
 function notAuthorised(): Result<never, SettingsServiceError> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "Only admins and owners can update organisation settings.",
     },
+    ok: false,
   };
 }
 
 function unknownError(message: string): Result<never, SettingsServiceError> {
-  return { ok: false, error: { code: "unknown_error", message } };
+  return { error: { code: "unknown_error", message }, ok: false };
 }

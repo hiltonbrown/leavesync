@@ -26,13 +26,13 @@ const mocks = vi.hoisted(() => ({
 
 class ResizeObserverMock {
   disconnect() {
-    return;
+    // No-op: the component under test does not react to resize callbacks.
   }
   observe() {
-    return;
+    // No-op: the component under test does not react to resize callbacks.
   }
   unobserve() {
-    return;
+    // No-op: the component under test does not react to resize callbacks.
   }
 }
 

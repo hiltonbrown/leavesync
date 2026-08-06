@@ -43,7 +43,7 @@ export async function getAllPosts(): Promise<PostMeta[]> {
           if (!post) {
             return null;
           }
-          return { slug, frontmatter: post.frontmatter };
+          return { frontmatter: post.frontmatter, slug };
         })
     );
     return posts

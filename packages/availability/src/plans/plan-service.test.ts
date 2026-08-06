@@ -5,8 +5,8 @@ const mocks = vi.hoisted(() => {
   const auditCreate = vi.fn();
   const availabilityCreate = vi.fn(async ({ data }) => ({
     ...data,
-    archived_at: null,
     approval_note: null,
+    archived_at: null,
     created_at: new Date("2026-01-01T00:00:00.000Z"),
     person: personFixture,
     source_remote_id: null,
@@ -140,35 +140,38 @@ describe("plan-service", () => {
     ["annual_leave", true, "team_calendar_leave", "draft"],
     ["annual_leave", false, "team_calendar_leave", "approved"],
     ["sick_leave", true, "team_calendar_leave", "draft"],
-  ] as const)("routes %s with Xero %s to %s and %s", async (recordType, hasXero, sourceType, approvalStatus) => {
-    mocks.hasActiveXeroConnection.mockResolvedValue(hasXero);
+  ] as const)(
+    "routes %s with Xero %s to %s and %s",
+    async (recordType, hasXero, sourceType, approvalStatus) => {
+      mocks.hasActiveXeroConnection.mockResolvedValue(hasXero);
 
-    const result = await createRecord({ ...baseInput, recordType });
+      const result = await createRecord({ ...baseInput, recordType });
 
-    expect(result.ok).toBe(true);
-    if (!result.ok) {
-      return;
-    }
-    expect(result.value).toMatchObject({
-      approvalStatus,
-      derivedSequence: 0,
-      personId: baseInput.personId,
-      recordType,
-      sourceType,
-    });
-    expect(result.value.derivedUidKey).toContain(icsUidSuffix);
-    expect(mocks.auditCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          action: "availability_records.created",
-          payload: expect.objectContaining({
-            approvalStatus,
-            sourceType,
+      expect(result.ok).toBe(true);
+      if (!result.ok) {
+        return;
+      }
+      expect(result.value).toMatchObject({
+        approvalStatus,
+        derivedSequence: 0,
+        personId: baseInput.personId,
+        recordType,
+        sourceType,
+      });
+      expect(result.value.derivedUidKey).toContain(icsUidSuffix);
+      expect(mocks.auditCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            action: "availability_records.created",
+            payload: expect.objectContaining({
+              approvalStatus,
+              sourceType,
+            }),
           }),
-        }),
-      })
-    );
-  });
+        })
+      );
+    }
+  );
 
   it("denies updates when a viewer has no linked person and the target has no manager", async () => {
     mocks.personFindFirst.mockResolvedValue(null);

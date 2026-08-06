@@ -251,12 +251,12 @@ async function resolveActionContext(organisationId: string): Promise<
   }
 
   const actingPerson = await database.person.findFirst({
+    select: { id: true },
     where: {
       ...scopedQuery(context.value.clerkOrgId, context.value.organisationId),
       archived_at: null,
       clerk_user_id: user.id,
     },
-    select: { id: true },
   });
 
   return {
@@ -277,11 +277,11 @@ async function resolveContactPersonId(
   contactId: string
 ): Promise<string | null> {
   const contact = await database.alternativeContact.findFirst({
+    select: { person_id: true },
     where: {
       ...scopedQuery(clerkOrgId, organisationId),
       id: contactId,
     },
-    select: { person_id: true },
   });
   return contact?.person_id ?? null;
 }
@@ -309,20 +309,20 @@ function revalidatePeoplePaths(personId: string) {
 
 function notAuthorised(message?: string): PeopleActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: message ?? "You do not have permission to manage people.",
     },
+    ok: false,
   };
 }
 
 function validationError(message?: string): PeopleActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: message ?? "Invalid people request.",
     },
+    ok: false,
   };
 }

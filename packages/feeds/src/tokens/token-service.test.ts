@@ -234,8 +234,8 @@ describe("feed token lifecycle with a mocked database", () => {
     });
 
     expect(result).toMatchObject({
-      ok: false,
       error: { code: "cross_org_leak" },
+      ok: false,
     });
     expect(mocks.feedTokenUpdate).not.toHaveBeenCalled();
   });

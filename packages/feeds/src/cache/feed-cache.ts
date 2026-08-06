@@ -87,15 +87,15 @@ export async function invalidateFeedCache(input: {
     }
 
     const modes = input.privacyModes ?? ALL_PRIVACY_MODES;
-    const keys = modes.map((privacyMode) =>
+    const cacheKeys = modes.map((privacyMode) =>
       feedCacheKey({ feedId: input.feedId, privacyMode })
     );
-    if (keys.length === 0) {
+    if (cacheKeys.length === 0) {
       return { ok: true, value: { deletedCount: 0 } };
     }
 
-    await client.del(...keys);
-    return { ok: true, value: { deletedCount: keys.length } };
+    await client.del(...cacheKeys);
+    return { ok: true, value: { deletedCount: cacheKeys.length } };
   } catch {
     return cacheError("Failed to invalidate feed cache.");
   }
@@ -145,7 +145,7 @@ function createRestCacheClient(input: {
     return payload.result;
   };
   return {
-    del: (...keys) => command(["del", ...keys]),
+    del: (...cacheKeys) => command(["del", ...cacheKeys]),
     get: async <T>(key: string): Promise<T | null> => {
       const value = await command<unknown>(["get", key]);
       if (value === null) {
@@ -174,5 +174,5 @@ function createRestCacheClient(input: {
 }
 
 function cacheError(message: string): Result<never, FeedCacheError> {
-  return { ok: false, error: { code: "unknown_error", message } };
+  return { error: { code: "unknown_error", message }, ok: false };
 }

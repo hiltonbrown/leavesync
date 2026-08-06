@@ -15,25 +15,25 @@ export async function hasActiveXeroConnection({
 }: XeroConnectionStateInput): Promise<boolean> {
   try {
     const connection = await database.xeroConnection.findFirst({
+      select: {
+        id: true,
+        xero_tenant: {
+          select: {
+            clerk_org_id: true,
+            id: true,
+            organisation_id: true,
+          },
+        },
+      },
       where: {
         ...scopedQuery(
           clerkOrgId as ClerkOrgId,
           organisationId as OrganisationId
         ),
         disconnected_at: null,
-        status: "active",
-        revoked_at: null,
         refresh_token_encrypted: { not: "" },
-      },
-      select: {
-        id: true,
-        xero_tenant: {
-          select: {
-            id: true,
-            clerk_org_id: true,
-            organisation_id: true,
-          },
-        },
+        revoked_at: null,
+        status: "active",
       },
     });
 

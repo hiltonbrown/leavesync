@@ -260,6 +260,7 @@ export async function listTeamRecords(input: {
     }
 
     const reports = await database.person.findMany({
+      select: { id: true },
       where: {
         ...scopedTo({
           clerkOrgId: input.clerkOrgId,
@@ -268,7 +269,6 @@ export async function listTeamRecords(input: {
         archived_at: null,
         manager_person_id: input.managerPersonId,
       },
-      select: { id: true },
     });
     const reportIds = reports.map((person) => person.id);
     const requestedPersonIds = filters.personId ?? reportIds;
@@ -342,6 +342,7 @@ export async function createRecord(
     const [targetPerson, actingPerson, hasXero, settingsResult] =
       await Promise.all([
         database.person.findFirst({
+          select: personSelect,
           where: {
             ...scopedTo({
               clerkOrgId: parsed.data.clerkOrgId,
@@ -350,7 +351,6 @@ export async function createRecord(
             archived_at: null,
             id: parsed.data.personId,
           },
-          select: personSelect,
         }),
         resolvePersonForUser(
           parsed.data.clerkOrgId,
@@ -366,8 +366,8 @@ export async function createRecord(
 
     if (!targetPerson) {
       return {
-        ok: false,
         error: { code: "record_not_found", message: "Person not found" },
+        ok: false,
       };
     }
     if (
@@ -499,16 +499,16 @@ export async function updateRecord(
       return editable;
     }
 
-    const patch = parsed.data.patch;
+    const { patch } = parsed.data;
     const nextStartsAt = patch.startsAt ?? existing.starts_at;
     const nextEndsAt = patch.endsAt ?? existing.ends_at;
     if (nextEndsAt < nextStartsAt) {
       return {
-        ok: false,
         error: {
           code: "validation_error",
           message: "End date must be after start date",
         },
+        ok: false,
       };
     }
     const nextRecordType = patch.recordType ?? existing.record_type;
@@ -534,13 +534,6 @@ export async function updateRecord(
 
     await database.$transaction(async (tx) => {
       await tx.availabilityRecord.updateMany({
-        where: {
-          ...scopedTo({
-            clerkOrgId: parsed.data.clerkOrgId,
-            organisationId: parsed.data.organisationId,
-          }),
-          id: parsed.data.recordId,
-        },
         data: {
           ...(patch.allDay !== undefined && { all_day: patch.allDay }),
           ...(patch.contactabilityStatus && {
@@ -566,6 +559,13 @@ export async function updateRecord(
           source_type: routing.sourceType,
           title: labelForRecordType(nextRecordType),
           updated_by_user_id: parsed.data.actingUserId,
+        },
+        where: {
+          ...scopedTo({
+            clerkOrgId: parsed.data.clerkOrgId,
+            organisationId: parsed.data.organisationId,
+          }),
+          id: parsed.data.recordId,
         },
       });
 
@@ -631,11 +631,11 @@ export async function deleteDraftRecord(
       existing.value.approval_status !== "draft"
     ) {
       return {
-        ok: false,
         error: {
           code: "invalid_state_for_delete",
           message: "Only draft leave records can be deleted",
         },
+        ok: false,
       };
     }
 
@@ -678,11 +678,11 @@ export async function archiveRecord(
       existing.value.source_type === "xero"
     ) {
       return {
-        ok: false,
         error: {
           code: "invalid_state_for_archive",
           message: "Xero-synced records cannot be archived here",
         },
+        ok: false,
       };
     }
     if (
@@ -691,27 +691,27 @@ export async function archiveRecord(
       )
     ) {
       return {
-        ok: false,
         error: {
           code: "invalid_state_for_archive",
           message: "This record cannot be archived in its current state",
         },
+        ok: false,
       };
     }
 
     await database.$transaction(async (tx) => {
       await tx.availabilityRecord.updateMany({
+        data: {
+          archived_at: new Date(),
+          publish_status: "archived",
+          updated_by_user_id: parsed.data.actingUserId,
+        },
         where: {
           ...scopedTo({
             clerkOrgId: parsed.data.clerkOrgId,
             organisationId: parsed.data.organisationId,
           }),
           id: parsed.data.recordId,
-        },
-        data: {
-          archived_at: new Date(),
-          publish_status: "archived",
-          updated_by_user_id: parsed.data.actingUserId,
         },
       });
       await tx.auditEvent.create({
@@ -749,27 +749,27 @@ export async function restoreRecord(
       !existing.value.archived_at
     ) {
       return {
-        ok: false,
         error: {
           code: "invalid_state_for_archive",
           message: "Only archived manual records can be restored",
         },
+        ok: false,
       };
     }
 
     await database.$transaction(async (tx) => {
       await tx.availabilityRecord.updateMany({
+        data: {
+          archived_at: null,
+          publish_status: "eligible",
+          updated_by_user_id: parsed.data.actingUserId,
+        },
         where: {
           ...scopedTo({
             clerkOrgId: parsed.data.clerkOrgId,
             organisationId: parsed.data.organisationId,
           }),
           id: parsed.data.recordId,
-        },
-        data: {
-          archived_at: null,
-          publish_status: "eligible",
-          updated_by_user_id: parsed.data.actingUserId,
         },
       });
       await tx.auditEvent.create({
@@ -818,6 +818,8 @@ async function listRecordsForScope({
 }): Promise<Result<RecordListItem[], PlanServiceError>> {
   const hasXero = await hasActiveXeroConnection({ clerkOrgId, organisationId });
   const records = await database.availabilityRecord.findMany({
+    orderBy: [{ starts_at: "asc" }, { created_at: "asc" }],
+    select: { id: true },
     where: {
       ...scopedTo({ clerkOrgId, organisationId }),
       source_type: { in: ["manual", "team_calendar_leave"] },
@@ -849,8 +851,6 @@ async function listRecordsForScope({
         ? { starts_at: { lte: filters.dateRange.to } }
         : {}),
     },
-    select: { id: true },
-    orderBy: [{ starts_at: "asc" }, { created_at: "asc" }],
   });
 
   const loadedRecords = await Promise.all(
@@ -892,6 +892,11 @@ async function balanceChipForRecord(
   }
 
   const balance = await database.leaveBalance.findFirst({
+    orderBy: { updated_at: "desc" },
+    select: {
+      balance: true,
+      updated_at: true,
+    },
     where: {
       ...scopedTo({
         clerkOrgId: record.clerk_org_id,
@@ -900,11 +905,6 @@ async function balanceChipForRecord(
       person_id: record.person_id,
       record_type: record.record_type,
     },
-    select: {
-      balance: true,
-      updated_at: true,
-    },
-    orderBy: { updated_at: "desc" },
   });
 
   if (!balance) {
@@ -928,11 +928,11 @@ function loadScopedRecord(
   recordId: string
 ) {
   return database.availabilityRecord.findFirst({
+    include: recordInclude,
     where: {
       ...scopedTo({ clerkOrgId, organisationId }),
       id: recordId,
     },
-    include: recordInclude,
   });
 }
 
@@ -971,12 +971,12 @@ function resolvePersonForUser(
   userId: string
 ) {
   return database.person.findFirst({
+    select: personSelect,
     where: {
       ...scopedTo({ clerkOrgId, organisationId }),
       archived_at: null,
       clerk_user_id: userId,
     },
-    select: personSelect,
   });
 }
 
@@ -1066,22 +1066,22 @@ function canEdit(
 ): Result<void, PlanServiceError> {
   if (record.source_type === "xero_leave" || record.source_type === "xero") {
     return {
-      ok: false,
       error: {
         code: "not_editable_xero_synced",
         message: "Xero-synced records cannot be edited here",
       },
+      ok: false,
     };
   }
 
   if (record.source_type === "manual") {
     if (record.archived_at) {
       return {
-        ok: false,
         error: {
           code: "not_editable_archived",
           message: "Archived records cannot be edited",
         },
+        ok: false,
       };
     }
     return { ok: true, value: undefined };
@@ -1100,20 +1100,20 @@ function canEdit(
     (record.approval_status === "approved" && hasXero)
   ) {
     return {
-      ok: false,
       error: {
         code: "not_editable_after_submission",
         message: "Submitted records cannot be edited here",
       },
+      ok: false,
     };
   }
 
   return {
-    ok: false,
     error: {
       code: "not_editable_terminal_state",
       message: "This record cannot be edited in its current state",
     },
+    ok: false,
   };
 }
 
@@ -1238,41 +1238,41 @@ function auditData(input: z.infer<typeof RecordActionSchema>, action: string) {
 
 function recordNotFound(): Result<never, PlanServiceError> {
   return {
-    ok: false,
     error: {
       code: "record_not_found",
       message: "Availability record not found",
     },
+    ok: false,
   };
 }
 
 function notAuthorised(): Result<never, PlanServiceError> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "You do not have permission to manage this record",
     },
+    ok: false,
   };
 }
 
 function validationError(error: z.ZodError): Result<never, PlanServiceError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid plan record",
     },
+    ok: false,
   };
 }
 
 function unknownError(): Result<never, PlanServiceError> {
   return {
-    ok: false,
     error: {
       code: "unknown_error",
       message: "Something went wrong while managing this record",
     },
+    ok: false,
   };
 }
 

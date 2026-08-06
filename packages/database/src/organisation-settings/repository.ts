@@ -53,8 +53,8 @@ export async function getOrCreateForOrganisation(input: {
   organisationId: OrganisationId;
 }): Promise<OrganisationSettingsRow> {
   const existing = await database.organisationSettings.findFirst({
-    where: scopedQuery(input.clerkOrgId, input.organisationId),
     select: organisationSettingsSelect,
+    where: scopedQuery(input.clerkOrgId, input.organisationId),
   });
   if (existing) {
     return existing;
@@ -70,8 +70,8 @@ export async function getOrCreateForOrganisation(input: {
     });
   } catch {
     return await database.organisationSettings.findFirstOrThrow({
-      where: scopedQuery(input.clerkOrgId, input.organisationId),
       select: organisationSettingsSelect,
+      where: scopedQuery(input.clerkOrgId, input.organisationId),
     });
   }
 }
@@ -89,7 +89,7 @@ export async function updateForOrganisation(input: {
   });
 
   return await database.organisationSettings.findFirstOrThrow({
-    where: scopedQuery(input.clerkOrgId, input.organisationId),
     select: organisationSettingsSelect,
+    where: scopedQuery(input.clerkOrgId, input.organisationId),
   });
 }

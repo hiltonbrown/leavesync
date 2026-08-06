@@ -3,21 +3,21 @@ import { z } from "zod";
 
 export const keys = () => {
   const env = createEnv({
-    server: {
-      INNGEST_EVENT_KEY: z.string().min(1).optional(),
-      INNGEST_SIGNING_KEY: z.string().startsWith("signkey-").optional(),
-      INNGEST_DEV: z
-        .union([z.enum(["0", "1", "false", "true"]), z.string().url()])
-        .optional(),
-    },
-    runtimeEnv: {
-      INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY,
-      INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,
-      INNGEST_DEV: process.env.INNGEST_DEV,
-    },
     // Treat an empty string (e.g. a blank Vercel env var) as unset so the
     // format-constrained optional keys do not fail validation.
     emptyStringAsUndefined: true,
+    runtimeEnv: {
+      INNGEST_DEV: process.env.INNGEST_DEV,
+      INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY,
+      INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,
+    },
+    server: {
+      INNGEST_DEV: z
+        .union([z.enum(["0", "1", "false", "true"]), z.string().url()])
+        .optional(),
+      INNGEST_EVENT_KEY: z.string().min(1).optional(),
+      INNGEST_SIGNING_KEY: z.string().startsWith("signkey-").optional(),
+    },
   });
 
   // In local development the Inngest Dev Server needs neither key, so both may

@@ -75,8 +75,8 @@ describe("feed-service dashboard summary", () => {
     });
 
     expect(result).toMatchObject({
-      ok: false,
       error: { code: "not_authorised" },
+      ok: false,
     });
   });
 });

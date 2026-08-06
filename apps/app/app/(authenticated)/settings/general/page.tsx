@@ -32,15 +32,15 @@ const GeneralPage = async ({ searchParams }: GeneralPageProps) => {
   const [clerk, organisation] = await Promise.all([
     clerkClient(),
     database.organisation.findFirst({
-      where: {
-        clerk_org_id: clerkOrgId,
-        id: organisationId,
-      },
       select: {
         country_code: true,
         name: true,
         region_code: true,
         timezone: true,
+      },
+      where: {
+        clerk_org_id: clerkOrgId,
+        id: organisationId,
       },
     }),
   ]);

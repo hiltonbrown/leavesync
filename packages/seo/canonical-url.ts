@@ -29,7 +29,7 @@ const parseOrigin = (value: string | undefined): URL | undefined => {
     const url = new URL(value);
     return new URL(url.origin);
   } catch {
-    return;
+    // An unparseable value has no canonical origin, so fall through to undefined.
   }
 };
 

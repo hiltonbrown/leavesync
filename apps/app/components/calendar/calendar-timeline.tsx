@@ -46,7 +46,7 @@ export function CalendarTimeline({
   data,
   orgQueryValue,
 }: CalendarTimelineProps) {
-  const days = data.days;
+  const { days } = data;
   if (days.length === 0) {
     return null;
   }

@@ -43,11 +43,6 @@ export async function previewFeed(
   try {
     const role = normaliseRole(parsed.data.actingRole);
     const feed = await database.feed.findFirst({
-      where: {
-        clerk_org_id: parsed.data.clerkOrgId,
-        id: parsed.data.feedId,
-        organisation_id: parsed.data.organisationId,
-      },
       select: {
         created_by_user_id: true,
         privacy_mode: true,
@@ -57,6 +52,11 @@ export async function previewFeed(
             scope_value: true,
           },
         },
+      },
+      where: {
+        clerk_org_id: parsed.data.clerkOrgId,
+        id: parsed.data.feedId,
+        organisation_id: parsed.data.organisationId,
       },
     });
     if (!feed) {
@@ -80,7 +80,7 @@ export async function previewFeed(
       })),
     });
     if (!visible.ok) {
-      return { ok: false, error: visible.error };
+      return { error: visible.error, ok: false };
     }
     if (!visible.value) {
       return notAuthorised();
@@ -96,16 +96,16 @@ export async function previewFeed(
       privacyMode: requestedPrivacy,
     });
     if (!result.ok) {
-      return { ok: false, error: result.error };
+      return { error: result.error, ok: false };
     }
     return result;
   } catch {
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to load feed preview.",
       },
+      ok: false,
     };
   }
 }
@@ -116,8 +116,8 @@ async function feedNotFoundOrLeak(input: {
   organisationId: string;
 }): Promise<Result<never, PreviewServiceError>> {
   const exists = await database.feed.findFirst({
-    where: { id: input.feedId },
     select: { clerk_org_id: true, organisation_id: true },
+    where: { id: input.feedId },
   });
   if (
     exists &&
@@ -125,26 +125,26 @@ async function feedNotFoundOrLeak(input: {
       exists.organisation_id !== input.organisationId)
   ) {
     return {
-      ok: false,
       error: {
         code: "cross_org_leak",
         message: "Feed is outside this organisation.",
       },
+      ok: false,
     };
   }
   return {
-    ok: false,
     error: { code: "feed_not_found", message: "Feed not found." },
+    ok: false,
   };
 }
 
 function notAuthorised(): Result<never, PreviewServiceError> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "You do not have permission to preview this feed.",
     },
+    ok: false,
   };
 }
 
@@ -152,10 +152,10 @@ function validationError(
   error: z.ZodError
 ): Result<never, PreviewServiceError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid preview request.",
     },
+    ok: false,
   };
 }

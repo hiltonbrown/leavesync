@@ -41,13 +41,13 @@ export const Header = async ({
       <div className="flex items-center gap-2">
         {children}
         <CommandMenuTrigger />
-        {bell && (
+        {bell ? (
           <NotificationsBell
             initialRecent={bell.recent}
             initialUnreadCount={bell.unreadCount}
             organisationId={bell.organisationId}
           />
-        )}
+        ) : null}
         <ModeToggle />
         <Suspense
           fallback={
@@ -101,9 +101,9 @@ async function loadBellData(organisationId?: string | null): Promise<{
       }),
       listRecentUnread({
         clerkOrgId,
+        limit: 3,
         organisationId: resolvedOrganisationId,
         userId: user.id,
-        limit: 3,
       }),
     ]);
     return {

@@ -20,7 +20,10 @@ export default async function XeroConnectPage({
 }: XeroConnectPageProps) {
   await requirePageRole("org:admin");
 
-  const [{ orgId, userId }, { session }] = await Promise.all([auth(), searchParams]);
+  const [{ orgId, userId }, { session }] = await Promise.all([
+    auth(),
+    searchParams,
+  ]);
   if (!(orgId && session && userId)) {
     notFound();
   }

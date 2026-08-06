@@ -58,7 +58,7 @@ describe("NotificationsPage", () => {
     mocks.listAllTypes.mockReturnValue([]);
     mocks.listForUser.mockResolvedValue({
       ok: true,
-      value: { notifications: [], nextCursor: null, unreadCount: 0 },
+      value: { nextCursor: null, notifications: [], unreadCount: 0 },
     });
     mocks.listPreferences.mockResolvedValue({ ok: true, value: [] });
   });

@@ -46,14 +46,14 @@ export async function loadOnboardingState({
     activeFeedCount,
   ] = await Promise.all([
     database.organisation.findFirst({
+      select: {
+        country_code: true,
+        name: true,
+      },
       where: {
         archived_at: null,
         clerk_org_id: clerkOrgId,
         id: organisationId,
-      },
-      select: {
-        country_code: true,
-        name: true,
       },
     }),
     database.xeroConnection.count({
@@ -65,14 +65,14 @@ export async function loadOnboardingState({
       },
     }),
     database.xeroConnection.findFirst({
+      select: { id: true },
       where: {
         clerk_org_id: clerkOrgId,
         disconnected_at: null,
         organisation_id: organisationId,
-        status: "active",
         revoked_at: null,
+        status: "active",
       },
-      select: { id: true },
     }),
     database.person.count({
       where: {
@@ -83,13 +83,13 @@ export async function loadOnboardingState({
     }),
     userId
       ? database.person.findFirst({
+          select: { id: true },
           where: {
             archived_at: null,
             clerk_org_id: clerkOrgId,
             clerk_user_id: userId,
             organisation_id: organisationId,
           },
-          select: { id: true },
         })
       : Promise.resolve(null),
     database.publicHolidayJurisdiction.count({

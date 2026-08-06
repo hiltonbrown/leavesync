@@ -13,6 +13,10 @@ import { z } from "zod";
 import { keys as github } from "./lib/github/keys";
 
 export const env = createEnv({
+  client: {},
+  // A blank Vercel env var must behave as unset, otherwise the format
+  // constraint rejects it even though the variable is optional.
+  emptyStringAsUndefined: true,
   extends: [
     auth(),
     billing(),
@@ -26,10 +30,6 @@ export const env = createEnv({
     observability(),
     xero(),
   ],
-  server: { STRIPE_WEBHOOK_SECRET: z.string().startsWith("whsec_").optional() },
-  client: {},
   runtimeEnv: { STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET },
-  // A blank Vercel env var must behave as unset, otherwise the format
-  // constraint rejects it even though the variable is optional.
-  emptyStringAsUndefined: true,
+  server: { STRIPE_WEBHOOK_SECRET: z.string().startsWith("whsec_").optional() },
 });

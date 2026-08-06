@@ -134,7 +134,7 @@ export function DeclineModal({
         <p className="text-muted-foreground text-sm">
           The reason will be visible to the employee and sent to Xero Payroll.
         </p>
-        {message && (
+        {message ? (
           <XeroSyncFailedState
             message={message}
             retrySlot={
@@ -159,7 +159,7 @@ export function DeclineModal({
               </Button>
             }
           />
-        )}
+        ) : null}
         <div className="flex justify-end gap-3">
           <Button
             disabled={isPending}
@@ -175,7 +175,9 @@ export function DeclineModal({
             type="button"
             variant="destructive"
           >
-            {isPending && <Loader2Icon className="mr-2 size-4 animate-spin" />}
+            {isPending ? (
+              <Loader2Icon className="mr-2 size-4 animate-spin" />
+            ) : null}
             Confirm decline
           </Button>
         </div>

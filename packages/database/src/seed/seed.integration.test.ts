@@ -57,12 +57,12 @@ describe("seedDevelopmentData", () => {
 
     expect(first).toStrictEqual({
       clerkOrgId: TEST_CLERK_ORG_ID,
-      organisations: expectedOrganisations,
-      teams: expectedTeams,
       locations: expectedLocations,
+      organisations: expectedOrganisations,
       people: expectedPeople,
-      plans: expectedPlans,
       planLimits: expectedPlanLimits,
+      plans: expectedPlans,
+      teams: expectedTeams,
     });
 
     const second = await seedDevelopmentData(database, {

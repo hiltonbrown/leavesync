@@ -9,10 +9,10 @@ const { database, employment_type, source_system } = await import("./index.js");
 
 const tenant = {
   clerkOrgId: "org_test_leave_balances_a",
-  organisationId: "40000000-0000-4000-8000-000000000001",
-  teamId: "40000000-0000-4000-8000-000000000002",
   locationId: "40000000-0000-4000-8000-000000000003",
+  organisationId: "40000000-0000-4000-8000-000000000001",
   personId: "40000000-0000-4000-8000-000000000004",
+  teamId: "40000000-0000-4000-8000-000000000002",
 } as const;
 
 const testClerkOrgIds = [tenant.clerkOrgId] as const;
@@ -20,46 +20,46 @@ const testClerkOrgIds = [tenant.clerkOrgId] as const;
 const createTenant = async () => {
   await database.organisation.create({
     data: {
-      id: tenant.organisationId,
       clerk_org_id: tenant.clerkOrgId,
-      name: `Test ${tenant.clerkOrgId}`,
       country_code: "AU",
+      id: tenant.organisationId,
+      name: `Test ${tenant.clerkOrgId}`,
     },
   });
 
   await database.team.create({
     data: {
-      id: tenant.teamId,
       clerk_org_id: tenant.clerkOrgId,
-      organisation_id: tenant.organisationId,
+      id: tenant.teamId,
       name: "Operations",
+      organisation_id: tenant.organisationId,
     },
   });
 
   await database.location.create({
     data: {
-      id: tenant.locationId,
       clerk_org_id: tenant.clerkOrgId,
-      organisation_id: tenant.organisationId,
+      id: tenant.locationId,
       name: "Brisbane",
+      organisation_id: tenant.organisationId,
       region_code: "QLD",
     },
   });
 
   await database.person.create({
     data: {
-      id: tenant.personId,
       clerk_org_id: tenant.clerkOrgId,
-      organisation_id: tenant.organisationId,
-      team_id: tenant.teamId,
-      location_id: tenant.locationId,
-      source_system: source_system.MANUAL,
-      source_person_key: null,
-      first_name: "Test",
-      last_name: "Person",
       email: `${tenant.clerkOrgId}@example.com`,
       employment_type: employment_type.employee,
+      first_name: "Test",
+      id: tenant.personId,
       is_active: true,
+      last_name: "Person",
+      location_id: tenant.locationId,
+      organisation_id: tenant.organisationId,
+      source_person_key: null,
+      source_system: source_system.MANUAL,
+      team_id: tenant.teamId,
     },
   });
 };
@@ -73,13 +73,13 @@ const createManualBalance = ({
 }) =>
   database.leaveBalance.create({
     data: {
-      id,
+      balance: "10.0000",
       clerk_org_id: tenant.clerkOrgId,
+      id,
+      leave_type_xero_id: leaveTypeXeroId,
       organisation_id: tenant.organisationId,
       person_id: tenant.personId,
       xero_tenant_id: null,
-      leave_type_xero_id: leaveTypeXeroId,
-      balance: "10.0000",
     },
   });
 
@@ -143,9 +143,9 @@ describe("leave_balances", () => {
 
     expect(balance).toMatchObject({
       clerk_org_id: tenant.clerkOrgId,
+      leave_type_xero_id: "annual-leave",
       person_id: tenant.personId,
       xero_tenant_id: null,
-      leave_type_xero_id: "annual-leave",
     });
   });
 

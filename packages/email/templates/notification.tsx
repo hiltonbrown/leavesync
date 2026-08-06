@@ -43,14 +43,14 @@ export const NotificationEmailTemplate: NotificationEmailTemplateComponent = ({
                 {title}
               </Text>
               <Text className="m-0 text-zinc-600">{body}</Text>
-              {actionUrl && (
+              {actionUrl ? (
                 <Button
                   className="mt-6 rounded-md bg-[#336A3B] px-4 py-3 font-medium text-white"
                   href={actionUrl}
                 >
                   Open in Team Calendar
                 </Button>
-              )}
+              ) : null}
               <Hr className="my-6" />
               <Text className="m-0 text-xs text-zinc-500">
                 To change email notifications, open your{" "}
@@ -77,4 +77,5 @@ NotificationEmailTemplate.PreviewProps = {
 
 // React Email's CLI discovers templates via the default export, so keep one
 // alongside the named export used by application code.
+// biome-ignore lint/complexity/noRedundantDefaultExport: React Email's CLI requires the default export.
 export default NotificationEmailTemplate;

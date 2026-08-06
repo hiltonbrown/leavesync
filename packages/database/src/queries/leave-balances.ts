@@ -33,42 +33,42 @@ export async function listLeaveBalancesForPerson(
 ): Promise<Result<LeaveBalanceData[]>> {
   try {
     const balances = await database.leaveBalance.findMany({
+      orderBy: { leave_type_xero_id: "asc" },
+      select: {
+        balance: true,
+        clerk_org_id: true,
+        created_at: true,
+        id: true,
+        leave_type_xero_id: true,
+        organisation_id: true,
+        person_id: true,
+        updated_at: true,
+        xero_tenant_id: true,
+      },
       where: {
         ...scopedQuery(clerkOrgId, organisationId),
         person_id: personId,
       },
-      select: {
-        id: true,
-        clerk_org_id: true,
-        organisation_id: true,
-        person_id: true,
-        xero_tenant_id: true,
-        leave_type_xero_id: true,
-        balance: true,
-        created_at: true,
-        updated_at: true,
-      },
-      orderBy: { leave_type_xero_id: "asc" },
     });
 
     return {
       ok: true,
       value: balances.map((b) => ({
-        id: b.id,
+        balance: Number(b.balance),
         clerkOrgId: b.clerk_org_id,
+        createdAt: b.created_at,
+        id: b.id,
+        leaveTypeXeroId: b.leave_type_xero_id,
         organisationId: b.organisation_id as OrganisationId,
         personId: b.person_id as PersonId,
-        xeroTenantId: b.xero_tenant_id,
-        leaveTypeXeroId: b.leave_type_xero_id,
-        balance: Number(b.balance),
-        createdAt: b.created_at,
         updatedAt: b.updated_at,
+        xeroTenantId: b.xero_tenant_id,
       })),
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to list leave balances"),
+      ok: false,
     };
   }
 }
@@ -80,50 +80,50 @@ export async function listLeaveBalancesForOrganisation(
 ): Promise<Result<LeaveBalanceSummaryData[]>> {
   try {
     const balances = await database.leaveBalance.findMany({
-      where: {
-        ...scopedQuery(clerkOrgId, organisationId),
-        ...(filters?.personId && { person_id: filters.personId }),
-      },
+      orderBy: [
+        { person: { first_name: "asc" } },
+        { leave_type_xero_id: "asc" },
+      ],
       select: {
-        id: true,
-        person_id: true,
-        xero_tenant_id: true,
-        leave_type_xero_id: true,
         balance: true,
-        updated_at: true,
+        id: true,
+        leave_type_xero_id: true,
         person: {
           select: {
             first_name: true,
             last_name: true,
           },
         },
+        person_id: true,
+        updated_at: true,
+        xero_tenant_id: true,
       },
-      orderBy: [
-        { person: { first_name: "asc" } },
-        { leave_type_xero_id: "asc" },
-      ],
+      where: {
+        ...scopedQuery(clerkOrgId, organisationId),
+        ...(filters?.personId && { person_id: filters.personId }),
+      },
     });
 
     return {
       ok: true,
       value: balances.map((b) => ({
-        id: b.id,
-        personId: b.person_id as PersonId,
-        personFirstName: b.person.first_name,
-        personLastName: b.person.last_name,
-        xeroTenantId: b.xero_tenant_id,
-        leaveTypeXeroId: b.leave_type_xero_id,
         balance: Number(b.balance),
+        id: b.id,
+        leaveTypeXeroId: b.leave_type_xero_id,
+        personFirstName: b.person.first_name,
+        personId: b.person_id as PersonId,
+        personLastName: b.person.last_name,
         updatedAt: b.updated_at,
+        xeroTenantId: b.xero_tenant_id,
       })),
     };
   } catch {
     return {
-      ok: false,
       error: appError(
         "internal",
         "Failed to list leave balances for organisation"
       ),
+      ok: false,
     };
   }
 }

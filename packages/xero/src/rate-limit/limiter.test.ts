@@ -7,14 +7,14 @@ function createTestClock(start = 0) {
   let current = start;
   const sleepCalls: number[] = [];
   return {
+    advance: (ms: number) => {
+      current += ms;
+    },
     now: () => current,
     sleep: (ms: number) => {
       sleepCalls.push(ms);
       current += ms;
       return Promise.resolve();
-    },
-    advance: (ms: number) => {
-      current += ms;
     },
     sleepCalls,
   };
@@ -25,9 +25,9 @@ describe("XeroRateLimiter", () => {
     const clock = createTestClock();
     const limiter = new XeroRateLimiter(
       {
-        callsPerMinutePerOrg: 3,
-        callsPerDayPerOrg: 1000,
         appCallsPerMinute: 1000,
+        callsPerDayPerOrg: 1000,
+        callsPerMinutePerOrg: 3,
         concurrentRequestsPerOrg: 100,
         maxWaitMs: 0,
       },
@@ -50,9 +50,9 @@ describe("XeroRateLimiter", () => {
     const clock = createTestClock();
     const limiter = new XeroRateLimiter(
       {
-        callsPerMinutePerOrg: 2,
-        callsPerDayPerOrg: 1000,
         appCallsPerMinute: 1000,
+        callsPerDayPerOrg: 1000,
+        callsPerMinutePerOrg: 2,
         concurrentRequestsPerOrg: 100,
         maxWaitMs: 65_000,
       },
@@ -72,9 +72,9 @@ describe("XeroRateLimiter", () => {
     const clock = createTestClock();
     const limiter = new XeroRateLimiter(
       {
-        callsPerMinutePerOrg: 1000,
-        callsPerDayPerOrg: 2,
         appCallsPerMinute: 1000,
+        callsPerDayPerOrg: 2,
+        callsPerMinutePerOrg: 1000,
         concurrentRequestsPerOrg: 100,
         maxWaitMs: 65_000,
       },
@@ -97,9 +97,9 @@ describe("XeroRateLimiter", () => {
     const clock = createTestClock();
     const limiter = new XeroRateLimiter(
       {
-        callsPerMinutePerOrg: 1000,
-        callsPerDayPerOrg: 1,
         appCallsPerMinute: 1000,
+        callsPerDayPerOrg: 1,
+        callsPerMinutePerOrg: 1000,
         concurrentRequestsPerOrg: 1,
         maxWaitMs: 65_000,
       },
@@ -124,9 +124,9 @@ describe("XeroRateLimiter", () => {
     const clock = createTestClock();
     const limiter = new XeroRateLimiter(
       {
-        callsPerMinutePerOrg: 1000,
-        callsPerDayPerOrg: 100_000,
         appCallsPerMinute: 2,
+        callsPerDayPerOrg: 100_000,
+        callsPerMinutePerOrg: 1000,
         concurrentRequestsPerOrg: 100,
         maxWaitMs: 0,
       },
@@ -148,9 +148,9 @@ describe("XeroRateLimiter", () => {
     // the only way it resolves is via a released slot.
     const limiter = new XeroRateLimiter(
       {
-        callsPerMinutePerOrg: 1000,
-        callsPerDayPerOrg: 1000,
         appCallsPerMinute: 1000,
+        callsPerDayPerOrg: 1000,
+        callsPerMinutePerOrg: 1000,
         concurrentRequestsPerOrg: 2,
         maxWaitMs: 65_000,
       },
@@ -184,9 +184,9 @@ describe("XeroRateLimiter", () => {
     const clock = createTestClock();
     const limiter = new XeroRateLimiter(
       {
-        callsPerMinutePerOrg: 1000,
-        callsPerDayPerOrg: 1000,
         appCallsPerMinute: 1000,
+        callsPerDayPerOrg: 1000,
+        callsPerMinutePerOrg: 1000,
         concurrentRequestsPerOrg: 1,
         maxWaitMs: 0,
       },
@@ -215,9 +215,9 @@ describe("XeroRateLimiter", () => {
     const clock = createTestClock();
     const limiter = new XeroRateLimiter(
       {
-        callsPerMinutePerOrg: 2,
-        callsPerDayPerOrg: 1000,
         appCallsPerMinute: 1000,
+        callsPerDayPerOrg: 1000,
+        callsPerMinutePerOrg: 2,
         concurrentRequestsPerOrg: 100,
         maxWaitMs: 0,
       },

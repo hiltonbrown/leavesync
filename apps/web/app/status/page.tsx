@@ -4,26 +4,26 @@ import { Bell, CalendarSync, MailWarning, ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = createMetadata({
-  title: "Status",
   description:
     "Team Calendar status information for the app, Xero sync, calendar feeds, and notifications.",
+  title: "Status",
 });
 
 const monitoredAreas = [
   {
+    copy: "Sign-in, organisation switching, and authenticated product routes.",
     icon: ShieldCheck,
     title: "App access",
-    copy: "Sign-in, organisation switching, and authenticated product routes.",
   },
   {
+    copy: "Xero Payroll connectivity, availability normalisation, and published ICS feed delivery.",
     icon: CalendarSync,
     title: "Xero sync and calendar feeds",
-    copy: "Xero Payroll connectivity, availability normalisation, and published ICS feed delivery.",
   },
   {
+    copy: "In-app and email delivery for leave, approval, sync, and feed events.",
     icon: Bell,
     title: "Notifications",
-    copy: "In-app and email delivery for leave, approval, sync, and feed events.",
   },
 ];
 

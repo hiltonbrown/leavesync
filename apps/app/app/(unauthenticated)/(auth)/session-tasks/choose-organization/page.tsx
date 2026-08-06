@@ -6,7 +6,7 @@ const title = "Choose an organisation";
 const description =
   "Create a new Team Calendar organisation or continue with an existing invitation.";
 
-export const metadata: Metadata = createMetadata({ title, description });
+export const metadata: Metadata = createMetadata({ description, title });
 
 const ChooseOrganizationTaskPage = () => <ChooseOrganizationTask />;
 

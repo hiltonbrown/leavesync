@@ -11,8 +11,8 @@ let stripeClient: Stripe | null = null;
 export const getStripe = (): Result<Stripe> => {
   if (!process.env.STRIPE_SECRET_KEY) {
     return {
-      ok: false,
       error: appError("internal", "Stripe is not configured."),
+      ok: false,
     };
   }
   // The SDK type only admits its own bundled LatestApiVersion literal, but we
@@ -28,8 +28,8 @@ export const resolvePlanKey = (priceId: string): Result<PlanKey> => {
   const plan = PLAN_CATALOGUE.find((item) => item.priceId === priceId);
   if (!plan) {
     return {
-      ok: false,
       error: appError("bad_request", "Unknown Stripe price."),
+      ok: false,
     };
   }
   return { ok: true, value: plan.plan_key };
@@ -39,8 +39,8 @@ const urlEnv = (key: string): Result<string> => {
   const value = process.env[key];
   if (!value) {
     return {
-      ok: false,
       error: appError("internal", `${key} is not configured.`),
+      ok: false,
     };
   }
   return { ok: true, value };
@@ -53,8 +53,8 @@ export const createCheckoutSession = async (
   const plan = PLAN_CATALOGUE.find((item) => item.plan_key === planKey);
   if (!plan?.priceId) {
     return {
-      ok: false,
       error: appError("bad_request", "Contact sales for Enterprise billing."),
+      ok: false,
     };
   }
   const stripe = getStripe();
@@ -83,8 +83,8 @@ export const createCheckoutSession = async (
   return session.url
     ? { ok: true, value: session.url }
     : {
-        ok: false,
         error: appError("internal", "Stripe did not return a Checkout URL."),
+        ok: false,
       };
 };
 
@@ -99,11 +99,11 @@ export const createPortalSession = async (
   const subscription = await getSubscriptionForOrg(clerkOrgId);
   if (!subscription?.stripe_customer_id) {
     return {
-      ok: false,
       error: appError(
         "not_found",
         "No Stripe customer is stored for this organisation."
       ),
+      ok: false,
     };
   }
   const session = await stripe.value.billingPortal.sessions.create({
@@ -120,8 +120,8 @@ export const constructEvent = (
 ): Result<Stripe.Event> => {
   if (!(signatureHeader && secret)) {
     return {
-      ok: false,
       error: appError("bad_request", "Missing Stripe webhook signature."),
+      ok: false,
     };
   }
   const stripe = getStripe();
@@ -139,8 +139,8 @@ export const constructEvent = (
     };
   } catch {
     return {
-      ok: false,
       error: appError("bad_request", "Invalid Stripe webhook signature."),
+      ok: false,
     };
   }
 };

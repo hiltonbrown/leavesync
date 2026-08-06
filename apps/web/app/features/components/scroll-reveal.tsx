@@ -25,17 +25,19 @@ export const ScrollReveal = ({
         }
       },
       {
-        threshold: 0.1,
         rootMargin: "0px 0px -40px 0px",
+        threshold: 0.1,
       }
     );
 
     const currentRef = ref.current;
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: ref.current is null until the div mounts; this guard is load-bearing at runtime even though Biome cannot see the ref assignment.
     if (currentRef) {
       observer.observe(currentRef);
     }
 
     return () => {
+      // biome-ignore lint/suspicious/noUnnecessaryConditions: ref.current is null until the div mounts; this guard is load-bearing at runtime even though Biome cannot see the ref assignment.
       if (currentRef) {
         observer.unobserve(currentRef);
       }

@@ -117,11 +117,11 @@ export async function disconnectXeroAction(input: {
   }
 
   const organisation = await database.organisation.findFirst({
+    select: { name: true },
     where: {
       clerk_org_id: context.value.clerkOrgId,
       id: context.value.organisationId,
     },
-    select: { name: true },
   });
   if (!organisation || organisation.name !== parsed.data.confirmationText) {
     return validationError("Type the organisation name to confirm disconnect.");
@@ -191,13 +191,13 @@ async function updateTenantPauseState(
   }
 
   await database.xeroTenant.updateMany({
+    data: {
+      sync_paused_at: paused ? new Date() : null,
+    },
     where: {
       clerk_org_id: context.value.clerkOrgId,
       id: parsed.data.xeroTenantId,
       organisation_id: context.value.organisationId,
-    },
-    data: {
-      sync_paused_at: paused ? new Date() : null,
     },
   });
 
@@ -287,30 +287,30 @@ function revalidate() {
 
 function notAuthorised(): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "Only admins and owners can manage Xero settings.",
     },
+    ok: false,
   };
 }
 
 function unknownError(message: string): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "unknown_error",
       message,
     },
+    ok: false,
   };
 }
 
 function validationError(message?: string): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: message ?? "Invalid Xero settings request.",
     },
+    ok: false,
   };
 }

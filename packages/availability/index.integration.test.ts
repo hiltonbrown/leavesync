@@ -11,13 +11,13 @@ vi.mock("./src/holidays/nager-client", () => ({
       ok: true,
       value: [
         {
-          date: `${year}-01-01`,
-          localName: "New Year's Day",
-          name: "New Year's Day",
+          counties: null,
           countryCode: "AU",
+          date: `${year}-01-01`,
           fixed: true,
           global: true,
-          counties: null,
+          localName: "New Year's Day",
+          name: "New Year's Day",
           types: ["Public"],
         },
       ],
@@ -365,8 +365,8 @@ describe("current user person identity", () => {
     const jurisdictions = await database.publicHolidayJurisdiction.findMany({
       where: {
         clerk_org_id: provisioningClerkOrgId,
-        organisation_id: context.organisationId,
         country_code: "AU",
+        organisation_id: context.organisationId,
         region_code: null,
       },
     });
@@ -413,8 +413,8 @@ describe("current user person identity", () => {
 
   test("returns an existing linked person", async () => {
     await database.person.update({
-      where: { id: tenantA.personId },
       data: { clerk_user_id: "user_existing" },
+      where: { id: tenantA.personId },
     });
 
     const result = await ensureCurrentUserPerson(contextFor(tenantA), {
@@ -443,12 +443,12 @@ describe("current user person identity", () => {
 
     await expect(
       database.person.findFirst({
+        select: { id: true },
         where: {
-          id: tenantA.personId,
           clerk_user_id: "user_same_email",
+          id: tenantA.personId,
           organisation_id: tenantA.organisationId,
         },
-        select: { id: true },
       })
     ).resolves.toEqual({ id: tenantA.personId });
   });
@@ -468,8 +468,8 @@ describe("current user person identity", () => {
 
     await expect(
       database.person.findUnique({
-        where: { id: tenantB.personId },
         select: { clerk_user_id: true },
+        where: { id: tenantB.personId },
       })
     ).resolves.toEqual({ clerk_user_id: null });
   });
@@ -489,7 +489,6 @@ describe("current user person identity", () => {
 
     await expect(
       database.person.findUnique({
-        where: { id: result.value.id },
         select: {
           avatar_url: true,
           clerk_org_id: true,
@@ -498,6 +497,7 @@ describe("current user person identity", () => {
           organisation_id: true,
           source_system: true,
         },
+        where: { id: result.value.id },
       })
     ).resolves.toEqual({
       avatar_url: "https://img.clerk.com/avatar.png",

@@ -79,8 +79,8 @@ describe("CalendarPage", () => {
     mocks.currentUser.mockResolvedValue({ id: "user_1" });
     mocks.requireActiveOrgPageContext.mockResolvedValue({
       clerkOrgId: "org_1",
-      orgQueryValue: null,
       organisationId: "00000000-0000-4000-8000-000000000001",
+      orgQueryValue: null,
     });
     mocks.personFindFirst.mockResolvedValue({
       id: "00000000-0000-4000-8000-000000000011",
@@ -137,8 +137,8 @@ describe("CalendarPage", () => {
 
   it("renders FetchErrorState on loader failure", async () => {
     mocks.getCalendarRange.mockResolvedValue({
-      ok: false,
       error: { code: "unknown_error", message: "Nope" },
+      ok: false,
     });
 
     render(await Page({ searchParams: Promise.resolve({}) }));

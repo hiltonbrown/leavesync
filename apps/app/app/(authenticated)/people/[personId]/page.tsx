@@ -60,7 +60,7 @@ async function loadProfileViewModel(
   personId: string,
   searchParams: Record<string, string | string[] | undefined>
 ) {
-  const org = searchParams.org;
+  const { org } = searchParams;
   const orgParam = Array.isArray(org) ? org[0] : org;
   const { clerkOrgId, organisationId, orgQueryValue } =
     await requireActiveOrgPageContext(orgParam);
@@ -71,12 +71,12 @@ async function loadProfileViewModel(
   }
 
   const actingPerson = await database.person.findFirst({
+    select: { id: true },
     where: {
       ...scopedQuery(clerkOrgId, organisationId),
       archived_at: null,
       clerk_user_id: user.id,
     },
-    select: { id: true },
   });
 
   const profileResult = await getPersonProfile({

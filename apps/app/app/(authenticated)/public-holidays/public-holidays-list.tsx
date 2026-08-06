@@ -60,46 +60,46 @@ interface PublicHolidaysListProps {
 
 const TYPE_CONFIG: Record<string, { label: string; bg: string; text: string }> =
   {
-    public: {
-      label: "Public holiday",
-      bg: "color-mix(in srgb, var(--primary) 12%, transparent)",
-      text: "var(--primary)",
+    authorities: {
+      bg: "var(--accent)",
+      label: "Authorities",
+      text: "var(--muted-foreground)",
     },
     bank: {
-      label: "Bank holiday",
       bg: "color-mix(in srgb, var(--primary) 8%, transparent)",
+      label: "Bank holiday",
       text: "var(--primary)",
     },
-    school: {
-      label: "School",
-      bg: "color-mix(in srgb, var(--tertiary, var(--primary)) 12%, transparent)",
-      text: "var(--tertiary, var(--primary))",
+    custom: {
+      bg: "color-mix(in srgb, var(--primary) 12%, transparent)",
+      label: "Custom",
+      text: "var(--primary)",
     },
-    authorities: {
-      label: "Authorities",
-      bg: "var(--accent)",
+    observance: {
+      bg: "var(--muted)",
+      label: "Observance",
       text: "var(--muted-foreground)",
     },
     optional: {
-      label: "Optional",
       bg: "var(--accent)",
+      label: "Optional",
       text: "var(--muted-foreground)",
     },
-    observance: {
-      label: "Observance",
-      bg: "var(--muted)",
-      text: "var(--muted-foreground)",
-    },
-    custom: {
-      label: "Custom",
+    public: {
       bg: "color-mix(in srgb, var(--primary) 12%, transparent)",
+      label: "Public holiday",
       text: "var(--primary)",
+    },
+    school: {
+      bg: "color-mix(in srgb, var(--tertiary, var(--primary)) 12%, transparent)",
+      label: "School",
+      text: "var(--tertiary, var(--primary))",
     },
   };
 
 const FALLBACK_TYPE_CONFIG = {
-  label: "Holiday",
   bg: "var(--muted)",
+  label: "Holiday",
   text: "var(--muted-foreground)",
 };
 

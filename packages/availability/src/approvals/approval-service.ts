@@ -256,11 +256,13 @@ export async function listForApprover(
           ).filter((personId) => personId !== parsed.data.actingPersonId)
         : [];
     const records = await database.availabilityRecord.findMany({
+      include: recordInclude,
+      orderBy: [{ submitted_at: "asc" }, { starts_at: "asc" }],
       where: {
         ...scoped(parsed.data),
+        approval_status: { in: filters.status },
         archived_at: null,
         source_type: { in: ["team_calendar_leave", "xero_leave"] },
-        approval_status: { in: filters.status },
         ...(filters.personId?.length
           ? { person_id: { in: filters.personId } }
           : {}),
@@ -273,8 +275,6 @@ export async function listForApprover(
           ? { person_id: { in: managedPersonIds } }
           : {}),
       },
-      include: recordInclude,
-      orderBy: [{ submitted_at: "asc" }, { starts_at: "asc" }],
     });
 
     const listContext = await loadApprovalListContext(records);
@@ -302,17 +302,17 @@ export async function getApprovalDetail(
     }
     const item = await toApprovalListItem(authorised.value);
     const history = await database.auditEvent.findMany({
-      where: {
-        ...scoped(parsed.data),
-        action: { in: HISTORY_ACTIONS },
-        resource_id: parsed.data.recordId,
-        resource_type: "availability_record",
-      },
       orderBy: { created_at: "asc" },
       select: {
         action: true,
         created_at: true,
         payload: true,
+      },
+      where: {
+        ...scoped(parsed.data),
+        action: { in: HISTORY_ACTIONS },
+        resource_id: parsed.data.recordId,
+        resource_type: "availability_record",
       },
     });
 
@@ -409,8 +409,8 @@ export async function approve(
   externalWritePort: ExternalWritePort
 ): Promise<Result<ApprovalListItem, ApprovalServiceError>> {
   return await performApproval(input, externalWritePort, {
-    failureAuditAction: "availability_records.approval_failed",
     failureAction: "approve",
+    failureAuditAction: "availability_records.approval_failed",
     successAuditAction: "availability_records.approved",
   });
 }
@@ -420,8 +420,8 @@ export async function retryApproval(
   externalWritePort: ExternalWritePort
 ): Promise<Result<ApprovalListItem, ApprovalServiceError>> {
   return await performApproval(input, externalWritePort, {
-    failureAuditAction: "availability_records.approval_retry_failed",
     failureAction: "approve",
+    failureAuditAction: "availability_records.approval_retry_failed",
     retry: true,
     successAuditAction: "availability_records.approval_retry_succeeded",
   });
@@ -445,11 +445,11 @@ export async function decline(
     parsed.data.reason.trim().length < 3
   ) {
     return {
-      ok: false,
       error: {
         code: "validation_error",
         message: "Enter a decline reason of at least 3 characters.",
       },
+      ok: false,
     };
   }
   return await performDecline(parsed.data, externalWritePort, {
@@ -482,12 +482,12 @@ export async function retryDecline(
     }
     if (!reason) {
       return {
-        ok: false,
         error: {
           code: "missing_preserved_reason",
           message:
             "The original decline reason could not be found. Enter a new reason to try again.",
         },
+        ok: false,
       };
     }
 
@@ -621,11 +621,11 @@ async function dispatchApprovalReconciliationInternal(
   input: DispatchInput
 ): Promise<Result<{ queued: boolean; reason?: string }, ApprovalServiceError>> {
   const tenant = await database.xeroTenant.findFirst({
+    orderBy: { created_at: "asc" },
     where: {
       clerk_org_id: input.clerkOrgId,
       organisation_id: input.organisationId,
     },
-    orderBy: { created_at: "asc" },
   });
   if (!tenant) {
     return xeroNotConnected();
@@ -643,17 +643,17 @@ async function dispatchApprovalReconciliationInternal(
     clerkOrgId: input.clerkOrgId,
     organisationId: input.organisationId,
     runType: "approval_state_reconciliation",
-    triggerType: "manual",
     triggeredByUserId: input.actingUserId,
+    triggerType: "manual",
     xeroTenantId: tenant.id,
   });
   if (!dispatched.ok) {
     return {
-      ok: false,
       error: {
         code: "dispatch_failed",
         message: dispatched.error.message,
       },
+      ok: false,
     };
   }
 
@@ -700,18 +700,18 @@ async function performApproval(
     }
 
     const response = await externalWritePort.approveLeaveApplication({
-      employeeId: xeroEmployeeId,
-      remoteId: xeroLeaveApplicationId,
       clerkOrgId: parsed.data.clerkOrgId,
+      employeeId: xeroEmployeeId,
       organisationId: parsed.data.organisationId,
+      remoteId: xeroLeaveApplicationId,
     });
     if (!response.ok) {
       return await persistApprovalFailure({
         auditAction: options.failureAuditAction,
+        error: response.error,
         failedAction: "approve",
         input: parsed.data,
         record,
-        error: response.error,
       });
     }
 
@@ -792,20 +792,20 @@ async function performDecline(
     }
 
     const response = await externalWritePort.declineLeaveApplication({
-      reason: options.reason,
-      employeeId: xeroEmployeeId,
-      remoteId: xeroLeaveApplicationId,
       clerkOrgId: input.clerkOrgId,
+      employeeId: xeroEmployeeId,
       organisationId: input.organisationId,
+      reason: options.reason,
+      remoteId: xeroLeaveApplicationId,
     });
     if (!response.ok) {
       return await persistApprovalFailure({
         approvalNote: options.reason,
         auditAction: options.failureAuditAction,
+        error: response.error,
         failedAction: "decline",
         input,
         record,
-        error: response.error,
       });
     }
 
@@ -892,11 +892,11 @@ async function prepareApprovalWrite(
   }
   if (!isXeroLeaveType(record.record_type)) {
     return {
-      ok: false,
       error: {
         code: "not_a_leave_type",
         message: "Only Xero leave records can be approved or declined.",
       },
+      ok: false,
     };
   }
 
@@ -905,9 +905,9 @@ async function prepareApprovalWrite(
     return xeroNotConnected();
   }
   const employee = await externalWritePort.resolveEmployeeId({
-    personId: record.person_id,
     clerkOrgId: input.clerkOrgId,
     organisationId: input.organisationId,
+    personId: record.person_id,
   });
   if (!employee.ok) {
     return resolutionBlocked(employee.error);
@@ -976,11 +976,11 @@ function loadRecord(input: {
   recordId: string;
 }) {
   return database.availabilityRecord.findFirst({
+    include: recordInclude,
     where: {
       ...scoped(input),
       id: input.recordId,
     },
-    include: recordInclude,
   });
 }
 
@@ -1022,7 +1022,7 @@ async function loadApprovalListContext(
     };
   }
 
-  const firstRecord = records[0];
+  const [firstRecord] = records;
   if (!firstRecord) {
     throw new Error("Approval records changed while loading list context");
   }
@@ -1040,29 +1040,29 @@ async function loadApprovalListContext(
     cache.getOrLoad("approval-list:locations", () =>
       locationIds.length
         ? database.location.findMany({
-            where: {
-              ...scoped({ clerkOrgId, organisationId }),
-              id: { in: locationIds },
-            },
             select: {
               country_code: true,
               id: true,
               region_code: true,
               timezone: true,
             },
+            where: {
+              ...scoped({ clerkOrgId, organisationId }),
+              id: { in: locationIds },
+            },
           })
         : Promise.resolve([])
     ),
     cache.getOrLoad("approval-list:organisation", async () => {
       const row = await database.organisation.findFirst({
+        select: {
+          country_code: true,
+          timezone: true,
+        },
         where: {
           archived_at: null,
           clerk_org_id: clerkOrgId,
           id: organisationId,
-        },
-        select: {
-          country_code: true,
-          timezone: true,
         },
       });
       return row
@@ -1130,11 +1130,6 @@ async function loadApprovalListContext(
   const balances =
     personIds.length && recordTypes.length
       ? await database.leaveBalance.findMany({
-          where: {
-            ...scoped({ clerkOrgId, organisationId }),
-            person_id: { in: personIds },
-            record_type: { in: recordTypes },
-          },
           orderBy: { updated_at: "desc" },
           select: {
             balance: true,
@@ -1142,6 +1137,11 @@ async function loadApprovalListContext(
             person_id: true,
             record_type: true,
             updated_at: true,
+          },
+          where: {
+            ...scoped({ clerkOrgId, organisationId }),
+            person_id: { in: personIds },
+            record_type: { in: recordTypes },
           },
         })
       : [];
@@ -1268,6 +1268,12 @@ async function loadBalanceSnapshot(
         balanceKey(record.person_id, record.record_type)
       ) ?? null)
     : await database.leaveBalance.findFirst({
+        orderBy: { updated_at: "desc" },
+        select: {
+          balance: true,
+          balance_unit: true,
+          updated_at: true,
+        },
         where: {
           ...scoped({
             clerkOrgId: record.clerk_org_id,
@@ -1275,12 +1281,6 @@ async function loadBalanceSnapshot(
           }),
           person_id: record.person_id,
           record_type: record.record_type,
-        },
-        orderBy: { updated_at: "desc" },
-        select: {
-          balance: true,
-          balance_unit: true,
-          updated_at: true,
         },
       });
   if (!balance) {
@@ -1382,9 +1382,9 @@ async function notifyUser(
       actorUserId: input.actingUserId,
       body: notificationBody(record, options.type, options.payload?.body),
       clerkOrgId: input.clerkOrgId,
-      organisationId: input.organisationId,
       objectId: record.id,
       objectType: "availability_record",
+      organisationId: input.organisationId,
       recipientPersonId: options.recipientPersonId ?? record.person.id,
       recipientUserId: options.recipientUserId,
       title: notificationTitle(options.type),
@@ -1594,11 +1594,11 @@ function validationError(
   error: z.ZodError
 ): Result<never, ApprovalServiceError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid approval request.",
     },
+    ok: false,
   };
 }
 
@@ -1615,41 +1615,41 @@ function invalidState(
     invalid_state_for_decline: "Only submitted leave can be declined.",
     invalid_state_for_info_request:
       "More information can only be requested for submitted leave.",
+    invalid_state_for_retry: "Only failed approval actions can be retried.",
     invalid_state_for_revert:
       "Only failed approval attempts can be reverted to pending.",
-    invalid_state_for_retry: "Only failed approval actions can be retried.",
   };
-  return { ok: false, error: { code, message: messages[code] } };
+  return { error: { code, message: messages[code] }, ok: false };
 }
 
 function recordNotFound(): Result<never, ApprovalServiceError> {
   return {
-    ok: false,
     error: {
       code: "record_not_found",
       message: "Availability record not found.",
     },
+    ok: false,
   };
 }
 
 function notAuthorised(): Result<never, ApprovalServiceError> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "You do not have permission to manage this approval.",
     },
+    ok: false,
   };
 }
 
 function xeroNotConnected(): Result<never, ApprovalServiceError> {
   return {
-    ok: false,
     error: {
       code: "xero_not_connected",
       message:
         "Xero is not connected for this organisation. Connect Xero before approving or declining leave.",
     },
+    ok: false,
   };
 }
 
@@ -1657,22 +1657,22 @@ function resolutionBlocked(
   resolutionError: ProviderResolutionError
 ): Result<never, ApprovalServiceError> {
   return {
-    ok: false,
     error: {
       code: "approval_blocked_resolution",
       message: resolutionError.message,
       resolutionError,
     },
+    ok: false,
   };
 }
 
 function unknownError(message: string): Result<never, ApprovalServiceError> {
   return {
-    ok: false,
     error: {
       code: "unknown_error",
       message,
     },
+    ok: false,
   };
 }
 

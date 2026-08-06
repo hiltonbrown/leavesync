@@ -15,13 +15,13 @@ export async function managerScopePersonIds(input: {
       organisationId: input.organisationId,
     }),
     database.person.findMany({
+      orderBy: { id: "asc" },
+      select: { id: true, manager_person_id: true },
       where: {
         archived_at: null,
         clerk_org_id: input.clerkOrgId,
         organisation_id: input.organisationId,
       },
-      orderBy: { id: "asc" },
-      select: { id: true, manager_person_id: true },
     }),
   ]);
 
@@ -38,7 +38,9 @@ export async function managerScopePersonIds(input: {
       : [
           input.actingPersonId,
           ...people
-            .filter((person) => person.manager_person_id === input.actingPersonId)
+            .filter(
+              (person) => person.manager_person_id === input.actingPersonId
+            )
             .map((person) => person.id),
         ];
 

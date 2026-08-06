@@ -218,7 +218,7 @@ export function LeaveApprovalsClient({
             immediately.
           </p>
         </div>
-        {canDispatchReconciliation && (
+        {canDispatchReconciliation ? (
           <Button
             disabled={isPending || !reconciliationEnabled}
             onClick={syncApprovalState}
@@ -232,7 +232,7 @@ export function LeaveApprovalsClient({
           >
             Sync approval state
           </Button>
-        )}
+        ) : null}
       </div>
 
       <div className="grid gap-3 md:grid-cols-4">
@@ -544,7 +544,7 @@ function DetailPanel({
   const retrySlot = retrySlotForRecord(record, onInlineAction);
   return (
     <div className="grid gap-4 rounded-2xl bg-muted p-4">
-      {record.xeroWriteError && (
+      {record.xeroWriteError ? (
         <XeroSyncFailedState
           message={record.xeroWriteError}
           retrySlot={retrySlot}
@@ -561,7 +561,7 @@ function DetailPanel({
             ) : undefined
           }
         />
-      )}
+      ) : null}
       <div className="grid gap-2 text-sm md:grid-cols-3">
         <DetailItem label="Employee notes">
           {record.notesInternal?.trim() || "No notes provided."}
@@ -604,7 +604,6 @@ function retrySlotForRecord(
       </Button>
     );
   }
-  return;
 }
 
 function DetailItem({

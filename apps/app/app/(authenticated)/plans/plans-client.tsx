@@ -246,14 +246,14 @@ export function PlansClient({
         >
           My records
         </TabLink>
-        {canViewTeam && (
+        {canViewTeam ? (
           <TabLink
             active={filters.tab === "team"}
             href={tabHref("team", orgQueryValue)}
           >
             Team records
           </TabLink>
-        )}
+        ) : null}
       </div>
 
       {records.length > 0 && <StatusOverview records={records} />}
@@ -262,9 +262,9 @@ export function PlansClient({
         className="grid gap-4 rounded-2xl bg-muted p-5 md:grid-cols-5"
         method="get"
       >
-        {orgQueryValue && (
+        {orgQueryValue ? (
           <input name="org" type="hidden" value={orgQueryValue} />
-        )}
+        ) : null}
         <input name="tab" type="hidden" value={filters.tab} />
         <FilterField label="Category">
           <Select
@@ -366,7 +366,7 @@ export function PlansClient({
                         orgQueryValue={orgQueryValue}
                         record={record}
                       />
-                      {inlineError[record.id] && (
+                      {inlineError[record.id] ? (
                         <div
                           className={`mt-3 flex items-start gap-2 rounded-2xl p-3 text-sm ${statusToneClasses.failed}`}
                           role="alert"
@@ -374,7 +374,7 @@ export function PlansClient({
                           <AlertCircleIcon className="mt-0.5 size-4 shrink-0" />
                           <span>{inlineError[record.id]}</span>
                         </div>
-                      )}
+                      ) : null}
                       {record.approvalStatus === "xero_sync_failed" &&
                         record.xeroWriteError && (
                           <div className="mt-3">
@@ -428,7 +428,7 @@ export function PlansClient({
         </p>
       )}
 
-      {submissionModal && (
+      {submissionModal ? (
         <SubmitConfirmationModal
           mode={submissionModal.mode}
           onClose={() => setSubmissionModal(null)}
@@ -448,9 +448,9 @@ export function PlansClient({
             workingDays: submissionModal.record.workingDays,
           }}
         />
-      )}
+      ) : null}
 
-      {confirmationAction && (
+      {confirmationAction ? (
         <ConfirmActionDialog
           action={confirmationAction.action}
           disabled={isPending}
@@ -462,7 +462,7 @@ export function PlansClient({
             )
           }
         />
-      )}
+      ) : null}
     </section>
   );
 }

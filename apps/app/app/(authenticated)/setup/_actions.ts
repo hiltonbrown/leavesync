@@ -70,11 +70,11 @@ export async function createOrganisationAction(input: {
     if (!personResult.ok) {
       if (personResult.error.code === "conflict") {
         return {
-          ok: false,
           error: {
             code: "conflict",
             message: personResult.error.message,
           },
+          ok: false,
         };
       }
       return unknownError(personResult.error.message);
@@ -88,24 +88,24 @@ export async function createOrganisationAction(input: {
 
 function notAuthorised(): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "You do not have permission to set up this organisation.",
     },
+    ok: false,
   };
 }
 
 function unknownError(message: string): ActionResult<never> {
-  return { ok: false, error: { code: "unknown_error", message } };
+  return { error: { code: "unknown_error", message }, ok: false };
 }
 
 function validationError(message?: string): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: message ?? "Invalid input.",
     },
+    ok: false,
   };
 }

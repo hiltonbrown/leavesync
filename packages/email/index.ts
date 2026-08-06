@@ -38,7 +38,7 @@ export async function sendNotificationEmail(
 ): Promise<SendNotificationEmailResult> {
   const { RESEND_FROM } = keys();
   if (!(resend && RESEND_FROM)) {
-    return { ok: false, error: "Resend transport is not configured" };
+    return { error: "Resend transport is not configured", ok: false };
   }
 
   // Keep the TSX template out of non-JSX workspace typecheck graphs.
@@ -63,8 +63,8 @@ export async function sendNotificationEmail(
 
   if (error || !data) {
     return {
-      ok: false,
       error: error?.message ?? "Resend did not return an email ID",
+      ok: false,
     };
   }
 

@@ -7,74 +7,74 @@ import { PricingPlans } from "./pricing-plans";
 const comparisonRows = [
   {
     capability: "Xero Payroll connection",
-    starter: "1",
-    premium: "1",
     enterprise: "Multiple",
+    premium: "1",
+    starter: "1",
   },
   {
     capability: "Calendar feeds",
-    starter: "Core feeds",
-    premium: "Team and location feeds",
     enterprise: "Custom",
+    premium: "Team and location feeds",
+    starter: "Core feeds",
   },
   {
     capability: "Manual availability",
-    starter: "Included",
-    premium: "Included",
     enterprise: "Included",
+    premium: "Included",
+    starter: "Included",
   },
   {
     capability: "Sync health",
-    starter: "Basic",
-    premium: "Advanced",
     enterprise: "Advanced",
+    premium: "Advanced",
+    starter: "Basic",
   },
   {
     capability: "Support",
-    starter: "Standard",
-    premium: "Priority",
     enterprise: "Implementation partner",
+    premium: "Priority",
+    starter: "Standard",
   },
 ] as const;
 
 const setupOptions = [
   {
-    title: "Self-serve setup",
     copy: "Connect Xero, choose your organisation, and publish the first secure feed in minutes.",
     icon: "sync",
+    title: "Self-serve setup",
   },
   {
-    title: "Guided rollout",
     copy: "We help map teams, locations, privacy settings, and calendar feed structure before launch.",
     icon: "shieldCheck",
+    title: "Guided rollout",
   },
   {
-    title: "Enterprise onboarding",
     copy: "Structured planning for multi-entity payroll, governance, and internal change management.",
     icon: "briefcase",
+    title: "Enterprise onboarding",
   },
 ] as const;
 
 const faqs = [
   {
-    question: "How does billing work?",
     answer:
       "Team Calendar bills per organisation plan, not per seat. Each plan covers your whole Xero Payroll organisation, so adding people never changes the price.",
+    question: "How does billing work?",
   },
   {
-    question: "What if we run more than one Xero file?",
     answer:
       "Each Xero Payroll file is its own organisation. Multi-entity teams run on Enterprise, which covers several organisations under one agreement.",
+    question: "What if we run more than one Xero file?",
   },
   {
-    question: "Can we change plans later?",
     answer:
       "Yes. You can start smaller and move to a larger plan when your feed structure or support needs change.",
+    question: "Can we change plans later?",
   },
   {
-    question: "Is a credit card required for early access?",
     answer:
       "No. Early access teams can connect Xero and validate their calendar workflow before paid billing begins.",
+    question: "Is a credit card required for early access?",
   },
 ] as const;
 

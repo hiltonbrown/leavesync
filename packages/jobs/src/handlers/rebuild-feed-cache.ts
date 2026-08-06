@@ -119,22 +119,22 @@ export async function rebuildFeedCache(
   } catch (error) {
     log.error("Unhandled exception in rebuildFeedCache:", { error });
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to rebuild feed cache.",
       },
+      ok: false,
     };
   }
 }
 
 function validationError(error: z.ZodError): RebuildFeedCacheResult {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message:
         error.issues[0]?.message ?? "Invalid rebuild feed cache request.",
     },
+    ok: false,
   };
 }

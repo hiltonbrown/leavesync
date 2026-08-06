@@ -69,12 +69,12 @@ export async function submitLeaveApplication(
 
   if (!xeroLeaveApplicationId) {
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Xero did not return a leave application ID.",
         rawPayload: response.value,
       },
+      ok: false,
     };
   }
 
@@ -155,11 +155,11 @@ async function xeroRequest(
 
   if (!decryptedAccessToken || xeroTenant.xero_connection.revoked_at) {
     return {
-      ok: false,
       error: {
         code: "auth_error",
         message: "Xero credentials are missing or revoked.",
       },
+      ok: false,
     };
   }
 
@@ -185,20 +185,20 @@ async function xeroRequest(
 
     if (!response.ok) {
       return {
-        ok: false,
         error: mapHttpError(response, rawPayload),
+        ok: false,
       };
     }
 
     return { ok: true, value: rawPayload };
   } catch (error) {
     return {
-      ok: false,
       error: {
         code: "network_error",
         message:
           error instanceof Error ? error.message : "Failed to reach Xero.",
       },
+      ok: false,
     };
   }
 }

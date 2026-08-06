@@ -113,7 +113,7 @@ describe("email-queue-service", () => {
 
   it("keeps a failed send below the threshold queued with its error", async () => {
     mocks.findMany.mockResolvedValue([queuedEmail({ attempts: 3 })]);
-    mocks.send.mockResolvedValue({ ok: false, error: "Provider unavailable" });
+    mocks.send.mockResolvedValue({ error: "Provider unavailable", ok: false });
 
     await sendQueuedNotificationEmails(client);
 
@@ -129,7 +129,7 @@ describe("email-queue-service", () => {
 
   it("marks a fifth failed send as failed", async () => {
     mocks.findMany.mockResolvedValue([queuedEmail({ attempts: 4 })]);
-    mocks.send.mockResolvedValue({ ok: false, error: "Provider unavailable" });
+    mocks.send.mockResolvedValue({ error: "Provider unavailable", ok: false });
 
     await sendQueuedNotificationEmails(client);
 
@@ -146,7 +146,7 @@ describe("email-queue-service", () => {
       queuedEmail({ id: "00000000-0000-4000-8000-000000000202" }),
     ]);
     mocks.send
-      .mockResolvedValueOnce({ ok: false, error: "Provider unavailable" })
+      .mockResolvedValueOnce({ error: "Provider unavailable", ok: false })
       .mockResolvedValueOnce({ ok: true, value: { id: "email_2" } });
 
     const result = await sendQueuedNotificationEmails(client);

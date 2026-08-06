@@ -57,8 +57,8 @@ export async function dispatchNotification(
   }
   if (!isKnownNotificationType(parsed.data.type)) {
     return {
-      ok: false,
       error: { code: "invalid_type", message: "Unknown notification type." },
+      ok: false,
     };
   }
   const notificationType = parsed.data.type;
@@ -83,21 +83,21 @@ export async function dispatchNotification(
     if (inAppEnabled) {
       const row = await client.notification.create({
         data: {
-          clerk_org_id: parsed.data.clerkOrgId,
-          organisation_id: parsed.data.organisationId,
-          recipient_user_id: parsed.data.recipientUserId,
-          recipient_person_id: parsed.data.recipientPersonId ?? null,
-          type: notificationType,
-          title: parsed.data.title,
-          body: parsed.data.body,
           action_url: parsed.data.actionUrl ?? null,
-          object_type: parsed.data.objectType ?? null,
-          object_id: parsed.data.objectId ?? null,
           actor_user_id: parsed.data.actorUserId ?? null,
+          body: parsed.data.body,
+          clerk_org_id: parsed.data.clerkOrgId,
+          object_id: parsed.data.objectId ?? null,
+          object_type: parsed.data.objectType ?? null,
+          organisation_id: parsed.data.organisationId,
+          recipient_person_id: parsed.data.recipientPersonId ?? null,
+          recipient_user_id: parsed.data.recipientUserId,
+          title: parsed.data.title,
+          type: notificationType,
         },
         select: {
-          id: true,
           created_at: true,
+          id: true,
         },
       });
       notificationId = row.id;
@@ -121,17 +121,17 @@ export async function dispatchNotification(
           userId: parsed.data.recipientUserId,
         },
         {
-          type: "notification.created",
           payload: {
-            notificationId: row.id,
-            type: notificationType,
-            category: config.userFacingCategory,
-            title: parsed.data.title,
-            body: parsed.data.body,
             actionUrl: parsed.data.actionUrl ?? null,
+            body: parsed.data.body,
+            category: config.userFacingCategory,
             createdAt: row.created_at.toISOString(),
+            notificationId: row.id,
+            title: parsed.data.title,
+            type: notificationType,
             unreadCount,
           },
+          type: "notification.created",
         }
       ).catch(() => undefined);
     }
@@ -158,25 +158,25 @@ export async function dispatchNotification(
         );
         if (!queued.ok) {
           return {
-            ok: false,
             error: {
               code: "unknown_error",
               message: queued.error.message,
             },
+            ok: false,
           };
         }
         emailQueued = queued.value.queued;
       }
     }
 
-    return { ok: true, value: { inAppDelivered, emailQueued } };
+    return { ok: true, value: { emailQueued, inAppDelivered } };
   } catch {
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to dispatch notification.",
       },
+      ok: false,
     };
   }
 }
@@ -192,16 +192,16 @@ async function shouldDeliverToChannel(
   channel: "email" | "in_app"
 ): Promise<boolean> {
   const row = await client.notificationPreference.findUnique({
+    select: {
+      email_enabled: true,
+      in_app_enabled: true,
+    },
     where: {
       user_id_organisation_id_notification_type: {
-        user_id: input.recipientUserId,
-        organisation_id: input.organisationId,
         notification_type: input.type,
+        organisation_id: input.organisationId,
+        user_id: input.recipientUserId,
       },
-    },
-    select: {
-      in_app_enabled: true,
-      email_enabled: true,
     },
   });
   if (row) {
@@ -221,6 +221,7 @@ async function resolveRecipientEmail(
   }
 ): Promise<string | null> {
   const person = await client.person.findFirst({
+    select: { email: true },
     where: {
       clerk_org_id: input.clerkOrgId,
       organisation_id: input.organisationId,
@@ -228,7 +229,6 @@ async function resolveRecipientEmail(
         ? { id: input.recipientPersonId }
         : { clerk_user_id: input.recipientUserId }),
     },
-    select: { email: true },
   });
   return person?.email ?? null;
 }
@@ -237,10 +237,10 @@ function validationError(
   error: z.ZodError
 ): Result<never, DispatchNotificationError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid notification request.",
     },
+    ok: false,
   };
 }

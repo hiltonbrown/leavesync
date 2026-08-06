@@ -3,9 +3,9 @@ import { AuthFormFrame } from "./auth-form-frame";
 import { embeddedAuthAppearance } from "./embedded-auth-appearance";
 
 export const signInCopy = {
-  title: "Welcome back",
   description:
     "Sign in to manage leave and availability for your organisation.",
+  title: "Welcome back",
 };
 
 export const SignIn = () => (

@@ -16,12 +16,12 @@ describe("notification-type-registry", () => {
 
   it("returns documented defaults and templates", () => {
     expect(getDefaultChannels("leave_submitted")).toEqual({
-      inApp: true,
       email: true,
+      inApp: true,
     });
     expect(getDefaultChannels("leave_withdrawn")).toEqual({
-      inApp: true,
       email: false,
+      inApp: true,
     });
     expect(emailTemplateForType("leave_submitted")).toBe("LeaveSubmitted");
     expect(emailTemplateForType("leave_withdrawn")).toBeNull();

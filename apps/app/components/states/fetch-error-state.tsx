@@ -26,6 +26,6 @@ export const FetchErrorState = ({
           "Try again. If the issue continues, check the Xero connection and contact support with this page name."}
       </EmptyDescription>
     </EmptyHeader>
-    {retrySlot && <EmptyContent>{retrySlot}</EmptyContent>}
+    {retrySlot ? <EmptyContent>{retrySlot}</EmptyContent> : null}
   </Empty>
 );

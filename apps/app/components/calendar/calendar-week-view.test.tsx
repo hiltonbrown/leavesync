@@ -36,9 +36,9 @@ describe("CalendarWeekView", () => {
       />
     );
 
-    const createBtn = screen.getAllByRole("button", {
+    const [createBtn] = screen.getAllByRole("button", {
       name: ADD_AVAILABILITY_REGEX,
-    })[0];
+    });
     expect(createBtn).toBeDefined();
 
     const interactiveDescendants = createBtn?.querySelectorAll(

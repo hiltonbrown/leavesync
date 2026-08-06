@@ -11,26 +11,30 @@ export async function resolveXeroLeaveTypeId(input: {
 }): Promise<Result<string, ResolutionError>> {
   try {
     const person = await database.person.findFirst({
-      where: {
-        clerk_org_id: input.xeroTenant.clerk_org_id,
-        organisation_id: input.xeroTenant.organisation_id,
-        archived_at: null,
-        id: input.personId,
-      },
       select: { id: true },
+      where: {
+        archived_at: null,
+        clerk_org_id: input.xeroTenant.clerk_org_id,
+        id: input.personId,
+        organisation_id: input.xeroTenant.organisation_id,
+      },
     });
 
     if (!person) {
       return {
-        ok: false,
         error: {
           code: "person_not_in_tenant",
           message: "Person does not belong to this Xero tenant.",
         },
+        ok: false,
       };
     }
 
     const balance = await database.leaveBalance.findFirst({
+      orderBy: { updated_at: "desc" },
+      select: {
+        leave_type_xero_id: true,
+      },
       where: {
         clerk_org_id: input.xeroTenant.clerk_org_id,
         organisation_id: input.xeroTenant.organisation_id,
@@ -38,30 +42,26 @@ export async function resolveXeroLeaveTypeId(input: {
         record_type: input.recordType,
         xero_tenant_id: input.xeroTenant.id,
       },
-      orderBy: { updated_at: "desc" },
-      select: {
-        leave_type_xero_id: true,
-      },
     });
 
     if (!balance) {
       return {
-        ok: false,
         error: {
           code: "missing_mapping",
           message: "Leave type is not mapped for this employee in Xero.",
         },
+        ok: false,
       };
     }
 
     return { ok: true, value: balance.leave_type_xero_id };
   } catch {
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to resolve Xero leave type mapping.",
       },
+      ok: false,
     };
   }
 }

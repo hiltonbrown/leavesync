@@ -3,10 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   auth: vi.fn(),
   clerkClient: vi.fn(),
-  updateOrganization: vi.fn(),
-  updateMany: vi.fn(),
   getActiveOrgContext: vi.fn(),
   revalidatePath: vi.fn(),
+  updateMany: vi.fn(),
+  updateOrganization: vi.fn(),
 }));
 
 vi.mock("@repo/auth/server", () => ({
@@ -32,12 +32,12 @@ const { updateOrg } = await import("./update-org");
 const organisationId = "00000000-0000-4000-8000-000000000001";
 
 const validInput = {
-  organisationId,
-  name: "Acme Restaurants",
-  timezone: "Australia/Sydney",
-  locale: "en-AU",
   fiscalYearStart: 7,
+  locale: "en-AU",
+  name: "Acme Restaurants",
+  organisationId,
   reportingUnit: "hours",
+  timezone: "Australia/Sydney",
   workingHoursPerDay: 7.6,
 } as const;
 
@@ -80,7 +80,6 @@ describe("updateOrg", () => {
 
     expect(result.ok).toBe(true);
     expect(mocks.updateMany).toHaveBeenCalledWith({
-      where: { clerk_org_id: "org_1", id: organisationId },
       data: {
         fiscal_year_start: 7,
         locale: "en-AU",
@@ -89,6 +88,7 @@ describe("updateOrg", () => {
         timezone: "Australia/Sydney",
         working_hours_per_day: 7.6,
       },
+      where: { clerk_org_id: "org_1", id: organisationId },
     });
     expect(mocks.updateOrganization).toHaveBeenCalled();
   });

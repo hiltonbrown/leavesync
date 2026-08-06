@@ -41,11 +41,11 @@ export async function completeTenantSelectionAction(input: {
 
   const existingConnection = parsed.data.organisationId
     ? await database.xeroConnection.findFirst({
+        select: { id: true, status: true },
         where: {
           clerk_org_id: orgId,
           organisation_id: parsed.data.organisationId,
         },
-        select: { id: true, status: true },
       })
     : null;
 
@@ -58,11 +58,11 @@ export async function completeTenantSelectionAction(input: {
   });
   if (!result.ok) {
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: result.error.message,
       },
+      ok: false,
     };
   }
 
@@ -125,20 +125,20 @@ function appendOrgQuery(path: string, organisationId: string): string {
 
 function notAuthorised(): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "Only owners and admins can finish connecting Xero.",
     },
+    ok: false,
   };
 }
 
 function validationError(message?: string): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: message ?? "Invalid Xero tenant selection.",
     },
+    ok: false,
   };
 }

@@ -28,29 +28,29 @@ const STATUS_CONFIG: Record<
   }
 > = {
   connected: {
-    label: "Connected",
-    icon: CircleCheckIcon,
     className: statusToneClasses.leave,
+    icon: CircleCheckIcon,
+    label: "Connected",
   },
   disconnected: {
-    label: "Not connected",
-    icon: CircleIcon,
     className: statusToneClasses.private,
+    icon: CircleIcon,
+    label: "Not connected",
   },
   error: {
-    label: "Error",
-    icon: TriangleAlertIcon,
     className: statusToneClasses.failed,
+    icon: TriangleAlertIcon,
+    label: "Error",
   },
   expired: {
-    label: "Connection expired",
-    icon: TriangleAlertIcon,
     className: statusToneClasses.holiday,
+    icon: TriangleAlertIcon,
+    label: "Connection expired",
   },
   revoked: {
-    label: "Connection revoked",
-    icon: XCircleIcon,
     className: statusToneClasses.failed,
+    icon: XCircleIcon,
+    label: "Connection revoked",
   },
 };
 

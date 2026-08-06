@@ -19,8 +19,8 @@ function formatAccessibleDate(startsAt: string, date?: Date): string {
     return new Intl.DateTimeFormat("en-AU", {
       day: "numeric",
       month: "long",
-      year: "numeric",
       timeZone: "UTC",
+      year: "numeric",
     }).format(date);
   }
   const datePart = startsAt.split("T")[0] ?? "";
@@ -33,8 +33,8 @@ function formatAccessibleDate(startsAt: string, date?: Date): string {
     return new Intl.DateTimeFormat("en-AU", {
       day: "numeric",
       month: "long",
-      year: "numeric",
       timeZone: "UTC",
+      year: "numeric",
     }).format(d);
   }
   return startsAt;

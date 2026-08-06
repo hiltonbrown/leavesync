@@ -10,28 +10,28 @@ const note =
 
 const instructions = [
   {
-    title: "Outlook desktop (Windows)",
     body: "Open File, then Account Settings. Choose Internet Calendars, select New, and paste the subscribe URL.",
+    title: "Outlook desktop (Windows)",
   },
   {
-    title: "Outlook on the web",
     body: "Open Calendar, choose Add calendar, then Subscribe from web. Paste the subscribe URL and save.",
+    title: "Outlook on the web",
   },
   {
-    title: "Google Calendar",
     body: "Open Other calendars, choose From URL, paste the subscribe URL, and add the calendar.",
+    title: "Google Calendar",
   },
   {
-    title: "Apple Calendar (macOS)",
     body: "Choose File, then New Calendar Subscription. Paste the subscribe URL and confirm the refresh settings.",
+    title: "Apple Calendar (macOS)",
   },
   {
-    title: "Apple Calendar (iOS)",
     body: "Open Settings, then Calendar, Accounts, Add Account, Other, and Add Subscribed Calendar. Paste the subscribe URL.",
+    title: "Apple Calendar (iOS)",
   },
   {
-    title: "Generic ICS",
     body: "Most calendar applications support subscribing to an ICS URL. Paste the URL into your calendar app's subscribe-from-URL option.",
+    title: "Generic ICS",
   },
 ];
 

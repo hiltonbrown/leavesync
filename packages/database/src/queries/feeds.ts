@@ -50,56 +50,56 @@ export async function listFeedsForOrganisation(
 ): Promise<Result<FeedData[]>> {
   try {
     const feeds = await database.feed.findMany({
-      where: {
-        ...scopedQuery(clerkOrgId, organisationId),
-      },
+      orderBy: { slug: "asc" },
       select: {
-        id: true,
         clerk_org_id: true,
-        organisation_id: true,
-        name: true,
-        slug: true,
-        status: true,
-        privacy_mode: true,
         created_at: true,
-        updated_at: true,
+        id: true,
+        name: true,
+        organisation_id: true,
+        privacy_mode: true,
         scopes: {
           select: {
             scope_type: true,
           },
           take: 1,
         },
+        slug: true,
+        status: true,
         tokens: {
           orderBy: { created_at: "desc" },
           select: { status: true, token_hint: true },
           take: 1,
         },
+        updated_at: true,
       },
-      orderBy: { slug: "asc" },
+      where: {
+        ...scopedQuery(clerkOrgId, organisationId),
+      },
     });
 
     return {
       ok: true,
       value: feeds.map((f) => ({
-        id: f.id as FeedId,
         activeTokenHint:
           f.tokens.find((token) => token.status === "active")?.token_hint ??
           null,
         clerkOrgId: f.clerk_org_id,
+        createdAt: f.created_at,
+        id: f.id as FeedId,
         name: f.name,
         organisationId: f.organisation_id as OrganisationId,
         privacyDefault: f.privacy_mode,
         scopeType: f.scopes[0]?.scope_type ?? "org",
         slug: f.slug,
         status: f.status,
-        createdAt: f.created_at,
         updatedAt: f.updated_at,
       })),
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to list feeds"),
+      ok: false,
     };
   }
 }
@@ -111,20 +111,13 @@ export async function getFeedDetail(
 ): Promise<Result<FeedDetailData>> {
   try {
     const feed = await database.feed.findFirst({
-      where: {
-        ...scopedQuery(clerkOrgId, organisationId),
-        id: feedId,
-      },
       select: {
-        id: true,
         clerk_org_id: true,
-        organisation_id: true,
-        name: true,
-        slug: true,
-        status: true,
-        privacy_mode: true,
         created_at: true,
-        updated_at: true,
+        id: true,
+        name: true,
+        organisation_id: true,
+        privacy_mode: true,
         scopes: {
           select: {
             id: true,
@@ -132,62 +125,69 @@ export async function getFeedDetail(
             scope_value: true,
           },
         },
+        slug: true,
+        status: true,
         tokens: {
           orderBy: { created_at: "desc" },
           select: {
+            created_at: true,
+            expires_at: true,
             id: true,
+            revoked_at: true,
             status: true,
             token_hint: true,
-            expires_at: true,
-            revoked_at: true,
-            created_at: true,
           },
         },
+        updated_at: true,
+      },
+      where: {
+        ...scopedQuery(clerkOrgId, organisationId),
+        id: feedId,
       },
     });
 
     if (!feed) {
       return {
-        ok: false,
         error: appError("not_found", "Feed not found"),
+        ok: false,
       };
     }
 
     return {
       ok: true,
       value: {
-        id: feed.id as FeedId,
         activeTokenHint:
           feed.tokens.find((token) => token.status === "active")?.token_hint ??
           null,
         clerkOrgId: feed.clerk_org_id,
+        createdAt: feed.created_at,
+        id: feed.id as FeedId,
         name: feed.name,
         organisationId: feed.organisation_id as OrganisationId,
         privacyDefault: feed.privacy_mode,
-        scopeType: feed.scopes[0]?.scope_type ?? "org",
-        slug: feed.slug,
-        status: feed.status,
-        createdAt: feed.created_at,
-        updatedAt: feed.updated_at,
         scopes: feed.scopes.map((s) => ({
           id: s.id,
           ruleType: s.scope_type,
           ruleValue: s.scope_value,
         })),
+        scopeType: feed.scopes[0]?.scope_type ?? "org",
+        slug: feed.slug,
+        status: feed.status,
         tokens: feed.tokens.map((t) => ({
+          createdAt: t.created_at,
+          expiresAt: t.expires_at,
           id: t.id,
+          revokedAt: t.revoked_at,
           status: t.status,
           tokenHint: t.token_hint,
-          expiresAt: t.expires_at,
-          revokedAt: t.revoked_at,
-          createdAt: t.created_at,
         })),
+        updatedAt: feed.updated_at,
       },
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to get feed detail"),
+      ok: false,
     };
   }
 }
@@ -199,6 +199,18 @@ export async function listFeedPublications(
 ): Promise<Result<FeedPublicationData[]>> {
   try {
     const publications = await database.availabilityPublication.findMany({
+      orderBy: { published_at: "desc" },
+      select: {
+        availability_record_id: true,
+        id: true,
+        privacy_mode: true,
+        published_at: true,
+        published_description: true,
+        published_sequence: true,
+        published_summary: true,
+        published_uid: true,
+      },
+      take: filters?.limit ?? 50,
       where: {
         ...scopedQuery(clerkOrgId, organisationId),
         ...(filters?.dateRange && {
@@ -208,37 +220,25 @@ export async function listFeedPublications(
           },
         }),
       },
-      select: {
-        id: true,
-        availability_record_id: true,
-        published_uid: true,
-        published_summary: true,
-        published_description: true,
-        published_sequence: true,
-        published_at: true,
-        privacy_mode: true,
-      },
-      orderBy: { published_at: "desc" },
-      take: filters?.limit ?? 50,
     });
 
     return {
       ok: true,
       value: publications.map((p) => ({
-        id: p.id,
         availabilityRecordId: p.availability_record_id,
-        publishedUid: p.published_uid,
-        publishedSummary: p.published_summary,
+        id: p.id,
+        privacyMode: p.privacy_mode,
+        publishedAt: p.published_at,
         publishedDescription: p.published_description,
         publishedSequence: p.published_sequence,
-        publishedAt: p.published_at,
-        privacyMode: p.privacy_mode,
+        publishedSummary: p.published_summary,
+        publishedUid: p.published_uid,
       })),
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to list feed publications"),
+      ok: false,
     };
   }
 }

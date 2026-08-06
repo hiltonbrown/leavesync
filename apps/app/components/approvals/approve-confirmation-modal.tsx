@@ -90,7 +90,7 @@ export function ApproveConfirmationModal({
         <p className="text-muted-foreground text-sm">
           This will send approval to Xero Payroll and notify the employee.
         </p>
-        {message && (
+        {message ? (
           <XeroSyncFailedState
             message={message}
             retrySlot={
@@ -115,7 +115,7 @@ export function ApproveConfirmationModal({
               </Button>
             }
           />
-        )}
+        ) : null}
         <div className="flex justify-end gap-3">
           <Button
             disabled={isPending}
@@ -130,7 +130,9 @@ export function ApproveConfirmationModal({
             onClick={() => submit(false)}
             type="button"
           >
-            {isPending && <Loader2Icon className="mr-2 size-4 animate-spin" />}
+            {isPending ? (
+              <Loader2Icon className="mr-2 size-4 animate-spin" />
+            ) : null}
             Confirm and approve
           </Button>
         </div>

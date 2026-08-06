@@ -317,10 +317,10 @@ describeWithDatabase("reconcile-xero-approval-state database flow", () => {
       sourceRemoteId: leaveApplicationId("network"),
     });
     const approved = await createAvailabilityRecord(tenantA, {
+      endsAt: new Date("2026-07-04T00:00:00.000Z"),
       id: recordId("005"),
       sourceRemoteId: leaveApplicationId("after-failure"),
       startsAt: new Date("2026-07-03T00:00:00.000Z"),
-      endsAt: new Date("2026-07-04T00:00:00.000Z"),
     });
 
     mockFetchLeaveApplicationStatusForRegion
@@ -375,10 +375,10 @@ describeWithDatabase("reconcile-xero-approval-state database flow", () => {
       sourceRemoteId: leaveApplicationId("auth"),
     });
     const second = await createAvailabilityRecord(tenantA, {
+      endsAt: new Date("2026-07-06T00:00:00.000Z"),
       id: recordId("007"),
       sourceRemoteId: leaveApplicationId("after-auth"),
       startsAt: new Date("2026-07-05T00:00:00.000Z"),
-      endsAt: new Date("2026-07-06T00:00:00.000Z"),
     });
 
     mockFetchLeaveApplicationStatusForRegion.mockResolvedValue(

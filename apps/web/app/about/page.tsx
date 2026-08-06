@@ -5,26 +5,26 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = createMetadata({
-  title: "About",
   description:
     "Team Calendar helps small businesses on Xero Payroll publish clear team availability to the calendars people already use, so leave stops slipping through texts, forms and memory.",
+  title: "About",
 });
 
 const principles = [
   {
+    copy: "Nobody should compare Xero, a spreadsheet, chat messages and a shared calendar just to know who is away.",
     icon: CalendarCheck,
     title: "Calendars should stay current",
-    copy: "Nobody should compare Xero, a spreadsheet, chat messages and a shared calendar just to know who is away.",
   },
   {
+    copy: "Approved payroll leave stays anchored in Xero. Team Calendar adds the availability layer around it, including manual entries that do not belong in payroll.",
     icon: ShieldCheck,
     title: "Payroll stays the source of truth",
-    copy: "Approved payroll leave stays anchored in Xero. Team Calendar adds the availability layer around it, including manual entries that do not belong in payroll.",
   },
   {
+    copy: "Made on the Gold Coast for small operators that need practical, careful tooling around real leave and payroll data.",
     icon: MapPin,
     title: "Built close to the teams using it",
-    copy: "Made on the Gold Coast for small operators that need practical, careful tooling around real leave and payroll data.",
   },
 ];
 

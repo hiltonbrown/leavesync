@@ -10,8 +10,8 @@ import { Header } from "./components/header";
 import { DashboardBody } from "./dashboard-body";
 
 export const metadata: Metadata = {
-  title: "Dashboard | Team Calendar",
   description: "Role-aware overview of leave, availability, and sync status.",
+  title: "Dashboard | Team Calendar",
 };
 
 interface DashboardPageProps {

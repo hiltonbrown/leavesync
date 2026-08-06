@@ -11,7 +11,7 @@ import {
 const title = "Privacy Policy";
 const description = `How ${brandNameDisplay} collects, uses, and protects your information.`;
 
-export const metadata: Metadata = createMetadata({ title, description });
+export const metadata: Metadata = createMetadata({ description, title });
 
 const PrivacyPolicyPage = () => (
   <div className="fmkt-page marketing-simple marketing-legal">

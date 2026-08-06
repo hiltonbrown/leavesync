@@ -50,11 +50,11 @@ export function mapLeaveApplicationStatus(
 
 export function unsupportedReadRegion(region: string): XeroWriteResult<never> {
   return {
-    ok: false,
     error: {
       code: "unknown_error",
       message: `${region} payroll approval-state reads are not yet available.`,
     },
+    ok: false,
   };
 }
 

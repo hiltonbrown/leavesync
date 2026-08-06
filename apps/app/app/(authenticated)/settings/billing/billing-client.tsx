@@ -48,11 +48,11 @@ export const BillingClient = ({ summary }: BillingClientProps) => (
       description="Review your organisation billing mirror from Stripe."
       title="Billing"
     />
-    {summary.isOverLimit && (
+    {summary.isOverLimit ? (
       <div className="rounded-2xl bg-destructive/10 p-4 text-destructive text-sm">
         This account is over one or more plan limits.
       </div>
-    )}
+    ) : null}
     <Card className="rounded-2xl">
       <CardHeader>
         <CardTitle>Current plan</CardTitle>

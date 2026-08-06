@@ -43,8 +43,6 @@ function webhookRequest() {
 
 function subscriptionEvent(overrides: Record<string, unknown> = {}) {
   return {
-    id: "evt_1",
-    type: "customer.subscription.updated",
     created: 1_700_000_100,
     data: {
       object: {
@@ -58,6 +56,8 @@ function subscriptionEvent(overrides: Record<string, unknown> = {}) {
         ...overrides,
       },
     },
+    id: "evt_1",
+    type: "customer.subscription.updated",
   };
 }
 
@@ -73,11 +73,11 @@ describe("Stripe payments webhook", () => {
 
   it("returns 400 when the signature cannot be verified", async () => {
     mocks.constructEvent.mockReturnValue({
-      ok: false,
       error: {
         code: "bad_request",
         message: "Invalid Stripe webhook signature.",
       },
+      ok: false,
     });
 
     const response = await POST(webhookRequest());
@@ -121,10 +121,10 @@ describe("Stripe payments webhook", () => {
     );
     expect(mocks.inngestSend).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: "recount-usage",
         data: expect.objectContaining({
           organisationId: "30000000-0000-4000-8000-000000000001",
         }),
+        name: "recount-usage",
       })
     );
     expect(mocks.recordStripeEvent).toHaveBeenCalledWith(
@@ -134,9 +134,9 @@ describe("Stripe payments webhook", () => {
 
     // The event must only be recorded once the mirror write has completed, so
     // a failure mid-processing leaves the event un-recorded for Stripe to retry.
-    const mirrorOrder =
-      mocks.upsertSubscriptionFromWebhook.mock.invocationCallOrder[0];
-    const recordOrder = mocks.recordStripeEvent.mock.invocationCallOrder[0];
+    const [mirrorOrder] =
+      mocks.upsertSubscriptionFromWebhook.mock.invocationCallOrder;
+    const [recordOrder] = mocks.recordStripeEvent.mock.invocationCallOrder;
     expect(recordOrder).toBeGreaterThan(mirrorOrder);
   });
 
@@ -146,8 +146,8 @@ describe("Stripe payments webhook", () => {
       value: subscriptionEvent(),
     });
     mocks.resolvePlanKey.mockReturnValue({
-      ok: false,
       error: { code: "bad_request", message: "Unknown Stripe price." },
+      ok: false,
     });
 
     const response = await POST(webhookRequest());
@@ -197,9 +197,9 @@ describe("Stripe payments webhook", () => {
 
     expect(mocks.upsertSubscriptionFromWebhook).toHaveBeenCalledWith(
       expect.objectContaining({
-        stripeEventCreatedAt: new Date(newerCreatedSeconds * 1000),
-        status: "active",
         planKey: "basic",
+        status: "active",
+        stripeEventCreatedAt: new Date(newerCreatedSeconds * 1000),
       })
     );
   });

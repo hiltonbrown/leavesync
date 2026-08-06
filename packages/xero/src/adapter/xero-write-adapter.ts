@@ -70,6 +70,76 @@ async function getTenant(clerkOrgId: string, organisationId: string) {
 }
 
 export const XeroWriteAdapter: ExternalWritePort = {
+  async approveLeaveApplication(
+    input: ApproveLeaveInput
+  ): Promise<Result<void, ProviderWriteError>> {
+    const tenant = await getTenant(input.clerkOrgId, input.organisationId);
+    if (!tenant) {
+      return {
+        error: {
+          code: "auth_error",
+          message: "Xero is not connected.",
+          userMessage: "Xero is not connected.",
+        },
+        ok: false,
+      };
+    }
+    const res = await approveLeaveApplicationForRegion(tenant.payroll_region, {
+      xeroEmployeeId: input.employeeId,
+      xeroLeaveApplicationId: input.remoteId,
+      xeroTenant: tenant,
+    });
+    if (!res.ok) {
+      return {
+        error: {
+          code: res.error.code,
+          correlationId: res.error.correlationId,
+          httpStatus: res.error.httpStatus,
+          message: res.error.message,
+          rawPayload: res.error.rawPayload,
+          userMessage: toPlainLanguageMessage(res.error),
+        },
+        ok: false,
+      };
+    }
+    return { ok: true, value: undefined };
+  },
+
+  async declineLeaveApplication(
+    input: DeclineLeaveInput
+  ): Promise<Result<void, ProviderWriteError>> {
+    const tenant = await getTenant(input.clerkOrgId, input.organisationId);
+    if (!tenant) {
+      return {
+        error: {
+          code: "auth_error",
+          message: "Xero is not connected.",
+          userMessage: "Xero is not connected.",
+        },
+        ok: false,
+      };
+    }
+    const res = await declineLeaveApplicationForRegion(tenant.payroll_region, {
+      reason: input.reason,
+      xeroEmployeeId: input.employeeId,
+      xeroLeaveApplicationId: input.remoteId,
+      xeroTenant: tenant,
+    });
+    if (!res.ok) {
+      return {
+        error: {
+          code: res.error.code,
+          correlationId: res.error.correlationId,
+          httpStatus: res.error.httpStatus,
+          message: res.error.message,
+          rawPayload: res.error.rawPayload,
+          userMessage: toPlainLanguageMessage(res.error),
+        },
+        ok: false,
+      };
+    }
+    return { ok: true, value: undefined };
+  },
   async resolveEmployeeId(input: {
     personId: string;
     clerkOrgId: string;
@@ -78,8 +148,8 @@ export const XeroWriteAdapter: ExternalWritePort = {
     const tenant = await getTenant(input.clerkOrgId, input.organisationId);
     if (!tenant) {
       return {
-        ok: false,
         error: { code: "unknown_error", message: "Xero tenant not found." },
+        ok: false,
       };
     }
     const res = await resolveXeroEmployeeId({
@@ -88,8 +158,8 @@ export const XeroWriteAdapter: ExternalWritePort = {
     });
     if (!res.ok) {
       return {
-        ok: false,
         error: { code: res.error.code, message: res.error.message },
+        ok: false,
       };
     }
     return { ok: true, value: res.value };
@@ -104,17 +174,17 @@ export const XeroWriteAdapter: ExternalWritePort = {
     const tenant = await getTenant(input.clerkOrgId, input.organisationId);
     if (!tenant) {
       return {
-        ok: false,
         error: { code: "unknown_error", message: "Xero tenant not found." },
+        ok: false,
       };
     }
     if (!isAvailabilityRecordType(input.recordType)) {
       return {
-        ok: false,
         error: {
           code: "unknown_error",
           message: `Invalid record type: ${input.recordType}`,
         },
+        ok: false,
       };
     }
     const res = await resolveXeroLeaveTypeId({
@@ -124,8 +194,8 @@ export const XeroWriteAdapter: ExternalWritePort = {
     });
     if (!res.ok) {
       return {
-        ok: false,
         error: { code: res.error.code, message: res.error.message },
+        ok: false,
       };
     }
     return { ok: true, value: res.value };
@@ -139,12 +209,12 @@ export const XeroWriteAdapter: ExternalWritePort = {
     const tenant = await getTenant(input.clerkOrgId, input.organisationId);
     if (!tenant) {
       return {
-        ok: false,
         error: {
           code: "auth_error",
           message: "Xero is not connected.",
           userMessage: "Xero is not connected.",
         },
+        ok: false,
       };
     }
     const res = await submitLeaveApplicationForRegion(tenant.payroll_region, {
@@ -158,22 +228,22 @@ export const XeroWriteAdapter: ExternalWritePort = {
     });
     if (!res.ok) {
       return {
-        ok: false,
         error: {
           code: res.error.code,
-          message: res.error.message,
-          userMessage: toPlainLanguageMessage(res.error),
           correlationId: res.error.correlationId,
           httpStatus: res.error.httpStatus,
+          message: res.error.message,
           rawPayload: res.error.rawPayload,
+          userMessage: toPlainLanguageMessage(res.error),
         },
+        ok: false,
       };
     }
     return {
       ok: true,
       value: {
-        remoteId: res.value.xeroLeaveApplicationId,
         rawResponse: res.value.rawResponse,
+        remoteId: res.value.xeroLeaveApplicationId,
       },
     };
   },
@@ -184,12 +254,12 @@ export const XeroWriteAdapter: ExternalWritePort = {
     const tenant = await getTenant(input.clerkOrgId, input.organisationId);
     if (!tenant) {
       return {
-        ok: false,
         error: {
           code: "auth_error",
           message: "Xero is not connected.",
           userMessage: "Xero is not connected.",
         },
+        ok: false,
       };
     }
     const res = await withdrawLeaveApplicationForRegion(tenant.payroll_region, {
@@ -199,86 +269,15 @@ export const XeroWriteAdapter: ExternalWritePort = {
     });
     if (!res.ok) {
       return {
-        ok: false,
         error: {
           code: res.error.code,
-          message: res.error.message,
-          userMessage: toPlainLanguageMessage(res.error),
           correlationId: res.error.correlationId,
           httpStatus: res.error.httpStatus,
-          rawPayload: res.error.rawPayload,
-        },
-      };
-    }
-    return { ok: true, value: undefined };
-  },
-
-  async approveLeaveApplication(
-    input: ApproveLeaveInput
-  ): Promise<Result<void, ProviderWriteError>> {
-    const tenant = await getTenant(input.clerkOrgId, input.organisationId);
-    if (!tenant) {
-      return {
-        ok: false,
-        error: {
-          code: "auth_error",
-          message: "Xero is not connected.",
-          userMessage: "Xero is not connected.",
-        },
-      };
-    }
-    const res = await approveLeaveApplicationForRegion(tenant.payroll_region, {
-      xeroEmployeeId: input.employeeId,
-      xeroLeaveApplicationId: input.remoteId,
-      xeroTenant: tenant,
-    });
-    if (!res.ok) {
-      return {
-        ok: false,
-        error: {
-          code: res.error.code,
           message: res.error.message,
-          userMessage: toPlainLanguageMessage(res.error),
-          correlationId: res.error.correlationId,
-          httpStatus: res.error.httpStatus,
           rawPayload: res.error.rawPayload,
-        },
-      };
-    }
-    return { ok: true, value: undefined };
-  },
-
-  async declineLeaveApplication(
-    input: DeclineLeaveInput
-  ): Promise<Result<void, ProviderWriteError>> {
-    const tenant = await getTenant(input.clerkOrgId, input.organisationId);
-    if (!tenant) {
-      return {
-        ok: false,
-        error: {
-          code: "auth_error",
-          message: "Xero is not connected.",
-          userMessage: "Xero is not connected.",
-        },
-      };
-    }
-    const res = await declineLeaveApplicationForRegion(tenant.payroll_region, {
-      reason: input.reason,
-      xeroEmployeeId: input.employeeId,
-      xeroLeaveApplicationId: input.remoteId,
-      xeroTenant: tenant,
-    });
-    if (!res.ok) {
-      return {
-        ok: false,
-        error: {
-          code: res.error.code,
-          message: res.error.message,
           userMessage: toPlainLanguageMessage(res.error),
-          correlationId: res.error.correlationId,
-          httpStatus: res.error.httpStatus,
-          rawPayload: res.error.rawPayload,
         },
+        ok: false,
       };
     }
     return { ok: true, value: undefined };

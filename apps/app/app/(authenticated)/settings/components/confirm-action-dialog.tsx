@@ -54,7 +54,7 @@ export const ConfirmActionDialog = ({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
 
-        {requireTyping && (
+        {requireTyping ? (
           <div className="space-y-2 py-2">
             <Label className="text-muted-foreground text-sm">
               Type{" "}
@@ -70,7 +70,7 @@ export const ConfirmActionDialog = ({
               value={typedValue}
             />
           </div>
-        )}
+        ) : null}
 
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>

@@ -37,33 +37,33 @@ const testClerkOrgIds = [tenantA.clerkOrgId, tenantB.clerkOrgId] as const;
 async function setupTenant(tenant: typeof tenantA) {
   await database.organisation.create({
     data: {
-      id: tenant.organisationId,
       clerk_org_id: tenant.clerkOrgId,
-      name: `Test Org ${tenant.clerkOrgId}`,
       country_code: "AU",
+      id: tenant.organisationId,
+      name: `Test Org ${tenant.clerkOrgId}`,
     },
   });
 
   await database.xeroConnection.create({
     data: {
-      id: tenant.xeroConnectionId,
-      clerk_org_id: tenant.clerkOrgId,
-      organisation_id: tenant.organisationId,
       access_token_encrypted: "encrypted-token",
+      clerk_org_id: tenant.clerkOrgId,
       expires_at: new Date(Date.now() + 3_600_000), // 1 hour in future
+      id: tenant.xeroConnectionId,
+      organisation_id: tenant.organisationId,
       status: "active",
     },
   });
 
   await database.xeroTenant.create({
     data: {
-      id: tenant.xeroTenantId,
       clerk_org_id: tenant.clerkOrgId,
+      id: tenant.xeroTenantId,
       organisation_id: tenant.organisationId,
+      payroll_region: "AU",
+      tenant_name: "Xero Tenant",
       xero_connection_id: tenant.xeroConnectionId,
       xero_tenant_id: "xero-tenant-uuid",
-      tenant_name: "Xero Tenant",
-      payroll_region: "AU",
     },
   });
 }
@@ -98,34 +98,34 @@ describe("sync-xero-people handler", () => {
 
     const mockEmployees = [
       {
-        employeeId: "11111111-1111-4111-8111-111111111111",
-        firstName: "John",
-        lastName: "Doe",
         email: "john.doe@example.com",
-        status: "ACTIVE",
-        jobTitle: "Developer",
-        startDate: "2026-01-01",
+        employeeId: "11111111-1111-4111-8111-111111111111",
         employmentType: "EMPLOYEE",
+        firstName: "John",
+        jobTitle: "Developer",
+        lastName: "Doe",
         rawPayload: { employee: "data" },
+        startDate: "2026-01-01",
+        status: "ACTIVE",
       },
       {
-        employeeId: "22222222-2222-4222-8222-222222222222",
-        firstName: "Jane",
-        lastName: "Smith",
         email: "",
-        status: "ACTIVE",
-        jobTitle: "Manager",
-        startDate: null,
+        employeeId: "22222222-2222-4222-8222-222222222222",
         employmentType: "CONTRACTOR",
+        firstName: "Jane",
+        jobTitle: "Manager",
+        lastName: "Smith",
         rawPayload: { employee: "data2" },
+        startDate: null,
+        status: "ACTIVE",
       },
     ];
 
     mockFetchEmployeesForRegion.mockResolvedValue({
       ok: true,
       value: {
-        rawResponse: {},
         employees: mockEmployees,
+        rawResponse: {},
       },
     });
 
@@ -148,23 +148,23 @@ describe("sync-xero-people handler", () => {
 
     // Assert DB state after Run 1
     const people1 = await database.person.findMany({
-      where: { clerk_org_id: tenantA.clerkOrgId },
       orderBy: { first_name: "asc" },
+      where: { clerk_org_id: tenantA.clerkOrgId },
     });
     expect(people1.length).toBe(2);
     expect(people1[0]).toMatchObject({
-      first_name: "Jane",
-      last_name: "Smith",
       email: "jane.smith@noemail.teamcalendar.online", // fallback email
       employment_type: "contractor",
+      first_name: "Jane",
       is_active: true,
+      last_name: "Smith",
     });
     expect(people1[1]).toMatchObject({
-      first_name: "John",
-      last_name: "Doe",
       email: "john.doe@example.com",
       employment_type: "employee",
+      first_name: "John",
       is_active: true,
+      last_name: "Doe",
     });
 
     // Run 2 (Idempotency check)
@@ -188,23 +188,23 @@ describe("sync-xero-people handler", () => {
     await setupTenant(tenantB);
 
     const mockEmployee = {
-      employeeId: "11111111-1111-4111-8111-111111111111",
-      firstName: "John",
-      lastName: "Doe",
       email: "john.doe@example.com",
-      status: "ACTIVE",
-      jobTitle: "Developer",
-      startDate: "2026-01-01",
+      employeeId: "11111111-1111-4111-8111-111111111111",
       employmentType: "EMPLOYEE",
+      firstName: "John",
+      jobTitle: "Developer",
+      lastName: "Doe",
       rawPayload: { employee: "data" },
+      startDate: "2026-01-01",
+      status: "ACTIVE",
     };
 
     // Run for Tenant A
     mockFetchEmployeesForRegion.mockResolvedValue({
       ok: true,
       value: {
-        rawResponse: {},
         employees: [mockEmployee],
+        rawResponse: {},
       },
     });
 
@@ -243,36 +243,36 @@ describe("sync-xero-people handler", () => {
 
     const mockEmployees = [
       {
+        email: "john.doe@example.com",
         // Valid employee
         employeeId: "11111111-1111-4111-8111-111111111111",
-        firstName: "John",
-        lastName: "Doe",
-        email: "john.doe@example.com",
-        status: "ACTIVE",
-        jobTitle: "Developer",
-        startDate: "2026-01-01",
         employmentType: "EMPLOYEE",
+        firstName: "John",
+        jobTitle: "Developer",
+        lastName: "Doe",
         rawPayload: { employee: "data1" },
+        startDate: "2026-01-01",
+        status: "ACTIVE",
       },
       {
+        email: "jane@example.com",
         // Invalid employee (missing last name)
         employeeId: "22222222-2222-4222-8222-222222222222",
-        firstName: "Jane",
-        lastName: "",
-        email: "jane@example.com",
-        status: "ACTIVE",
-        jobTitle: "Developer",
-        startDate: "2026-01-01",
         employmentType: "EMPLOYEE",
+        firstName: "Jane",
+        jobTitle: "Developer",
+        lastName: "",
         rawPayload: { employee: "bad-data" },
+        startDate: "2026-01-01",
+        status: "ACTIVE",
       },
     ];
 
     mockFetchEmployeesForRegion.mockResolvedValue({
       ok: true,
       value: {
-        rawResponse: {},
         employees: mockEmployees,
+        rawResponse: {},
       },
     });
 
@@ -305,10 +305,10 @@ describe("sync-xero-people handler", () => {
     expect(failedRecords.length).toBe(1);
     expect(failedRecords[0]).toMatchObject({
       entity_type: "people",
-      record_type: "people",
-      source_id: "22222222-2222-4222-8222-222222222222",
       error_code: "validation_error",
       error_message: "Last name is required",
+      record_type: "people",
+      source_id: "22222222-2222-4222-8222-222222222222",
     });
   });
 
@@ -316,8 +316,8 @@ describe("sync-xero-people handler", () => {
     await setupTenant(tenantA);
     // Update tenant to NZ
     await database.xeroTenant.update({
-      where: { id: tenantA.xeroTenantId },
       data: { payroll_region: "NZ" },
+      where: { id: tenantA.xeroTenantId },
     });
 
     const result = await syncXeroPeople({
@@ -335,7 +335,7 @@ describe("sync-xero-people handler", () => {
     }
 
     const run = await database.syncRun.findFirst({
-      where: { clerk_org_id: tenantA.clerkOrgId, id: result.value?.runId },
+      where: { clerk_org_id: tenantA.clerkOrgId, id: result.value.runId },
     });
     expect(run).toBeDefined();
     expect(run?.status).toBe("succeeded");

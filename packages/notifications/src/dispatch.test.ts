@@ -51,8 +51,8 @@ describe("dispatchNotification", () => {
       id: "00000000-0000-4000-8000-000000000201",
     });
     mocks.notificationCreate.mockResolvedValue({
-      id: "00000000-0000-4000-8000-000000000101",
       created_at: new Date("2026-04-18T00:00:00.000Z"),
+      id: "00000000-0000-4000-8000-000000000101",
     });
     mocks.personFindFirst.mockResolvedValue({ email: "ava@example.com" });
     mocks.preferenceFindUnique.mockResolvedValue(null);
@@ -79,8 +79,8 @@ describe("dispatchNotification", () => {
 
   it("skips in-app delivery when disabled", async () => {
     mocks.preferenceFindUnique.mockResolvedValue({
-      in_app_enabled: false,
       email_enabled: true,
+      in_app_enabled: false,
     });
 
     const result = await dispatchNotification(input, client);
@@ -92,7 +92,7 @@ describe("dispatchNotification", () => {
 
   it("never queues email for null-template types", async () => {
     const result = await dispatchNotification(
-      { ...input, type: "leave_withdrawn", title: "Leave withdrawn" },
+      { ...input, title: "Leave withdrawn", type: "leave_withdrawn" },
       client
     );
 

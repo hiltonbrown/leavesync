@@ -376,12 +376,12 @@ async function loadPeople(
     where.clerk_user_id = input.actingUserId;
   } else if (input.role === "manager") {
     const actingPerson = await database.person.findFirst({
+      select: { id: true },
       where: {
         ...scoped,
         archived_at: null,
         clerk_user_id: input.actingUserId,
       },
-      select: { id: true },
     });
     if (!actingPerson) {
       return { ok: true, value: [] };
@@ -412,8 +412,8 @@ function recordWhere(
       input.clerkOrgId as ClerkOrgId,
       input.organisationId as OrganisationId
     ),
-    archived_at: null,
     approval_status: "approved",
+    archived_at: null,
     ends_at: { gt: input.dateRange.start },
     person_id: { in: personIds },
     record_type: {
@@ -696,14 +696,14 @@ function validationError(
   error: z.ZodError
 ): Result<never, AnalyticsServiceError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid analytics input.",
     },
+    ok: false,
   };
 }
 
 function unknownError(message: string): Result<never, AnalyticsServiceError> {
-  return { ok: false, error: { code: "unknown_error", message } };
+  return { error: { code: "unknown_error", message }, ok: false };
 }

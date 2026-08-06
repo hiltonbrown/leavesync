@@ -22,8 +22,8 @@ const SyncXeroLeaveBalancesInputSchema = z.object({
   clerkOrgId: z.string().min(1),
   organisationId: z.string().uuid(),
   personId: z.string().uuid().optional(),
-  triggerType: z.enum(["scheduled", "manual", "webhook"]).default("manual"),
   triggeredByUserId: z.string().min(1).nullable().optional(),
+  triggerType: z.enum(["scheduled", "manual", "webhook"]).default("manual"),
   xeroTenantId: z.string().uuid(),
 });
 
@@ -128,13 +128,13 @@ export async function syncXeroLeaveBalances(
     }
 
     const people = await database.person.findMany({
+      select: { id: true, xero_employee_id: true },
       where: {
         ...scoped(context),
         archived_at: null,
         ...(context.personId ? { id: context.personId } : {}),
         xero_employee_id: { not: null },
       },
-      select: { id: true, xero_employee_id: true },
     });
     const employeeIds = people
       .map((person) => person.xero_employee_id)
@@ -219,11 +219,11 @@ export async function syncXeroLeaveBalances(
       });
     }
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to sync Xero leave balances.",
       },
+      ok: false,
     };
   }
 }
@@ -364,8 +364,8 @@ async function cancellationRequested(
   runId: string
 ): Promise<boolean> {
   const runState = await database.syncRun.findFirst({
-    where: { ...scoped(context), id: runId },
     select: { cancel_requested_at: true },
+    where: { ...scoped(context), id: runId },
   });
   return Boolean(runState?.cancel_requested_at);
 }
@@ -393,6 +393,7 @@ async function cancelDuplicateRun(
   startedAt: Date
 ): Promise<{ id: string } | null> {
   const existingRun = await database.syncRun.findFirst({
+    select: { id: true },
     where: {
       ...scoped(context),
       run_type: "leave_balances",
@@ -403,7 +404,6 @@ async function cancelDuplicateRun(
       updated_at: { gte: new Date(Date.now() - STALE_RUN_WINDOW_MS) },
       xero_tenant_id: context.xeroTenantId,
     },
-    select: { id: true },
   });
   if (!existingRun) {
     return null;
@@ -597,8 +597,8 @@ function loadXeroTenant(context: SyncXeroLeaveBalancesInput) {
           access_token_iv: true,
           expires_at: true,
           last_refreshed_at: true,
-          status: true,
           revoked_at: true,
+          status: true,
         },
       },
     },
@@ -631,11 +631,11 @@ function validationError(
   error: z.ZodError
 ): Result<never, SyncXeroLeaveBalancesError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid Xero leave balance sync.",
     },
+    ok: false,
   };
 }
 

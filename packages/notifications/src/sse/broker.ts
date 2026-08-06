@@ -97,6 +97,7 @@ export async function publishOrganisationNotificationEvent(
 
   const recipientClient = client ?? (await import("@repo/database")).database;
   const recipients = await recipientClient.person.findMany({
+    select: { clerk_user_id: true },
     where: {
       archived_at: null,
       clerk_org_id: input.clerkOrgId,
@@ -104,7 +105,6 @@ export async function publishOrganisationNotificationEvent(
       is_active: true,
       organisation_id: input.organisationId,
     },
-    select: { clerk_user_id: true },
   });
   await Promise.all(
     recipients.flatMap((recipient) =>
