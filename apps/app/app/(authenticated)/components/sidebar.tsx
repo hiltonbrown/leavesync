@@ -62,7 +62,7 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                     xmlns="http://www.w3.org/2000/svg"
                   >
                     <rect
-                      fill="#57624F"
+                      fill="var(--muted-foreground)"
                       height="9"
                       rx="4.5"
                       width="28"
@@ -70,7 +70,7 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                       y="8"
                     />
                     <rect
-                      fill="#CAE8BC"
+                      fill="var(--secondary-container, #cae8bc)"
                       height="9"
                       rx="4.5"
                       width="28"
@@ -78,7 +78,7 @@ export const GlobalSidebar = ({ children }: GlobalSidebarProperties) => {
                       y="20"
                     />
                     <rect
-                      fill="#6DA671"
+                      fill="var(--primary)"
                       height="9"
                       rx="4.5"
                       width="25"

@@ -22,15 +22,17 @@ export function CalendarWeekView({
   const createPersonId = selectedPersonId ?? actingPersonId;
 
   return (
-    <section className="overflow-x-auto rounded-2xl bg-muted p-1">
-      <div className="grid min-w-[56rem] grid-cols-7 gap-1">
+    <section aria-label="Calendar week view" className="overflow-x-auto rounded-2xl bg-muted p-1" role="grid">
+      <div className="grid min-w-[56rem] grid-cols-7 gap-1" role="row">
         {data.days.map((day) => (
           <div
+            aria-current={day.isToday ? "date" : undefined}
             className={cn(
               "rounded-xl bg-background p-3 text-center",
               day.isToday && "bg-primary text-primary-foreground"
             )}
             key={`header-${day.date.toISOString()}`}
+            role="columnheader"
           >
             <p className="font-medium text-xs uppercase tracking-wide">
               {dayLabels[day.dayOfWeek]}
@@ -43,11 +45,12 @@ export function CalendarWeekView({
       </div>
 
       {data.days.some((day) => day.publicHolidays.length > 0) && (
-        <div className="mt-1 grid min-w-[56rem] grid-cols-7 gap-1">
+        <div className="mt-1 grid min-w-[56rem] grid-cols-7 gap-1" role="row">
           {data.days.map((day) => (
             <div
               className={`min-h-12 rounded-xl p-2 text-xs ${statusToneClasses.holiday}`}
               key={`holidays-${day.date.toISOString()}`}
+              role="gridcell"
             >
               {day.publicHolidays.map((holiday) => (
                 <p className="truncate font-medium" key={holiday.name}>
@@ -59,18 +62,20 @@ export function CalendarWeekView({
         </div>
       )}
 
-      <div className="mt-1 grid min-w-[56rem] grid-cols-7 gap-1">
+      <div className="mt-1 grid min-w-[56rem] grid-cols-7 gap-1" role="row">
         {data.days.map((day) => {
           const dateOnly = day.date.toISOString().slice(0, 10);
           const allDayEvents = day.events.filter((event) => event.allDay);
           const timedEvents = day.events.filter((event) => !event.allDay);
           return (
             <div
+              aria-label={`${dayLabels[day.dayOfWeek]} ${day.date.getUTCDate()} events`}
               className={cn(
                 "flex min-h-72 flex-col justify-between rounded-xl bg-background p-2",
                 day.isToday && "ring-2 ring-primary/30"
               )}
               key={dateOnly}
+              role="gridcell"
             >
               <div className="space-y-2">
                 {allDayEvents.map((event) => (
