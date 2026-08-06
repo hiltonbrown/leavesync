@@ -818,14 +818,11 @@ describe("approval-service", () => {
   describe("decline policy and organisation settings handling", () => {
     it("fails closed when getSettings returns ok: false on decline with empty reason", async () => {
       mocks.getSettings.mockResolvedValueOnce({
-        ok: false,
         error: { code: "not_found", message: "Failed" },
+        ok: false,
       });
 
-      const result = await decline(
-        { ...input, reason: "" },
-        mockPort
-      );
+      const result = await decline({ ...input, reason: "" }, mockPort);
 
       expect(result.ok).toBe(false);
       if (!result.ok) {
@@ -855,10 +852,7 @@ describe("approval-service", () => {
         },
       });
 
-      const result = await decline(
-        { ...input, reason: "" },
-        mockPort
-      );
+      const result = await decline({ ...input, reason: "" }, mockPort);
 
       expect(result.ok).toBe(false);
       if (!result.ok) {
@@ -888,10 +882,7 @@ describe("approval-service", () => {
         },
       });
 
-      const result = await decline(
-        { ...input, reason: "ok" },
-        mockPort
-      );
+      const result = await decline({ ...input, reason: "ok" }, mockPort);
 
       expect(result.ok).toBe(false);
       if (!result.ok) {
@@ -948,10 +939,7 @@ describe("approval-service", () => {
         value: undefined,
       });
 
-      const result = await decline(
-        { ...input, reason: "" },
-        mockPort
-      );
+      const result = await decline({ ...input, reason: "" }, mockPort);
 
       expect(result.ok).toBe(true);
       expect(mocks.declineLeaveApplicationForRegion).toHaveBeenCalledWith(
@@ -977,10 +965,7 @@ describe("approval-service", () => {
         },
       });
 
-      const result = await decline(
-        { ...input, reason: "   " },
-        mockPort
-      );
+      const result = await decline({ ...input, reason: "   " }, mockPort);
 
       expect(result.ok).toBe(false);
       if (!result.ok) {
@@ -994,8 +979,8 @@ describe("approval-service", () => {
 
     it("omits declined records from default list filter when getSettings fails", async () => {
       mocks.getSettings.mockResolvedValueOnce({
-        ok: false,
         error: { code: "not_found", message: "Failed" },
+        ok: false,
       });
       mocks.availabilityFindMany.mockResolvedValue([record]);
 
