@@ -30,7 +30,6 @@ nextConfig = {
   async headers() {
     return [
       {
-        source: "/(.*)",
         headers: [
           ...securityHeaders,
           {
@@ -38,6 +37,7 @@ nextConfig = {
             value: contentSecurityPolicy,
           },
         ],
+        source: "/(.*)",
       },
     ];
   },

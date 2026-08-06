@@ -1,26 +1,26 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  approveLeaveApplicationForRegion: vi.fn(),
   auditCreate: vi.fn(),
   availabilityCount: vi.fn(),
   availabilityFindFirst: vi.fn(),
   availabilityFindMany: vi.fn(),
   availabilityUpdateMany: vi.fn(),
-  approveLeaveApplicationForRegion: vi.fn(),
-  computeWorkingDaysFromReferenceData: vi.fn(),
   computeWorkingDays: vi.fn(),
+  computeWorkingDaysFromReferenceData: vi.fn(),
   declineLeaveApplicationForRegion: vi.fn(),
   dispatchNotification: vi.fn(),
   getSettings: vi.fn(),
   hasActiveXeroConnection: vi.fn(),
-  leaveBalanceFindMany: vi.fn(),
   leaveBalanceFindFirst: vi.fn(),
+  leaveBalanceFindMany: vi.fn(),
   listForOrganisation: vi.fn(),
   locationFindMany: vi.fn(),
+  managerScopePersonIds: vi.fn(),
   materialiseAvailabilityPublication: vi.fn(() =>
     Promise.resolve({ ok: true, value: undefined })
   ),
-  managerScopePersonIds: vi.fn(),
   organisationFindFirst: vi.fn(),
   resolveXeroEmployeeId: vi.fn(),
   scopedTo: vi.fn((input: { clerkOrgId: string; organisationId: string }) => ({
@@ -81,12 +81,12 @@ vi.mock("@repo/feeds", () => ({
 }));
 
 const mockPort = {
+  approveLeaveApplication: mocks.approveLeaveApplicationForRegion,
+  declineLeaveApplication: mocks.declineLeaveApplicationForRegion,
   resolveEmployeeId: mocks.resolveXeroEmployeeId,
   resolveLeaveTypeId: vi.fn(),
   submitLeaveApplication: vi.fn(),
   withdrawLeaveApplication: vi.fn(),
-  approveLeaveApplication: mocks.approveLeaveApplicationForRegion,
-  declineLeaveApplication: mocks.declineLeaveApplicationForRegion,
 };
 
 const {
@@ -267,8 +267,14 @@ describe("approval-service", () => {
     ["retry approval", () => retryApproval(input, mockPort)],
     ["decline", () => decline({ ...input, reason: "Unavailable" }, mockPort)],
     ["retry decline", () => retryDecline(input, mockPort)],
-    ["request more information", () =>
-      requestMoreInfo({ ...input, question: "Could you clarify this leave?" })],
+    [
+      "request more information",
+      () =>
+        requestMoreInfo({
+          ...input,
+          question: "Could you clarify this leave?",
+        }),
+    ],
     ["revert an approval attempt", () => revertApprovalAttempt(input)],
   ])("does not let a manager %s their own leave", async (_action, command) => {
     mocks.availabilityFindFirst.mockResolvedValue({
@@ -281,8 +287,8 @@ describe("approval-service", () => {
     const result = await command();
 
     expect(result).toMatchObject({
-      ok: false,
       error: { code: "not_authorised" },
+      ok: false,
     });
     expect(mocks.managerScopePersonIds).toHaveBeenCalledWith(
       expect.objectContaining({ excludeSelf: true })
@@ -334,8 +340,8 @@ describe("approval-service", () => {
       value: undefined,
     });
     mocks.dispatchNotification.mockResolvedValue({
-      ok: false,
       error: { message: "Notification unavailable" },
+      ok: false,
     });
 
     const result = await approve(input, mockPort);
@@ -365,8 +371,8 @@ describe("approval-service", () => {
       value: undefined,
     });
     mocks.dispatchNotification.mockResolvedValue({
-      ok: false,
       error: { message: "Notification unavailable" },
+      ok: false,
     });
 
     const result = await decline(
@@ -399,14 +405,14 @@ describe("approval-service", () => {
         failed_action: "approve",
       });
     mocks.approveLeaveApplicationForRegion.mockResolvedValue({
-      ok: false,
       error: {
         code: "conflict_error",
         message: "Overlap",
+        rawPayload: { Message: "Overlap" },
         userMessage:
           "This leave overlaps an existing record in Xero. Review the dates and try again.",
-        rawPayload: { Message: "Overlap" },
       },
+      ok: false,
     });
 
     const result = await approve(input, mockPort);
@@ -441,13 +447,13 @@ describe("approval-service", () => {
         failed_action: "decline",
       });
     mocks.declineLeaveApplicationForRegion.mockResolvedValue({
-      ok: false,
       error: {
         code: "network_error",
         message: "offline",
         userMessage:
           "Could not reach Xero. Check your internet connection and try again.",
       },
+      ok: false,
     });
 
     const result = await decline(
@@ -612,8 +618,8 @@ describe("approval-service", () => {
     );
 
     expect(result).toMatchObject({
-      ok: false,
       error: { code: "invalid_state_for_decline" },
+      ok: false,
     });
     expect(mocks.dispatchNotification).not.toHaveBeenCalled();
   });

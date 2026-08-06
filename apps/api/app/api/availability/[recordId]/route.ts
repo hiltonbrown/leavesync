@@ -14,17 +14,17 @@ import { log } from "@repo/observability/log";
 import { z } from "zod";
 
 const UpdateAvailabilitySchema = z.object({
+  allDay: z.boolean().optional(),
+  contactability: z.enum(["contactable", "limited", "unavailable"]).optional(),
+  endsAt: z.string().datetime().optional(),
+  notesInternal: z.string().optional().nullable(),
+  preferredContactMethod: z.string().optional().nullable(),
   recordType: z
     .enum(["leave", "wfh", "travel", "training", "client_site"])
     .optional(),
   startsAt: z.string().datetime().optional(),
-  endsAt: z.string().datetime().optional(),
-  allDay: z.boolean().optional(),
   title: z.string().optional().nullable(),
-  notesInternal: z.string().optional().nullable(),
   workingLocation: z.string().optional().nullable(),
-  preferredContactMethod: z.string().optional().nullable(),
-  contactability: z.enum(["contactable", "limited", "unavailable"]).optional(),
 });
 
 export async function PATCH(
@@ -41,8 +41,8 @@ export async function PATCH(
     } catch {
       return Response.json(
         {
-          ok: false,
           error: { code: "unauthorised", message: "Not authenticated" },
+          ok: false,
         },
         { status: 401 }
       );
@@ -54,8 +54,8 @@ export async function PATCH(
     if (!user) {
       return Response.json(
         {
-          ok: false,
           error: { code: "unauthorised", message: "User not found" },
+          ok: false,
         },
         { status: 401 }
       );
@@ -67,8 +67,8 @@ export async function PATCH(
     if (!organisationId) {
       return Response.json(
         {
-          ok: false,
           error: { code: "invalid", message: "organisationId is required" },
+          ok: false,
         },
         { status: 400 }
       );
@@ -82,7 +82,7 @@ export async function PATCH(
 
     if (!orgResult.ok) {
       return Response.json(
-        { ok: false, error: orgResult.error },
+        { error: orgResult.error, ok: false },
         { status: orgResult.error.code === "not_found" ? 404 : 500 }
       );
     }
@@ -96,7 +96,7 @@ export async function PATCH(
 
     if (!recordResult.ok) {
       return Response.json(
-        { ok: false, error: recordResult.error },
+        { error: recordResult.error, ok: false },
         { status: recordResult.error.code === "not_found" ? 404 : 500 }
       );
     }
@@ -107,11 +107,11 @@ export async function PATCH(
     if (record.sourceType !== "manual") {
       return Response.json(
         {
-          ok: false,
           error: {
             code: "forbidden",
             message: "Xero-sourced records cannot be edited",
           },
+          ok: false,
         },
         { status: 403 }
       );
@@ -122,12 +122,12 @@ export async function PATCH(
     if (!parseResult.success) {
       return Response.json(
         {
-          ok: false,
           error: {
             code: "invalid",
-            message: "Invalid request body",
             details: parseResult.error.issues,
+            message: "Invalid request body",
           },
+          ok: false,
         },
         { status: 400 }
       );
@@ -144,22 +144,22 @@ export async function PATCH(
       },
       recordId as AvailabilityRecordId,
       {
+        allDay: data.allDay,
+        contactability: data.contactability,
+        endsAt: data.endsAt ? new Date(data.endsAt) : undefined,
+        notesInternal: data.notesInternal,
+        preferredContactMethod: data.preferredContactMethod,
         recordType: data.recordType,
         startsAt: data.startsAt ? new Date(data.startsAt) : undefined,
-        endsAt: data.endsAt ? new Date(data.endsAt) : undefined,
         title: data.title,
-        allDay: data.allDay,
-        notesInternal: data.notesInternal,
         workingLocation: data.workingLocation,
-        preferredContactMethod: data.preferredContactMethod,
-        contactability: data.contactability,
       },
       { orgRole: authResult.orgRole, userId: user.id }
     );
 
     if (!updateResult.ok) {
       return Response.json(
-        { ok: false, error: updateResult.error },
+        { error: updateResult.error, ok: false },
         {
           status: updateResult.error.code === "not_authorised" ? 403 : 500,
         }
@@ -171,11 +171,11 @@ export async function PATCH(
     log.error("Error updating availability record", { error });
     return Response.json(
       {
-        ok: false,
         error: {
           code: "internal",
           message: "Failed to update availability record",
         },
+        ok: false,
       },
       { status: 500 }
     );
@@ -196,8 +196,8 @@ export async function DELETE(
     } catch {
       return Response.json(
         {
-          ok: false,
           error: { code: "unauthorised", message: "Not authenticated" },
+          ok: false,
         },
         { status: 401 }
       );
@@ -209,8 +209,8 @@ export async function DELETE(
     if (!user) {
       return Response.json(
         {
-          ok: false,
           error: { code: "unauthorised", message: "User not found" },
+          ok: false,
         },
         { status: 401 }
       );
@@ -222,8 +222,8 @@ export async function DELETE(
     if (!organisationId) {
       return Response.json(
         {
-          ok: false,
           error: { code: "invalid", message: "organisationId is required" },
+          ok: false,
         },
         { status: 400 }
       );
@@ -237,7 +237,7 @@ export async function DELETE(
 
     if (!orgResult.ok) {
       return Response.json(
-        { ok: false, error: orgResult.error },
+        { error: orgResult.error, ok: false },
         { status: orgResult.error.code === "not_found" ? 404 : 500 }
       );
     }
@@ -251,7 +251,7 @@ export async function DELETE(
 
     if (!recordResult.ok) {
       return Response.json(
-        { ok: false, error: recordResult.error },
+        { error: recordResult.error, ok: false },
         { status: recordResult.error.code === "not_found" ? 404 : 500 }
       );
     }
@@ -263,11 +263,11 @@ export async function DELETE(
     if (record.sourceType !== "manual") {
       return Response.json(
         {
-          ok: false,
           error: {
             code: "forbidden",
             message: "Xero-sourced records cannot be deleted",
           },
+          ok: false,
         },
         { status: 403 }
       );
@@ -285,7 +285,7 @@ export async function DELETE(
 
     if (!deleteResult.ok) {
       return Response.json(
-        { ok: false, error: deleteResult.error },
+        { error: deleteResult.error, ok: false },
         {
           status: deleteResult.error.code === "not_authorised" ? 403 : 500,
         }
@@ -297,11 +297,11 @@ export async function DELETE(
     log.error("Error deleting availability record", { error });
     return Response.json(
       {
-        ok: false,
         error: {
           code: "internal",
           message: "Failed to delete availability record",
         },
+        ok: false,
       },
       { status: 500 }
     );

@@ -51,8 +51,8 @@ export const withinLimit = async (
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to check billing limits."),
+      ok: false,
     };
   }
 };
@@ -67,8 +67,8 @@ export const hasFeature = async (
     return { ok: true, value: features[feature] };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to check billing features."),
+      ok: false,
     };
   }
 };

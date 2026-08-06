@@ -46,9 +46,9 @@ describe("preferences-service", () => {
   it("uses stored preferences over defaults", async () => {
     mocks.findMany.mockResolvedValue([
       {
-        notification_type: "leave_submitted",
-        in_app_enabled: false,
         email_enabled: true,
+        in_app_enabled: false,
+        notification_type: "leave_submitted",
       },
     ]);
 
@@ -70,9 +70,9 @@ describe("preferences-service", () => {
     const result = await upsertPreference(
       {
         ...input,
-        notificationType: "leave_submitted",
-        inAppEnabled: false,
         emailEnabled: false,
+        inAppEnabled: false,
+        notificationType: "leave_submitted",
       },
       client
     );
@@ -87,8 +87,8 @@ describe("preferences-service", () => {
     const result = await shouldDeliverToChannel(
       {
         ...input,
-        notificationType: "leave_withdrawn",
         channel: "email",
+        notificationType: "leave_withdrawn",
       },
       client
     );

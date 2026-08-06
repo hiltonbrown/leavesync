@@ -57,8 +57,8 @@ describe("buildCoverageDays", () => {
   it("names the people it can and tracks the rest as extra", () => {
     const { days } = buildCoverageDays(
       makeTeamToday({
-        peopleOnLeaveCount: 3,
         peopleNeedingAttention: [attentionPerson("Mei", "Lin")],
+        peopleOnLeaveCount: 3,
       }),
       null
     );

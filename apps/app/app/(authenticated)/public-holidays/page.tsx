@@ -10,8 +10,8 @@ import { PublicHolidayFilterSchema } from "./_schemas";
 import { PublicHolidaysList } from "./public-holidays-list";
 
 export const metadata: Metadata = {
-  title: "Public Holidays - Team Calendar",
   description: "Manage public holidays for your organisation.",
+  title: "Public Holidays - Team Calendar",
 };
 
 interface PublicHolidaysPageProps {

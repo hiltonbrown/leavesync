@@ -34,6 +34,16 @@ if (process.env.NODE_ENV === "test" && !process.env.XERO_CLIENT_SECRET) {
 
 export const keys = () =>
   createEnv({
+    // Treat an empty string (e.g. a blank Vercel env var) as unset so the
+    // format-constrained optional keys do not fail validation.
+    emptyStringAsUndefined: true,
+    runtimeEnv: {
+      XERO_API_BASE_URL: process.env.XERO_API_BASE_URL,
+      XERO_CLIENT_ID: process.env.XERO_CLIENT_ID,
+      XERO_CLIENT_SECRET: process.env.XERO_CLIENT_SECRET,
+      XERO_REDIRECT_URI: process.env.XERO_REDIRECT_URI,
+      XERO_TOKEN_ENCRYPTION_KEY: process.env.XERO_TOKEN_ENCRYPTION_KEY,
+    },
     server: {
       XERO_API_BASE_URL: z.string().url().optional(),
       XERO_CLIENT_ID: z.string().optional(),
@@ -58,16 +68,6 @@ export const keys = () =>
         }
       ),
     },
-    runtimeEnv: {
-      XERO_API_BASE_URL: process.env.XERO_API_BASE_URL,
-      XERO_CLIENT_ID: process.env.XERO_CLIENT_ID,
-      XERO_CLIENT_SECRET: process.env.XERO_CLIENT_SECRET,
-      XERO_REDIRECT_URI: process.env.XERO_REDIRECT_URI,
-      XERO_TOKEN_ENCRYPTION_KEY: process.env.XERO_TOKEN_ENCRYPTION_KEY,
-    },
-    // Treat an empty string (e.g. a blank Vercel env var) as unset so the
-    // format-constrained optional keys do not fail validation.
-    emptyStringAsUndefined: true,
   });
 
 // Validate immediately on module load to prevent boot if invalid or missing

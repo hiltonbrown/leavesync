@@ -107,28 +107,28 @@ export async function createInitialTokenWithClient(
   input: InitialTokenInput
 ): Promise<Result<TokenDisclosure, TokenServiceError>> {
   const feed = await tx.feed.findFirst({
-    where: scopedFeed(input),
     select: { id: true },
+    where: scopedFeed(input),
   });
   if (!feed) {
     return await feedNotFoundOrLeak(tx, input);
   }
 
   const existing = await tx.feedToken.findFirst({
+    select: { id: true },
     where: {
       clerk_org_id: input.clerkOrgId,
       feed_id: input.feedId,
       organisation_id: input.organisationId,
     },
-    select: { id: true },
   });
   if (existing) {
     return {
-      ok: false,
       error: {
         code: "initial_token_exists",
         message: "This feed already has a token.",
       },
+      ok: false,
     };
   }
 
@@ -171,31 +171,31 @@ export async function rotateToken(
   try {
     const result = await database.$transaction(async (tx) => {
       const feed = await tx.feed.findFirst({
-        where: scopedFeed(parsed.data),
         select: { id: true },
+        where: scopedFeed(parsed.data),
       });
       if (!feed) {
         return await feedNotFoundOrLeak(tx, parsed.data);
       }
 
       const activeTokens = await tx.feedToken.findMany({
+        orderBy: { created_at: "desc" },
+        select: { id: true },
         where: {
           clerk_org_id: parsed.data.clerkOrgId,
           feed_id: parsed.data.feedId,
           organisation_id: parsed.data.organisationId,
           status: "active",
         },
-        orderBy: { created_at: "desc" },
-        select: { id: true },
       });
       const previousToken = activeTokens[0];
       if (!previousToken) {
         return {
-          ok: false,
           error: {
             code: "token_not_found",
             message: "This feed has no active token to rotate.",
           },
+          ok: false,
         } satisfies Result<never, TokenServiceError>;
       }
 
@@ -268,12 +268,12 @@ export async function revokeToken(
   try {
     const result = await database.$transaction(async (tx) => {
       const token = await tx.feedToken.findFirst({
+        select: { feed_id: true, id: true, status: true, token_hint: true },
         where: {
           clerk_org_id: parsed.data.clerkOrgId,
           id: parsed.data.tokenId,
           organisation_id: parsed.data.organisationId,
         },
-        select: { feed_id: true, id: true, status: true, token_hint: true },
       });
       if (!token) {
         return await tokenNotFoundOrLeak(tx, parsed.data);
@@ -321,8 +321,8 @@ export async function listTokens(
 
   try {
     const feed = await database.feed.findFirst({
-      where: scopedFeed(parsed.data),
       select: { id: true },
+      where: scopedFeed(parsed.data),
     });
     if (!feed) {
       return await feedNotFoundOrLeak(database, parsed.data);
@@ -355,8 +355,8 @@ export async function getActiveTokenHint(
 
   try {
     const feed = await database.feed.findFirst({
-      where: scopedFeed(parsed.data),
       select: { id: true },
+      where: scopedFeed(parsed.data),
     });
     if (!feed) {
       return await feedNotFoundOrLeak(database, parsed.data);
@@ -428,8 +428,8 @@ async function feedNotFoundOrLeak(
   input: { clerkOrgId: string; feedId: string; organisationId: string }
 ): Promise<Result<never, TokenServiceError>> {
   const exists = await client.feed.findFirst({
-    where: { id: input.feedId },
     select: { clerk_org_id: true, organisation_id: true },
+    where: { id: input.feedId },
   });
   if (
     exists &&
@@ -437,16 +437,16 @@ async function feedNotFoundOrLeak(
       exists.organisation_id !== input.organisationId)
   ) {
     return {
-      ok: false,
       error: {
         code: "cross_org_leak",
         message: "Feed is outside this organisation.",
       },
+      ok: false,
     };
   }
   return {
-    ok: false,
     error: { code: "feed_not_found", message: "Feed not found." },
+    ok: false,
   };
 }
 
@@ -455,8 +455,8 @@ async function tokenNotFoundOrLeak(
   input: { clerkOrgId: string; organisationId: string; tokenId: string }
 ): Promise<Result<never, TokenServiceError>> {
   const exists = await tx.feedToken.findFirst({
-    where: { id: input.tokenId },
     select: { clerk_org_id: true, organisation_id: true },
+    where: { id: input.tokenId },
   });
   if (
     exists &&
@@ -464,16 +464,16 @@ async function tokenNotFoundOrLeak(
       exists.organisation_id !== input.organisationId)
   ) {
     return {
-      ok: false,
       error: {
         code: "cross_org_leak",
         message: "Token is outside this organisation.",
       },
+      ok: false,
     };
   }
   return {
-    ok: false,
     error: { code: "token_not_found", message: "Token not found." },
+    ok: false,
   };
 }
 
@@ -535,24 +535,24 @@ function isAdminOrOwner(role: string): boolean {
 
 function notAuthorised(): Result<never, TokenServiceError> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "You do not have permission to manage feed tokens.",
     },
+    ok: false,
   };
 }
 
 function validationError(error: z.ZodError): Result<never, TokenServiceError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid token request.",
     },
+    ok: false,
   };
 }
 
 function unknownError(message: string): Result<never, TokenServiceError> {
-  return { ok: false, error: { code: "unknown_error", message } };
+  return { error: { code: "unknown_error", message }, ok: false };
 }

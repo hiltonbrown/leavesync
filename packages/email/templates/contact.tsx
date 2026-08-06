@@ -46,9 +46,9 @@ export const ContactTemplate = ({
 );
 
 ContactTemplate.PreviewProps = {
-  name: "Team Calendar contact",
   email: "contact@teamcalendar.test",
   message: "I need help with availability publishing.",
+  name: "Team Calendar contact",
 };
 
 // React Email's CLI discovers templates via the default export, so keep one

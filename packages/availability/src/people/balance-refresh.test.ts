@@ -55,22 +55,22 @@ describe("dispatchBalanceRefresh", () => {
     mocks.xeroTenantFindFirst.mockResolvedValue({ id: "xero-tenant-1" });
   });
 
-  it.each([
-    "manager",
-    "viewer",
-  ] as const)("rejects %s users before any tenant lookup", async (actingRole) => {
-    const result = await dispatchBalanceRefresh({ ...input, actingRole });
+  it.each(["manager", "viewer"] as const)(
+    "rejects %s users before any tenant lookup",
+    async (actingRole) => {
+      const result = await dispatchBalanceRefresh({ ...input, actingRole });
 
-    expect(result).toEqual({
-      ok: false,
-      error: {
-        code: "not_authorised",
-        message: "You do not have permission to refresh balances.",
-      },
-    });
-    expect(mocks.personFindFirst).not.toHaveBeenCalled();
-    expect(mocks.auditCreate).not.toHaveBeenCalled();
-  });
+      expect(result).toEqual({
+        error: {
+          code: "not_authorised",
+          message: "You do not have permission to refresh balances.",
+        },
+        ok: false,
+      });
+      expect(mocks.personFindFirst).not.toHaveBeenCalled();
+      expect(mocks.auditCreate).not.toHaveBeenCalled();
+    }
+  );
 
   it("distinguishes cross-org leaks from missing people", async () => {
     mocks.personFindFirst.mockResolvedValueOnce(null).mockResolvedValueOnce({
@@ -161,8 +161,8 @@ describe("dispatchBalanceRefresh", () => {
 
   it("records dispatch_failed when the dispatcher rejects the job", async () => {
     const dispatcher = vi.fn().mockResolvedValue({
-      ok: false,
       error: { message: "Queue unavailable" },
+      ok: false,
     });
     mockLinkedPerson();
     setBalanceRefreshDispatcher(dispatcher);
@@ -182,35 +182,35 @@ describe("dispatchBalanceRefresh", () => {
     });
   });
 
-  it.each([
-    "admin",
-    "owner",
-  ] as const)("queues a balance refresh for %s users", async (actingRole) => {
-    const dispatcher = vi
-      .fn()
-      .mockResolvedValue({ ok: true, value: undefined });
-    mockLinkedPerson();
-    setBalanceRefreshDispatcher(dispatcher);
+  it.each(["admin", "owner"] as const)(
+    "queues a balance refresh for %s users",
+    async (actingRole) => {
+      const dispatcher = vi
+        .fn()
+        .mockResolvedValue({ ok: true, value: undefined });
+      mockLinkedPerson();
+      setBalanceRefreshDispatcher(dispatcher);
 
-    const result = await dispatchBalanceRefresh({ ...input, actingRole });
+      const result = await dispatchBalanceRefresh({ ...input, actingRole });
 
-    expect(result).toEqual({ ok: true, value: { queued: true } });
-    expect(dispatcher).toHaveBeenCalledWith({
-      clerkOrgId: input.clerkOrgId,
-      dispatchedBy: input.actingUserId,
-      organisationId: input.organisationId,
-      personId: input.personId,
-      xeroTenantId: "xero-tenant-1",
-    });
-    expect(mocks.auditCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          payload: expect.objectContaining({
-            queued: true,
-            reason: null,
+      expect(result).toEqual({ ok: true, value: { queued: true } });
+      expect(dispatcher).toHaveBeenCalledWith({
+        clerkOrgId: input.clerkOrgId,
+        dispatchedBy: input.actingUserId,
+        organisationId: input.organisationId,
+        personId: input.personId,
+        xeroTenantId: "xero-tenant-1",
+      });
+      expect(mocks.auditCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            payload: expect.objectContaining({
+              queued: true,
+              reason: null,
+            }),
           }),
-        }),
-      })
-    );
-  });
+        })
+      );
+    }
+  );
 });

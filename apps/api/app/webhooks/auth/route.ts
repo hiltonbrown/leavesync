@@ -19,12 +19,12 @@ import { env } from "@/env";
 // Validates only the Clerk fields the handlers below consume. Unknown keys are
 // stripped rather than rejected so future Clerk additions do not break delivery.
 const ClerkUserDataSchema = z.object({
-  id: z.string(),
+  created_at: z.number(),
   email_addresses: z.array(z.object({ email_address: z.string() })).default([]),
   first_name: z.string().nullish(),
-  last_name: z.string().nullish(),
-  created_at: z.number(),
+  id: z.string(),
   image_url: z.string().nullish(),
+  last_name: z.string().nullish(),
   phone_numbers: z.array(z.object({ phone_number: z.string() })).default([]),
 });
 
@@ -33,47 +33,47 @@ const ClerkDeletedObjectDataSchema = z.object({
 });
 
 const ClerkOrganizationDataSchema = z.object({
-  id: z.string(),
   created_by: z.string().nullish(),
-  name: z.string(),
+  id: z.string(),
   image_url: z.string().nullish(),
+  name: z.string(),
 });
 
 const ClerkOrganizationMembershipDataSchema = z.object({
   organization: z.object({ id: z.string() }),
   public_user_data: z.object({
-    user_id: z.string(),
-    image_url: z.string().nullish(),
     first_name: z.string().nullish(),
-    last_name: z.string().nullish(),
     identifier: z.string().nullish(),
+    image_url: z.string().nullish(),
+    last_name: z.string().nullish(),
+    user_id: z.string(),
   }),
 });
 
 // Discriminated over the event types Team Calendar acts on. Any other event type is
 // not validated here because the switch below ignores it.
 const ClerkWebhookEventSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("user.created"), data: ClerkUserDataSchema }),
-  z.object({ type: z.literal("user.updated"), data: ClerkUserDataSchema }),
+  z.object({ data: ClerkUserDataSchema, type: z.literal("user.created") }),
+  z.object({ data: ClerkUserDataSchema, type: z.literal("user.updated") }),
   z.object({
-    type: z.literal("user.deleted"),
     data: ClerkDeletedObjectDataSchema,
+    type: z.literal("user.deleted"),
   }),
   z.object({
+    data: ClerkOrganizationDataSchema,
     type: z.literal("organization.created"),
-    data: ClerkOrganizationDataSchema,
   }),
   z.object({
+    data: ClerkOrganizationDataSchema,
     type: z.literal("organization.updated"),
-    data: ClerkOrganizationDataSchema,
   }),
   z.object({
+    data: ClerkOrganizationMembershipDataSchema,
     type: z.literal("organizationMembership.created"),
-    data: ClerkOrganizationMembershipDataSchema,
   }),
   z.object({
-    type: z.literal("organizationMembership.deleted"),
     data: ClerkOrganizationMembershipDataSchema,
+    type: z.literal("organizationMembership.deleted"),
   }),
 ]);
 
@@ -91,18 +91,18 @@ const handleUserCreated = (data: UserJSON) => {
   analytics?.identify({
     distinctId: data.id,
     properties: {
+      avatar: data.image_url,
+      createdAt: new Date(data.created_at),
       email: data.email_addresses.at(0)?.email_address,
       firstName: data.first_name,
       lastName: data.last_name,
-      createdAt: new Date(data.created_at),
-      avatar: data.image_url,
       phoneNumber: data.phone_numbers.at(0)?.phone_number,
     },
   });
 
   analytics?.capture({
-    event: "User Created",
     distinctId: data.id,
+    event: "User Created",
   });
 
   return new Response("User created", { status: 201 });
@@ -112,18 +112,18 @@ const handleUserUpdated = (data: UserJSON) => {
   analytics?.identify({
     distinctId: data.id,
     properties: {
+      avatar: data.image_url,
+      createdAt: new Date(data.created_at),
       email: data.email_addresses.at(0)?.email_address,
       firstName: data.first_name,
       lastName: data.last_name,
-      createdAt: new Date(data.created_at),
-      avatar: data.image_url,
       phoneNumber: data.phone_numbers.at(0)?.phone_number,
     },
   });
 
   analytics?.capture({
-    event: "User Updated",
     distinctId: data.id,
+    event: "User Updated",
   });
 
   return new Response("User updated", { status: 201 });
@@ -139,8 +139,8 @@ const handleUserDeleted = (data: DeletedObjectJSON) => {
     });
 
     analytics?.capture({
-      event: "User Deleted",
       distinctId: data.id,
+      event: "User Deleted",
     });
   }
 
@@ -149,19 +149,19 @@ const handleUserDeleted = (data: DeletedObjectJSON) => {
 
 const handleOrganizationCreated = (data: OrganizationJSON) => {
   analytics?.groupIdentify({
+    distinctId: data.created_by,
     groupKey: data.id,
     groupType: "company",
-    distinctId: data.created_by,
     properties: {
-      name: data.name,
       avatar: data.image_url,
+      name: data.name,
     },
   });
 
   if (data.created_by) {
     analytics?.capture({
-      event: "Organisation Created",
       distinctId: data.created_by,
+      event: "Organisation Created",
     });
   }
 
@@ -170,19 +170,19 @@ const handleOrganizationCreated = (data: OrganizationJSON) => {
 
 const handleOrganizationUpdated = (data: OrganizationJSON) => {
   analytics?.groupIdentify({
+    distinctId: data.created_by,
     groupKey: data.id,
     groupType: "company",
-    distinctId: data.created_by,
     properties: {
-      name: data.name,
       avatar: data.image_url,
+      name: data.name,
     },
   });
 
   if (data.created_by) {
     analytics?.capture({
-      event: "Organisation Updated",
       distinctId: data.created_by,
+      event: "Organisation Updated",
     });
   }
 
@@ -193,14 +193,14 @@ export const handleOrganizationMembershipCreated = async (
   data: OrganizationMembershipJSON
 ): Promise<Response> => {
   analytics?.groupIdentify({
+    distinctId: data.public_user_data.user_id,
     groupKey: data.organization.id,
     groupType: "company",
-    distinctId: data.public_user_data.user_id,
   });
 
   analytics?.capture({
-    event: "Organisation Member Created",
     distinctId: data.public_user_data.user_id,
+    event: "Organisation Member Created",
   });
 
   await ensurePeopleForMembership(data);
@@ -212,17 +212,17 @@ export const handleOrganizationMembershipDeleted = async (
   data: OrganizationMembershipJSON
 ): Promise<Response> => {
   analytics?.capture({
-    event: "Organisation Member Deleted",
     distinctId: data.public_user_data.user_id,
+    event: "Organisation Member Deleted",
   });
 
   await database.person.updateMany({
+    data: {
+      clerk_user_id: null,
+    },
     where: {
       clerk_org_id: data.organization.id,
       clerk_user_id: data.public_user_data.user_id,
-    },
-    data: {
-      clerk_user_id: null,
     },
   });
 
@@ -231,13 +231,13 @@ export const handleOrganizationMembershipDeleted = async (
 
 async function ensurePeopleForMembership(data: OrganizationMembershipJSON) {
   const organisations = await database.organisation.findMany({
-    where: {
-      archived_at: null,
-      clerk_org_id: data.organization.id,
-    },
     select: {
       clerk_org_id: true,
       id: true,
+    },
+    where: {
+      archived_at: null,
+      clerk_org_id: data.organization.id,
     },
   });
 
@@ -314,8 +314,8 @@ export const POST = async (request: Request): Promise<Response> => {
   try {
     event = webhook.verify(body, {
       "svix-id": svixId,
-      "svix-timestamp": svixTimestamp,
       "svix-signature": svixSignature,
+      "svix-timestamp": svixTimestamp,
     }) as WebhookEvent;
   } catch (error) {
     log.error("Error verifying webhook:", { error });
@@ -343,7 +343,7 @@ export const POST = async (request: Request): Promise<Response> => {
 
   // Log identifiers only. The verified payload contains PII (emails, names,
   // phone numbers) and must never reach the log pipeline.
-  log.info("Webhook received", { id, eventType });
+  log.info("Webhook received", { eventType, id });
 
   let response: Response = new Response("", { status: 201 });
 

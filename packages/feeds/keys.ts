@@ -3,17 +3,17 @@ import { z } from "zod";
 
 export const keys = () => {
   const env = createEnv({
-    server: {
-      KV_REST_API_URL: z.string().url().optional(),
-      KV_REST_API_TOKEN: z.string().min(1).optional(),
-    },
-    runtimeEnv: {
-      KV_REST_API_URL: process.env.KV_REST_API_URL,
-      KV_REST_API_TOKEN: process.env.KV_REST_API_TOKEN,
-    },
     // Treat an empty string (e.g. a blank Vercel env var) as unset so the
     // format-constrained optional keys do not fail validation.
     emptyStringAsUndefined: true,
+    runtimeEnv: {
+      KV_REST_API_TOKEN: process.env.KV_REST_API_TOKEN,
+      KV_REST_API_URL: process.env.KV_REST_API_URL,
+    },
+    server: {
+      KV_REST_API_TOKEN: z.string().min(1).optional(),
+      KV_REST_API_URL: z.string().url().optional(),
+    },
   });
 
   // Caching is optional, but a partially configured pair is a

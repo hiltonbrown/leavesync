@@ -10,14 +10,6 @@ export const sentryConfig: Parameters<typeof withSentryConfig>[1] = {
   silent: !process.env.CI,
 
   /*
-   * For all available options, see:
-   * https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
-   */
-
-  // Upload a larger set of source maps for prettier stack traces (increases build time)
-  widenClientFileUpload: true,
-
-  /*
    * Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
    * This can increase your server load as well as your hosting bill.
    * Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
@@ -26,11 +18,6 @@ export const sentryConfig: Parameters<typeof withSentryConfig>[1] = {
   tunnelRoute: "/monitoring",
 
   webpack: {
-    // Automatically tree-shake Sentry logger statements to reduce bundle size
-    treeshake: {
-      removeDebugLogging: true,
-    },
-
     /*
      * Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
      * See the following for more information:
@@ -38,7 +25,19 @@ export const sentryConfig: Parameters<typeof withSentryConfig>[1] = {
      * https://vercel.com/docs/cron-jobs
      */
     automaticVercelMonitors: true,
+    // Automatically tree-shake Sentry logger statements to reduce bundle size
+    treeshake: {
+      removeDebugLogging: true,
+    },
   },
+
+  /*
+   * For all available options, see:
+   * https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+   */
+
+  // Upload a larger set of source maps for prettier stack traces (increases build time)
+  widenClientFileUpload: true,
 };
 
 export const withSentry = (sourceConfig: object): object => {

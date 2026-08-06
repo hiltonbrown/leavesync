@@ -41,6 +41,9 @@ export async function GET(request: Request) {
   const response = NextResponse.redirect(
     new URL(result.value.redirectTo, appBaseUrl)
   );
-  response.cookies.delete({ name: "xero_oauth_nonce", path: "/api/xero/oauth" });
+  response.cookies.delete({
+    name: "xero_oauth_nonce",
+    path: "/api/xero/oauth",
+  });
   return response;
 }

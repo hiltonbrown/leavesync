@@ -11,32 +11,32 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = createMetadata({
-  title: "Help centre",
   description:
     "Help resources for setting up Team Calendar, connecting Xero Payroll, securing feeds, and getting support.",
+  title: "Help centre",
 });
 
 const resources = [
   {
-    icon: KeyRound,
-    title: "Connect Xero Payroll",
     copy: "Understand the Xero connection flow, supported payroll regions, and how Team Calendar keeps leave data current.",
     href: "/integrations",
+    icon: KeyRound,
     link: "Read integration notes",
+    title: "Connect Xero Payroll",
   },
   {
-    icon: CalendarDays,
-    title: "Publish calendar feeds",
     copy: "Learn how approved leave and manual availability become read-only calendar subscriptions for the tools your team already uses.",
     href: "/features#ics-feeds",
+    icon: CalendarDays,
     link: "View calendar feed features",
+    title: "Publish calendar feeds",
   },
   {
-    icon: ShieldCheck,
-    title: "Review security controls",
     copy: "See how authentication, tenant isolation, encrypted Xero tokens, and feed token revocation are handled.",
     href: "/security",
+    icon: ShieldCheck,
     link: "Open security overview",
+    title: "Review security controls",
   },
 ];
 

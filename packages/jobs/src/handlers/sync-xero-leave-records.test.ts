@@ -391,7 +391,9 @@ describe("leave records stale archival", () => {
         rawResponse: {},
       },
     });
-    mocks.personFindMany.mockResolvedValue([person(PERSON_ID, XERO_EMPLOYEE_ID)]);
+    mocks.personFindMany.mockResolvedValue([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+    ]);
     mocks.availabilityRecordFindMany
       .mockResolvedValueOnce([
         {
@@ -423,7 +425,9 @@ describe("leave records stale archival", () => {
         rawResponse: {},
       },
     });
-    mocks.personFindMany.mockResolvedValue([person(PERSON_ID, XERO_EMPLOYEE_ID)]);
+    mocks.personFindMany.mockResolvedValue([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+    ]);
     mocks.availabilityRecordFindMany
       .mockResolvedValueOnce([
         {
@@ -440,7 +444,9 @@ describe("leave records stale archival", () => {
     const result = await syncXeroLeaveRecords(input());
 
     expect(result.ok).toBe(true);
-    expect(mocks.availabilityRecordUpdateMany.mock.calls[0]?.[0]?.data).toMatchObject({
+    expect(
+      mocks.availabilityRecordUpdateMany.mock.calls[0]?.[0]?.data
+    ).toMatchObject({
       privacy_mode: "named",
     });
   });
@@ -454,13 +460,17 @@ describe("leave records stale archival", () => {
         rawResponse: {},
       },
     });
-    mocks.personFindMany.mockResolvedValue([person(PERSON_ID, XERO_EMPLOYEE_ID)]);
+    mocks.personFindMany.mockResolvedValue([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+    ]);
     mocks.availabilityRecordFindMany.mockResolvedValue([]);
 
     const result = await syncXeroLeaveRecords(input());
 
     expect(result.ok).toBe(true);
-    expect(mocks.availabilityRecordCreate.mock.calls[0]?.[0]?.data).toMatchObject({
+    expect(
+      mocks.availabilityRecordCreate.mock.calls[0]?.[0]?.data
+    ).toMatchObject({
       include_in_feed: true,
       privacy_mode: "named",
       title: "Annual leave",
@@ -476,7 +486,9 @@ describe("leave records stale archival", () => {
         rawResponse: {},
       },
     });
-    mocks.personFindMany.mockResolvedValue([person(PERSON_ID, XERO_EMPLOYEE_ID)]);
+    mocks.personFindMany.mockResolvedValue([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+    ]);
     mocks.availabilityRecordFindMany
       .mockResolvedValueOnce([
         {
@@ -493,7 +505,9 @@ describe("leave records stale archival", () => {
     const result = await syncXeroLeaveRecords(input());
 
     expect(result.ok).toBe(true);
-    expect(mocks.availabilityRecordUpdateMany.mock.calls[0]?.[0]?.data).toMatchObject({
+    expect(
+      mocks.availabilityRecordUpdateMany.mock.calls[0]?.[0]?.data
+    ).toMatchObject({
       approval_status: "approved",
       ends_at: new Date("2026-05-08T00:00:00.000Z"),
       source_remote_hash: `hash-${LEAVE_APPLICATION_ID}`,

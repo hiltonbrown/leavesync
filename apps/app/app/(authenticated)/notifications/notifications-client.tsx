@@ -189,8 +189,8 @@ export function NotificationsClient({
       return;
     }
     focusRef.current.scrollIntoView({
-      block: "center",
       behavior: prefersReducedMotion ? "instant" : "smooth",
+      block: "center",
     });
   }, [filters.focus, prefersReducedMotion]);
 
@@ -261,8 +261,8 @@ export function NotificationsClient({
   ) => {
     const next = {
       ...row,
-      inAppEnabled: channel === "in_app" ? enabled : row.inAppEnabled,
       emailEnabled: channel === "email" ? enabled : row.emailEnabled,
+      inAppEnabled: channel === "in_app" ? enabled : row.inAppEnabled,
       isDefault: false,
     };
     if (!(next.inAppEnabled || next.emailEnabled)) {
@@ -273,10 +273,10 @@ export function NotificationsClient({
     );
     startTransition(async () => {
       const result = await updatePreferenceAction({
-        organisationId,
-        notificationType: row.type,
-        inAppEnabled: next.inAppEnabled,
         emailEnabled: next.emailEnabled,
+        inAppEnabled: next.inAppEnabled,
+        notificationType: row.type,
+        organisationId,
       });
       if (!result.ok) {
         toast.error(result.error.message);

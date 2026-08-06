@@ -48,8 +48,8 @@ export async function materialiseAvailabilityPublication(input: {
     });
     if (!record) {
       return {
-        ok: false,
         error: appError("not_found", "Availability record not found."),
+        ok: false,
       };
     }
 
@@ -72,8 +72,8 @@ export async function materialiseAvailabilityPublication(input: {
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to materialise publication."),
+      ok: false,
     };
   }
 }
@@ -111,11 +111,11 @@ async function upsertPublication(
           published_all_day: published.allDay,
           published_at: publishedAt,
           published_description: published.description,
+          published_ends_at: published.endsAt,
           published_sequence: 0,
+          published_starts_at: published.startsAt,
           published_summary: published.summary,
           published_uid: published.uid,
-          published_starts_at: published.startsAt,
-          published_ends_at: published.endsAt,
         },
         select: publicationSelect,
       });
@@ -168,11 +168,11 @@ async function upsertPublication(
       published_all_day: published.allDay,
       published_at: publishedAt,
       published_description: published.description,
+      published_ends_at: published.endsAt,
       published_sequence: { increment: 1 },
+      published_starts_at: published.startsAt,
       published_summary: published.summary,
       published_uid: published.uid,
-      published_starts_at: published.startsAt,
-      published_ends_at: published.endsAt,
     },
     select: publicationSelect,
     where: { id: existing.id },
@@ -205,7 +205,9 @@ function projectPublishedRecord(record: RecordRow): {
   return {
     allDay: record.all_day,
     description: null,
+    endsAt: record.ends_at,
     privacyMode: record.privacy_mode,
+    startsAt: record.starts_at,
     summary: projectSummaryLine({
       displayName,
       isPublicHoliday: false,
@@ -213,8 +215,6 @@ function projectPublishedRecord(record: RecordRow): {
       recordTypeLabel,
     }),
     uid: record.derived_uid_key,
-    startsAt: record.starts_at,
-    endsAt: record.ends_at,
   };
 }
 
@@ -249,25 +249,20 @@ const existingPublicationSelect = {
   published_all_day: true,
   published_at: true,
   published_description: true,
+  published_ends_at: true,
   published_sequence: true,
+  published_starts_at: true,
   published_summary: true,
   published_uid: true,
-  published_starts_at: true,
-  published_ends_at: true,
 } satisfies Prisma.AvailabilityPublicationSelect;
 
 const recordPublicationSelect = {
   all_day: true,
   clerk_org_id: true,
   derived_uid_key: true,
+  ends_at: true,
   id: true,
   organisation_id: true,
-  person_id: true,
-  privacy_mode: true,
-  record_type: true,
-  title: true,
-  starts_at: true,
-  ends_at: true,
   person: {
     select: {
       display_name: true,
@@ -275,9 +270,14 @@ const recordPublicationSelect = {
       last_name: true,
     },
   },
+  person_id: true,
+  privacy_mode: true,
   publication: {
     select: existingPublicationSelect,
   },
+  record_type: true,
+  starts_at: true,
+  title: true,
 } satisfies Prisma.AvailabilityRecordSelect;
 
 type RecordRow = Prisma.AvailabilityRecordGetPayload<{

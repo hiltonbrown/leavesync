@@ -4,8 +4,8 @@ import { redirect } from "next/navigation";
 import { MembersClient } from "./members-client";
 
 export const metadata: Metadata = {
-  title: "Members - Settings - Team Calendar",
   description: "Manage team members and their roles in your organisation.",
+  title: "Members - Settings - Team Calendar",
 };
 
 const MembersPage = async () => {
@@ -19,8 +19,8 @@ const MembersPage = async () => {
 
   const [membershipsResult, invitationsResult] = await Promise.all([
     clerk.organizations.getOrganizationMembershipList({
-      organizationId: orgId,
       limit: 100,
+      organizationId: orgId,
     }),
     clerk.organizations.getOrganizationInvitationList({
       organizationId: orgId,
@@ -29,20 +29,20 @@ const MembersPage = async () => {
   ]);
 
   const members = membershipsResult.data.map((m) => ({
-    membershipId: m.id,
-    userId: m.publicUserData?.userId ?? "",
-    firstName: m.publicUserData?.firstName ?? null,
-    lastName: m.publicUserData?.lastName ?? null,
     emailAddress: m.publicUserData?.identifier ?? "",
+    firstName: m.publicUserData?.firstName ?? null,
     imageUrl: m.publicUserData?.imageUrl ?? "",
+    lastName: m.publicUserData?.lastName ?? null,
+    membershipId: m.id,
     role: m.role,
+    userId: m.publicUserData?.userId ?? "",
   }));
 
   const pendingInvitations = invitationsResult.data.map((inv) => ({
-    id: inv.id,
-    emailAddress: inv.emailAddress,
-    role: inv.role,
     createdAt: inv.createdAt,
+    emailAddress: inv.emailAddress,
+    id: inv.id,
+    role: inv.role,
   }));
 
   return (

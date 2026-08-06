@@ -65,14 +65,14 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const result = await createSupportGitHubIssue({
-      payload: parsedBody.data,
       clerk_org_id: clerkOrgId,
-      organisation_id: organisationContext.value?.organisationId,
-      organisation_name: organisationContext.value?.organisationName,
       current_route: `${pageUrl.pathname}${pageUrl.search}`,
       environment: getRuntimeEnvironment(),
-      user_id: user.id,
+      organisation_id: organisationContext.value?.organisationId,
+      organisation_name: organisationContext.value?.organisationName,
+      payload: parsedBody.data,
       user_email: getPrimaryEmail(user),
+      user_id: user.id,
       user_name: getUserName(user),
     });
 
@@ -115,9 +115,9 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const response: SupportGitHubIssueSuccessResponse = {
-      ok: true,
       issueNumber: result.value.issueNumber,
       issueUrl: result.value.issueUrl,
+      ok: true,
     };
 
     return Response.json(response);
@@ -231,9 +231,9 @@ function jsonFailure(
   message: string
 ): Response {
   const response: SupportGitHubIssueFailureResponse = {
-    ok: false,
     code,
     message,
+    ok: false,
   };
 
   return Response.json(response, { status });

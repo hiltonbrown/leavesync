@@ -33,11 +33,11 @@ export async function fetchLeaveApplicationStatusForRegion(
       return await fetchUkLeaveApplicationStatus(input);
     default:
       return {
-        ok: false,
         error: {
           code: "unknown_error",
           message: "Unsupported payroll region.",
         },
+        ok: false,
       };
   }
 }
@@ -53,27 +53,27 @@ export async function fetchEmployeesForRegion(
       return await fetchAuEmployees(input);
     case "NZ":
       return {
-        ok: false,
         error: {
           code: "unknown_error",
           message: "NZ payroll employee reads are not yet available.",
         },
+        ok: false,
       };
     case "UK":
       return {
-        ok: false,
         error: {
           code: "unknown_error",
           message: "UK payroll employee reads are not yet available.",
         },
+        ok: false,
       };
     default:
       return {
-        ok: false,
         error: {
           code: "unknown_error",
           message: "Unsupported payroll region.",
         },
+        ok: false,
       };
   }
 }
@@ -93,27 +93,27 @@ export async function fetchLeaveRecordsForRegion(
       return await fetchAuLeaveRecords(input);
     case "NZ":
       return {
-        ok: false,
         error: {
           code: "unknown_error",
           message: "NZ payroll leave reads are not yet available.",
         },
+        ok: false,
       };
     case "UK":
       return {
-        ok: false,
         error: {
           code: "unknown_error",
           message: "UK payroll leave reads are not yet available.",
         },
+        ok: false,
       };
     default:
       return {
-        ok: false,
         error: {
           code: "unknown_error",
           message: "Unsupported payroll region.",
         },
+        ok: false,
       };
   }
 }
@@ -137,27 +137,27 @@ export async function fetchLeaveBalancesForRegion(
       return await fetchAuLeaveBalances(input);
     case "NZ":
       return {
-        ok: false,
         error: {
           code: "unknown_error",
           message: "NZ payroll leave balance reads are not yet available.",
         },
+        ok: false,
       };
     case "UK":
       return {
-        ok: false,
         error: {
           code: "unknown_error",
           message: "UK payroll leave balance reads are not yet available.",
         },
+        ok: false,
       };
     default:
       return {
-        ok: false,
         error: {
           code: "unknown_error",
           message: "Unsupported payroll region.",
         },
+        ok: false,
       };
   }
 }

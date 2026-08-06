@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   feedFindMany: vi.fn(),
-  personFindMany: vi.fn(),
-  loadFeedScopeData: vi.fn(),
   invalidateFeedCache: vi.fn(() =>
     Promise.resolve({ ok: true, value: { deletedCount: 1 } })
   ),
+  loadFeedScopeData: vi.fn(),
+  personFindMany: vi.fn(),
   resolvePeopleForFeed: vi.fn(),
 }));
 
@@ -163,8 +163,8 @@ describe("feed cache invalidation", () => {
 
   it("proceeds with invalidation when loadFeedScopeData fails", async () => {
     mocks.loadFeedScopeData.mockResolvedValue({
-      ok: false,
       error: { code: "unknown_error", message: "scope load failed" },
+      ok: false,
     });
 
     const feeds = await feedIdsForPeople({
@@ -185,8 +185,8 @@ describe("feed cache invalidation", () => {
 
   it("invalidates defensively when scope resolution fails for a feed", async () => {
     mocks.resolvePeopleForFeed.mockResolvedValue({
-      ok: false,
       error: { code: "unknown_error", message: "boom" },
+      ok: false,
     });
 
     const feeds = await feedIdsForPeople({
@@ -205,8 +205,8 @@ describe("feed cache invalidation", () => {
   it("attempts invalidation for all feeds even when one feed invalidation fails", async () => {
     mocks.invalidateFeedCache
       .mockResolvedValueOnce({
-        ok: false,
         error: { code: "unknown_error", message: "KV error on feed-a" },
+        ok: false,
       })
       .mockResolvedValueOnce({
         ok: true,

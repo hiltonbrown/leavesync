@@ -90,18 +90,18 @@ export async function setManualLeaveBalance(input: {
     });
     if (hasXero) {
       return {
-        ok: false,
         error: {
           code: "xero_connected",
           message:
             "Manual balances can only be edited when Xero is disconnected.",
         },
+        ok: false,
       };
     }
 
     const person = await database.person.findFirst({
-      where: { ...scoped, id: parsed.data.personId },
       select: { id: true },
+      where: { ...scoped, id: parsed.data.personId },
     });
     if (!person) {
       return await personNotFoundOrLeak(parsed.data);
@@ -110,11 +110,11 @@ export async function setManualLeaveBalance(input: {
     return await createOrUpdateManualBalance(parsed.data, scoped);
   } catch {
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to save manual leave balance.",
       },
+      ok: false,
     };
   }
 }
@@ -183,13 +183,13 @@ function findManualBalance(
   scoped: { clerk_org_id: ClerkOrgId; organisation_id: OrganisationId }
 ) {
   return database.leaveBalance.findFirst({
+    select: { id: true },
     where: {
       ...scoped,
       leave_type_xero_id: input.leaveTypeXeroId,
       person_id: input.personId,
       xero_tenant_id: null,
     },
-    select: { id: true },
   });
 }
 
@@ -221,8 +221,8 @@ async function personNotFoundOrLeak(input: {
   personId: string;
 }): Promise<Result<never, ManualBalanceServiceError>> {
   const exists = await database.person.findFirst({
-    where: { id: input.personId },
     select: { clerk_org_id: true, organisation_id: true },
+    where: { id: input.personId },
   });
   if (
     exists &&
@@ -230,16 +230,16 @@ async function personNotFoundOrLeak(input: {
       exists.organisation_id !== input.organisationId)
   ) {
     return {
-      ok: false,
       error: {
         code: "cross_org_leak",
         message: "Person is outside this organisation.",
       },
+      ok: false,
     };
   }
   return {
-    ok: false,
     error: { code: "person_not_found", message: "Person not found." },
+    ok: false,
   };
 }
 
@@ -254,20 +254,20 @@ function validationError(
   error: z.ZodError
 ): Result<never, ManualBalanceServiceError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid manual balance.",
     },
+    ok: false,
   };
 }
 
 function notAuthorised(): Result<never, ManualBalanceServiceError> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "You do not have permission to edit balances.",
     },
+    ok: false,
   };
 }

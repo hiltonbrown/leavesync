@@ -64,34 +64,34 @@ describe("general settings organisation actions", () => {
     });
   });
 
-  it.each([
-    "NZ",
-    "UK",
-  ] as const)("rejects switching an organisation to unsupported country %s", async (countryCode) => {
-    mocks.database.organisation.findFirst.mockResolvedValue({
-      country_code: "AU",
-      name: "Australian Payroll",
-      region_code: "QLD",
-      timezone: "Australia/Brisbane",
-    });
+  it.each(["NZ", "UK"] as const)(
+    "rejects switching an organisation to unsupported country %s",
+    async (countryCode) => {
+      mocks.database.organisation.findFirst.mockResolvedValue({
+        country_code: "AU",
+        name: "Australian Payroll",
+        region_code: "QLD",
+        timezone: "Australia/Brisbane",
+      });
 
-    const result = await updateOrganisationAction({
-      confirmationCountryChange: true,
-      countryCode,
-      organisationId,
-    });
+      const result = await updateOrganisationAction({
+        confirmationCountryChange: true,
+        countryCode,
+        organisationId,
+      });
 
-    expect(result).toEqual({
-      ok: false,
-      error: {
-        code: "validation_error",
-        message:
-          "Team Calendar currently supports Australian Xero Payroll files only.",
-      },
-    });
-    expect(mocks.database.organisation.findFirst).toHaveBeenCalled();
-    expect(mocks.database.organisation.update).not.toHaveBeenCalled();
-  });
+      expect(result).toEqual({
+        error: {
+          code: "validation_error",
+          message:
+            "Team Calendar currently supports Australian Xero Payroll files only.",
+        },
+        ok: false,
+      });
+      expect(mocks.database.organisation.findFirst).toHaveBeenCalled();
+      expect(mocks.database.organisation.update).not.toHaveBeenCalled();
+    }
+  );
 
   it("allows an existing NZ organisation to save its unchanged country", async () => {
     mocks.database.organisation.findFirst.mockResolvedValue({
@@ -125,7 +125,6 @@ describe("general settings organisation actions", () => {
       },
     });
     expect(mocks.database.organisation.update).toHaveBeenCalledWith({
-      where: { id: organisationId },
       data: {
         country_code: "NZ",
         name: "Updated Legacy Payroll",
@@ -138,6 +137,7 @@ describe("general settings organisation actions", () => {
         region_code: true,
         timezone: true,
       },
+      where: { id: organisationId },
     });
     expect(
       mocks.ensureDefaultPublicHolidaysForOrganisation

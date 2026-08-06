@@ -509,7 +509,6 @@ function buttonTitle(
   if (connectionInactive) {
     return "Reconnect Xero before running this sync.";
   }
-  return;
 }
 
 function reasonLabel(reason?: string): string {

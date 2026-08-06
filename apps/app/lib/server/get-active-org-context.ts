@@ -25,11 +25,11 @@ export async function getActiveOrgContext(organisationId: string): Promise<
     clerkOrgId = (await requireOrg()) as ClerkOrgId;
   } catch {
     return {
-      ok: false,
       error: appError(
         "unauthorised",
         "Not authenticated or no organisation selected"
       ),
+      ok: false,
     };
   }
 
@@ -42,16 +42,16 @@ export async function getActiveOrgContext(organisationId: string): Promise<
   if (!orgResult.ok) {
     if (orgResult.error.code === "not_found") {
       return {
-        ok: false,
         error: appError(
           "not_found",
           "Organisation not found or not accessible in your context"
         ),
+        ok: false,
       };
     }
     return {
-      ok: false,
       error: orgResult.error,
+      ok: false,
     };
   }
 

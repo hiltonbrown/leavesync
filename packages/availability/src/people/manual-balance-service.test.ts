@@ -65,12 +65,12 @@ describe("manual balance service", () => {
     const result = await setManualLeaveBalance(input);
 
     expect(result).toEqual({
-      ok: false,
       error: {
         code: "xero_connected",
         message:
           "Manual balances can only be edited when Xero is disconnected.",
       },
+      ok: false,
     });
     expect(mocks.leaveBalanceCreate).not.toHaveBeenCalled();
   });

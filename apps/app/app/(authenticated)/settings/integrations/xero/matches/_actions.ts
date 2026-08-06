@@ -38,10 +38,6 @@ export async function resolveXeroPersonMatchAction(input: {
   }
 
   const match = await database.xeroPersonMatch.findFirst({
-    where: {
-      clerk_org_id: orgId,
-      id: parsed.data.matchId,
-    },
     include: {
       candidate_person: {
         select: {
@@ -54,6 +50,10 @@ export async function resolveXeroPersonMatchAction(input: {
           id: true,
         },
       },
+    },
+    where: {
+      clerk_org_id: orgId,
+      id: parsed.data.matchId,
     },
   });
   if (!match) {
@@ -75,26 +75,26 @@ export async function resolveXeroPersonMatchAction(input: {
   await database.$transaction(async (tx) => {
     if (parsed.data.resolution === "match" && resolvedClerkUserId) {
       await tx.person.update({
-        where: { id: match.xero_person.id },
         data: {
           clerk_user_id: resolvedClerkUserId,
         },
+        where: { id: match.xero_person.id },
       });
     }
 
     await tx.xeroPersonMatch.update({
-      where: { id: match.id },
       data: {
-        resolved_at: new Date(),
-        resolved_by_user_id: user.id,
-        resolved_clerk_user_id: resolvedClerkUserId,
-        resolved_person_id: match.candidate_person?.id ?? null,
         resolution_note:
           parsed.data.resolution === "ignore"
             ? "Marked as separate records by admin."
             : "Linked Xero person to Clerk user.",
+        resolved_at: new Date(),
+        resolved_by_user_id: user.id,
+        resolved_clerk_user_id: resolvedClerkUserId,
+        resolved_person_id: match.candidate_person?.id ?? null,
         status: parsed.data.resolution === "ignore" ? "ignored" : "matched",
       },
+      where: { id: match.id },
     });
 
     await tx.auditEvent.create({
@@ -128,30 +128,30 @@ export async function resolveXeroPersonMatchAction(input: {
 
 function notAuthorised(): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "Only owners and admins can resolve Xero person matches.",
     },
+    ok: false,
   };
 }
 
 function unknownError(message: string): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "unknown_error",
       message,
     },
+    ok: false,
   };
 }
 
 function validationError(message?: string): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: message ?? "Invalid match resolution input.",
     },
+    ok: false,
   };
 }

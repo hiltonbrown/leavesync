@@ -28,8 +28,8 @@ const SyncEventSchema = z.object({
     "leave_balances",
     "approval_state_reconciliation",
   ]),
-  triggerType: z.enum(["scheduled", "manual", "webhook"]).default("manual"),
   triggeredByUserId: z.string().min(1).nullable().optional(),
+  triggerType: z.enum(["scheduled", "manual", "webhook"]).default("manual"),
   xeroTenantId: z.string().uuid(),
 });
 
@@ -59,44 +59,44 @@ export async function dispatchSyncEvent(
   const parsed = SyncEventSchema.safeParse(input);
   if (!parsed.success) {
     return {
-      ok: false,
       error: {
         code: "validation_error",
         message: parsed.error.issues[0]?.message ?? "Invalid sync event.",
       },
+      ok: false,
     };
   }
   const eventName = getRegisteredSyncEventName(parsed.data.runType);
   if (!eventName) {
     return {
-      ok: false,
       error: {
         code: "dispatch_not_wired",
         message: "This sync job is not registered yet.",
       },
+      ok: false,
     };
   }
 
   try {
     const sent = await inngest.send({
-      name: eventName,
       data: {
         clerkOrgId: parsed.data.clerkOrgId,
         organisationId: parsed.data.organisationId,
         personId: parsed.data.personId,
-        triggerType: parsed.data.triggerType,
         triggeredByUserId: parsed.data.triggeredByUserId ?? null,
+        triggerType: parsed.data.triggerType,
         xeroTenantId: parsed.data.xeroTenantId,
       },
+      name: eventName,
     });
     return { ok: true, value: { eventName, ids: sent.ids, queued: true } };
   } catch {
     return {
-      ok: false,
       error: {
         code: "dispatch_failed",
         message: "Failed to queue the sync job.",
       },
+      ok: false,
     };
   }
 }
@@ -112,28 +112,28 @@ export async function dispatchCancelSyncRun(
   const parsed = CancelSyncEventSchema.safeParse(input);
   if (!parsed.success) {
     return {
-      ok: false,
       error: {
         code: "validation_error",
         message:
           parsed.error.issues[0]?.message ?? "Invalid sync cancellation event.",
       },
+      ok: false,
     };
   }
 
   try {
     await inngest.send({
-      name: "cancel-sync-run",
       data: parsed.data,
+      name: "cancel-sync-run",
     });
     return { ok: true, value: { queued: true } };
   } catch {
     return {
-      ok: false,
       error: {
         code: "dispatch_failed",
         message: "Failed to queue the cancellation event.",
       },
+      ok: false,
     };
   }
 }

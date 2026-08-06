@@ -2,23 +2,23 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const ids = {
   clerkOrg: "org_1",
-  manager: "00000000-0000-4000-8000-000000000010",
   indirect: "00000000-0000-4000-8000-000000000013",
+  manager: "00000000-0000-4000-8000-000000000010",
   org: "00000000-0000-4000-8000-000000000001",
   otherOrg: "00000000-0000-4000-8000-000000000002",
-  person: "00000000-0000-4000-8000-000000000011",
   peer: "00000000-0000-4000-8000-000000000012",
+  person: "00000000-0000-4000-8000-000000000011",
   team: "00000000-0000-4000-8000-000000000100",
 };
 
 const mocks = vi.hoisted(() => ({
   availabilityFindFirst: vi.fn(),
   availabilityFindMany: vi.fn(),
+  getSettings: vi.fn(),
   hasActiveXeroConnection: vi.fn(),
   listForOrganisation: vi.fn(),
   organisationFindFirst: vi.fn(),
   personFindMany: vi.fn(),
-  getSettings: vi.fn(),
   scopedQuery: vi.fn((clerkOrgId: string, organisationId: string) => ({
     clerk_org_id: clerkOrgId,
     organisation_id: organisationId,

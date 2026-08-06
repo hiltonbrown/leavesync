@@ -353,7 +353,6 @@ function actionDisabledTitle(
   if (runType !== "approval_state_reconciliation") {
     return "This sync job is not registered yet.";
   }
-  return;
 }
 
 function firstLine(value: string): string {

@@ -5,23 +5,23 @@ const mocks = vi.hoisted(() => ({
   auth: vi.fn(),
   createFeed: vi.fn(),
   currentUser: vi.fn(),
-  getActiveOrgContext: vi.fn(),
-  pauseFeed: vi.fn(),
-  restoreFeed: vi.fn(),
-  resumeFeed: vi.fn(),
-  revokeToken: vi.fn(),
-  rotateToken: vi.fn(),
-  updateFeed: vi.fn(),
-  revalidatePath: vi.fn(),
-  dispatchNotification: vi.fn(),
   database: {
     feed: {
       findFirst: vi.fn(),
     },
   },
+  dispatchNotification: vi.fn(),
+  getActiveOrgContext: vi.fn(),
   log: {
     error: vi.fn(),
   },
+  pauseFeed: vi.fn(),
+  restoreFeed: vi.fn(),
+  resumeFeed: vi.fn(),
+  revalidatePath: vi.fn(),
+  revokeToken: vi.fn(),
+  rotateToken: vi.fn(),
+  updateFeed: vi.fn(),
 }));
 
 vi.mock("@repo/auth/server", () => ({
@@ -90,7 +90,7 @@ describe("feed actions", () => {
     });
     mocks.dispatchNotification.mockResolvedValue({
       ok: true,
-      value: { inAppDelivered: true, emailQueued: true },
+      value: { emailQueued: true, inAppDelivered: true },
     });
     mocks.database.feed.findFirst.mockResolvedValue({
       name: "Internal Calendar",
@@ -137,17 +137,17 @@ describe("feed actions", () => {
 
       expect(result.ok).toBe(true);
       expect(mocks.database.feed.findFirst).toHaveBeenCalledWith({
-        where: { id: feedId, organisation_id: organisationId },
         select: { name: true },
+        where: { id: feedId, organisation_id: organisationId },
       });
       expect(mocks.dispatchNotification).toHaveBeenCalledWith({
         actionUrl: `/feeds/${feedId}?org=org_1`,
         actorUserId: "user_1",
+        body: 'The token for calendar feed "Internal Calendar" has been rotated.',
         clerkOrgId: "org_1",
-        organisationId,
         objectId: feedId,
         objectType: "feed",
-        body: 'The token for calendar feed "Internal Calendar" has been rotated.',
+        organisationId,
         recipientPersonId: null,
         recipientUserId: "user_1",
         title: "Feed token rotated",
@@ -170,8 +170,8 @@ describe("feed actions", () => {
 
     it("does not fail rotation action and logs error when dispatch fails", async () => {
       mocks.dispatchNotification.mockResolvedValue({
-        ok: false,
         error: { code: "unknown_error", message: "Dispatch failed" },
+        ok: false,
       });
 
       const result = await rotateTokenAction({ feedId, organisationId });
@@ -180,16 +180,16 @@ describe("feed actions", () => {
       expect(mocks.log.error).toHaveBeenCalledWith(
         "Failed to dispatch feed token rotation notification",
         expect.objectContaining({
-          feedId,
           error: { code: "unknown_error", message: "Dispatch failed" },
+          feedId,
         })
       );
     });
 
     it("does not dispatch notification when token rotation itself fails", async () => {
       mocks.rotateToken.mockResolvedValue({
-        ok: false,
         error: { code: "token_not_found", message: "Feed has no active token" },
+        ok: false,
       });
 
       const result = await rotateTokenAction({ feedId, organisationId });

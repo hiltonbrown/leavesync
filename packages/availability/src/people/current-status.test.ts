@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   availabilityFindMany: vi.fn(),
-  locationFindMany: vi.fn(),
   locationFindFirst: vi.fn(),
+  locationFindMany: vi.fn(),
   organisationFindFirst: vi.fn(),
-  publicHolidayFindMany: vi.fn(),
   publicHolidayFindFirst: vi.fn(),
+  publicHolidayFindMany: vi.fn(),
   scopedQuery: vi.fn((clerkOrgId: string, organisationId: string) => ({
     clerk_org_id: clerkOrgId,
     organisation_id: organisationId,

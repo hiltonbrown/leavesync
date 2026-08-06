@@ -72,13 +72,13 @@ export async function dispatchBalanceRefresh(input: {
       parsed.data.organisationId as OrganisationId
     );
     const person = await database.person.findFirst({
-      where: {
-        ...scoped,
-        id: parsed.data.personId,
-      },
       select: {
         id: true,
         xero_employee_id: true,
+      },
+      where: {
+        ...scoped,
+        id: parsed.data.personId,
       },
     });
     if (!person) {
@@ -102,6 +102,7 @@ export async function dispatchBalanceRefresh(input: {
     }
 
     const xeroTenant = await database.xeroTenant.findFirst({
+      select: { id: true },
       where: {
         ...scoped,
         organisation_id: parsed.data.organisationId,
@@ -112,7 +113,6 @@ export async function dispatchBalanceRefresh(input: {
           status: "active",
         },
       },
-      select: { id: true },
     });
     if (!xeroTenant) {
       const value = { queued: false, reason: "xero_not_connected" as const };
@@ -144,11 +144,11 @@ export async function dispatchBalanceRefresh(input: {
     return { ok: true, value };
   } catch {
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to dispatch balance refresh.",
       },
+      ok: false,
     };
   }
 }
@@ -181,8 +181,8 @@ async function personNotFoundOrLeak(input: {
   personId: string;
 }): Promise<Result<never, BalanceRefreshError>> {
   const exists = await database.person.findFirst({
-    where: { id: input.personId },
     select: { clerk_org_id: true, organisation_id: true },
+    where: { id: input.personId },
   });
   if (
     exists &&
@@ -190,16 +190,16 @@ async function personNotFoundOrLeak(input: {
       exists.organisation_id !== input.organisationId)
   ) {
     return {
-      ok: false,
       error: {
         code: "cross_org_leak",
         message: "Person is outside this organisation.",
       },
+      ok: false,
     };
   }
   return {
-    ok: false,
     error: { code: "person_not_found", message: "Person not found." },
+    ok: false,
   };
 }
 
@@ -207,21 +207,21 @@ function validationError(
   error: z.ZodError
 ): Result<never, BalanceRefreshError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid balance refresh request.",
     },
+    ok: false,
   };
 }
 
 function notAuthorised(): Result<never, BalanceRefreshError> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "You do not have permission to refresh balances.",
     },
+    ok: false,
   };
 }
 
@@ -231,14 +231,14 @@ setBalanceRefreshDispatcher(async (payload) => {
     organisationId: payload.organisationId,
     personId: payload.personId,
     runType: "leave_balances",
-    triggerType: "manual",
     triggeredByUserId: payload.dispatchedBy,
+    triggerType: "manual",
     xeroTenantId: payload.xeroTenantId,
   });
   if (!result.ok) {
     return {
-      ok: false,
       error: { message: result.error.message },
+      ok: false,
     };
   }
   return { ok: true, value: undefined };

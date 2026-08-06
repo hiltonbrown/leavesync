@@ -4,13 +4,13 @@ vi.mock("server-only", () => ({}));
 
 vi.mock("@repo/auth/helpers", () => ({
   auth: vi.fn(),
-  requireOrg: vi.fn(),
   currentUser: vi.fn(),
+  requireOrg: vi.fn(),
 }));
 
 vi.mock("@repo/availability", () => ({
-  createManualAvailability: vi.fn(),
   archiveManualAvailability: vi.fn(),
+  createManualAvailability: vi.fn(),
   updateManualAvailability: vi.fn(),
 }));
 
@@ -56,13 +56,13 @@ const { PATCH, DELETE } = await import(
 );
 
 const validPostPayload = {
+  allDay: false,
+  endsAt: "2026-07-01T17:00:00.000Z",
+  organisationId: "22222222-2222-4222-a222-222222222222",
   personId: "11111111-1111-4111-a111-111111111111",
   recordType: "wfh",
   startsAt: "2026-07-01T09:00:00.000Z",
-  endsAt: "2026-07-01T17:00:00.000Z",
-  allDay: false,
   title: "WFH Day",
-  organisationId: "22222222-2222-4222-a222-222222222222",
 };
 
 const validPatchPayload = {
@@ -82,9 +82,9 @@ describe("Availability Collection Route (POST)", () => {
 
     const response = await POST(
       new Request("http://localhost/api/availability", {
-        method: "POST",
         body: JSON.stringify(validPostPayload),
         headers: { "content-type": "application/json" },
+        method: "POST",
       })
     );
 
@@ -100,9 +100,9 @@ describe("Availability Collection Route (POST)", () => {
 
     const response = await POST(
       new Request("http://localhost/api/availability", {
-        method: "POST",
         body: JSON.stringify(validPostPayload),
         headers: { "content-type": "application/json" },
+        method: "POST",
       })
     );
 
@@ -119,9 +119,9 @@ describe("Availability Collection Route (POST)", () => {
 
     const response = await POST(
       new Request("http://localhost/api/availability", {
-        method: "POST",
         body: JSON.stringify(invalidPayload),
         headers: { "content-type": "application/json" },
+        method: "POST",
       })
     );
 
@@ -139,9 +139,9 @@ describe("Availability Collection Route (POST)", () => {
 
     const response = await POST(
       new Request("http://localhost/api/availability", {
-        method: "POST",
         body: JSON.stringify(invalidPayload),
         headers: { "content-type": "application/json" },
+        method: "POST",
       })
     );
 
@@ -155,15 +155,15 @@ describe("Availability Collection Route (POST)", () => {
     vi.mocked(requireOrg).mockResolvedValue("org_clerk_123");
     vi.mocked(currentUser).mockResolvedValue({ id: "user_123" } as any);
     vi.mocked(getOrganisationById).mockResolvedValue({
-      ok: false,
       error: { code: "not_found", message: "Org not found" } as any,
+      ok: false,
     });
 
     const response = await POST(
       new Request("http://localhost/api/availability", {
-        method: "POST",
         body: JSON.stringify(validPostPayload),
         headers: { "content-type": "application/json" },
+        method: "POST",
       })
     );
 
@@ -180,15 +180,15 @@ describe("Availability Collection Route (POST)", () => {
       value: { id: "org-1" } as any,
     });
     vi.mocked(listPeopleForOrganisation).mockResolvedValue({
-      ok: false,
       error: { code: "internal", message: "DB Error" } as any,
+      ok: false,
     });
 
     const response = await POST(
       new Request("http://localhost/api/availability", {
-        method: "POST",
         body: JSON.stringify(validPostPayload),
         headers: { "content-type": "application/json" },
+        method: "POST",
       })
     );
 
@@ -209,9 +209,9 @@ describe("Availability Collection Route (POST)", () => {
 
     const response = await POST(
       new Request("http://localhost/api/availability", {
-        method: "POST",
         body: JSON.stringify(validPostPayload),
         headers: { "content-type": "application/json" },
+        method: "POST",
       })
     );
 
@@ -238,9 +238,9 @@ describe("Availability Collection Route (POST)", () => {
 
     const response = await POST(
       new Request("http://localhost/api/availability", {
-        method: "POST",
         body: JSON.stringify(validPostPayload),
         headers: { "content-type": "application/json" },
+        method: "POST",
       })
     );
 
@@ -279,19 +279,19 @@ describe("Availability Collection Route (POST)", () => {
       value: [{ id: validPostPayload.personId }] as any,
     });
     vi.mocked(createManualAvailability).mockResolvedValue({
-      ok: false,
       error: {
         code: "not_authorised",
         message:
           "You do not have permission to manage this availability record.",
       } as any,
+      ok: false,
     });
 
     const response = await POST(
       new Request("http://localhost/api/availability", {
-        method: "POST",
         body: JSON.stringify(validPostPayload),
         headers: { "content-type": "application/json" },
+        method: "POST",
       })
     );
 
@@ -310,15 +310,15 @@ describe("Availability Collection Route (POST)", () => {
       value: [{ id: validPostPayload.personId }] as any,
     });
     vi.mocked(createManualAvailability).mockResolvedValue({
-      ok: false,
       error: { code: "conflict", message: "Overlap detected" } as any,
+      ok: false,
     });
 
     const response = await POST(
       new Request("http://localhost/api/availability", {
-        method: "POST",
         body: JSON.stringify(validPostPayload),
         headers: { "content-type": "application/json" },
+        method: "POST",
       })
     );
 
@@ -339,9 +339,9 @@ describe("Availability Single Record Route (PATCH)", () => {
       new Request(
         "http://localhost/api/availability/33333333-3333-4333-a333-333333333333",
         {
-          method: "PATCH",
           body: JSON.stringify(validPatchPayload),
           headers: { "content-type": "application/json" },
+          method: "PATCH",
         }
       ),
       {
@@ -362,9 +362,9 @@ describe("Availability Single Record Route (PATCH)", () => {
       new Request(
         "http://localhost/api/availability/33333333-3333-4333-a333-333333333333",
         {
-          method: "PATCH",
           body: JSON.stringify({}),
           headers: { "content-type": "application/json" },
+          method: "PATCH",
         }
       ),
       {
@@ -381,17 +381,17 @@ describe("Availability Single Record Route (PATCH)", () => {
     vi.mocked(requireOrg).mockResolvedValue("org_clerk_123");
     vi.mocked(currentUser).mockResolvedValue({ id: "user_123" } as any);
     vi.mocked(getOrganisationById).mockResolvedValue({
-      ok: false,
       error: { code: "not_found", message: "Not found" } as any,
+      ok: false,
     });
 
     const response = await PATCH(
       new Request(
         "http://localhost/api/availability/33333333-3333-4333-a333-333333333333",
         {
-          method: "PATCH",
           body: JSON.stringify(validPatchPayload),
           headers: { "content-type": "application/json" },
+          method: "PATCH",
         }
       ),
       {
@@ -412,17 +412,17 @@ describe("Availability Single Record Route (PATCH)", () => {
       value: { id: "org-1" } as any,
     });
     vi.mocked(getAvailabilityRecordById).mockResolvedValue({
-      ok: false,
       error: { code: "not_found", message: "Record not found" } as any,
+      ok: false,
     });
 
     const response = await PATCH(
       new Request(
         "http://localhost/api/availability/33333333-3333-4333-a333-333333333333",
         {
-          method: "PATCH",
           body: JSON.stringify(validPatchPayload),
           headers: { "content-type": "application/json" },
+          method: "PATCH",
         }
       ),
       {
@@ -454,9 +454,9 @@ describe("Availability Single Record Route (PATCH)", () => {
       new Request(
         "http://localhost/api/availability/33333333-3333-4333-a333-333333333333",
         {
-          method: "PATCH",
           body: JSON.stringify(validPatchPayload),
           headers: { "content-type": "application/json" },
+          method: "PATCH",
         }
       ),
       {
@@ -497,9 +497,9 @@ describe("Availability Single Record Route (PATCH)", () => {
       new Request(
         "http://localhost/api/availability/33333333-3333-4333-a333-333333333333",
         {
-          method: "PATCH",
           body: JSON.stringify(validPatchPayload),
           headers: { "content-type": "application/json" },
+          method: "PATCH",
         }
       ),
       {
@@ -548,21 +548,21 @@ describe("Availability Single Record Route (PATCH)", () => {
       } as any,
     });
     vi.mocked(updateManualAvailability).mockResolvedValue({
-      ok: false,
       error: {
         code: "not_authorised",
         message:
           "You do not have permission to manage this availability record.",
       } as any,
+      ok: false,
     });
 
     const response = await PATCH(
       new Request(
         "http://localhost/api/availability/33333333-3333-4333-a333-333333333333",
         {
-          method: "PATCH",
           body: JSON.stringify(validPatchPayload),
           headers: { "content-type": "application/json" },
+          method: "PATCH",
         }
       ),
       {
@@ -589,11 +589,11 @@ describe("Availability Single Record Route (DELETE)", () => {
       new Request(
         "http://localhost/api/availability/33333333-3333-4333-a333-333333333333",
         {
-          method: "DELETE",
           body: JSON.stringify({
             organisationId: "22222222-2222-4222-a222-222222222222",
           }),
           headers: { "content-type": "application/json" },
+          method: "DELETE",
         }
       ),
       {
@@ -614,9 +614,9 @@ describe("Availability Single Record Route (DELETE)", () => {
       new Request(
         "http://localhost/api/availability/33333333-3333-4333-a333-333333333333",
         {
-          method: "DELETE",
           body: JSON.stringify({}),
           headers: { "content-type": "application/json" },
+          method: "DELETE",
         }
       ),
       {
@@ -648,11 +648,11 @@ describe("Availability Single Record Route (DELETE)", () => {
       new Request(
         "http://localhost/api/availability/33333333-3333-4333-a333-333333333333",
         {
-          method: "DELETE",
           body: JSON.stringify({
             organisationId: "22222222-2222-4222-a222-222222222222",
           }),
           headers: { "content-type": "application/json" },
+          method: "DELETE",
         }
       ),
       {
@@ -688,11 +688,11 @@ describe("Availability Single Record Route (DELETE)", () => {
       new Request(
         "http://localhost/api/availability/33333333-3333-4333-a333-333333333333",
         {
-          method: "DELETE",
           body: JSON.stringify({
             organisationId: "22222222-2222-4222-a222-222222222222",
           }),
           headers: { "content-type": "application/json" },
+          method: "DELETE",
         }
       ),
       {
@@ -735,23 +735,23 @@ describe("Availability Single Record Route (DELETE)", () => {
       } as any,
     });
     vi.mocked(archiveManualAvailability).mockResolvedValue({
-      ok: false,
       error: {
         code: "not_authorised",
         message:
           "You do not have permission to manage this availability record.",
       } as any,
+      ok: false,
     });
 
     const response = await DELETE(
       new Request(
         "http://localhost/api/availability/33333333-3333-4333-a333-333333333333",
         {
-          method: "DELETE",
           body: JSON.stringify({
             organisationId: "22222222-2222-4222-a222-222222222222",
           }),
           headers: { "content-type": "application/json" },
+          method: "DELETE",
         }
       ),
       {

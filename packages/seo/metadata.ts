@@ -24,28 +24,28 @@ export const createMetadata = ({
 }: MetadataGenerator): Metadata => {
   const parsedTitle = `${title} | ${applicationName}`;
   const defaultMetadata: Metadata = {
-    title: parsedTitle,
-    description,
-    applicationName,
-    metadataBase: resolveCanonicalWebUrl(),
-    authors: [author],
-    creator: author.name,
-    formatDetection: {
-      telephone: false,
-    },
     appleWebApp: {
       capable: true,
       statusBarStyle: "default",
       title: parsedTitle,
     },
+    applicationName,
+    authors: [author],
+    creator: author.name,
+    description,
+    formatDetection: {
+      telephone: false,
+    },
+    metadataBase: resolveCanonicalWebUrl(),
     openGraph: {
-      title: parsedTitle,
       description,
-      type: "website",
-      siteName: applicationName,
       locale: "en_US",
+      siteName: applicationName,
+      title: parsedTitle,
+      type: "website",
     },
     publisher,
+    title: parsedTitle,
     twitter: {
       card: "summary_large_image",
     },
@@ -56,10 +56,10 @@ export const createMetadata = ({
   if (image && metadata.openGraph) {
     metadata.openGraph.images = [
       {
+        alt: title,
+        height: 630,
         url: image,
         width: 1200,
-        height: 630,
-        alt: title,
       },
     ];
   }

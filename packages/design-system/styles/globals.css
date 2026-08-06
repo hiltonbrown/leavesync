@@ -4,8 +4,7 @@
 
 @plugin "@tailwindcss/typography";
 
-@custom-variant dark (&:is(.dark *),
-&:is([data-theme="dark"] *));
+@custom-variant dark (&:is(.dark *), &:is([data-theme="dark"] *));
 
 :root,
 [data-theme="light"] {

@@ -50,12 +50,12 @@ vi.mock("@repo/feeds", () => ({
 }));
 
 const mockPort = {
+  approveLeaveApplication: vi.fn(),
+  declineLeaveApplication: vi.fn(),
   resolveEmployeeId: mocks.resolveXeroEmployeeId,
   resolveLeaveTypeId: mocks.resolveXeroLeaveTypeId,
   submitLeaveApplication: mocks.submitLeaveApplicationForRegion,
   withdrawLeaveApplication: mocks.withdrawLeaveApplicationForRegion,
-  approveLeaveApplication: vi.fn(),
-  declineLeaveApplication: vi.fn(),
 };
 
 const {
@@ -201,8 +201,8 @@ describe("submit-service", () => {
       value: { rawResponse: {}, remoteId: "xero-leave-1" },
     });
     mocks.dispatchNotification.mockResolvedValue({
-      ok: false,
       error: { message: "Notification unavailable" },
+      ok: false,
     });
 
     const result = await submitDraftRecord(input, mockPort);
@@ -230,8 +230,8 @@ describe("submit-service", () => {
     const result = await submitDraftRecord(input, mockPort);
 
     expect(result).toMatchObject({
-      ok: false,
       error: { code: "invalid_state_for_submit" },
+      ok: false,
     });
     expect(mocks.dispatchNotification).not.toHaveBeenCalled();
   });
@@ -245,14 +245,14 @@ describe("submit-service", () => {
         xero_write_error: "This leave overlaps an existing record in Xero.",
       });
     mocks.submitLeaveApplicationForRegion.mockResolvedValue({
-      ok: false,
       error: {
         code: "conflict_error",
         message: "Overlap",
+        rawPayload: { Message: "Overlap" },
         userMessage:
           "This leave overlaps an existing record in Xero. Review the dates and try again.",
-        rawPayload: { Message: "Overlap" },
       },
+      ok: false,
     });
 
     const result = await submitDraftRecord(input, mockPort);
@@ -360,12 +360,12 @@ describe("submit-service", () => {
         source_remote_id: "xero-leave-1",
       });
     mocks.withdrawLeaveApplicationForRegion.mockResolvedValue({
-      ok: false,
       error: {
         code: "validation_error",
         message: "Scheduled leave cannot be withdrawn",
         userMessage: "This leave could not be withdrawn in Xero.",
       },
+      ok: false,
     });
 
     const result = await withdrawSubmission(input, mockPort);
@@ -440,8 +440,8 @@ describe("submit-service", () => {
       value: { rawResponse: {} },
     });
     mocks.dispatchNotification.mockResolvedValue({
-      ok: false,
       error: { message: "Notification unavailable" },
+      ok: false,
     });
 
     const result = await withdrawSubmission(input, mockPort);
@@ -470,8 +470,8 @@ describe("submit-service", () => {
     const result = await withdrawSubmission(input, mockPort);
 
     expect(result).toMatchObject({
-      ok: false,
       error: { code: "invalid_state_for_withdraw" },
+      ok: false,
     });
     expect(mocks.dispatchNotification).not.toHaveBeenCalled();
   });
@@ -489,13 +489,13 @@ describe("submit-service", () => {
         failed_action: "withdraw",
       });
     mocks.withdrawLeaveApplicationForRegion.mockResolvedValue({
-      ok: false,
       error: {
         code: "network_error",
         message: "offline",
         userMessage:
           "Could not reach Xero. Check your internet connection and try again.",
       },
+      ok: false,
     });
 
     const failedWithdraw = await withdrawSubmission(input, mockPort);

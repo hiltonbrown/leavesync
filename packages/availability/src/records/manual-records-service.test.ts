@@ -109,8 +109,8 @@ describe("manual-records-service authorisation", () => {
     });
 
     expect(result).toMatchObject({
-      ok: false,
       error: expect.objectContaining({ code: "not_authorised" }),
+      ok: false,
     });
     expect(mocks.availabilityCreate).not.toHaveBeenCalled();
   });
@@ -166,8 +166,8 @@ describe("manual-records-service authorisation", () => {
     );
 
     expect(result).toMatchObject({
-      ok: false,
       error: expect.objectContaining({ code: "not_authorised" }),
+      ok: false,
     });
     expect(mocks.availabilityUpdate).not.toHaveBeenCalled();
   });
@@ -184,8 +184,8 @@ describe("manual-records-service authorisation", () => {
     });
 
     expect(result).toMatchObject({
-      ok: false,
       error: expect.objectContaining({ code: "not_authorised" }),
+      ok: false,
     });
     expect(mocks.availabilityUpdate).not.toHaveBeenCalled();
   });
@@ -220,8 +220,8 @@ describe("manual-records-service authorisation", () => {
     );
 
     expect(indirectManagerResult).toMatchObject({
-      ok: false,
       error: expect.objectContaining({ code: "not_authorised" }),
+      ok: false,
     });
   });
 });

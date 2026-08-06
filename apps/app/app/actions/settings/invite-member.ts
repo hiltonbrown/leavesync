@@ -14,32 +14,32 @@ export const inviteMember = async (input: unknown): Promise<Result<void>> => {
   const { orgId, orgRole, userId } = await auth();
 
   if (!(orgId && userId)) {
-    return { ok: false, error: "Not authenticated" };
+    return { error: "Not authenticated", ok: false };
   }
   if (orgRole !== "org:owner" && orgRole !== "org:admin") {
-    return { ok: false, error: "You do not have permission to manage members" };
+    return { error: "You do not have permission to manage members", ok: false };
   }
 
   const parsed = InviteMemberSchema.safeParse(input);
   if (!parsed.success) {
     return {
-      ok: false,
       error: parsed.error.issues[0]?.message ?? "Invalid input",
+      ok: false,
     };
   }
 
   try {
     const clerk = await clerkClient();
     await clerk.organizations.createOrganizationInvitation({
-      organizationId: orgId,
-      inviterUserId: userId,
       emailAddress: parsed.data.emailAddress,
+      inviterUserId: userId,
+      organizationId: orgId,
       role: parsed.data.role,
     });
     return { ok: true, value: undefined };
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Failed to send invitation";
-    return { ok: false, error: message };
+    return { error: message, ok: false };
   }
 };

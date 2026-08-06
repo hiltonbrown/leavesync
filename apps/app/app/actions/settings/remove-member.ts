@@ -13,17 +13,17 @@ export const removeMember = async (input: unknown): Promise<Result<void>> => {
   const { orgId, orgRole } = await auth();
 
   if (!orgId) {
-    return { ok: false, error: "Not authenticated" };
+    return { error: "Not authenticated", ok: false };
   }
   if (orgRole !== "org:owner" && orgRole !== "org:admin") {
-    return { ok: false, error: "You do not have permission to manage members" };
+    return { error: "You do not have permission to manage members", ok: false };
   }
 
   const parsed = RemoveMemberSchema.safeParse(input);
   if (!parsed.success) {
     return {
-      ok: false,
       error: parsed.error.issues[0]?.message ?? "Invalid input",
+      ok: false,
     };
   }
 
@@ -37,6 +37,6 @@ export const removeMember = async (input: unknown): Promise<Result<void>> => {
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Failed to remove member";
-    return { ok: false, error: message };
+    return { error: message, ok: false };
   }
 };

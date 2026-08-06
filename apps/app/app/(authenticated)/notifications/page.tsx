@@ -18,8 +18,8 @@ import { Header } from "../components/header";
 import { NotificationsClient } from "./notifications-client";
 
 export const metadata: Metadata = {
-  title: "Notifications | Team Calendar",
   description: "View notifications and manage delivery preferences.",
+  title: "Notifications | Team Calendar",
 };
 
 interface NotificationsPageProps {
@@ -27,21 +27,21 @@ interface NotificationsPageProps {
 }
 
 const FilterSchema = z.object({
-  tab: z.enum(["feed", "preferences"]).default("feed"),
-  unreadOnly: z
-    .preprocess((value) => value === "true" || value === true, z.boolean())
-    .default(false),
-  type: z.preprocess(arrayParam, z.array(z.string())).default([]),
   category: z
     .preprocess(
       arrayParam,
       z.array(z.enum(["leave_lifecycle", "approval_flow", "sync", "system"]))
     )
     .default([]),
+  cursor: z.string().optional(),
   dateFrom: z.coerce.date().optional(),
   dateTo: z.coerce.date().optional(),
   focus: z.string().optional(),
-  cursor: z.string().optional(),
+  tab: z.enum(["feed", "preferences"]).default("feed"),
+  type: z.preprocess(arrayParam, z.array(z.string())).default([]),
+  unreadOnly: z
+    .preprocess((value) => value === "true" || value === true, z.boolean())
+    .default(false),
 });
 
 const NotificationsPage = async ({ searchParams }: NotificationsPageProps) => {
@@ -63,20 +63,20 @@ const NotificationsPage = async ({ searchParams }: NotificationsPageProps) => {
     unreadOnly: false,
   };
   const notificationFilters = {
-    unreadOnly: filters.unreadOnly,
-    type: filters.type,
     category: filters.category as NotificationCategory[],
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
+    type: filters.type,
+    unreadOnly: filters.unreadOnly,
   };
 
   const [notificationsResult, preferencesResult] = await Promise.all([
     listForUser({
       clerkOrgId,
-      organisationId,
-      userId: user.id,
       filters: notificationFilters,
+      organisationId,
       pagination: { cursor: filters.cursor, pageSize: 25 },
+      userId: user.id,
     }),
     listPreferences({
       clerkOrgId,

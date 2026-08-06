@@ -230,8 +230,8 @@ describe("dashboard-service", () => {
       ok: true,
       value: [
         {
-          assignments: [],
           archived_at: null,
+          assignments: [],
           holiday_date: new Date("2026-04-25T00:00:00.000Z"),
           id: "holiday_1",
           location_id: "location_1",
@@ -318,8 +318,8 @@ describe("dashboard-service", () => {
       ok: true,
       value: [
         {
-          createdAt: new Date("2026-04-19T08:00:00.000Z"),
           approvalStatus: "submitted",
+          createdAt: new Date("2026-04-19T08:00:00.000Z"),
           endsAt: new Date("2026-04-26T23:59:59.999Z"),
           failedAction: null,
           id: "approval_1",
@@ -330,8 +330,8 @@ describe("dashboard-service", () => {
           xeroWriteError: null,
         },
         {
-          createdAt: new Date("2026-04-19T07:00:00.000Z"),
           approvalStatus: "xero_sync_failed",
+          createdAt: new Date("2026-04-19T07:00:00.000Z"),
           endsAt: new Date("2026-04-27T23:59:59.999Z"),
           failedAction: "approve",
           id: "approval_2",
@@ -455,21 +455,24 @@ describe("dashboard-service", () => {
     ["org:viewer", 2, "manager"],
     ["org:viewer", 0, "employee"],
     ["org:viewer", 0, "viewer", null],
-  ] as const)("resolves %s role to %s", async (orgRole, directReportCount, expectedRole, person = {
-    id: baseInput.personId,
-  }) => {
-    mocks.personFindFirst.mockResolvedValue(person);
-    mocks.personCount.mockResolvedValue(directReportCount);
+  ] as const)(
+    "resolves %s role to %s",
+    async (orgRole, directReportCount, expectedRole, person = {
+      id: baseInput.personId,
+    }) => {
+      mocks.personFindFirst.mockResolvedValue(person);
+      mocks.personCount.mockResolvedValue(directReportCount);
 
-    const result = await resolveDashboardRole({
-      clerkOrgId: baseInput.clerkOrgId,
-      orgRole,
-      organisationId: baseInput.organisationId,
-      userId: baseInput.userId,
-    });
+      const result = await resolveDashboardRole({
+        clerkOrgId: baseInput.clerkOrgId,
+        organisationId: baseInput.organisationId,
+        orgRole,
+        userId: baseInput.userId,
+      });
 
-    expect(result).toEqual({ ok: true, value: expectedRole });
-  });
+      expect(result).toEqual({ ok: true, value: expectedRole });
+    }
+  );
 
   it("builds the employee view and degrades balances when Xero is disconnected", async () => {
     mocks.hasActiveXeroConnection.mockResolvedValue(false);
@@ -487,7 +490,6 @@ describe("dashboard-service", () => {
       roleLabel: "Employee",
     });
     expect(result.value.actionItems).toMatchObject({
-      status: "ready",
       data: {
         xeroSyncFailedRecords: [
           expect.objectContaining({
@@ -496,21 +498,22 @@ describe("dashboard-service", () => {
           }),
         ],
       },
+      status: "ready",
     });
     expect(result.value.upcoming).toMatchObject({
-      status: "ready",
       data: {
         next14Days: expect.arrayContaining([
           expect.objectContaining({ recordId: "record_failed" }),
           expect.objectContaining({ recordId: "record_xero" }),
         ]),
       },
+      status: "ready",
     });
     expect(result.value.publicHolidays).toMatchObject({
-      status: "ready",
       data: {
         next: expect.objectContaining({ name: "ANZAC Day" }),
       },
+      status: "ready",
     });
     expect(mocks.getPersonProfile).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -543,14 +546,13 @@ describe("dashboard-service", () => {
       scopeLabel: "1 team members (direct + indirect)",
     });
     expect(result.value.approvalQueue).toMatchObject({
-      status: "ready",
       data: {
-        pendingCount: 1,
         failedCount: 1,
+        pendingCount: 1,
       },
+      status: "ready",
     });
     expect(result.value.teamToday).toMatchObject({
-      status: "ready",
       data: {
         peopleAvailableCount: 1,
         peopleNeedingAttention: [
@@ -566,16 +568,17 @@ describe("dashboard-service", () => {
         peopleOnLeaveCount: 1,
         peopleWorkingFromHomeCount: 1,
       },
+      status: "ready",
     });
   });
 
   it("builds the admin view and degrades only the billing card on failure", async () => {
     mocks.getBillingSummaryForDashboard.mockResolvedValue({
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Billing unavailable",
       },
+      ok: false,
     });
 
     const result = await getAdminView({
@@ -594,10 +597,10 @@ describe("dashboard-service", () => {
       totalActivePeopleCount: 3,
     });
     expect(result.value.activeFeeds).toMatchObject({
-      status: "ready",
       data: {
         activeCount: 2,
       },
+      status: "ready",
     });
     expect(result.value.usageVsLimits).toEqual({
       message: "Billing unavailable",
@@ -634,8 +637,8 @@ describe("dashboard-service", () => {
       value: {
         header: { roleLabel: "Owner" },
         usageVsLimits: {
-          status: "ready",
           data: { visibleToAdmin: true },
+          status: "ready",
         },
       },
     });

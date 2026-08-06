@@ -28,8 +28,8 @@ describe("jobs events", () => {
       clerkOrgId: "org_1",
       organisationId: "00000000-0000-4000-8000-000000000001",
       runType: "approval_state_reconciliation",
-      triggerType: "manual",
       triggeredByUserId: "user_1",
+      triggerType: "manual",
       xeroTenantId: "00000000-0000-4000-8000-000000000010",
     });
 

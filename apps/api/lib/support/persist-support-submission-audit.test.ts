@@ -87,11 +87,11 @@ describe("persistSupportSubmissionAudit", () => {
     });
 
     expect(result).toEqual({
-      ok: false,
       error: {
         code: "internal",
         message: "Failed to persist the support audit event.",
       },
+      ok: false,
     });
   });
 });

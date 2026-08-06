@@ -29,10 +29,10 @@ import { z } from "zod";
 import { addCustomHolidayAction } from "../../_actions";
 
 const formSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100),
-  date: z.string().min(1, "Date is required"),
-  recursAnnually: z.boolean(),
   appliesToAllJurisdictions: z.boolean(),
+  date: z.string().min(1, "Date is required"),
+  name: z.string().min(1, "Name is required").max(100),
+  recursAnnually: z.boolean(),
 });
 
 export function NewHolidayModal() {
@@ -42,13 +42,13 @@ export function NewHolidayModal() {
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      date: "",
-      recursAnnually: false,
       appliesToAllJurisdictions: true,
+      date: "",
+      name: "",
+      recursAnnually: false,
     },
+    resolver: zodResolver(formSchema),
   });
 
   const handleOpenChange = (open: boolean) => {
@@ -65,12 +65,12 @@ export function NewHolidayModal() {
 
     startTransition(async () => {
       const result = await addCustomHolidayAction({
-        organisationId: org,
+        appliesToAllJurisdictions: values.appliesToAllJurisdictions,
+        date: new Date(values.date),
         jurisdictionId: null, // Custom holidays currently default to all jurisdictions or handled via appliesToAllJurisdictions
         name: values.name,
-        date: new Date(values.date),
+        organisationId: org,
         recursAnnually: values.recursAnnually,
-        appliesToAllJurisdictions: values.appliesToAllJurisdictions,
       });
 
       if (!result.ok) {

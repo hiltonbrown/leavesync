@@ -35,49 +35,49 @@ export async function importPublicHolidaysForFeed(
 ): Promise<Result<PublicHolidayImportResult>> {
   try {
     const feed = await database.feed.findFirst({
+      select: { id: true },
       where: {
         ...scopedQuery(clerkOrgId, organisationId),
         id: input.feedId,
         status: { not: "archived" },
       },
-      select: { id: true },
     });
 
     if (!feed) {
       return {
-        ok: false,
         error: appError("not_found", "Feed not found"),
+        ok: false,
       };
     }
 
     const existingJurisdiction =
       await database.publicHolidayJurisdiction.findFirst({
+        select: { id: true },
         where: {
           ...scopedQuery(clerkOrgId, organisationId),
           country_code: input.countryCode,
           region_code: input.regionCode,
         },
-        select: { id: true },
       });
 
     const jurisdiction = existingJurisdiction
       ? await database.publicHolidayJurisdiction.update({
-          where: { id: existingJurisdiction.id },
           data: {
             archived_at: null,
             is_enabled: true,
             updated_by_user_id: input.userId,
           },
           select: { id: true },
+          where: { id: existingJurisdiction.id },
         })
       : await database.publicHolidayJurisdiction.create({
           data: {
             clerk_org_id: clerkOrgId,
-            organisation_id: organisationId,
             country_code: input.countryCode,
+            created_by_user_id: input.userId,
+            organisation_id: organisationId,
             region_code: input.regionCode,
             source: "nager",
-            created_by_user_id: input.userId,
             updated_by_user_id: input.userId,
           },
           select: { id: true },
@@ -94,15 +94,55 @@ export async function importPublicHolidaysForFeed(
         holiday
       );
       const existing = await database.publicHoliday.findFirst({
+        select: { id: true },
         where: {
           ...scopedQuery(clerkOrgId, organisationId),
           source: "nager",
           source_remote_id: sourceRemoteId,
         },
-        select: { id: true },
       });
 
       const publicHoliday = await database.publicHoliday.upsert({
+        create: {
+          clerk_org_id: clerkOrgId,
+          country_code: input.countryCode,
+          created_by_user_id: input.userId,
+          default_classification: input.classification,
+          holiday_date: startOfUtcDay(holiday.date),
+          holiday_type: normaliseHolidayType(holiday.types[0]),
+          jurisdiction_id: jurisdiction.id,
+          local_name: holiday.localName,
+          name: holiday.name,
+          organisation_id: organisationId,
+          region_code: input.regionCode,
+          source: "nager",
+          source_payload_json: {
+            counties: holiday.counties,
+            date: holiday.date,
+            localName: holiday.localName,
+            name: holiday.name,
+            types: holiday.types,
+          },
+          source_remote_id: sourceRemoteId,
+          updated_by_user_id: input.userId,
+        },
+        select: { id: true },
+        update: {
+          archived_at: null,
+          default_classification: input.classification,
+          holiday_type: normaliseHolidayType(holiday.types[0]),
+          jurisdiction_id: jurisdiction.id,
+          local_name: holiday.localName,
+          name: holiday.name,
+          source_payload_json: {
+            counties: holiday.counties,
+            date: holiday.date,
+            localName: holiday.localName,
+            name: holiday.name,
+            types: holiday.types,
+          },
+          updated_by_user_id: input.userId,
+        },
         where: {
           organisation_id_source_source_remote_id: {
             organisation_id: organisationId,
@@ -110,46 +150,6 @@ export async function importPublicHolidaysForFeed(
             source_remote_id: sourceRemoteId,
           },
         },
-        create: {
-          clerk_org_id: clerkOrgId,
-          organisation_id: organisationId,
-          jurisdiction_id: jurisdiction.id,
-          source: "nager",
-          source_remote_id: sourceRemoteId,
-          country_code: input.countryCode,
-          region_code: input.regionCode,
-          holiday_date: startOfUtcDay(holiday.date),
-          name: holiday.name,
-          local_name: holiday.localName,
-          holiday_type: normaliseHolidayType(holiday.types[0]),
-          default_classification: input.classification,
-          source_payload_json: {
-            counties: holiday.counties,
-            date: holiday.date,
-            localName: holiday.localName,
-            name: holiday.name,
-            types: holiday.types,
-          },
-          created_by_user_id: input.userId,
-          updated_by_user_id: input.userId,
-        },
-        update: {
-          archived_at: null,
-          jurisdiction_id: jurisdiction.id,
-          name: holiday.name,
-          local_name: holiday.localName,
-          holiday_type: normaliseHolidayType(holiday.types[0]),
-          default_classification: input.classification,
-          source_payload_json: {
-            counties: holiday.counties,
-            date: holiday.date,
-            localName: holiday.localName,
-            name: holiday.name,
-            types: holiday.types,
-          },
-          updated_by_user_id: input.userId,
-        },
-        select: { id: true },
       });
 
       if (existing) {
@@ -159,6 +159,24 @@ export async function importPublicHolidaysForFeed(
       }
 
       const assignment = await database.publicHolidayAssignment.upsert({
+        create: {
+          clerk_org_id: clerkOrgId,
+          created_by_user_id: input.userId,
+          day_classification: input.classification,
+          include_in_feeds: true,
+          organisation_id: organisationId,
+          public_holiday_id: publicHoliday.id,
+          scope_type: "feed",
+          scope_value: input.feedId,
+          updated_by_user_id: input.userId,
+        },
+        select: { id: true },
+        update: {
+          archived_at: null,
+          day_classification: input.classification,
+          include_in_feeds: true,
+          updated_by_user_id: input.userId,
+        },
         where: {
           public_holiday_id_scope_type_scope_value: {
             public_holiday_id: publicHoliday.id,
@@ -166,24 +184,6 @@ export async function importPublicHolidaysForFeed(
             scope_value: input.feedId,
           },
         },
-        create: {
-          clerk_org_id: clerkOrgId,
-          organisation_id: organisationId,
-          public_holiday_id: publicHoliday.id,
-          scope_type: "feed",
-          scope_value: input.feedId,
-          day_classification: input.classification,
-          include_in_feeds: true,
-          created_by_user_id: input.userId,
-          updated_by_user_id: input.userId,
-        },
-        update: {
-          archived_at: null,
-          day_classification: input.classification,
-          include_in_feeds: true,
-          updated_by_user_id: input.userId,
-        },
-        select: { id: true },
       });
 
       if (assignment.id) {
@@ -194,15 +194,15 @@ export async function importPublicHolidaysForFeed(
     return {
       ok: true,
       value: {
-        importedCount,
         assignedCount,
+        importedCount,
         skippedCount,
       },
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to import public holidays"),
+      ok: false,
     };
   }
 }

@@ -91,8 +91,8 @@ describe("PublicHolidaysPage", () => {
 
   it("renders the shared fetch error state on loader failure", async () => {
     mocks.listForOrganisation.mockResolvedValue({
-      ok: false,
       error: { code: "internal", message: "Database unavailable" },
+      ok: false,
     });
 
     render(await Page({ searchParams: Promise.resolve({}) }));

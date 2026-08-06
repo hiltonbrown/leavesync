@@ -92,11 +92,11 @@ export async function addAlternativeContact(input: {
       parsed.data.organisationId as OrganisationId
     );
     const person = await database.person.findFirst({
+      select: { id: true, manager_person_id: true },
       where: {
         ...scoped,
         id: parsed.data.personId,
       },
-      select: { id: true, manager_person_id: true },
     });
     if (!person) {
       return await personNotFoundOrLeak(parsed.data);
@@ -109,12 +109,12 @@ export async function addAlternativeContact(input: {
 
     const contact = await database.$transaction(async (tx) => {
       const lastContact = await tx.alternativeContact.findFirst({
+        orderBy: { display_order: "desc" },
+        select: { display_order: true },
         where: {
           ...scoped,
           person_id: person.id,
         },
-        orderBy: { display_order: "desc" },
-        select: { display_order: true },
       });
       const created = await tx.alternativeContact.create({
         data: {
@@ -282,12 +282,12 @@ export async function deleteAlternativeContact(input: {
     await database.$transaction(async (tx) => {
       await tx.alternativeContact.delete({ where: { id: existing.id } });
       const remaining = await tx.alternativeContact.findMany({
+        orderBy: [{ display_order: "asc" }, { created_at: "asc" }],
+        select: { id: true },
         where: {
           ...scoped,
           person_id: existing.person_id,
         },
-        orderBy: [{ display_order: "asc" }, { created_at: "asc" }],
-        select: { id: true },
       });
       for (const [displayOrder, contact] of remaining.entries()) {
         await tx.alternativeContact.update({
@@ -335,11 +335,11 @@ export async function reorderAlternativeContacts(input: {
       parsed.data.organisationId as OrganisationId
     );
     const person = await database.person.findFirst({
+      select: { id: true, manager_person_id: true },
       where: {
         ...scoped,
         id: parsed.data.personId,
       },
-      select: { id: true, manager_person_id: true },
     });
     if (!person) {
       return await personNotFoundOrLeak(parsed.data);
@@ -351,12 +351,12 @@ export async function reorderAlternativeContacts(input: {
     }
 
     const existing = await database.alternativeContact.findMany({
+      orderBy: [{ display_order: "asc" }, { created_at: "asc" }],
+      select: { id: true },
       where: {
         ...scoped,
         person_id: person.id,
       },
-      orderBy: [{ display_order: "asc" }, { created_at: "asc" }],
-      select: { id: true },
     });
     if (
       !sameIdSet(
@@ -365,11 +365,11 @@ export async function reorderAlternativeContacts(input: {
       )
     ) {
       return {
-        ok: false,
         error: {
           code: "reorder_mismatch",
           message: "Contact order does not match the current contact set.",
         },
+        ok: false,
       };
     }
 
@@ -419,10 +419,6 @@ function loadContact(
   contactId: string
 ) {
   return database.alternativeContact.findFirst({
-    where: {
-      ...scoped,
-      id: contactId,
-    },
     select: {
       ...alternativeContactSelect,
       person: {
@@ -431,6 +427,10 @@ function loadContact(
           manager_person_id: true,
         },
       },
+    },
+    where: {
+      ...scoped,
+      id: contactId,
     },
   });
 }
@@ -500,8 +500,8 @@ async function personNotFoundOrLeak(input: {
   personId: string;
 }): Promise<Result<never, AlternativeContactServiceError>> {
   const exists = await database.person.findFirst({
-    where: { id: input.personId },
     select: { clerk_org_id: true, organisation_id: true },
+    where: { id: input.personId },
   });
   if (
     exists &&
@@ -511,8 +511,8 @@ async function personNotFoundOrLeak(input: {
     return crossOrgLeak();
   }
   return {
-    ok: false,
     error: { code: "person_not_found", message: "Person not found." },
+    ok: false,
   };
 }
 
@@ -522,8 +522,8 @@ async function contactNotFoundOrLeak(input: {
   organisationId: string;
 }): Promise<Result<never, AlternativeContactServiceError>> {
   const exists = await database.alternativeContact.findFirst({
-    where: { id: input.contactId },
     select: { clerk_org_id: true, organisation_id: true },
+    where: { id: input.contactId },
   });
   if (
     exists &&
@@ -533,8 +533,8 @@ async function contactNotFoundOrLeak(input: {
     return crossOrgLeak();
   }
   return {
-    ok: false,
     error: { code: "contact_not_found", message: "Contact not found." },
+    ok: false,
   };
 }
 
@@ -558,31 +558,31 @@ function validationError(
   error: z.ZodError
 ): Result<never, AlternativeContactServiceError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid alternative contact.",
     },
+    ok: false,
   };
 }
 
 function notAuthorised(): Result<never, AlternativeContactServiceError> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "You do not have permission to manage these contacts.",
     },
+    ok: false,
   };
 }
 
 function crossOrgLeak(): Result<never, AlternativeContactServiceError> {
   return {
-    ok: false,
     error: {
       code: "cross_org_leak",
       message: "Contact is outside this organisation.",
     },
+    ok: false,
   };
 }
 
@@ -590,10 +590,10 @@ function unknownError(
   message: string
 ): Result<never, AlternativeContactServiceError> {
   return {
-    ok: false,
     error: {
       code: "unknown_error",
       message,
     },
+    ok: false,
   };
 }

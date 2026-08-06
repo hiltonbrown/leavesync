@@ -38,9 +38,9 @@ const MarkReadSchema = OrganisationSchema.extend({
 });
 
 const PreferenceSchema = OrganisationSchema.extend({
-  notificationType: NotificationTypeSchema,
-  inAppEnabled: z.boolean(),
   emailEnabled: z.boolean(),
+  inAppEnabled: z.boolean(),
+  notificationType: NotificationTypeSchema,
 });
 
 export async function markAsReadAction(input: {
@@ -63,8 +63,8 @@ export async function markAsReadAction(input: {
 
   const result = await markAsRead({
     clerkOrgId: context.value.clerkOrgId,
-    organisationId: context.value.organisationId,
     notificationId: parsed.data.notificationId,
+    organisationId: context.value.organisationId,
     userId: context.value.userId,
   });
   if (!result.ok) {
@@ -117,11 +117,11 @@ export async function updatePreferenceAction(input: {
 
   const result = await upsertPreference({
     clerkOrgId: context.value.clerkOrgId,
+    emailEnabled: parsed.data.emailEnabled,
+    inAppEnabled: parsed.data.inAppEnabled,
+    notificationType: parsed.data.notificationType,
     organisationId: context.value.organisationId,
     userId: context.value.userId,
-    notificationType: parsed.data.notificationType,
-    inAppEnabled: parsed.data.inAppEnabled,
-    emailEnabled: parsed.data.emailEnabled,
   });
   if (!result.ok) {
     return result;
@@ -161,9 +161,9 @@ export async function listRecentUnreadAction(input: {
   }
   return await listRecentUnread({
     clerkOrgId: context.value.clerkOrgId,
+    limit: 3,
     organisationId: context.value.organisationId,
     userId: context.value.userId,
-    limit: 3,
   });
 }
 
@@ -179,21 +179,21 @@ async function actionContext(
   const user = await currentUser();
   if (!user) {
     return {
-      ok: false,
       error: {
         code: "not_authorised",
         message: "You need to sign in again.",
       },
+      ok: false,
     };
   }
   const context = await getActiveOrgContext(organisationId);
   if (!context.ok) {
     return {
-      ok: false,
       error: {
         code: "not_authorised",
         message: context.error.message,
       },
+      ok: false,
     };
   }
   return {
@@ -208,7 +208,7 @@ async function actionContext(
 
 function validationError(message: string): Result<never, ActionError> {
   return {
-    ok: false,
     error: { code: "validation_error", message },
+    ok: false,
   };
 }

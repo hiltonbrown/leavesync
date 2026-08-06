@@ -155,38 +155,30 @@ export async function computeCurrentStatusForPeople(input: {
   const [locations, organisation, activeRecords] = await Promise.all([
     locationIds.length
       ? database.location.findMany({
-          where: {
-            ...scopedQuery(clerkOrgId, organisationId),
-            id: { in: locationIds },
-          },
           select: {
             country_code: true,
             id: true,
             region_code: true,
             timezone: true,
           },
+          where: {
+            ...scopedQuery(clerkOrgId, organisationId),
+            id: { in: locationIds },
+          },
         })
       : Promise.resolve([]),
     database.organisation.findFirst({
+      select: {
+        country_code: true,
+        timezone: true,
+      },
       where: {
         archived_at: null,
         clerk_org_id: clerkOrgId,
         id: organisationId,
       },
-      select: {
-        country_code: true,
-        timezone: true,
-      },
     }),
     database.availabilityRecord.findMany({
-      where: {
-        ...scopedQuery(clerkOrgId, organisationId),
-        archived_at: null,
-        approval_status: { in: ["approved", "submitted"] },
-        ends_at: { gte: input.at },
-        person_id: { in: personIds },
-        starts_at: { lte: input.at },
-      },
       select: {
         approval_status: true,
         archived_at: true,
@@ -198,6 +190,14 @@ export async function computeCurrentStatusForPeople(input: {
         source_type: true,
         starts_at: true,
         title: true,
+      },
+      where: {
+        ...scopedQuery(clerkOrgId, organisationId),
+        approval_status: { in: ["approved", "submitted"] },
+        archived_at: null,
+        ends_at: { gte: input.at },
+        person_id: { in: personIds },
+        starts_at: { lte: input.at },
       },
     }),
   ]);
@@ -269,37 +269,29 @@ export async function computeCurrentStatus(input: {
   const [location, organisation, activeRecords] = await Promise.all([
     input.locationId
       ? database.location.findFirst({
-          where: {
-            ...scopedQuery(clerkOrgId, organisationId),
-            id: input.locationId,
-          },
           select: {
             country_code: true,
             region_code: true,
             timezone: true,
           },
+          where: {
+            ...scopedQuery(clerkOrgId, organisationId),
+            id: input.locationId,
+          },
         })
       : Promise.resolve(null),
     database.organisation.findFirst({
+      select: {
+        country_code: true,
+        timezone: true,
+      },
       where: {
         archived_at: null,
         clerk_org_id: clerkOrgId,
         id: organisationId,
       },
-      select: {
-        country_code: true,
-        timezone: true,
-      },
     }),
     database.availabilityRecord.findMany({
-      where: {
-        ...scopedQuery(clerkOrgId, organisationId),
-        archived_at: null,
-        approval_status: { in: ["approved", "submitted"] },
-        ends_at: { gte: input.at },
-        person_id: input.personId,
-        starts_at: { lte: input.at },
-      },
       select: {
         approval_status: true,
         archived_at: true,
@@ -310,6 +302,14 @@ export async function computeCurrentStatus(input: {
         source_type: true,
         starts_at: true,
         title: true,
+      },
+      where: {
+        ...scopedQuery(clerkOrgId, organisationId),
+        approval_status: { in: ["approved", "submitted"] },
+        archived_at: null,
+        ends_at: { gte: input.at },
+        person_id: input.personId,
+        starts_at: { lte: input.at },
       },
     }),
   ]);
@@ -461,16 +461,6 @@ function findPublicHoliday(input: {
   holidayEnd.setUTCDate(holidayEnd.getUTCDate() + 1);
 
   return database.publicHoliday.findFirst({
-    where: {
-      ...scopedQuery(input.clerkOrgId, input.organisationId),
-      archived_at: null,
-      country_code: input.countryCode,
-      holiday_date: {
-        gte: holidayStart,
-        lt: holidayEnd,
-      },
-      OR: [{ region_code: null }, { region_code: input.regionCode }],
-    },
     orderBy: [{ region_code: "desc" }, { name: "asc" }],
     select: {
       country_code: true,
@@ -480,6 +470,16 @@ function findPublicHoliday(input: {
       name: true,
       region_code: true,
       source: true,
+    },
+    where: {
+      ...scopedQuery(input.clerkOrgId, input.organisationId),
+      archived_at: null,
+      country_code: input.countryCode,
+      holiday_date: {
+        gte: holidayStart,
+        lt: holidayEnd,
+      },
+      OR: [{ region_code: null }, { region_code: input.regionCode }],
     },
   });
 }
@@ -519,6 +519,16 @@ function findPublicHolidays(input: {
   latest.setUTCDate(latest.getUTCDate() + 1);
 
   return database.publicHoliday.findMany({
+    orderBy: [{ region_code: "desc" }, { name: "asc" }],
+    select: {
+      country_code: true,
+      holiday_date: true,
+      holiday_type: true,
+      id: true,
+      name: true,
+      region_code: true,
+      source: true,
+    },
     where: {
       ...scopedQuery(input.clerkOrgId, input.organisationId),
       archived_at: null,
@@ -531,16 +541,6 @@ function findPublicHolidays(input: {
         { region_code: null },
         ...(regions.length ? [{ region_code: { in: regions } }] : []),
       ],
-    },
-    orderBy: [{ region_code: "desc" }, { name: "asc" }],
-    select: {
-      country_code: true,
-      holiday_date: true,
-      holiday_type: true,
-      id: true,
-      name: true,
-      region_code: true,
-      source: true,
     },
   });
 }

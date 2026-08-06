@@ -59,23 +59,23 @@ interface ManualAvailabilityFormProps {
 }
 
 const recordTypeOptions: { label: string; value: RecordType }[] = [
-  { value: "leave", label: "Leave" },
-  { value: "wfh", label: "Working from home" },
-  { value: "travel", label: "Travel" },
-  { value: "training", label: "Training" },
-  { value: "client_site", label: "Client site" },
+  { label: "Leave", value: "leave" },
+  { label: "Working from home", value: "wfh" },
+  { label: "Travel", value: "travel" },
+  { label: "Training", value: "training" },
+  { label: "Client site", value: "client_site" },
 ];
 
 const contactabilityOptions: { label: string; value: Contactability }[] = [
-  { value: "contactable", label: "Contactable" },
-  { value: "limited", label: "Limited contact" },
-  { value: "unavailable", label: "Unavailable" },
+  { label: "Contactable", value: "contactable" },
+  { label: "Limited contact", value: "limited" },
+  { label: "Unavailable", value: "unavailable" },
 ];
 
 const privacyOptions: { label: string; value: PrivacyMode }[] = [
-  { value: "named", label: "Show details" },
-  { value: "masked", label: "Mask details" },
-  { value: "private", label: "Private busy block" },
+  { label: "Show details", value: "named" },
+  { label: "Mask details", value: "masked" },
+  { label: "Private busy block", value: "private" },
 ];
 
 export function ManualAvailabilityForm({

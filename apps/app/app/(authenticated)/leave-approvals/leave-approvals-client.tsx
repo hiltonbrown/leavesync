@@ -604,7 +604,6 @@ function retrySlotForRecord(
       </Button>
     );
   }
-  return;
 }
 
 function DetailItem({

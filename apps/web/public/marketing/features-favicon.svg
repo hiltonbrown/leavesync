@@ -1,7 +1,14 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" width="48" height="48" role="img" aria-label="Team Calendar">
-  <rect width="150" height="150" rx="28" fill="#F5F0FB"></rect>
-  <rect x="30" y="35" width="60" height="20" rx="10" fill="#5F6770"></rect>
-  <rect x="50" y="65" width="80" height="20" rx="10" fill="#C8E8C8"></rect>
-  <rect x="20" y="95" width="70" height="20" rx="10" fill="#7A6BD8"></rect>
+<?xml version="1.0" encoding="UTF-8" ?>
+<svg
+  aria-label="Team Calendar"
+  height="48"
+  role="img"
+  viewBox="0 0 150 150"
+  width="48"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <rect fill="#F5F0FB" height="150" rx="28" width="150"></rect>
+  <rect fill="#5F6770" height="20" rx="10" width="60" x="30" y="35"></rect>
+  <rect fill="#C8E8C8" height="20" rx="10" width="80" x="50" y="65"></rect>
+  <rect fill="#7A6BD8" height="20" rx="10" width="70" x="20" y="95"></rect>
 </svg>

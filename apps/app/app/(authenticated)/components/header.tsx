@@ -101,9 +101,9 @@ async function loadBellData(organisationId?: string | null): Promise<{
       }),
       listRecentUnread({
         clerkOrgId,
+        limit: 3,
         organisationId: resolvedOrganisationId,
         userId: user.id,
-        limit: 3,
       }),
     ]);
     return {

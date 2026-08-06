@@ -66,13 +66,13 @@ describe("feedCacheKey", () => {
   it("produces identical key even when legacy feedUpdatedAt differs", () => {
     const key1 = feedCacheKey({
       feedId: "feed-123",
-      privacyMode: "named",
       feedUpdatedAt: new Date("2026-07-01"),
+      privacyMode: "named",
     } as any);
     const key2 = feedCacheKey({
       feedId: "feed-123",
-      privacyMode: "named",
       feedUpdatedAt: new Date("2026-07-02"),
+      privacyMode: "named",
     } as any);
     expect(key1).toBe(key2);
     expect(key1).toBe("feed:feed-123:named");
@@ -122,11 +122,11 @@ describe("invalidateFeedCache", () => {
     const result = await invalidateFeedCache({ feedId: "feed-xyz" });
 
     expect(result).toEqual({
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to invalidate feed cache.",
       },
+      ok: false,
     });
   });
 

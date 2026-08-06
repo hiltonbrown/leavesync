@@ -45,24 +45,24 @@ export async function createManualAvailabilityAction(
   const parsed = ManualAvailabilityActionSchema.safeParse(input);
   if (!parsed.success) {
     return {
-      ok: false,
       error: parsed.error.issues[0]?.message ?? "Invalid availability record",
+      ok: false,
     };
   }
 
   const contextResult = await getActiveOrgContext(parsed.data.organisationId);
   if (!contextResult.ok) {
-    return { ok: false, error: contextResult.error.message };
+    return { error: contextResult.error.message, ok: false };
   }
 
   const authResult = await auth();
   if (authResult.orgId !== contextResult.value.clerkOrgId) {
-    return { ok: false, error: "Not authenticated" };
+    return { error: "Not authenticated", ok: false };
   }
 
   const user = await currentUser();
   if (!user) {
-    return { ok: false, error: "Not authenticated" };
+    return { error: "Not authenticated", ok: false };
   }
 
   const result = await createManualAvailability(
@@ -72,11 +72,11 @@ export async function createManualAvailabilityAction(
   );
 
   if (!result.ok) {
-    return { ok: false, error: result.error.message };
+    return { error: result.error.message, ok: false };
   }
 
   revalidateAvailabilityPaths();
-  return { ok: true, id: result.value.id };
+  return { id: result.value.id, ok: true };
 }
 
 export async function updateManualAvailabilityAction(
@@ -85,30 +85,30 @@ export async function updateManualAvailabilityAction(
 ): Promise<AvailabilityActionResult> {
   const recordParsed = z.string().uuid().safeParse(recordId);
   if (!recordParsed.success) {
-    return { ok: false, error: "Invalid availability record" };
+    return { error: "Invalid availability record", ok: false };
   }
 
   const parsed = ManualAvailabilityActionSchema.safeParse(input);
   if (!parsed.success) {
     return {
-      ok: false,
       error: parsed.error.issues[0]?.message ?? "Invalid availability record",
+      ok: false,
     };
   }
 
   const contextResult = await getActiveOrgContext(parsed.data.organisationId);
   if (!contextResult.ok) {
-    return { ok: false, error: contextResult.error.message };
+    return { error: contextResult.error.message, ok: false };
   }
 
   const authResult = await auth();
   if (authResult.orgId !== contextResult.value.clerkOrgId) {
-    return { ok: false, error: "Not authenticated" };
+    return { error: "Not authenticated", ok: false };
   }
 
   const user = await currentUser();
   if (!user) {
-    return { ok: false, error: "Not authenticated" };
+    return { error: "Not authenticated", ok: false };
   }
 
   const result = await updateManualAvailability(
@@ -119,11 +119,11 @@ export async function updateManualAvailabilityAction(
   );
 
   if (!result.ok) {
-    return { ok: false, error: result.error.message };
+    return { error: result.error.message, ok: false };
   }
 
   revalidateAvailabilityPaths();
-  return { ok: true, id: result.value.id };
+  return { id: result.value.id, ok: true };
 }
 
 export async function archiveManualAvailabilityAction(
@@ -131,22 +131,22 @@ export async function archiveManualAvailabilityAction(
 ): Promise<AvailabilityActionResult> {
   const parsed = RecordActionSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: "Invalid availability record" };
+    return { error: "Invalid availability record", ok: false };
   }
 
   const contextResult = await getActiveOrgContext(parsed.data.organisationId);
   if (!contextResult.ok) {
-    return { ok: false, error: contextResult.error.message };
+    return { error: contextResult.error.message, ok: false };
   }
 
   const authResult = await auth();
   if (authResult.orgId !== contextResult.value.clerkOrgId) {
-    return { ok: false, error: "Not authenticated" };
+    return { error: "Not authenticated", ok: false };
   }
 
   const user = await currentUser();
   if (!user) {
-    return { ok: false, error: "Not authenticated" };
+    return { error: "Not authenticated", ok: false };
   }
 
   const result = await archiveManualAvailability(
@@ -156,7 +156,7 @@ export async function archiveManualAvailabilityAction(
   );
 
   if (!result.ok) {
-    return { ok: false, error: result.error.message };
+    return { error: result.error.message, ok: false };
   }
 
   revalidateAvailabilityPaths();

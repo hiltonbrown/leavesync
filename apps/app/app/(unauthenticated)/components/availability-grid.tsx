@@ -30,8 +30,8 @@ const PEOPLE: ReadonlyArray<{
 
 const FILL: Record<Exclude<Status, "live">, string> = {
   in: "var(--auth-in)",
-  wfh: "var(--auth-wfh)",
   off: "transparent",
+  wfh: "var(--auth-wfh)",
 };
 
 const StatusDot = ({

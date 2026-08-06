@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  auth: vi.fn(),
-  currentUser: vi.fn(),
-  completeXeroTenantSelection: vi.fn(),
-  dispatchManualSync: vi.fn(),
   auditEventCreate: vi.fn(),
-  xeroConnectionFindFirst: vi.fn(),
+  auth: vi.fn(),
+  completeXeroTenantSelection: vi.fn(),
+  currentUser: vi.fn(),
+  dispatchManualSync: vi.fn(),
   revalidatePath: vi.fn(),
+  xeroConnectionFindFirst: vi.fn(),
 }));
 
 vi.mock("@repo/auth/server", () => ({
@@ -105,8 +105,8 @@ describe("completeTenantSelectionAction", () => {
 
   it("does not dispatch a sync when the connection fails", async () => {
     mocks.completeXeroTenantSelection.mockResolvedValue({
-      ok: false,
       error: { code: "unknown_error", message: "boom" },
+      ok: false,
     });
 
     const result = await completeTenantSelectionAction(validInput);

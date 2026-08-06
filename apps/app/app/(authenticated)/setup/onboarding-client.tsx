@@ -31,7 +31,7 @@ export const OnboardingClient = ({ prefillName }: OnboardingClientProps) => {
 
   const handleSubmit = () => {
     startTransition(async () => {
-      const result = await createOrganisationAction({ name, countryCode });
+      const result = await createOrganisationAction({ countryCode, name });
       if (!result.ok) {
         toast.error(result.error.message);
       }

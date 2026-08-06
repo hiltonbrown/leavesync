@@ -36,11 +36,11 @@ export async function GET(
     const cachedEtag = await cachedEtagForToken(token);
     if (cachedEtag && etagMatches(ifNoneMatch, `"${cachedEtag}"`)) {
       return new Response(null, {
-        status: 304,
         headers: {
-          ETag: `"${cachedEtag}"`,
           "Cache-Control": "max-age=3600, must-revalidate",
+          ETag: `"${cachedEtag}"`,
         },
+        status: 304,
       });
     }
   }
@@ -63,21 +63,21 @@ export async function GET(
   const quotedEtag = `"${etag}"`;
   if (ifNoneMatch && etagMatches(ifNoneMatch, quotedEtag)) {
     return new Response(null, {
-      status: 304,
       headers: {
-        ETag: quotedEtag,
         "Cache-Control": "max-age=3600, must-revalidate",
+        ETag: quotedEtag,
       },
+      status: 304,
     });
   }
 
   // Return the active feed
   return new Response(body, {
-    status: 200,
     headers: {
-      "Content-Type": "text/calendar;charset=utf-8",
       "Cache-Control": "max-age=3600, must-revalidate",
+      "Content-Type": "text/calendar;charset=utf-8",
       ETag: quotedEtag,
     },
+    status: 200,
   });
 }

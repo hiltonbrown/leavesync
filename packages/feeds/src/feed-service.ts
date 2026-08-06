@@ -199,23 +199,23 @@ export async function createFeed(
   );
   if (!entitlement.ok) {
     return {
-      ok: false,
       error: { code: "unknown_error", message: entitlement.error.message },
+      ok: false,
     };
   }
   if (!entitlement.value.allowed) {
     return {
-      ok: false,
       error: {
         code: "validation_error",
         message: "Your current plan has reached its active feed limit.",
       },
+      ok: false,
     };
   }
 
   const scopes = await validateScopes(parsed.data);
   if (!scopes.ok) {
-    return { ok: false, error: scopes.error };
+    return { error: scopes.error, ok: false };
   }
 
   try {
@@ -230,8 +230,6 @@ export async function createFeed(
           name: parsed.data.name,
           organisation_id: parsed.data.organisationId,
           privacy_mode: parsed.data.privacyMode,
-          slug,
-          status: "active",
           scopes: {
             create: createScopeRows({
               clerkOrgId: parsed.data.clerkOrgId,
@@ -239,6 +237,8 @@ export async function createFeed(
               scopes: scopes.value,
             }),
           },
+          slug,
+          status: "active",
         },
         select: { id: true },
       });
@@ -268,7 +268,7 @@ export async function createFeed(
     return { ok: true, value: result };
   } catch (error) {
     if (error instanceof RollbackError) {
-      return { ok: false, error: error.serviceError };
+      return { error: error.serviceError, ok: false };
     }
     return unknownError("Failed to create feed.");
   }
@@ -309,17 +309,17 @@ export async function ensureDefaultCalendarFeed(
   );
   if (!entitlement.ok) {
     return {
-      ok: false,
       error: { code: "unknown_error", message: entitlement.error.message },
+      ok: false,
     };
   }
   if (!entitlement.value.allowed) {
     return {
-      ok: false,
       error: {
         code: "validation_error",
         message: "Your current plan has reached its active feed limit.",
       },
+      ok: false,
     };
   }
 
@@ -336,8 +336,6 @@ export async function ensureDefaultCalendarFeed(
           name: parsed.data.name,
           organisation_id: parsed.data.organisationId,
           privacy_mode: parsed.data.privacyMode,
-          slug,
-          status: "active",
           scopes: {
             create: createScopeRows({
               clerkOrgId: parsed.data.clerkOrgId,
@@ -345,6 +343,8 @@ export async function ensureDefaultCalendarFeed(
               scopes: [{ scopeType: "org", scopeValue: null }],
             }),
           },
+          slug,
+          status: "active",
         },
         select: { id: true },
       });
@@ -384,7 +384,7 @@ export async function ensureDefaultCalendarFeed(
     return { ok: true, value: result };
   } catch (error) {
     if (error instanceof RollbackError) {
-      return { ok: false, error: error.serviceError };
+      return { error: error.serviceError, ok: false };
     }
     return unknownError("Failed to create default feed.");
   }
@@ -409,7 +409,7 @@ export async function updateFeed(
       })
     : null;
   if (scopes && !scopes.ok) {
-    return { ok: false, error: scopes.error };
+    return { error: scopes.error, ok: false };
   }
 
   try {
@@ -479,7 +479,7 @@ export async function updateFeed(
     return await getFeedDetail(parsed.data);
   } catch (error) {
     if (error instanceof RollbackError) {
-      return { ok: false, error: error.serviceError };
+      return { error: error.serviceError, ok: false };
     }
     return unknownError("Failed to update feed.");
   }
@@ -530,7 +530,7 @@ export async function archiveFeed(
     return await getFeedDetail(parsed.data);
   } catch (error) {
     if (error instanceof RollbackError) {
-      return { ok: false, error: error.serviceError };
+      return { error: error.serviceError, ok: false };
     }
     return unknownError("Failed to archive feed.");
   }
@@ -549,8 +549,8 @@ export async function restoreFeed(
 
   try {
     const existing = await database.feed.findFirst({
-      where: scopedFeed(parsed.data),
       select: { status: true },
+      where: scopedFeed(parsed.data),
     });
     if (!existing) {
       return await feedNotFoundOrLeak(parsed.data);
@@ -624,7 +624,7 @@ export async function listFeeds(
           })
         : null;
     if (scopeData && !scopeData.ok) {
-      return { ok: false, error: scopeData.error };
+      return { error: scopeData.error, ok: false };
     }
     const preloadedScopeData = scopeData ? scopeData.value : undefined;
 
@@ -693,8 +693,8 @@ export async function getFeedDetail(
         userId: parsed.data.actingUserId,
       }));
     const feed = await database.feed.findFirst({
-      where: scopedFeed(parsed.data),
       select: feedDetailSelect,
+      where: scopedFeed(parsed.data),
     });
     if (!feed) {
       return await feedNotFoundOrLeak(parsed.data);
@@ -713,7 +713,7 @@ export async function getFeedDetail(
       scopes,
     });
     if (!visible.ok) {
-      return { ok: false, error: visible.error };
+      return { error: visible.error, ok: false };
     }
     if (!visible.value) {
       return notAuthorised();
@@ -725,7 +725,7 @@ export async function getFeedDetail(
       scopes: feed.scopes,
     });
     if (!resolvedScopes.ok) {
-      return { ok: false, error: resolvedScopes.error };
+      return { error: resolvedScopes.error, ok: false };
     }
 
     return {
@@ -768,13 +768,13 @@ export async function getFeedSummaryForDashboard(
   try {
     const [activeFeeds, pausedCount] = await Promise.all([
       database.feed.findMany({
+        orderBy: [{ last_rendered_at: "desc" }, { id: "asc" }],
+        select: { id: true, last_rendered_at: true },
         where: {
           clerk_org_id: parsed.data.clerkOrgId,
           organisation_id: parsed.data.organisationId,
           status: "active",
         },
-        orderBy: [{ last_rendered_at: "desc" }, { id: "asc" }],
-        select: { id: true, last_rendered_at: true },
       }),
       database.feed.count({
         where: {
@@ -814,8 +814,8 @@ async function transitionFeed(
 
   try {
     const existing = await database.feed.findFirst({
-      where: scopedFeed(parsed.data),
       select: { archived_at: true, status: true },
+      where: scopedFeed(parsed.data),
     });
     if (!existing) {
       return await feedNotFoundOrLeak(parsed.data);
@@ -848,8 +848,8 @@ async function loadFeedForUpdate(
   input: { clerkOrgId: string; feedId: string; organisationId: string }
 ): Promise<Result<{ id: string }, FeedServiceError>> {
   const feed = await tx.feed.findFirst({
-    where: scopedFeed(input),
     select: { archived_at: true, id: true, status: true },
+    where: scopedFeed(input),
   });
   if (!feed) {
     return await feedNotFoundOrLeak(input);
@@ -870,11 +870,11 @@ async function makeUniqueSlug(
   let suffix = 2;
   while (
     await tx.feed.findFirst({
+      select: { id: true },
       where: {
         clerk_org_id: input.clerkOrgId,
         slug,
       },
-      select: { id: true },
     })
   ) {
     slug = `${base}-${suffix}`;
@@ -941,8 +941,8 @@ async function feedNotFoundOrLeak(input: {
   organisationId: string;
 }): Promise<Result<never, FeedServiceError>> {
   const exists = await database.feed.findFirst({
-    where: { id: input.feedId },
     select: { clerk_org_id: true, organisation_id: true },
+    where: { id: input.feedId },
   });
   if (
     exists &&
@@ -950,16 +950,16 @@ async function feedNotFoundOrLeak(input: {
       exists.organisation_id !== input.organisationId)
   ) {
     return {
-      ok: false,
       error: {
         code: "cross_org_leak",
         message: "Feed is outside this organisation.",
       },
+      ok: false,
     };
   }
   return {
-    ok: false,
     error: { code: "feed_not_found", message: "Feed not found." },
+    ok: false,
   };
 }
 
@@ -1009,46 +1009,46 @@ function mapTokenError(error: {
 
 function notAuthorised(): Result<never, FeedServiceError> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "You do not have permission to manage feeds.",
     },
+    ok: false,
   };
 }
 
 function feedArchived(): Result<never, FeedServiceError> {
   return {
-    ok: false,
     error: {
       code: "feed_archived",
       message: "Archived feeds cannot be changed.",
     },
+    ok: false,
   };
 }
 
 function invalidTransition(): Result<never, FeedServiceError> {
   return {
-    ok: false,
     error: {
       code: "invalid_status_transition",
       message: "Feed status cannot move that way.",
     },
+    ok: false,
   };
 }
 
 function validationError(error: z.ZodError): Result<never, FeedServiceError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid feed request.",
     },
+    ok: false,
   };
 }
 
 function unknownError(message: string): Result<never, FeedServiceError> {
-  return { ok: false, error: { code: "unknown_error", message } };
+  return { error: { code: "unknown_error", message }, ok: false };
 }
 
 const tokenSelect = {

@@ -148,11 +148,11 @@ describe("createSupportGitHubIssue", () => {
     });
 
     expect(result).toEqual({
-      ok: false,
       error: {
         code: "auth_error",
         message: "GitHub authentication failed.",
       },
+      ok: false,
     });
   });
 
@@ -172,11 +172,11 @@ describe("createSupportGitHubIssue", () => {
     });
 
     expect(result).toEqual({
-      ok: false,
       error: {
         code: "integration_error",
         message: "GitHub issue creation failed.",
       },
+      ok: false,
     });
     expect(result.ok && result.value).not.toContain(
       "sensitive upstream details"
@@ -249,11 +249,11 @@ describe("createSupportGitHubIssue", () => {
     });
 
     expect(result).toEqual({
-      ok: false,
       error: {
         code: "configuration_error",
         message: "GitHub issue integration is not configured.",
       },
+      ok: false,
     });
   });
 
@@ -269,11 +269,11 @@ describe("createSupportGitHubIssue", () => {
     });
 
     expect(result).toEqual({
-      ok: false,
       error: {
         code: "validation_error",
         message: "Invalid URL",
       },
+      ok: false,
     });
   });
 
@@ -324,11 +324,11 @@ describe("createSupportGitHubIssue", () => {
     });
 
     expect(result).toEqual({
-      ok: false,
       error: {
         code: "integration_error",
         message: "Failed to create the GitHub issue.",
       },
+      ok: false,
     });
     expect(mocks.logError).toHaveBeenCalledWith(
       "Unexpected GitHub issue creation failure",

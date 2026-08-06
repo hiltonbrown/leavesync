@@ -38,17 +38,17 @@ export async function DashboardBody({
 }: DashboardBodyProps) {
   const [actingPerson, roleResult, onboarding] = await Promise.all([
     database.person.findFirst({
+      select: { id: true },
       where: {
         ...scopedQuery(clerkOrgId, organisationId),
         archived_at: null,
         clerk_user_id: userId,
       },
-      select: { id: true },
     }),
     resolveDashboardRole({
       clerkOrgId,
-      orgRole,
       organisationId,
+      orgRole,
       userId,
     }),
     loadOnboardingState({ clerkOrgId, organisationId, userId }),
