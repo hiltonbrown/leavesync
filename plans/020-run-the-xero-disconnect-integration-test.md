@@ -435,14 +435,21 @@ All of the following, verbatim:
 3. `bun run test` exits 0.
 4. `bun run test:integration` exits 0 with two more passing tests than the
    Step 1 baseline.
-5. `grep -c "RUN_XERO_DISCONNECT_INTEGRATION" -r . --include=*.ts --include=*.json --include=*.yml 2>/dev/null | grep -v node_modules` finds no occurrences.
+5. `grep -rl "RUN_XERO_DISCONNECT_INTEGRATION" --include=*.ts --include=*.json --include=*.yml . 2>/dev/null | grep -v node_modules`
+   prints nothing. Use `-l` (list matching files), not `-c`: with `-c` and `-r`,
+   grep prints a `path:0` line for every file it searches, so the output is
+   thousands of lines whether or not the string survives and you cannot read a
+   pass from it.
 6. `grep -c "describe.skip" packages/xero/src/oauth/disconnect.integration.test.ts`
    prints `0` (the only remaining conditional is the ternary on
    `process.env.DATABASE_URL`, which does not contain the literal string when
    written as in Step 3).
 7. `node -e "const s=require('./packages/xero/package.json').scripts; console.log(Boolean(s['test:integration']))"`
    prints `true`.
-8. `git diff --name-only` lists exactly two files.
+8. `git diff --name-only` lists exactly two source files,
+   `packages/xero/package.json` and
+   `packages/xero/src/oauth/disconnect.integration.test.ts`, plus this plan file
+   and `plans/README.md` for the status update.
 
 ## STOP conditions
 

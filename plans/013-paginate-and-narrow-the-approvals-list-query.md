@@ -391,7 +391,8 @@ Machine-checkable. ALL must hold:
 - [ ] `grep -n "approvalRecordSelect" packages/availability/src/approvals/approval-service.ts`
       returns at least two matches
 - [ ] `bunx vitest run packages/availability` passes with at least 8 new cases
-- [ ] `git status --short` shows only in-scope files modified
+- [ ] `git status --short` shows only in-scope files modified, plus this plan
+      file and `plans/README.md` for the status update
 - [ ] Status row for plan 013 updated in `plans/README.md`
 
 ## STOP conditions

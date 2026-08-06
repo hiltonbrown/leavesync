@@ -356,7 +356,8 @@ Machine-checkable. ALL must hold:
 - [ ] `bunx vitest run packages/xero` passes with at least 7 new test cases
 - [ ] The completion report records the audit verdict for the four
       `oauth/service.ts` call sites
-- [ ] `git status --short` shows only in-scope files modified
+- [ ] `git status --short` shows only in-scope files modified, plus this plan
+      file and `plans/README.md` for the status update
 - [ ] Status row for plan 010 updated in `plans/README.md`
 
 ## STOP conditions

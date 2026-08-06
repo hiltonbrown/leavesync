@@ -415,7 +415,8 @@ All of the following, verbatim:
    prints `1`.
 6. The Step 4 sweep finds no tenant-scoped read in `apps/app/app` missing
    either key.
-7. `git diff --name-only` lists at most the two files in the "In scope" list.
+7. `git diff --name-only` lists at most the two files in the "In scope" list,
+   plus this plan file and `plans/README.md` for the status update.
 
 ## STOP conditions
 

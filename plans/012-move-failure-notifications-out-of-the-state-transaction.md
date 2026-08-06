@@ -426,7 +426,8 @@ Machine-checkable. ALL must hold:
 - [ ] `grep -n "notifyOwnerAndManager(\s*tx" packages/availability/src/plans/submit-service.ts`
       returns no matches
 - [ ] `bunx vitest run packages/availability` passes with at least 6 new cases
-- [ ] `git status --short` shows only the four in-scope files modified
+- [ ] `git status --short` shows only the four in-scope files modified, plus this
+      plan file and `plans/README.md` for the status update
 - [ ] Status row for plan 012 updated in `plans/README.md`
 
 ## STOP conditions

@@ -289,7 +289,10 @@ build itself, which is exactly the gate that was failing:
 Machine-checkable. ALL must hold:
 
 - [ ] `bun run build` exits 0 and reports `4 successful, 4 total`
-- [ ] `grep -c 'bun --bun next build' apps/*/package.json` returns 0
+- [ ] `grep -l 'bun --bun next build' apps/app/package.json apps/api/package.json apps/web/package.json`
+      prints nothing. Do not use `grep -c` with a `apps/*/package.json` glob:
+      that prints a `path:count` line per file, never a bare `0`, and the glob
+      also picks up `apps/docs` and `apps/email`, which this plan does not touch
 - [ ] `grep -c '"build": "next build"' apps/app/package.json apps/api/package.json apps/web/package.json` returns 1 for each
 - [ ] `bun run typecheck` exits 0
 - [ ] `bun run test` exits 0 and reports `10 successful, 10 total`

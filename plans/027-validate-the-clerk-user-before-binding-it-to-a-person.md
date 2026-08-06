@@ -653,7 +653,8 @@ All of the following, verbatim:
 6. `grep -c "already linked to another person" "apps/app/app/(authenticated)/settings/integrations/xero/matches/_actions.ts"`
    prints `1`.
 7. The action contains no `console.log`.
-8. `git diff --name-only` lists exactly the action file and the new test file.
+8. `git diff --name-only` lists exactly the action file and the new test file,
+   plus this plan file and `plans/README.md` for the status update.
 
 ## STOP conditions
 

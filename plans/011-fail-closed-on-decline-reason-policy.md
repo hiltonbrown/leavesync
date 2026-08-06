@@ -359,7 +359,8 @@ Machine-checkable. ALL must hold:
 - [ ] `bunx vitest run packages/availability/src/approvals/approval-service.test.ts`
       passes with at least 7 new test cases
 - [ ] The "Open question" section has been added to this file
-- [ ] `git status --short` shows only the two in-scope files modified
+- [ ] `git status --short` shows only the two in-scope files modified, plus this
+      plan file and `plans/README.md` for the status update
 - [ ] Status row for plan 011 updated in `plans/README.md`
 
 ## STOP conditions

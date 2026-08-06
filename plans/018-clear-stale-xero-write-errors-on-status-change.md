@@ -590,7 +590,8 @@ All of the following, verbatim:
 6. `grep -n "approvalStatusToPersist = \"xero_sync_failed\"" packages/jobs/src/handlers/sync-xero-leave-records.ts`
    still matches, confirming the failed-withdraw exception survived.
 7. `git diff --name-only` lists exactly the four files in the "In scope" list
-   (or fewer, if a test file needed no change).
+   (or fewer, if a test file needed no change), plus this plan file and
+   `plans/README.md` for the status update.
 
 ## STOP conditions
 

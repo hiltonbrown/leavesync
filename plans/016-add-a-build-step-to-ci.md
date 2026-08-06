@@ -203,7 +203,7 @@ export const keys = () =>
 
 `DATABASE_URL` is already set at the job level, so this one is satisfied.
 
-`packages/xero/keys.ts` lines 45-59 declares a **required** key:
+`packages/xero/keys.ts` lines 46-59 declares a **required** key:
 
 ```typescript
       XERO_TOKEN_ENCRYPTION_KEY: z.string().refine(
@@ -474,7 +474,9 @@ All of the following, verbatim:
 4. `bun run check` exits 0.
 5. `bun run build` exits 0.
 6. `bun run typecheck` exits 0 when run immediately after step 5.
-7. `git diff --name-only` lists exactly one file: `.github/workflows/ci.yml`.
+7. `git diff --name-only` lists exactly one source file,
+   `.github/workflows/ci.yml`, plus this plan file and `plans/README.md` for the
+   status update.
 
 ## STOP conditions
 

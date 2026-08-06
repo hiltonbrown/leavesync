@@ -1006,8 +1006,9 @@ All of the following, verbatim:
    called before `externalWritePort.submitLeaveApplication`. Verify with:
    `grep -n "claimXeroWrite\|submitLeaveApplication" packages/availability/src/plans/submit-service.ts`
    and confirm the claim line number is lower.
-9. `git diff --name-only` lists only files from the "In scope" list, plus the
-   one new migration directory.
+9. `git diff --name-only` lists only files from the "In scope" list, the one new
+   migration directory, this plan file and `plans/README.md` for the status
+   update.
 
 ## STOP conditions
 
