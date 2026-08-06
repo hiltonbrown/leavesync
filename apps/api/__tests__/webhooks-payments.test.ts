@@ -46,8 +46,6 @@ function webhookRequest() {
 
 function subscriptionEvent(overrides: Record<string, unknown> = {}) {
   return {
-    id: "evt_1",
-    type: "customer.subscription.updated",
     data: {
       object: {
         cancel_at_period_end: false,
@@ -60,6 +58,8 @@ function subscriptionEvent(overrides: Record<string, unknown> = {}) {
         ...overrides,
       },
     },
+    id: "evt_1",
+    type: "customer.subscription.updated",
   };
 }
 
@@ -75,11 +75,11 @@ describe("Stripe payments webhook", () => {
 
   it("1. returns 400 and records nothing when the signature cannot be verified", async () => {
     mocks.constructEvent.mockReturnValue({
-      ok: false,
       error: {
         code: "bad_request",
         message: "Invalid Stripe webhook signature.",
       },
+      ok: false,
     });
 
     const response = await POST(webhookRequest());
@@ -141,9 +141,9 @@ describe("Stripe payments webhook", () => {
     mocks.constructEvent.mockReturnValue({
       ok: true,
       value: {
+        data: { object: { not: "a subscription" } },
         id: "evt_bad",
         type: "customer.subscription.updated",
-        data: { object: { not: "a subscription" } },
       },
     });
 
@@ -186,9 +186,9 @@ describe("Stripe payments webhook", () => {
     mocks.constructEvent.mockReturnValue({
       ok: true,
       value: {
+        data: { object: {} },
         id: "evt_charge",
         type: "charge.succeeded",
-        data: { object: {} },
       },
     });
 

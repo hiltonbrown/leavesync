@@ -96,32 +96,32 @@ export async function importForJurisdiction(
 
     const existingJurisdiction =
       await database.publicHolidayJurisdiction.findFirst({
+        select: { id: true },
         where: {
           ...scopedQuery(input.clerkOrgId, input.organisationId),
           country_code: input.countryCode,
           region_code: input.regionCode,
         },
-        select: { id: true },
       });
 
     const jurisdiction = existingJurisdiction
       ? await database.publicHolidayJurisdiction.update({
-          where: { id: existingJurisdiction.id },
           data: {
             archived_at: null,
             is_enabled: true,
             updated_by_user_id: input.userId,
           },
           select: { id: true },
+          where: { id: existingJurisdiction.id },
         })
       : await database.publicHolidayJurisdiction.create({
           data: {
             clerk_org_id: input.clerkOrgId,
-            organisation_id: input.organisationId,
             country_code: input.countryCode,
+            created_by_user_id: input.userId,
+            organisation_id: input.organisationId,
             region_code: input.regionCode,
             source: "nager",
-            created_by_user_id: input.userId,
             updated_by_user_id: input.userId,
           },
           select: { id: true },
@@ -139,15 +139,41 @@ export async function importForJurisdiction(
       );
 
       const existing = await database.publicHoliday.findFirst({
+        select: { id: true },
         where: {
           ...scopedQuery(input.clerkOrgId, input.organisationId),
           source: "nager",
           source_remote_id: sourceRemoteId,
         },
-        select: { id: true },
       });
 
       await database.publicHoliday.upsert({
+        create: {
+          clerk_org_id: input.clerkOrgId,
+          country_code: input.countryCode,
+          created_by_user_id: input.userId,
+          default_classification: "non_working",
+          holiday_date: startOfUtcDay(holiday.date),
+          holiday_type: normaliseHolidayType(holiday.types?.[0]),
+          jurisdiction_id: jurisdiction.id,
+          local_name: holiday.localName,
+          name: holiday.name,
+          organisation_id: input.organisationId,
+          region_code: input.regionCode,
+          source: "nager",
+          source_payload_json: holiday,
+          source_remote_id: sourceRemoteId,
+          updated_by_user_id: input.userId,
+        },
+        select: { id: true },
+        update: {
+          holiday_type: normaliseHolidayType(holiday.types?.[0]),
+          jurisdiction_id: jurisdiction.id,
+          local_name: holiday.localName,
+          name: holiday.name,
+          source_payload_json: holiday,
+          updated_by_user_id: input.userId,
+        },
         where: {
           organisation_id_source_source_remote_id: {
             organisation_id: input.organisationId,
@@ -155,32 +181,6 @@ export async function importForJurisdiction(
             source_remote_id: sourceRemoteId,
           },
         },
-        create: {
-          clerk_org_id: input.clerkOrgId,
-          organisation_id: input.organisationId,
-          jurisdiction_id: jurisdiction.id,
-          source: "nager",
-          source_remote_id: sourceRemoteId,
-          country_code: input.countryCode,
-          region_code: input.regionCode,
-          holiday_date: startOfUtcDay(holiday.date),
-          name: holiday.name,
-          local_name: holiday.localName,
-          holiday_type: normaliseHolidayType(holiday.types?.[0]),
-          default_classification: "non_working",
-          source_payload_json: holiday,
-          created_by_user_id: input.userId,
-          updated_by_user_id: input.userId,
-        },
-        update: {
-          jurisdiction_id: jurisdiction.id,
-          name: holiday.name,
-          local_name: holiday.localName,
-          holiday_type: normaliseHolidayType(holiday.types?.[0]),
-          source_payload_json: holiday,
-          updated_by_user_id: input.userId,
-        },
-        select: { id: true },
       });
 
       if (existing) {
@@ -196,8 +196,8 @@ export async function importForJurisdiction(
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to import holidays"),
+      ok: false,
     };
   }
 }
@@ -221,29 +221,29 @@ export async function addCustomHoliday(
 
     if (existing) {
       return {
-        ok: false,
         error: appError(
           "conflict",
           "A custom holiday with this name and date already exists"
         ),
+        ok: false,
       };
     }
 
     const holiday = await database.publicHoliday.create({
       data: {
         clerk_org_id: input.clerkOrgId,
-        organisation_id: input.organisationId,
+        country_code: "CUSTOM", // A placeholder or we could resolve it from org
+        created_by_user_id: input.userId,
+        default_classification: "non_working",
+        holiday_date: holidayDate,
+        holiday_type: "custom",
         jurisdiction_id: input.appliesToAllJurisdictions
           ? null
           : input.jurisdictionId,
+        name: input.name,
+        organisation_id: input.organisationId,
         source: "manual",
         source_remote_id: sourceRemoteId,
-        country_code: "CUSTOM", // A placeholder or we could resolve it from org
-        holiday_date: holidayDate,
-        name: input.name,
-        holiday_type: "custom",
-        default_classification: "non_working",
-        created_by_user_id: input.userId,
         updated_by_user_id: input.userId,
       },
     });
@@ -254,8 +254,8 @@ export async function addCustomHoliday(
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to add custom holiday"),
+      ok: false,
     };
   }
 }
@@ -275,22 +275,22 @@ export async function suppressHoliday(
     });
 
     if (!holiday) {
-      return { ok: false, error: appError("not_found", "Holiday not found") };
+      return { error: appError("not_found", "Holiday not found"), ok: false };
     }
 
     await database.publicHoliday.update({
-      where: { id: holidayId },
       data: {
         archived_at: new Date(),
         updated_by_user_id: userId,
       },
+      where: { id: holidayId },
     });
 
     return { ok: true, value: { id: holidayId } };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to suppress holiday"),
+      ok: false,
     };
   }
 }
@@ -310,22 +310,22 @@ export async function restoreHoliday(
     });
 
     if (!holiday) {
-      return { ok: false, error: appError("not_found", "Holiday not found") };
+      return { error: appError("not_found", "Holiday not found"), ok: false };
     }
 
     await database.publicHoliday.update({
-      where: { id: holidayId },
       data: {
         archived_at: null,
         updated_by_user_id: userId,
       },
+      where: { id: holidayId },
     });
 
     return { ok: true, value: { id: holidayId } };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to restore holiday"),
+      ok: false,
     };
   }
 }
@@ -344,16 +344,16 @@ export async function deleteCustomHoliday(
     });
 
     if (!holiday) {
-      return { ok: false, error: appError("not_found", "Holiday not found") };
+      return { error: appError("not_found", "Holiday not found"), ok: false };
     }
 
     if (holiday.source !== "manual") {
       return {
-        ok: false,
         error: appError(
           "forbidden",
           "Cannot delete a holiday imported from an external source"
         ),
+        ok: false,
       };
     }
 
@@ -364,8 +364,8 @@ export async function deleteCustomHoliday(
     return { ok: true, value: { id: holidayId } };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to delete custom holiday"),
+      ok: false,
     };
   }
 }
@@ -398,11 +398,11 @@ export async function listForOrganisation(
 
     if (options?.locationId) {
       const location = await database.location.findFirst({
+        select: { country_code: true, region_code: true },
         where: {
           ...scopedQuery(clerkOrgId, organisationId),
           id: options.locationId,
         },
-        select: { country_code: true, region_code: true },
       });
 
       if (!location) {
@@ -443,19 +443,19 @@ export async function listForOrganisation(
     }
 
     const holidays = await database.publicHoliday.findMany({
-      where: whereClause,
-      orderBy: { holiday_date: "asc" },
       include: {
         assignments: true,
         jurisdiction: true,
       },
+      orderBy: { holiday_date: "asc" },
+      where: whereClause,
     });
 
     return { ok: true as const, value: holidays };
   } catch {
     return {
-      ok: false as const,
       error: appError("internal", "Failed to list holidays"),
+      ok: false as const,
     };
   }
 }
@@ -479,21 +479,21 @@ export async function ensureDefaultPublicHolidaysForOrganisation(
 > {
   try {
     const organisation = await database.organisation.findFirst({
-      where: {
-        clerk_org_id: input.clerkOrgId,
-        id: input.organisationId,
-        archived_at: null,
-      },
       select: {
         country_code: true,
         region_code: true,
+      },
+      where: {
+        archived_at: null,
+        clerk_org_id: input.clerkOrgId,
+        id: input.organisationId,
       },
     });
 
     if (!organisation) {
       return {
-        ok: false,
         error: appError("not_found", "Organisation not found"),
+        ok: false,
       };
     }
 
@@ -520,13 +520,13 @@ export async function ensureDefaultPublicHolidaysForOrganisation(
       const existingCount = await database.publicHoliday.count({
         where: {
           ...scopedQuery(input.clerkOrgId, input.organisationId),
-          source: "nager",
           country_code: organisation.country_code,
-          region_code: organisation.region_code,
           holiday_date: {
             gte: yearStart,
             lt: yearEnd,
           },
+          region_code: organisation.region_code,
+          source: "nager",
         },
       });
 
@@ -537,8 +537,8 @@ export async function ensureDefaultPublicHolidaysForOrganisation(
 
       const importResult = await importForJurisdiction({
         clerkOrgId: input.clerkOrgId,
-        organisationId: input.organisationId,
         countryCode: organisation.country_code,
+        organisationId: input.organisationId,
         regionCode: organisation.region_code,
         userId: actor,
         year,
@@ -557,15 +557,15 @@ export async function ensureDefaultPublicHolidaysForOrganisation(
       ok: true,
       value: {
         importedCount: totalImported,
-        skippedCount: totalSkipped,
         importedYears,
+        skippedCount: totalSkipped,
         skippedYears,
       },
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to ensure default public holidays"),
+      ok: false,
     };
   }
 }

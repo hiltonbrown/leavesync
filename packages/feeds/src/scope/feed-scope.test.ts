@@ -248,20 +248,20 @@ describe("canViewFeed", () => {
     vi.clearAllMocks();
   });
 
-  it.each([
-    "admin",
-    "owner",
-  ] as const)("allows %s callers without resolving people", async (role) => {
-    const result = await canViewFeed({
-      ...baseInput,
-      actingPersonId: null,
-      role,
-      scopes: [{ scopeType: "person", scopeValue: baseInput.actingPersonId }],
-    });
+  it.each(["admin", "owner"] as const)(
+    "allows %s callers without resolving people",
+    async (role) => {
+      const result = await canViewFeed({
+        ...baseInput,
+        actingPersonId: null,
+        role,
+        scopes: [{ scopeType: "person", scopeValue: baseInput.actingPersonId }],
+      });
 
-    expect(result).toEqual({ ok: true, value: true });
-    expect(mocks.personFindMany).not.toHaveBeenCalled();
-  });
+      expect(result).toEqual({ ok: true, value: true });
+      expect(mocks.personFindMany).not.toHaveBeenCalled();
+    }
+  );
 
   it("allows a viewer when their person is in scope", async () => {
     mocks.personFindMany.mockResolvedValueOnce([

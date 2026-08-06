@@ -55,18 +55,18 @@ export async function projectFeedEvents(
 ): Promise<Result<PreviewEvent[], FeedProjectionError>> {
   try {
     const feed = await database.feed.findFirst({
+      select: feedProjectionSelect,
       where: {
         archived_at: null,
         clerk_org_id: input.clerkOrgId,
         id: input.feedId,
         organisation_id: input.organisationId,
       },
-      select: feedProjectionSelect,
     });
     if (!feed) {
       return {
-        ok: false,
         error: { code: "feed_not_found", message: "Feed not found." },
+        ok: false,
       };
     }
 
@@ -82,7 +82,7 @@ export async function projectFeedEvents(
       })),
     });
     if (!peopleResult.ok) {
-      return { ok: false, error: peopleResult.error };
+      return { error: peopleResult.error, ok: false };
     }
 
     const people = peopleResult.value;
@@ -141,11 +141,11 @@ export async function projectFeedEvents(
     };
   } catch {
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to project feed events.",
       },
+      ok: false,
     };
   }
 }
@@ -186,10 +186,10 @@ function projectAvailabilityRecord(
     isPublicHoliday: false,
     location:
       privacyMode === "private" ? null : (record.person.location?.name ?? null),
-    recordType: record.record_type,
     publishedSequence:
       record.publication?.published_sequence ?? record.derived_sequence,
     publishedUid: record.publication?.published_uid ?? record.derived_uid_key,
+    recordType: record.record_type,
     sourceRecordId: record.id,
     startsAt: record.starts_at,
     summary: projectSummaryLine({
@@ -287,9 +287,9 @@ async function projectPublicHolidays(input: {
         endsAt,
         isPublicHoliday: true,
         location: null,
-        recordType: "public_holiday",
         publishedSequence: 0,
         publishedUid: `${holiday.id}${icsUidSuffix}`,
+        recordType: "public_holiday",
         sourceRecordId: holiday.id,
         startsAt: holiday.holiday_date,
         summary,
@@ -372,19 +372,10 @@ const feedProjectionSelect = {
 const recordSelect = {
   all_day: true,
   contactability: true,
-  ends_at: true,
   derived_sequence: true,
   derived_uid_key: true,
+  ends_at: true,
   id: true,
-  record_type: true,
-  starts_at: true,
-  title: true,
-  publication: {
-    select: {
-      published_sequence: true,
-      published_uid: true,
-    },
-  },
   person: {
     select: {
       display_name: true,
@@ -397,6 +388,15 @@ const recordSelect = {
       },
     },
   },
+  publication: {
+    select: {
+      published_sequence: true,
+      published_uid: true,
+    },
+  },
+  record_type: true,
+  starts_at: true,
+  title: true,
 } satisfies Prisma.AvailabilityRecordSelect;
 
 type RecordRow = Prisma.AvailabilityRecordGetPayload<{

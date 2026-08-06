@@ -63,11 +63,7 @@ describe("listRecentSupportSubmissionAudits", () => {
     );
 
     expect(mocks.findMany).toHaveBeenCalledWith({
-      where: {
-        action: "support_submissions.github_issue_created",
-        clerk_org_id: tenant.clerkOrgId,
-        organisation_id: tenant.organisationId,
-      },
+      orderBy: { created_at: "desc" },
       select: {
         action: true,
         actor_user_id: true,
@@ -77,8 +73,12 @@ describe("listRecentSupportSubmissionAudits", () => {
         organisation_id: true,
         payload: true,
       },
-      orderBy: { created_at: "desc" },
       take: 5,
+      where: {
+        action: "support_submissions.github_issue_created",
+        clerk_org_id: tenant.clerkOrgId,
+        organisation_id: tenant.organisationId,
+      },
     });
     expect(result).toEqual({
       ok: true,

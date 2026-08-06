@@ -118,19 +118,19 @@ interface FeatureCard {
 
 const cards: FeatureCard[] = [
   {
-    title: "One place to request leave and flag WFH",
     copy: "Staff add dates, leave type and notes in one place, whether it is annual leave or just working from home on Thursday. No more texts, forms and missed invites to chase.",
     mock: <LeaveFormMock />,
+    title: "One place to request leave and flag WFH",
   },
   {
-    title: "Approved leave writes back to Xero, correctly",
     copy: "Each approval writes to Xero Payroll as a leave application in the right type, synchronously. If a write fails, you see it straight away; it never fails silently and it never corrupts your payroll data.",
     mock: <WriteBackReceiptMock />,
+    title: "Approved leave writes back to Xero, correctly",
   },
   {
-    title: "Everyone sees who is in, automatically",
     copy: "Approved leave and manual entries publish to one secure feed. Your team subscribes once in the calendar they already use, and never updates it by hand again.",
     mock: <FeedSubscriptionMock />,
+    title: "Everyone sees who is in, automatically",
   },
 ];
 

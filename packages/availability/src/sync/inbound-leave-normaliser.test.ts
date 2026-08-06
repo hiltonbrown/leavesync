@@ -16,9 +16,12 @@ describe("inbound leave normaliser", () => {
     ["Unpaid Leave", "unpaid_leave"],
     ["Public Holiday", "holiday"],
     [null, "leave"],
-  ] as const)("maps leave type name %s to record type %s", (leaveTypeName, expectedRecordType) => {
-    expect(recordTypeFromLeaveType(leaveTypeName)).toBe(expectedRecordType);
-  });
+  ] as const)(
+    "maps leave type name %s to record type %s",
+    (leaveTypeName, expectedRecordType) => {
+      expect(recordTypeFromLeaveType(leaveTypeName)).toBe(expectedRecordType);
+    }
+  );
 
   it("derives canonical Xero availability record fields", () => {
     const startsAt = new Date("2026-05-07T00:00:00.000Z");
@@ -41,7 +44,7 @@ describe("inbound leave normaliser", () => {
       organisationId: "30000000-0000-4000-8000-000000000001",
       personId: "40000000-0000-4000-8000-000000000001",
       provider: "xero",
-      rawPayload: { b: 2, a: 1 },
+      rawPayload: { a: 1, b: 2 },
       sourceLastModifiedAt: new Date("2026-05-01T01:02:03.000Z"),
       sourceRemoteId: "22222222-2222-4222-8222-222222222222",
       stableSourceKey,
@@ -87,7 +90,7 @@ describe("inbound leave normaliser", () => {
 
     const first = normaliseInboundLeaveRecord({
       ...base,
-      rawPayload: { b: 2, a: 1 },
+      rawPayload: { a: 1, b: 2 },
     });
     const second = normaliseInboundLeaveRecord({
       ...base,

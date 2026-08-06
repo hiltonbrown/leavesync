@@ -41,10 +41,7 @@ export async function listRecentSupportSubmissionAudits(
 ): Promise<Result<SupportSubmissionAuditData[]>> {
   try {
     const auditEvents = await database.auditEvent.findMany({
-      where: {
-        ...scopedQuery(clerkOrgId, organisationId),
-        action: "support_submissions.github_issue_created",
-      },
+      orderBy: { created_at: "desc" },
       select: {
         action: true,
         actor_user_id: true,
@@ -54,8 +51,11 @@ export async function listRecentSupportSubmissionAudits(
         organisation_id: true,
         payload: true,
       },
-      orderBy: { created_at: "desc" },
       take: limit ?? 20,
+      where: {
+        ...scopedQuery(clerkOrgId, organisationId),
+        action: "support_submissions.github_issue_created",
+      },
     });
 
     return {
@@ -90,11 +90,11 @@ export async function listRecentSupportSubmissionAudits(
     };
   } catch {
     return {
-      ok: false,
       error: appError(
         "internal",
         "Failed to list support submission audit events"
       ),
+      ok: false,
     };
   }
 }

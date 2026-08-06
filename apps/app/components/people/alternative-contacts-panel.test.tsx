@@ -96,7 +96,7 @@ describe("AlternativeContactsPanel", () => {
   });
 
   it("activating Move down invokes existing mutation path with full orderedContactIds array and announces position", async () => {
-    mocks.reorderAction.mockResolvedValueOnce({ ok: true, data: null });
+    mocks.reorderAction.mockResolvedValueOnce({ data: null, ok: true });
 
     render(
       <AlternativeContactsPanel
@@ -150,7 +150,7 @@ describe("AlternativeContactsPanel", () => {
 
     expect(moveAliceDown.disabled).toBe(true);
 
-    resolveReorder({ ok: false, error: { message: "Server error" } });
+    resolveReorder({ error: { message: "Server error" }, ok: false });
 
     await waitFor(() => {
       expect(screen.getByRole("status").textContent).toContain(

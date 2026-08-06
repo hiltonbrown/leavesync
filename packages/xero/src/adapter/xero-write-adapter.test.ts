@@ -84,12 +84,12 @@ describe("XeroWriteAdapter", () => {
     const result = await XeroWriteAdapter.submitLeaveApplication(submitInput);
 
     expect(result).toEqual({
-      ok: false,
       error: {
         code: "auth_error",
         message: "Xero is not connected.",
         userMessage: "Xero is not connected.",
       },
+      ok: false,
     });
     expect(mocks.submitLeaveApplicationForRegion).not.toHaveBeenCalled();
   });
@@ -100,12 +100,12 @@ describe("XeroWriteAdapter", () => {
     const result = await XeroWriteAdapter.approveLeaveApplication(approveInput);
 
     expect(result).toEqual({
-      ok: false,
       error: {
         code: "auth_error",
         message: "Xero is not connected.",
         userMessage: "Xero is not connected.",
       },
+      ok: false,
     });
     expect(mocks.approveLeaveApplicationForRegion).not.toHaveBeenCalled();
   });
@@ -165,8 +165,8 @@ describe("XeroWriteAdapter", () => {
     };
     mocks.tenantFindFirst.mockResolvedValueOnce(tenant);
     mocks.submitLeaveApplicationForRegion.mockResolvedValueOnce({
-      ok: false,
       error: xeroError,
+      ok: false,
     });
 
     const result = await XeroWriteAdapter.submitLeaveApplication(submitInput);
@@ -195,8 +195,8 @@ describe("XeroWriteAdapter", () => {
     };
     mocks.tenantFindFirst.mockResolvedValueOnce(tenant);
     mocks.approveLeaveApplicationForRegion.mockResolvedValueOnce({
-      ok: false,
       error: xeroError,
+      ok: false,
     });
 
     const result = await XeroWriteAdapter.approveLeaveApplication(approveInput);

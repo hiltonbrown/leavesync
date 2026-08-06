@@ -211,9 +211,9 @@ export async function listTenantSummaries(
 
   try {
     const tenants = await database.xeroTenant.findMany({
-      where: scoped(parsed.data),
       include: { xero_connection: true },
       orderBy: { tenant_name: "asc" },
+      where: scoped(parsed.data),
     });
     const tenantIds = tenants.map((tenant) => tenant.id);
     if (tenantIds.length === 0) {
@@ -223,22 +223,15 @@ export async function listTenantSummaries(
     const since = daysAgo(30);
     const [runs, failedRecords] = await Promise.all([
       database.syncRun.findMany({
+        include: { failed_records: { select: { id: true } } },
+        orderBy: [{ started_at: "desc" }, { id: "desc" }],
         where: {
           ...scoped(parsed.data),
           started_at: { gte: since },
           xero_tenant_id: { in: tenantIds },
         },
-        orderBy: [{ started_at: "desc" }, { id: "desc" }],
-        include: { failed_records: { select: { id: true } } },
       }),
       database.failedRecord.findMany({
-        where: {
-          ...scoped(parsed.data),
-          sync_run: {
-            started_at: { gte: since },
-            xero_tenant_id: { in: tenantIds },
-          },
-        },
         include: {
           sync_run: {
             select: {
@@ -246,6 +239,13 @@ export async function listTenantSummaries(
               started_at: true,
               xero_tenant_id: true,
             },
+          },
+        },
+        where: {
+          ...scoped(parsed.data),
+          sync_run: {
+            started_at: { gte: since },
+            xero_tenant_id: { in: tenantIds },
           },
         },
       }),
@@ -356,13 +356,13 @@ export async function listRuns(
     const cursor = decodeCursor(parsed.data.pagination?.cursor ?? null);
     const where = runWhere(parsed.data, cursor);
     const rows = await database.syncRun.findMany({
-      where,
       include: {
         _count: { select: { failed_records: true } },
         xero_tenant: { select: { id: true, tenant_name: true } },
       },
       orderBy: [{ started_at: "desc" }, { id: "desc" }],
       take: pageSize + 1,
+      where,
     });
     const page = rows.slice(0, pageSize);
     const people = await loadTriggeredByPeople(parsed.data, page);
@@ -397,13 +397,13 @@ export async function getRunDetail(
 
   try {
     const run = await database.syncRun.findFirst({
-      where: {
-        ...scoped(parsed.data),
-        id: parsed.data.runId,
-      },
       include: {
         _count: { select: { failed_records: true } },
         xero_tenant: { select: { id: true, tenant_name: true } },
+      },
+      where: {
+        ...scoped(parsed.data),
+        id: parsed.data.runId,
       },
     });
     if (!run) {
@@ -413,21 +413,21 @@ export async function getRunDetail(
     const [people, failedRecords, timeline] = await Promise.all([
       loadTriggeredByPeople(parsed.data, [run]),
       database.failedRecord.findMany({
+        orderBy: { created_at: "asc" },
         where: {
           ...scoped(parsed.data),
           sync_run_id: run.id,
         },
-        orderBy: { created_at: "asc" },
       }),
       database.auditEvent.findMany({
+        orderBy: { created_at: "asc" },
         where: {
           ...scoped(parsed.data),
           OR: [
-            { resource_type: "sync_run", resource_id: run.id },
+            { resource_id: run.id, resource_type: "sync_run" },
             { action: { startsWith: "sync." }, resource_id: run.id },
           ],
         },
-        orderBy: { created_at: "asc" },
       }),
     ]);
 
@@ -476,11 +476,11 @@ export async function dispatchManualSync(
 
   try {
     const tenant = await database.xeroTenant.findFirst({
+      include: { xero_connection: true },
       where: {
         ...scoped(parsed.data),
         id: parsed.data.xeroTenantId,
       },
-      include: { xero_connection: true },
     });
     if (!tenant) {
       return await tenantNotFoundOrCrossOrg(parsed.data);
@@ -523,13 +523,12 @@ export async function dispatchManualSync(
       clerkOrgId: parsed.data.clerkOrgId,
       organisationId: parsed.data.organisationId,
       runType: parsed.data.runType,
-      triggerType: "manual",
       triggeredByUserId: parsed.data.actingUserId,
+      triggerType: "manual",
       xeroTenantId: parsed.data.xeroTenantId,
     });
     if (!dispatched.ok) {
       return {
-        ok: false,
         error: {
           code:
             dispatched.error.code === "dispatch_not_wired"
@@ -537,6 +536,7 @@ export async function dispatchManualSync(
               : dispatched.error.code,
           message: dispatched.error.message,
         },
+        ok: false,
       };
     }
 
@@ -577,23 +577,23 @@ export async function exportFailedRecordsCsv(
 
   try {
     const run = await database.syncRun.findFirst({
+      select: { id: true },
       where: {
         ...scoped(parsed.data),
         id: parsed.data.runId,
       },
-      select: { id: true },
     });
     if (!run) {
       return await runNotFoundOrCrossOrg(parsed.data);
     }
 
     const failedRecords = await database.failedRecord.findMany({
+      orderBy: { created_at: "asc" },
+      take: CSV_EXPORT_LIMIT + 1,
       where: {
         ...scoped(parsed.data),
         sync_run_id: run.id,
       },
-      orderBy: { created_at: "asc" },
-      take: CSV_EXPORT_LIMIT + 1,
     });
     const truncated = failedRecords.length > CSV_EXPORT_LIMIT;
     const rows = failedRecords
@@ -669,20 +669,20 @@ export async function cancelRun(
 
   try {
     const run = await database.syncRun.findFirst({
+      select: { id: true },
       where: {
         ...scoped(parsed.data),
         id: parsed.data.runId,
         status: "running",
       },
-      select: { id: true },
     });
     if (!run) {
       return await runNotFoundOrCrossOrg(parsed.data);
     }
 
     await database.syncRun.update({
-      where: { id: run.id },
       data: { cancel_requested_at: new Date() },
+      where: { id: run.id },
     });
     const queued = await dispatchCancelSyncRun({
       clerkOrgId: parsed.data.clerkOrgId,
@@ -841,7 +841,7 @@ function runWhere(
       ? {
           OR: [
             { started_at: { lt: cursor.startedAt } },
-            { started_at: cursor.startedAt, id: { lt: cursor.id } },
+            { id: { lt: cursor.id }, started_at: cursor.startedAt },
           ],
         }
       : {}),
@@ -868,14 +868,14 @@ async function loadTriggeredByPeople(
     return new Map();
   }
   const people = await database.person.findMany({
-    where: {
-      ...scoped(input),
-      clerk_user_id: { in: userIds },
-    },
     select: {
       clerk_user_id: true,
       first_name: true,
       last_name: true,
+    },
+    where: {
+      ...scoped(input),
+      clerk_user_id: { in: userIds },
     },
   });
   return new Map(
@@ -934,11 +934,11 @@ function toRunListItem(
     status: run.status,
     tenantName:
       run.xero_tenant?.tenant_name ?? run.xero_tenant_id ?? "Unknown tenant",
-    triggerType: run.trigger_type,
     triggeredByUserDisplay:
       run.trigger_type === "scheduled"
         ? "System"
         : (people.get(run.triggered_by_user_id ?? "") ?? "User"),
+    triggerType: run.trigger_type,
     xeroTenantId: run.xero_tenant_id,
   };
 }
@@ -947,24 +947,24 @@ async function runNotFoundOrCrossOrg(
   input: GetRunDetailInput | ExportFailedRecordsCsvInput | CancelRunInput
 ): Promise<Result<never, SyncMonitorError>> {
   const existing = await database.syncRun.findUnique({
-    where: { id: input.runId },
     select: {
       clerk_org_id: true,
       organisation_id: true,
     },
+    where: { id: input.runId },
   });
   if (existing) {
     return {
-      ok: false,
       error: {
         code: "cross_org_leak",
         message: "This sync run belongs to another organisation.",
       },
+      ok: false,
     };
   }
   return {
-    ok: false,
     error: { code: "run_not_found", message: "Sync run not found." },
+    ok: false,
   };
 }
 
@@ -972,24 +972,24 @@ async function tenantNotFoundOrCrossOrg(
   input: DispatchManualSyncInput
 ): Promise<Result<never, SyncMonitorError>> {
   const existing = await database.xeroTenant.findUnique({
-    where: { id: input.xeroTenantId },
     select: {
       clerk_org_id: true,
       organisation_id: true,
     },
+    where: { id: input.xeroTenantId },
   });
   if (existing) {
     return {
-      ok: false,
       error: {
         code: "cross_org_leak",
         message: "This Xero tenant belongs to another organisation.",
       },
+      ok: false,
     };
   }
   return {
-    ok: false,
     error: { code: "tenant_not_found", message: "Xero tenant not found." },
+    ok: false,
   };
 }
 
@@ -1021,27 +1021,27 @@ function dateStamp(date: Date): string {
 
 function validationError(error: z.ZodError): Result<never, SyncMonitorError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid sync monitor input.",
     },
+    ok: false,
   };
 }
 
 function notAuthorised(): Result<never, SyncMonitorError> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "Only admins and owners can use sync health.",
     },
+    ok: false,
   };
 }
 
 function unknownError(message: string): Result<never, SyncMonitorError> {
   return {
-    ok: false,
     error: { code: "unknown_error", message },
+    ok: false,
   };
 }

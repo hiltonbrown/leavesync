@@ -15,9 +15,8 @@ export interface PlanCardDetails {
 
 export const MARKETING_PLANS: readonly PlanCardDetails[] = [
   {
-    name: "Basic",
-    price: "$19",
-    interval: "mo",
+    ctaHref: "/sign-up",
+    ctaText: "Get started",
     description: "For small teams starting with calendar publishing",
     features: [
       "1 Xero Payroll organisation",
@@ -26,14 +25,14 @@ export const MARKETING_PLANS: readonly PlanCardDetails[] = [
       "Manual availability entries",
       "Basic sync health dashboard",
     ],
-    ctaText: "Get started",
-    ctaHref: "/sign-up",
     highlighted: false,
+    interval: "mo",
+    name: "Basic",
+    price: "$19",
   },
   {
-    name: "Premium",
-    price: "$49",
-    interval: "mo",
+    ctaHref: "/sign-up",
+    ctaText: "Get started",
     description: "For growing teams needing advanced coverage",
     features: [
       "2 Xero Payroll organisations",
@@ -44,14 +43,14 @@ export const MARKETING_PLANS: readonly PlanCardDetails[] = [
       "Analytics & leave reports",
       "Priority support",
     ],
-    ctaText: "Get started",
-    ctaHref: "/sign-up",
     highlighted: true,
+    interval: "mo",
+    name: "Premium",
+    price: "$49",
   },
   {
-    name: "Enterprise",
-    price: "Custom",
-    interval: "",
+    ctaHref: "#contact",
+    ctaText: "Talk to us",
     description: "For multi-entity payroll and guided rollout support",
     features: [
       "Multiple Xero Payroll organisations",
@@ -62,8 +61,9 @@ export const MARKETING_PLANS: readonly PlanCardDetails[] = [
       "Implementation partner support",
       "Guided rollout & onboarding",
     ],
-    ctaText: "Talk to us",
-    ctaHref: "#contact",
     highlighted: false,
+    interval: "",
+    name: "Enterprise",
+    price: "Custom",
   },
 ] as const;

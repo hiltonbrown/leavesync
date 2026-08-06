@@ -102,35 +102,35 @@ export async function validateScopes(input: {
   try {
     for (const scope of parsed.data) {
       if (scope.scopeType === "team") {
-        const scopeValue = scope.scopeValue;
+        const { scopeValue } = scope;
         if (!scopeValue) {
           return invalidScope();
         }
         const team = await database.team.findFirst({
+          select: { id: true },
           where: {
             clerk_org_id: input.clerkOrgId,
             id: scopeValue,
             organisation_id: input.organisationId,
           },
-          select: { id: true },
         });
         if (!team) {
           return invalidScope();
         }
       }
       if (scope.scopeType === "person") {
-        const scopeValue = scope.scopeValue;
+        const { scopeValue } = scope;
         if (!scopeValue) {
           return invalidScope();
         }
         const person = await database.person.findFirst({
+          select: { id: true },
           where: {
             archived_at: null,
             clerk_org_id: input.clerkOrgId,
             id: scopeValue,
             organisation_id: input.organisationId,
           },
-          select: { id: true },
         });
         if (!person) {
           return invalidScope();
@@ -372,13 +372,13 @@ export async function findActingPersonId(input: {
   userId: string;
 }): Promise<string | null> {
   const person = await database.person.findFirst({
+    select: { id: true },
     where: {
       archived_at: null,
       clerk_org_id: input.clerkOrgId,
       clerk_user_id: input.userId,
       organisation_id: input.organisationId,
     },
-    select: { id: true },
   });
   return person?.id ?? null;
 }
@@ -590,23 +590,23 @@ function transitiveReportIds(
 
 function validationError(error: z.ZodError): Result<never, FeedScopeError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid feed scope.",
     },
+    ok: false,
   };
 }
 
 function invalidScope(): Result<never, FeedScopeError> {
   return {
-    ok: false,
     error: { code: "invalid_scope", message: "Feed scope is not available." },
+    ok: false,
   };
 }
 
 function unknownError(message: string): Result<never, FeedScopeError> {
-  return { ok: false, error: { code: "unknown_error", message } };
+  return { error: { code: "unknown_error", message }, ok: false };
 }
 
 const personSelect = {
@@ -616,9 +616,6 @@ const personSelect = {
   id: true,
   is_active: true,
   last_name: true,
-  location_id: true,
-  manager_person_id: true,
-  team_id: true,
   location: {
     select: {
       country_code: true,
@@ -628,12 +625,15 @@ const personSelect = {
       timezone: true,
     },
   },
+  location_id: true,
+  manager_person_id: true,
   team: {
     select: {
       id: true,
       name: true,
     },
   },
+  team_id: true,
 } satisfies Prisma.PersonSelect;
 
 type PersonRow = Prisma.PersonGetPayload<{ select: typeof personSelect }>;

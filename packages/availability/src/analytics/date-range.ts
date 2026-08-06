@@ -135,11 +135,11 @@ function resolveCustomRange(
   const maxExclusiveEnd = addYears(input.customStart, 3);
   if (exclusiveEnd > maxExclusiveEnd) {
     return {
-      ok: false,
       error: {
         code: "date_range_too_wide",
         message: "Custom date ranges cannot be wider than 3 years.",
       },
+      ok: false,
     };
   }
 
@@ -154,7 +154,7 @@ function resolveCustomRange(
 }
 
 function invalidDateRange(message: string): Result<never, DateRangeError> {
-  return { ok: false, error: { code: "invalid_date_range", message } };
+  return { error: { code: "invalid_date_range", message }, ok: false };
 }
 
 function formatCustomLabel(

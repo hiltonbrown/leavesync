@@ -155,19 +155,19 @@ export async function rotateTokenAction(
   let feedName: string | null = null;
   try {
     const feed = await database.feed.findFirst({
+      select: { name: true },
       where: {
         id: parsed.data.feedId,
         organisation_id: context.value.organisationId,
       },
-      select: { name: true },
     });
     if (feed) {
       feedName = feed.name;
     }
   } catch (err) {
     log.error("Failed to fetch feed name for token rotation notification", {
-      feedId: parsed.data.feedId,
       error: err,
+      feedId: parsed.data.feedId,
     });
   }
 
@@ -183,11 +183,11 @@ export async function rotateTokenAction(
     const dispatchResult = await dispatchNotification({
       actionUrl,
       actorUserId: context.value.userId,
+      body,
       clerkOrgId: context.value.clerkOrgId,
-      organisationId: context.value.organisationId,
       objectId: parsed.data.feedId,
       objectType: "feed",
-      body,
+      organisationId: context.value.organisationId,
       recipientPersonId: null,
       recipientUserId: context.value.userId,
       title: "Feed token rotated",
@@ -196,16 +196,16 @@ export async function rotateTokenAction(
 
     if (!dispatchResult.ok) {
       log.error("Failed to dispatch feed token rotation notification", {
-        feedId: parsed.data.feedId,
         error: dispatchResult.error,
+        feedId: parsed.data.feedId,
       });
     }
   } catch (err) {
     log.error(
       "Failed to dispatch feed token rotation notification (unhandled exception)",
       {
-        feedId: parsed.data.feedId,
         error: err,
+        feedId: parsed.data.feedId,
       }
     );
   }
@@ -295,17 +295,17 @@ async function resolveAdminContext(organisationId: string): Promise<
     )
   ) {
     return {
-      ok: false,
       error: {
         code: "not_authorised",
         message: "You do not have permission to manage feeds.",
       },
+      ok: false,
     };
   }
   if (!context.ok) {
     return {
-      ok: false,
       error: { code: "not_authorised", message: context.error.message },
+      ok: false,
     };
   }
   return {
@@ -334,10 +334,10 @@ function revalidateFeedPaths(
 
 function validationError(message?: string): FeedActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: message ?? "Invalid feed request.",
     },
+    ok: false,
   };
 }

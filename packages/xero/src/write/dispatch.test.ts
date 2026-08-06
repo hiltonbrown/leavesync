@@ -50,33 +50,33 @@ describe("write dispatch", () => {
     it("routes submit to the NZ write-back stub", async () => {
       const result = await submitLeaveApplicationForRegion("NZ", submitInput);
       expect(result).toEqual({
-        ok: false,
         error: {
           code: "region_not_supported_error",
           message: "NZ payroll write-back is not yet available.",
         },
+        ok: false,
       });
     });
 
     it("routes approve to the NZ write-back stub", async () => {
       const result = await approveLeaveApplicationForRegion("NZ", approveInput);
       expect(result).toEqual({
-        ok: false,
         error: {
           code: "region_not_supported_error",
           message: "NZ payroll approval is not yet available.",
         },
+        ok: false,
       });
     });
 
     it("routes decline to the NZ write-back stub", async () => {
       const result = await declineLeaveApplicationForRegion("NZ", declineInput);
       expect(result).toEqual({
-        ok: false,
         error: {
           code: "region_not_supported_error",
           message: "NZ payroll approval is not yet available.",
         },
+        ok: false,
       });
     });
 
@@ -86,11 +86,11 @@ describe("write dispatch", () => {
         withdrawInput
       );
       expect(result).toEqual({
-        ok: false,
         error: {
           code: "region_not_supported_error",
           message: "NZ payroll write-back is not yet available.",
         },
+        ok: false,
       });
     });
   });
@@ -119,44 +119,44 @@ describe("write dispatch", () => {
     it("routes submit to the UK write-back stub", async () => {
       const result = await submitLeaveApplicationForRegion("UK", ukSubmit);
       expect(result).toEqual({
-        ok: false,
         error: {
           code: "region_not_supported_error",
           message: "UK payroll write-back is not yet available.",
         },
+        ok: false,
       });
     });
 
     it("routes approve to the UK write-back stub", async () => {
       const result = await approveLeaveApplicationForRegion("UK", ukApprove);
       expect(result).toEqual({
-        ok: false,
         error: {
           code: "region_not_supported_error",
           message: "UK payroll approval is not yet available.",
         },
+        ok: false,
       });
     });
 
     it("routes decline to the UK write-back stub", async () => {
       const result = await declineLeaveApplicationForRegion("UK", ukDecline);
       expect(result).toEqual({
-        ok: false,
         error: {
           code: "region_not_supported_error",
           message: "UK payroll approval is not yet available.",
         },
+        ok: false,
       });
     });
 
     it("routes withdraw to the UK write-back stub", async () => {
       const result = await withdrawLeaveApplicationForRegion("UK", ukWithdraw);
       expect(result).toEqual({
-        ok: false,
         error: {
           code: "region_not_supported_error",
           message: "UK payroll write-back is not yet available.",
         },
+        ok: false,
       });
     });
   });
@@ -165,33 +165,33 @@ describe("write dispatch", () => {
     it("returns region_not_supported_error for unsupported regions on submit", async () => {
       const result = await submitLeaveApplicationForRegion("US", submitInput);
       expect(result).toEqual({
-        ok: false,
         error: {
           code: "region_not_supported_error",
           message: "Unsupported payroll region.",
         },
+        ok: false,
       });
     });
 
     it("returns region_not_supported_error for unsupported regions on approve", async () => {
       const result = await approveLeaveApplicationForRegion("US", approveInput);
       expect(result).toEqual({
-        ok: false,
         error: {
           code: "region_not_supported_error",
           message: "Unsupported payroll region.",
         },
+        ok: false,
       });
     });
 
     it("returns region_not_supported_error for unsupported regions on decline", async () => {
       const result = await declineLeaveApplicationForRegion("US", declineInput);
       expect(result).toEqual({
-        ok: false,
         error: {
           code: "region_not_supported_error",
           message: "Unsupported payroll region.",
         },
+        ok: false,
       });
     });
 
@@ -201,11 +201,11 @@ describe("write dispatch", () => {
         withdrawInput
       );
       expect(result).toEqual({
-        ok: false,
         error: {
           code: "region_not_supported_error",
           message: "Unsupported payroll region.",
         },
+        ok: false,
       });
     });
   });

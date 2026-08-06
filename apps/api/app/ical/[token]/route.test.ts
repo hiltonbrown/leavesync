@@ -91,8 +91,8 @@ describe("GET /ical/:token.ics", () => {
 
   it("returns 404 when the token cannot render a feed", async () => {
     mocks.renderFeedForToken.mockResolvedValue({
-      ok: false,
       error: { code: "not_found", message: "Feed not found" },
+      ok: false,
     });
 
     const response = await getFeed();
@@ -101,20 +101,20 @@ describe("GET /ical/:token.ics", () => {
     expect(await response.text()).toBe("Not found");
   });
 
-  it.each([
-    "expired",
-    "revoked",
-  ] as const)("returns 410 when the token is %s", async (status) => {
-    mocks.renderFeedForToken.mockResolvedValue({
-      ok: true,
-      value: { body: "", etag: "", status },
-    });
+  it.each(["expired", "revoked"] as const)(
+    "returns 410 when the token is %s",
+    async (status) => {
+      mocks.renderFeedForToken.mockResolvedValue({
+        ok: true,
+        value: { body: "", etag: "", status },
+      });
 
-    const response = await getFeed("feed-token.ics", '""');
+      const response = await getFeed("feed-token.ics", '""');
 
-    expect(response.status).toBe(410);
-    expect(await response.text()).toBe("Gone");
-  });
+      expect(response.status).toBe(410);
+      expect(await response.text()).toBe("Gone");
+    }
+  );
 
   it("strips the .ics suffix before rendering the token", async () => {
     await getFeed("calendar-token.ics");

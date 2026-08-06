@@ -9,21 +9,21 @@ describe("nager-client", () => {
   it("should fetch and parse holidays successfully", async () => {
     const mockHolidays = [
       {
-        date: "2024-01-01",
-        localName: "New Year's Day",
-        name: "New Year's Day",
+        counties: null,
         countryCode: "AU",
+        date: "2024-01-01",
         fixed: true,
         global: true,
-        counties: null,
         launchYear: null,
+        localName: "New Year's Day",
+        name: "New Year's Day",
         types: ["Public"],
       },
     ];
 
     global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
       json: () => Promise.resolve(mockHolidays),
+      ok: true,
     });
 
     const result = await getPublicHolidays("AU", 2024);
@@ -60,8 +60,8 @@ describe("nager-client", () => {
     ];
 
     global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
       json: () => Promise.resolve(invalidHolidays),
+      ok: true,
     });
 
     const result = await getPublicHolidays("AU", 2024);

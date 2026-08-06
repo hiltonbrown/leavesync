@@ -91,11 +91,11 @@ export const ensureOrganisationForClerk = async (
   input: OrganisationSettingsInput
 ): Promise<TenantContext> => {
   const existingOrganisation = await database.organisation.findFirst({
+    orderBy: { created_at: "asc" },
     where: {
       archived_at: null,
       clerk_org_id: input.clerkOrgId,
     },
-    orderBy: { created_at: "asc" },
   });
 
   if (!existingOrganisation) {
@@ -118,7 +118,6 @@ export const ensureOrganisationForClerk = async (
 
   const organisation = existingOrganisation
     ? await database.organisation.update({
-        where: { id: existingOrganisation.id },
         data: {
           country_code: input.countryCode,
           fiscal_year_start: input.fiscalYearStart ?? 7,
@@ -128,6 +127,7 @@ export const ensureOrganisationForClerk = async (
           timezone: input.timezone ?? "UTC",
           working_hours_per_day: input.workingHoursPerDay ?? 7.6,
         },
+        where: { id: existingOrganisation.id },
       })
     : await database.organisation.create({
         data: {
@@ -172,12 +172,12 @@ export const ensureCurrentUserPerson = async (
 
   try {
     const existingLinkedPerson = await database.person.findFirst({
+      include: { location: true, team: true },
       where: {
         ...scoped,
         archived_at: null,
         clerk_user_id: input.clerkUserId,
       },
-      include: { location: true, team: true },
     });
 
     if (existingLinkedPerson) {
@@ -186,35 +186,35 @@ export const ensureCurrentUserPerson = async (
 
     if (profile.email) {
       const sameEmailPeople = await database.person.findMany({
+        include: { location: true, team: true },
+        orderBy: [{ created_at: "asc" }, { id: "asc" }],
         where: {
           ...scoped,
           archived_at: null,
           clerk_user_id: null,
           email: { equals: profile.email, mode: "insensitive" },
         },
-        include: { location: true, team: true },
-        orderBy: [{ created_at: "asc" }, { id: "asc" }],
       });
 
       if (sameEmailPeople.length > 1) {
         return {
-          ok: false,
           error: appError(
             "conflict",
             "Multiple people match this Clerk user's email. Review the people directory before opening plans."
           ),
+          ok: false,
         };
       }
 
-      const sameEmailPerson = sameEmailPeople[0];
+      const [sameEmailPerson] = sameEmailPeople;
       if (sameEmailPerson) {
         const person = await database.person.update({
-          where: { id: sameEmailPerson.id },
           data: {
             ...safeProfilePatch,
             clerk_user_id: input.clerkUserId,
           },
           include: { location: true, team: true },
+          where: { id: sameEmailPerson.id },
         });
 
         return { ok: true, value: mapPerson(person) };
@@ -227,15 +227,15 @@ export const ensureCurrentUserPerson = async (
       "seats"
     );
     if (!entitlement.ok) {
-      return { ok: false, error: entitlement.error };
+      return { error: entitlement.error, ok: false };
     }
     if (!entitlement.value.allowed) {
       return {
-        ok: false,
         error: appError(
           "bad_request",
           "Your current plan has reached its active people limit."
         ),
+        ok: false,
       };
     }
 
@@ -259,11 +259,11 @@ export const ensureCurrentUserPerson = async (
     return { ok: true, value: mapPerson(person) };
   } catch {
     return {
-      ok: false,
       error: appError(
         "internal",
         "Failed to ensure the current user has a person profile."
       ),
+      ok: false,
     };
   }
 };
@@ -272,12 +272,12 @@ export const listPersonViews = async (
   tenant: TenantContext
 ): Promise<PersonView[]> => {
   const people = await database.person.findMany({
+    include: { location: true, team: true },
+    orderBy: [{ display_name: "asc" }, { first_name: "asc" }],
     where: {
       ...scopedQuery(tenant.clerkOrgId, tenant.organisationId),
       archived_at: null,
     },
-    include: { location: true, team: true },
-    orderBy: [{ display_name: "asc" }, { first_name: "asc" }],
   });
 
   return people.map(mapPerson);

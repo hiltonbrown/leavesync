@@ -87,11 +87,11 @@ async function mirrorSubscription(
     return;
   }
   await inngest.send({
-    name: "recount-usage",
     data: {
       clerkOrgId,
       organisationId,
     },
+    name: "recount-usage",
   });
 }
 
@@ -137,7 +137,7 @@ async function handleInvoiceEvent(event: StripeEventLike) {
     });
     return;
   }
-  const subscription = parsed.data.subscription;
+  const { subscription } = parsed.data;
   if (subscription && typeof subscription !== "string") {
     await mirrorSubscription(
       subscription,

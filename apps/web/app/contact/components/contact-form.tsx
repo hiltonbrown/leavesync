@@ -15,34 +15,34 @@ import { CalendarIcon, Check, MoveRight } from "lucide-react";
 import { useState } from "react";
 
 const contactCopy = {
-  title: "Get in touch",
-  description:
-    "Talk to us about getting your small business onto Team Calendar, connected to your Xero Payroll file. Tell us your team size and we will help you set up.",
   benefits: [
     {
-      title: "Quick setup",
       description:
         "Connecting your Xero account takes minutes. We will walk you through the OAuth flow and first sync.",
+      title: "Quick setup",
     },
     {
-      title: "Xero expertise",
       description:
         "Our team understands Xero Payroll Australia. We can help with region-specific leave configurations.",
+      title: "Xero expertise",
     },
     {
-      title: "Dedicated support",
       description:
         "If something does not look right in your sync or feed, we will investigate and resolve it with you.",
+      title: "Dedicated support",
     },
   ],
+  description:
+    "Talk to us about getting your small business onto Team Calendar, connected to your Xero Payroll file. Tell us your team size and we will help you set up.",
   form: {
-    title: "Book a call",
+    cta: "Book your setup call",
     date: "Preferred date",
     firstName: "First name",
     lastName: "Last name",
     resume: "Upload file",
-    cta: "Book your setup call",
+    title: "Book a call",
   },
+  title: "Get in touch",
 };
 
 export const ContactForm = () => {

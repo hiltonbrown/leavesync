@@ -92,9 +92,9 @@ describe("support GitHub issue route", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({
-      ok: true,
       issueNumber: 123,
       issueUrl: "https://github.com/hiltonbrown/team-calendar/issues/123",
+      ok: true,
     });
 
     expect(mocks.getOrganisationById).toHaveBeenCalledWith(
@@ -102,6 +102,12 @@ describe("support GitHub issue route", () => {
       "00000000-0000-4000-8000-000000000001"
     );
     expect(mocks.createSupportGitHubIssue).toHaveBeenCalledWith({
+      clerk_org_id: "org_clerk_123",
+      current_route:
+        "/support?org=00000000-0000-4000-8000-000000000001&tab=form",
+      environment: "test",
+      organisation_id: "00000000-0000-4000-8000-000000000001",
+      organisation_name: "Team Calendar Dev Organisation",
       payload: {
         category: "support",
         message: "The calendar is missing one leave entry.",
@@ -110,12 +116,6 @@ describe("support GitHub issue route", () => {
         priority: "normal",
         subject: "Missing leave entry",
       },
-      clerk_org_id: "org_clerk_123",
-      organisation_id: "00000000-0000-4000-8000-000000000001",
-      organisation_name: "Team Calendar Dev Organisation",
-      current_route:
-        "/support?org=00000000-0000-4000-8000-000000000001&tab=form",
-      environment: "test",
       user_email: "alex@example.com",
       user_id: "user_123",
       user_name: "Alex Example",
@@ -153,9 +153,9 @@ describe("support GitHub issue route", () => {
 
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toEqual({
-      ok: false,
       code: "validation_error",
       message: "Invalid URL",
+      ok: false,
     });
     expect(mocks.createSupportGitHubIssue).not.toHaveBeenCalled();
   });
@@ -181,9 +181,9 @@ describe("support GitHub issue route", () => {
 
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toEqual({
-      ok: false,
       code: "unauthorised",
       message: "Not authenticated",
+      ok: false,
     });
   });
 
@@ -208,9 +208,9 @@ describe("support GitHub issue route", () => {
 
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toEqual({
-      ok: false,
       code: "unauthorised",
       message: "User not found",
+      ok: false,
     });
   });
 
@@ -233,9 +233,9 @@ describe("support GitHub issue route", () => {
 
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toEqual({
-      ok: false,
       code: "forbidden",
       message: "Invalid organisation",
+      ok: false,
     });
     expect(mocks.getOrganisationById).not.toHaveBeenCalled();
     expect(mocks.createSupportGitHubIssue).not.toHaveBeenCalled();
@@ -243,8 +243,8 @@ describe("support GitHub issue route", () => {
 
   it("returns forbidden when the organisation context is not valid for the Clerk org", async () => {
     mocks.getOrganisationById.mockResolvedValue({
-      ok: false,
       error: { code: "not_found", message: "Organisation not found" },
+      ok: false,
     });
 
     const response = await POST(
@@ -266,17 +266,17 @@ describe("support GitHub issue route", () => {
 
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toEqual({
-      ok: false,
       code: "forbidden",
       message: "Invalid organisation",
+      ok: false,
     });
     expect(mocks.createSupportGitHubIssue).not.toHaveBeenCalled();
   });
 
   it("returns an integration error when organisation lookup fails internally", async () => {
     mocks.getOrganisationById.mockResolvedValue({
-      ok: false,
       error: { code: "internal", message: "Failed to get organisation" },
+      ok: false,
     });
 
     const response = await POST(
@@ -298,9 +298,9 @@ describe("support GitHub issue route", () => {
 
     expect(response.status).toBe(500);
     await expect(response.json()).resolves.toEqual({
-      ok: false,
       code: "integration_error",
       message: "Failed to resolve organisation context.",
+      ok: false,
     });
     expect(mocks.logError).toHaveBeenCalledWith(
       "Failed to resolve support organisation context",
@@ -313,11 +313,11 @@ describe("support GitHub issue route", () => {
 
   it("maps integration service failures to a 500 response", async () => {
     mocks.createSupportGitHubIssue.mockResolvedValue({
-      ok: false,
       error: {
         code: "integration_error",
         message: "GitHub issue creation failed.",
       },
+      ok: false,
     });
 
     const response = await POST(
@@ -338,9 +338,9 @@ describe("support GitHub issue route", () => {
 
     expect(response.status).toBe(500);
     await expect(response.json()).resolves.toEqual({
-      ok: false,
       code: "integration_error",
       message: "GitHub issue creation failed.",
+      ok: false,
     });
     expect(mocks.persistSupportSubmissionAudit).not.toHaveBeenCalled();
   });
@@ -365,6 +365,11 @@ describe("support GitHub issue route", () => {
     expect(response.status).toBe(200);
     expect(mocks.getOrganisationById).not.toHaveBeenCalled();
     expect(mocks.createSupportGitHubIssue).toHaveBeenCalledWith({
+      clerk_org_id: "org_clerk_123",
+      current_route: "/support",
+      environment: "test",
+      organisation_id: undefined,
+      organisation_name: undefined,
       payload: {
         category: "feedback",
         message: "This flow could be clearer.",
@@ -372,11 +377,6 @@ describe("support GitHub issue route", () => {
         priority: "high",
         subject: "Clarify save feedback",
       },
-      clerk_org_id: "org_clerk_123",
-      organisation_id: undefined,
-      organisation_name: undefined,
-      current_route: "/support",
-      environment: "test",
       user_email: "alex@example.com",
       user_id: "user_123",
       user_name: "Alex Example",
@@ -386,11 +386,11 @@ describe("support GitHub issue route", () => {
 
   it("returns success when audit persistence fails after the GitHub issue is created", async () => {
     mocks.persistSupportSubmissionAudit.mockResolvedValue({
-      ok: false,
       error: {
         code: "internal",
         message: "Failed to persist the support audit event.",
       },
+      ok: false,
     });
 
     const response = await POST(
@@ -412,9 +412,9 @@ describe("support GitHub issue route", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({
-      ok: true,
       issueNumber: 123,
       issueUrl: "https://github.com/hiltonbrown/team-calendar/issues/123",
+      ok: true,
     });
     expect(mocks.logError).toHaveBeenCalledWith(
       "Failed to persist support submission audit event",

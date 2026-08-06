@@ -65,11 +65,11 @@ export async function getBillingSummary(
     parsed.data.actingRole !== "admin"
   ) {
     return {
-      ok: false,
       error: {
         code: "not_authorised",
         message: "Billing is managed by the account owner.",
       },
+      ok: false,
     };
   }
 
@@ -100,11 +100,11 @@ export async function getBillingSummaryForDashboard(
     parsed.data.actingRole !== "admin"
   ) {
     return {
-      ok: false,
       error: {
         code: "not_authorised",
         message: "Billing is managed by the account owner.",
       },
+      ok: false,
     };
   }
 
@@ -188,5 +188,5 @@ function labelForMetric(value: string): string {
 }
 
 function unknownError(message: string): Result<never, BillingServiceError> {
-  return { ok: false, error: { code: "unknown_error", message } };
+  return { error: { code: "unknown_error", message }, ok: false };
 }

@@ -5,8 +5,8 @@ vi.mock("@repo/database", () => ({ database: {} }));
 
 const mocks = vi.hoisted(() => ({
   count: vi.fn(),
-  findMany: vi.fn(),
   findFirst: vi.fn(),
+  findMany: vi.fn(),
   personFindMany: vi.fn(),
   updateMany: vi.fn(),
 }));
@@ -14,8 +14,8 @@ const mocks = vi.hoisted(() => ({
 const client = {
   notification: {
     count: mocks.count,
-    findMany: mocks.findMany,
     findFirst: mocks.findFirst,
+    findMany: mocks.findMany,
     updateMany: mocks.updateMany,
   },
   person: {
@@ -38,17 +38,17 @@ const input = {
 };
 
 const row = {
-  id: "00000000-0000-4000-8000-000000000101",
-  type: "leave_submitted",
-  title: "Leave submitted for approval",
-  body: "Ava submitted leave.",
   action_url: "/leave-approvals?recordId=1",
-  object_type: "availability_record",
-  object_id: "00000000-0000-4000-8000-000000000099",
   actor_user_id: "manager_1",
-  recipient_user_id: "user_1",
+  body: "Ava submitted leave.",
   created_at: new Date("2026-04-18T00:00:00.000Z"),
+  id: "00000000-0000-4000-8000-000000000101",
+  object_id: "00000000-0000-4000-8000-000000000099",
+  object_type: "availability_record",
   read_at: null,
+  recipient_user_id: "user_1",
+  title: "Leave submitted for approval",
+  type: "leave_submitted",
 };
 
 describe("notification-service", () => {

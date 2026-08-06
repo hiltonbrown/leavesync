@@ -63,11 +63,11 @@ describe("resolveDateRange", () => {
     });
 
     expect(result).toEqual({
-      ok: false,
       error: {
         code: "invalid_date_range",
         message: "Custom ranges need a start and end date.",
       },
+      ok: false,
     });
   });
 

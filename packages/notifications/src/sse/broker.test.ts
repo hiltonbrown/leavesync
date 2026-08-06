@@ -11,8 +11,8 @@ import {
 } from "./redis-stream";
 
 const event = {
-  type: "notification.all_read" as const,
   payload: { unreadCount: 0 as const },
+  type: "notification.all_read" as const,
 };
 
 describe("notification SSE broker", () => {

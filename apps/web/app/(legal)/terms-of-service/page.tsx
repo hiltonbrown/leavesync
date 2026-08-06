@@ -11,7 +11,7 @@ import {
 const title = "Terms of Service";
 const description = `The terms that govern your use of ${brandNameDisplay}.`;
 
-export const metadata: Metadata = createMetadata({ title, description });
+export const metadata: Metadata = createMetadata({ description, title });
 
 const TermsOfServicePage = () => (
   <div className="fmkt-page marketing-simple marketing-legal">

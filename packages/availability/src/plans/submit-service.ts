@@ -190,21 +190,21 @@ export async function withdrawSubmission(
 
     const xeroLeaveApplicationId = record.source_remote_id;
     const response = await externalWritePort.withdrawLeaveApplication({
-      employeeId: prepared.value.xeroEmployeeId,
-      remoteId: xeroLeaveApplicationId,
       clerkOrgId: parsed.data.clerkOrgId,
+      employeeId: prepared.value.xeroEmployeeId,
       organisationId: parsed.data.organisationId,
+      remoteId: xeroLeaveApplicationId,
     });
 
     if (!response.ok) {
       return await persistXeroFailure({
         actionUrl: `/plans?recordId=${record.id}`,
         auditAction: "availability_records.withdrawal_failed",
+        error: response.error,
         expectedStatus: record.approval_status,
+        failedAction: "withdraw",
         input: parsed.data,
         record,
-        error: response.error,
-        failedAction: "withdraw",
       });
     }
 
@@ -287,11 +287,11 @@ async function performSubmission(
     }
     if (!isXeroLeaveType(record.record_type)) {
       return {
-        ok: false,
         error: {
           code: "not_a_leave_type",
           message: "Only Xero leave types can be submitted to Xero.",
         },
+        ok: false,
       };
     }
 
@@ -305,25 +305,25 @@ async function performSubmission(
     }
 
     const submission = await externalWritePort.submitLeaveApplication({
+      clerkOrgId: parsed.data.clerkOrgId,
+      employeeId: prepared.value.xeroEmployeeId,
       endsAt: record.ends_at,
+      leaveTypeId: prepared.value.xeroLeaveTypeId,
+      organisationId: parsed.data.organisationId,
       startsAt: record.starts_at,
       title: record.title ?? undefined,
       units: prepared.value.units,
-      employeeId: prepared.value.xeroEmployeeId,
-      leaveTypeId: prepared.value.xeroLeaveTypeId,
-      clerkOrgId: parsed.data.clerkOrgId,
-      organisationId: parsed.data.organisationId,
     });
 
     if (!submission.ok) {
       return await persistXeroFailure({
         actionUrl: `/plans?recordId=${record.id}`,
         auditAction: options.failureAuditAction,
+        error: submission.error,
         expectedStatus: options.validStatus,
+        failedAction: "submit",
         input: parsed.data,
         record,
-        error: submission.error,
-        failedAction: "submit",
       });
     }
 
@@ -393,29 +393,29 @@ async function prepareXeroWrite(
   const hasXero = await hasActiveXeroConnection(input);
   if (!hasXero) {
     return {
-      ok: false,
       error: {
         code: "xero_not_connected",
         message:
           "Xero is not connected. This record is already approved locally and will appear on the calendar. Ask an administrator to connect Xero to enable submission for approval.",
       },
+      ok: false,
     };
   }
 
   const employee = await externalWritePort.resolveEmployeeId({
-    personId: record.person_id,
     clerkOrgId: input.clerkOrgId,
     organisationId: input.organisationId,
+    personId: record.person_id,
   });
   if (!employee.ok) {
     return resolutionBlocked(employee.error);
   }
 
   const leaveType = await externalWritePort.resolveLeaveTypeId({
-    personId: record.person_id,
-    recordType: record.record_type,
     clerkOrgId: input.clerkOrgId,
     organisationId: input.organisationId,
+    personId: record.person_id,
+    recordType: record.record_type,
   });
   if (!leaveType.ok) {
     return resolutionBlocked(leaveType.error);
@@ -567,12 +567,12 @@ async function loadAndAuthorise(
   const [record, actingPerson] = await Promise.all([
     loadScopedRecord(input),
     database.person.findFirst({
+      select: { id: true },
       where: {
         ...scoped(input),
         archived_at: null,
         clerk_user_id: input.actingUserId,
       },
-      select: { id: true },
     }),
   ]);
 
@@ -591,11 +591,11 @@ async function loadAndAuthorise(
 
   if (!isAllowed) {
     return {
-      ok: false,
       error: {
         code: "not_authorised",
         message: "You do not have permission to manage this record.",
       },
+      ok: false,
     };
   }
 
@@ -617,14 +617,14 @@ async function notifyManager(
     {
       actionUrl: options.actionUrl,
       actorUserId: input.actingUserId,
-      clerkOrgId: input.clerkOrgId,
-      organisationId: input.organisationId,
-      objectId: record.id,
-      objectType: "availability_record",
       body:
         type === "leave_submitted"
           ? `${record.person.first_name} ${record.person.last_name} submitted leave for approval.`
           : `${record.person.first_name} ${record.person.last_name} withdrew a submitted leave request.`,
+      clerkOrgId: input.clerkOrgId,
+      objectId: record.id,
+      objectType: "availability_record",
+      organisationId: input.organisationId,
       recipientPersonId: record.person.manager?.id ?? null,
       recipientUserId,
       title:
@@ -690,11 +690,11 @@ async function notifyOwnerAndManager(
       {
         actionUrl: options.actionUrl,
         actorUserId: input.actingUserId,
+        body: "Xero could not sync this leave action. Review the record and try again.",
         clerkOrgId: input.clerkOrgId,
-        organisationId: input.organisationId,
         objectId: record.id,
         objectType: "availability_record",
-        body: "Xero could not sync this leave action. Review the record and try again.",
+        organisationId: input.organisationId,
         recipientPersonId: recipient.personId,
         recipientUserId: recipient.userId,
         title: "Xero sync failed",
@@ -735,12 +735,12 @@ function resolutionBlocked(
   resolutionError: ProviderResolutionError
 ): Result<never, SubmitServiceError> {
   return {
-    ok: false,
     error: {
       code: "submission_blocked_resolution",
       message: resolutionError.message,
       resolutionError,
     },
+    ok: false,
   };
 }
 
@@ -760,31 +760,31 @@ function invalidState(
       "Only submitted leave records can be withdrawn.",
   };
   return {
-    ok: false,
     error: {
       code,
       message: messages[code],
     },
+    ok: false,
   };
 }
 
 function recordNotFound(): Result<never, SubmitServiceError> {
   return {
-    ok: false,
     error: {
       code: "record_not_found",
       message: "Availability record not found.",
     },
+    ok: false,
   };
 }
 
 function unknownError(message: string): Result<never, SubmitServiceError> {
   return {
-    ok: false,
     error: {
       code: "unknown_error",
       message,
     },
+    ok: false,
   };
 }
 

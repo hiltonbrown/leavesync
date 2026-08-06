@@ -6,8 +6,8 @@ import Link from "next/link";
 import { getAllPosts } from "@/src/lib/blog";
 
 const blogMeta = {
-  title: "Blog",
   description: "Updates, guides, and articles from the Team Calendar team.",
+  title: "Blog",
 };
 
 export const generateMetadata = (): Metadata => createMetadata(blogMeta);
@@ -16,8 +16,8 @@ const BlogIndex = async () => {
   const posts = await getAllPosts();
 
   const jsonLd: WithContext<Blog> = {
-    "@type": "Blog",
     "@context": "https://schema.org",
+    "@type": "Blog",
   };
 
   return (
@@ -68,12 +68,12 @@ const BlogIndex = async () => {
                           }
                         )}
                       </time>
-                      {post.frontmatter.author && (
+                      {post.frontmatter.author ? (
                         <>
                           <span>&middot;</span>
                           <span>{post.frontmatter.author}</span>
                         </>
-                      )}
+                      ) : null}
                     </div>
                     <h2>{post.frontmatter.title}</h2>
                     <p>{post.frontmatter.description}</p>

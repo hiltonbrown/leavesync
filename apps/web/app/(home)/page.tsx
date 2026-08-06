@@ -9,9 +9,9 @@ import { ProblemSection } from "./components/problem-section";
 import { TeamTimelineSection } from "./components/team-timeline-section";
 
 export const metadata: Metadata = createMetadata({
-  title: "Team Calendar: Simple leave requests, clear team calendars.",
   description:
     "Team Calendar gives employees one easy place to request leave and working patterns, then keeps Xero Payroll and shared calendars current automatically.",
+  title: "Team Calendar: Simple leave requests, clear team calendars.",
 });
 
 // Trigger recompilation after CSS syntax fixes

@@ -218,21 +218,21 @@ export function AlternativeContactsPanel({
             People to contact when this person is unavailable.
           </p>
         </div>
-        {canManage && (
+        {canManage ? (
           <Button onClick={startAdd} size="sm" type="button">
             <PlusIcon className="mr-2 size-4" />
             Add contact
           </Button>
-        )}
+        ) : null}
       </div>
 
-      {error && (
+      {error ? (
         <div className="rounded-2xl bg-destructive/10 p-3 text-destructive text-sm">
           {error}
         </div>
-      )}
+      ) : null}
 
-      {formOpen && canManage && (
+      {formOpen && canManage ? (
         <div className="rounded-2xl bg-surface-container-high p-4">
           <div className="grid gap-3 md:grid-cols-2">
             <Field label="Name">
@@ -315,12 +315,12 @@ export function AlternativeContactsPanel({
             </Button>
           </div>
         </div>
-      )}
+      ) : null}
 
       {contacts.length === 0 ? (
         <div className="rounded-2xl bg-surface-container-high p-6 text-muted-foreground text-sm">
           No alternative contacts.
-          {canManage && (
+          {canManage ? (
             <button
               className="ml-2 font-medium text-primary"
               onClick={startAdd}
@@ -328,10 +328,11 @@ export function AlternativeContactsPanel({
             >
               Add contact
             </button>
-          )}
+          ) : null}
         </div>
       ) : (
         <ul className="flex flex-col gap-3">
+          {/* biome-ignore lint/complexity/noExcessiveCognitiveComplexity: This row renders drag-and-drop reordering, inline actions and a delete confirmation together; the explicit conditional rendering added by noLeakedRender pushed it just over the threshold. */}
           {contacts.map((contact, index) => (
             // biome-ignore lint/a11y/noNoninteractiveElementInteractions: HTML drag/drop needs a stable drop target around the contact row.
             <li
@@ -350,27 +351,27 @@ export function AlternativeContactsPanel({
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    {canManage && (
+                    {canManage ? (
                       <GripVerticalIcon className="size-4 text-muted-foreground" />
-                    )}
+                    ) : null}
                     <p className="font-medium text-sm">{contact.name}</p>
                   </div>
-                  {contact.role && (
+                  {contact.role ? (
                     <p className="text-muted-foreground text-xs">
                       {contact.role}
                     </p>
-                  )}
+                  ) : null}
                   <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground text-xs">
-                    {contact.email && <span>{contact.email}</span>}
-                    {contact.phone && <span>{contact.phone}</span>}
+                    {contact.email ? <span>{contact.email}</span> : null}
+                    {contact.phone ? <span>{contact.phone}</span> : null}
                   </div>
-                  {contact.notes && (
+                  {contact.notes ? (
                     <p className="mt-2 text-muted-foreground text-sm">
                       {contact.notes}
                     </p>
-                  )}
+                  ) : null}
                 </div>
-                {canManage && (
+                {canManage ? (
                   <div className="flex shrink-0 items-center gap-1">
                     <Button
                       aria-label={`Move ${contact.name} up`}
@@ -413,7 +414,7 @@ export function AlternativeContactsPanel({
                       <Trash2Icon className="size-4" />
                     </Button>
                   </div>
-                )}
+                ) : null}
               </div>
               {deleteTarget?.id === contact.id && (
                 <div className="mt-3 rounded-2xl bg-destructive/10 p-3 text-sm">

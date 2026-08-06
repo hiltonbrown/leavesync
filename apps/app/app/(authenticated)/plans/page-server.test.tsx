@@ -126,11 +126,11 @@ describe("Plans page server data", () => {
 
   it("does not render the generic fetch error when person linking conflicts", async () => {
     mocks.ensureCurrentUserPerson.mockResolvedValue({
-      ok: false,
       error: {
         code: "conflict",
         message: "Multiple people match this Clerk user's email.",
       },
+      ok: false,
     });
 
     render(await PlansPage({ searchParams: Promise.resolve({}) }));

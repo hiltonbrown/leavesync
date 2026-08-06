@@ -67,9 +67,9 @@ interface MembersClientProps {
 }
 
 const ROLE_OPTIONS: { value: OrgRole; label: string }[] = [
-  { value: "org:admin", label: "Admin" },
-  { value: "org:manager", label: "Manager" },
-  { value: "org:viewer", label: "Viewer" },
+  { label: "Admin", value: "org:admin" },
+  { label: "Manager", value: "org:manager" },
+  { label: "Viewer", value: "org:viewer" },
 ];
 
 const getInitials = (

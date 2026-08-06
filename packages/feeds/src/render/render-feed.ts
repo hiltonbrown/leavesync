@@ -50,8 +50,8 @@ export async function renderFeedBody(input: {
   });
   if (!projected.ok) {
     return {
-      ok: false,
       error: { code: "not_found", message: "Feed not found" },
+      ok: false,
     };
   }
 
@@ -84,13 +84,12 @@ export async function cachedEtagForToken(
   token: string
 ): Promise<null | string> {
   const feedToken = await database.feedToken.findUnique({
-    where: { token_hash: hashFeedToken(token) },
     include: { feed: true },
+    where: { token_hash: hashFeedToken(token) },
   });
 
   if (
-    !feedToken ||
-    feedToken.status !== "active" ||
+    feedToken?.status !== "active" ||
     (feedToken.expires_at && feedToken.expires_at < new Date()) ||
     feedToken.feed.status !== "active"
   ) {
@@ -113,14 +112,14 @@ export async function renderFeedForToken(
   token: string
 ): Promise<Result<RenderedFeed>> {
   const feedToken = await database.feedToken.findUnique({
-    where: { token_hash: hashFeedToken(token) },
     include: { feed: true },
+    where: { token_hash: hashFeedToken(token) },
   });
 
   if (!feedToken) {
     return {
-      ok: false,
       error: { code: "not_found", message: "Feed not found" },
+      ok: false,
     };
   }
 
@@ -133,8 +132,8 @@ export async function renderFeedForToken(
 
   if (feedToken.expires_at && feedToken.expires_at < new Date()) {
     await database.feedToken.update({
-      where: { id: feedToken.id },
       data: { status: "expired" },
+      where: { id: feedToken.id },
     });
     return { ok: true, value: { body: "", etag: "", status: "expired" } };
   }
@@ -165,8 +164,8 @@ export async function renderFeedForToken(
   });
   if (!rendered.ok) {
     return {
-      ok: false,
       error: { code: "not_found", message: "Feed not found" },
+      ok: false,
     };
   }
   const { body, etag } = rendered.value;
@@ -181,8 +180,8 @@ export async function renderFeedForToken(
       // Scope the write by clerk_org_id and organisation_id as well as the unique id,
       // per the tenant-isolation rule that every tenant-data query filters by clerk_org_id.
       where: {
-        id: feedToken.feed_id,
         clerk_org_id: feedToken.clerk_org_id,
+        id: feedToken.feed_id,
         organisation_id: feedToken.organisation_id,
       },
     }),
@@ -217,8 +216,8 @@ function markTokenUsed(token: {
     data: { last_used_at: new Date() },
     // Scope the write by clerk_org_id and organisation_id as well as the unique id.
     where: {
-      id: token.id,
       clerk_org_id: token.clerk_org_id,
+      id: token.id,
       organisation_id: token.organisation_id,
     },
   });

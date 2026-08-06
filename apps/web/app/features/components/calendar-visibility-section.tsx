@@ -34,39 +34,39 @@ interface BigCalRow {
 
 const bigCalRows: BigCalRow[] = [
   {
-    tone: "sage",
+    barClass: "fmkt-bigcal__bar--leave",
     initial: "S",
     label: "Annual leave",
-    barClass: "fmkt-bigcal__bar--leave",
     span: [0, 5],
+    tone: "sage",
   },
   {
-    tone: "mauve",
+    barClass: "fmkt-bigcal__bar--wfh",
     initial: "A",
     label: "Working from home",
-    barClass: "fmkt-bigcal__bar--wfh",
     span: [2, 5],
+    tone: "mauve",
   },
   {
-    tone: "cream",
+    barClass: "fmkt-bigcal__bar--sick",
     initial: "J",
     label: "Sick leave",
-    barClass: "fmkt-bigcal__bar--sick",
     span: [0, 2],
+    tone: "cream",
   },
   {
-    tone: "ink",
+    barClass: "fmkt-bigcal__bar--training",
     initial: "R",
     label: "Training",
-    barClass: "fmkt-bigcal__bar--training",
     span: [3, 4],
+    tone: "ink",
   },
   {
-    tone: "sky",
+    barClass: "fmkt-bigcal__bar--holiday",
     initial: "M",
     label: "Public holiday",
-    barClass: "fmkt-bigcal__bar--holiday",
     span: [0, 1],
+    tone: "sky",
   },
 ];
 
@@ -139,11 +139,11 @@ const BigCalendarMock = () => (
                   className={`fmkt-bigcal__cell ${inSpan ? `${row.barClass} fmkt-bigcal__cell--filled` : ""} ${isFirst && inSpan ? "fmkt-bigcal__cell--start" : ""}`}
                   key={day}
                 >
-                  {isFirst && inSpan && (
+                  {isFirst && inSpan ? (
                     <span className="fmkt-bigcal__event-label">
                       {row.label}
                     </span>
-                  )}
+                  ) : null}
                 </div>
               );
             })}

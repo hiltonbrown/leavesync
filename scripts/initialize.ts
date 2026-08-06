@@ -49,7 +49,7 @@ const cloneNextForge = (
 
 const deleteInternalContent = async () => {
   for (const folder of internalContentDirs) {
-    await rm(folder, { recursive: true, force: true });
+    await rm(folder, { force: true, recursive: true });
   }
 
   for (const file of internalContentFiles) {
@@ -59,7 +59,7 @@ const deleteInternalContent = async () => {
 
 const installDependencies = async (packageManager: PackageManagerName) => {
   await nypmInstallDependencies({
-    packageManager: { name: packageManager, command: packageManager },
+    packageManager: { command: packageManager, name: packageManager },
     silent: true,
   });
 };
@@ -183,8 +183,8 @@ const getName = async () => {
   const value = await text({
     message: "What is your project named?",
     placeholder: "my-app",
-    validate(value: string) {
-      if (value.length === 0) {
+    validate(input: string) {
+      if (input.length === 0) {
         return "Please enter a project name.";
       }
     },
@@ -206,12 +206,12 @@ const getPackageManager = async (): Promise<PackageManagerName> => {
   }
 
   const value = await select({
+    initialValue: "bun" as PackageManagerName,
     message: "Which package manager would you like to use?",
     options: supportedPackageManagers.map((choice) => ({
-      value: choice,
       label: choice,
+      value: choice,
     })),
-    initialValue: "bun" as PackageManagerName,
   });
 
   if (isCancel(value)) {

@@ -90,10 +90,10 @@ describe("notification actions", () => {
     });
     await expect(
       updatePreferenceAction({
-        organisationId,
-        notificationType: "leave_submitted",
-        inAppEnabled: true,
         emailEnabled: false,
+        inAppEnabled: true,
+        notificationType: "leave_submitted",
+        organisationId,
       })
     ).resolves.toMatchObject({ ok: true });
   });

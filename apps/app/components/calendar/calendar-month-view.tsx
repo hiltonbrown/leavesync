@@ -30,12 +30,12 @@ export function CalendarMonthView({
 
   return (
     <section className="space-y-3">
-      {data.truncated && (
+      {data.truncated ? (
         <div className="rounded-2xl bg-muted p-4 text-muted-foreground text-sm">
           Showing {data.people.length} of {data.totalPeopleInScope} people.
           Narrow the scope or filters to see everyone.
         </div>
-      )}
+      ) : null}
 
       <section
         aria-label="Month calendar"

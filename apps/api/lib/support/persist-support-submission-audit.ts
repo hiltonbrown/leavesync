@@ -56,8 +56,8 @@ export async function persistSupportSubmissionAudit(
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to persist the support audit event."),
+      ok: false,
     };
   }
 }

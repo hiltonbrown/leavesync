@@ -152,6 +152,10 @@ const mocks = vi.hoisted(() => {
         return record;
       }
     ),
+    logError: vi.fn(),
+    materialiseAvailabilityPublication: vi.fn(() =>
+      Promise.resolve({ ok: true, value: undefined })
+    ),
     people,
     personFindFirst: vi.fn(({ where }: { where: ScopedWhere }) => {
       const person = people.find((entry) => entry.id === where.id);
@@ -161,10 +165,6 @@ const mocks = vi.hoisted(() => {
 
       return person;
     }),
-    materialiseAvailabilityPublication: vi.fn(() =>
-      Promise.resolve({ ok: true, value: undefined })
-    ),
-    logError: vi.fn(),
     records,
     reset: () => {
       people.splice(0, people.length);

@@ -46,24 +46,24 @@ export function CalendarEventPopover({
         <dl className="mt-4 grid gap-3 text-sm">
           <Detail label="Status" value={statusLabel(event.approvalStatus)} />
           <Detail label="When" value={formatEventDateRange(event)} />
-          {event.contactabilityStatus && (
+          {event.contactabilityStatus ? (
             <Detail
               label="Contactability"
               value={labelForValue(event.contactabilityStatus)}
             />
-          )}
-          {event.notesInternal && (
+          ) : null}
+          {event.notesInternal ? (
             <Detail label="Notes" value={event.notesInternal} />
-          )}
+          ) : null}
         </dl>
 
-        {event.xeroWriteError && (
+        {event.xeroWriteError ? (
           <div
             className={`mt-4 rounded-2xl p-3 text-sm ${statusToneClasses.failed}`}
           >
             {event.xeroWriteError}
           </div>
-        )}
+        ) : null}
 
         <div className="mt-4 flex justify-end">
           {event.isEditableByActor ? (

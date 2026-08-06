@@ -4,26 +4,26 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = createMetadata({
-  title: "Customers",
   description:
     "The Xero Payroll small businesses Team Calendar is built for, where leave admin has outgrown texts, forms and a shared calendar.",
+  title: "Customers",
 });
 
 const customerTypes = [
   {
+    copy: "5 to 30 staff, where one person carries the leave admin and every missed notification lands on them.",
     icon: Building2,
     title: "Small teams on Xero Payroll",
-    copy: "5 to 30 staff, where one person carries the leave admin and every missed notification lands on them.",
   },
   {
+    copy: "People already in Outlook, Google Calendar or Apple Calendar, who will not adopt a separate planner to check.",
     icon: CalendarDays,
     title: "Teams that live in calendars",
-    copy: "People already in Outlook, Google Calendar or Apple Calendar, who will not adopt a separate planner to check.",
   },
   {
+    copy: "Employees on payroll plus contractors, directors and advisors whose availability still matters, even when they are not in a pay run.",
     icon: UserRoundCheck,
     title: "Mixed teams",
-    copy: "Employees on payroll plus contractors, directors and advisors whose availability still matters, even when they are not in a pay run.",
   },
 ];
 

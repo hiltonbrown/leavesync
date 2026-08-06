@@ -13,8 +13,37 @@ export const securityHeaders = [
 ];
 
 export const config: NextConfig = {
-  turbopack: {
-    root: path.resolve(import.meta.dirname, "../../"),
+  // biome-ignore lint/suspicious/useAwait: headers is async
+  async headers() {
+    return [{ headers: securityHeaders, source: "/(.*)" }];
+  },
+
+  images: {
+    formats: ["image/avif", "image/webp"],
+    remotePatterns: [
+      {
+        hostname: "img.clerk.com",
+        protocol: "https",
+      },
+    ],
+  },
+
+  // biome-ignore lint/suspicious/useAwait: rewrites is async
+  async rewrites() {
+    return [
+      {
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+        source: "/ingest/static/:path*",
+      },
+      {
+        destination: "https://us.i.posthog.com/:path*",
+        source: "/ingest/:path*",
+      },
+      {
+        destination: "https://us.i.posthog.com/decide",
+        source: "/ingest/decide",
+      },
+    ];
   },
   serverExternalPackages: [
     "@prisma/client",
@@ -24,41 +53,11 @@ export const config: NextConfig = {
     "import-in-the-middle",
   ],
 
-  images: {
-    formats: ["image/avif", "image/webp"],
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "img.clerk.com",
-      },
-    ],
-  },
-
-  // biome-ignore lint/suspicious/useAwait: headers is async
-  async headers() {
-    return [{ source: "/(.*)", headers: securityHeaders }];
-  },
-
-  // biome-ignore lint/suspicious/useAwait: rewrites is async
-  async rewrites() {
-    return [
-      {
-        source: "/ingest/static/:path*",
-        destination: "https://us-assets.i.posthog.com/static/:path*",
-      },
-      {
-        source: "/ingest/:path*",
-        destination: "https://us.i.posthog.com/:path*",
-      },
-      {
-        source: "/ingest/decide",
-        destination: "https://us.i.posthog.com/decide",
-      },
-    ];
-  },
-
   // This is required to support PostHog trailing slash API requests
   skipTrailingSlashRedirect: true,
+  turbopack: {
+    root: path.resolve(import.meta.dirname, "../../"),
+  },
 };
 
 export const withAnalyzer = (sourceConfig: NextConfig): NextConfig =>

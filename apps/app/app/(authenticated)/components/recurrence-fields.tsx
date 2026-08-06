@@ -34,25 +34,25 @@ interface RecurrenceFieldsProps {
 }
 
 const recurrenceOptions: { label: string; value: RecurrenceFrequency }[] = [
-  { value: "none", label: "Does not repeat" },
-  { value: "daily", label: "Daily" },
-  { value: "weekly", label: "Weekly" },
-  { value: "fortnightly", label: "Fortnightly" },
-  { value: "monthly", label: "Monthly" },
-  { value: "annually", label: "Annually" },
-  { value: "custom", label: "Custom" },
+  { label: "Does not repeat", value: "none" },
+  { label: "Daily", value: "daily" },
+  { label: "Weekly", value: "weekly" },
+  { label: "Fortnightly", value: "fortnightly" },
+  { label: "Monthly", value: "monthly" },
+  { label: "Annually", value: "annually" },
+  { label: "Custom", value: "custom" },
 ];
 
 const unitOptions = [
-  { value: "day", label: "Days" },
-  { value: "week", label: "Weeks" },
-  { value: "month", label: "Months" },
-  { value: "year", label: "Years" },
+  { label: "Days", value: "day" },
+  { label: "Weeks", value: "week" },
+  { label: "Months", value: "month" },
+  { label: "Years", value: "year" },
 ];
 
 const monthModeOptions: { label: string; value: RecurrenceMonthMode }[] = [
-  { value: "day-of-month", label: "Same day of month" },
-  { value: "last-day", label: "Last day of month" },
+  { label: "Same day of month", value: "day-of-month" },
+  { label: "Last day of month", value: "last-day" },
 ];
 
 const formatPreviewDate = (date: string) => {

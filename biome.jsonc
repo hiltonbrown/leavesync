@@ -8,7 +8,16 @@
   "linter": {
     "rules": {
       "performance": {
-        "noBarrelFile": "off"
+        "noBarrelFile": "off",
+        // 240 sites. React 19 with the React Compiler makes manual useCallback
+        // wrapping unnecessary, and hand-wrapping every JSX handler costs more
+        // readability than it buys. Revisit if profiling shows a real cost.
+        "noJsxPropsBind": "off",
+        // 47 sites, nearly all deliberately sequential: Xero pagination loops
+        // and the batched sync handlers. Xero rate limiting allows only five
+        // concurrent requests per organisation, so the rule's suggested
+        // Promise.all rewrite would breach the documented limit.
+        "noAwaitInLoops": "off"
       }
     }
   },
@@ -21,6 +30,9 @@
       "!packages/design-system/lib",
       "!packages/design-system/hooks",
       "!apps/docs/**/*.json",
+      // Mintlify brand assets. These are decorative logo and hero images
+      // referenced from docs pages that supply their own alt text.
+      "!apps/docs/**/*.svg",
       "!apps/email/.react-email",
       "!packages/database/generated"
     ]

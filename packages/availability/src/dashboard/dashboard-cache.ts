@@ -1,10 +1,10 @@
 export interface DashboardCache {
-  get<TValue>(key: string): TValue | undefined;
-  getOrLoad<TValue>(
+  get: <TValue>(key: string) => TValue | undefined;
+  getOrLoad: <TValue>(
     key: string,
     loader: () => Promise<TValue>
-  ): Promise<TValue>;
-  set<TValue>(key: string, value: TValue): void;
+  ) => Promise<TValue>;
+  set: <TValue>(key: string, value: TValue) => void;
 }
 
 export function createDashboardCache(): DashboardCache {

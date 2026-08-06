@@ -72,11 +72,11 @@ export async function exportLeaveReportsCsvAction(input: {
 
     if (!rangeResult.ok) {
       return {
-        ok: false,
         error: {
           code: "unknown_error",
           message: "Failed to resolve date range.",
         },
+        ok: false,
       };
     }
 
@@ -84,10 +84,11 @@ export async function exportLeaveReportsCsvAction(input: {
     let cursor: string | null | undefined;
     const maxRecords = 10_000;
 
-    while (true) {
+    for (;;) {
       const result = await listLeaveReportRecordsForDrilldown({
         actingUserId: user.id,
         clerkOrgId: context.value.clerkOrgId,
+        cursor,
         dateRange: rangeResult.value,
         filters: {
           includeArchivedPeople: false,
@@ -95,18 +96,17 @@ export async function exportLeaveReportsCsvAction(input: {
         },
         includePublicHolidays: false,
         organisationId: parsed.data.organisationId,
-        role,
-        cursor,
         pageSize: 200,
+        role,
       });
 
       if (!result.ok) {
         return {
-          ok: false,
           error: {
             code: "unknown_error",
             message: result.error.message || "Failed to list leave records.",
           },
+          ok: false,
         };
       }
 
@@ -128,31 +128,31 @@ export async function exportLeaveReportsCsvAction(input: {
     };
   } catch {
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to export leave report CSV.",
       },
+      ok: false,
     };
   }
 }
 
 function notAuthorised(): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "You do not have permission to export the leave report.",
     },
+    ok: false,
   };
 }
 
 function validationError(message?: string): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: message ?? "Invalid request.",
     },
+    ok: false,
   };
 }

@@ -10,19 +10,19 @@ export const PricingPlans = () => (
         className={`fmkt-pricing-card ${plan.highlighted ? "fmkt-pricing-card--highlighted" : ""}`}
         key={plan.name}
       >
-        {plan.highlighted && (
+        {plan.highlighted ? (
           <div className="fmkt-pricing-card__badge">Most Popular</div>
-        )}
+        ) : null}
         <div className="fmkt-pricing-card__header">
           <h3 className="fmkt-pricing-card__title">{plan.name}</h3>
           <p className="fmkt-pricing-card__description">{plan.description}</p>
           <div className="fmkt-pricing-card__price-wrap">
             <span className="fmkt-pricing-card__price">{plan.price}</span>
-            {plan.interval && (
+            {plan.interval ? (
               <span className="fmkt-pricing-card__interval">
                 /{plan.interval}
               </span>
-            )}
+            ) : null}
           </div>
         </div>
         <ul className="fmkt-pricing-card__features">

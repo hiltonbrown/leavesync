@@ -68,24 +68,25 @@ interface RecordFormProps {
 type PlanIntent = "availability" | "leave";
 
 const recordTypeDescriptions: Record<string, string> = {
+  alternative_contact: "Use another contact.",
   annual_leave: "Paid annual leave.",
+  another_office: "Working from another office.",
+  client_site: "Working from a client site.",
+  contractor_unavailable: "Contractor unavailable.",
+  holiday: "Holiday leave.",
+  limited_availability: "Limited availability.",
+  long_service_leave: "Long service leave.",
+  offsite_meeting: "Offsite meeting.",
+  other: "Other availability.",
   personal_leave: "Personal or carer's leave.",
   sick_leave: "Sick leave.",
-  long_service_leave: "Long service leave.",
-  unpaid_leave: "Unpaid leave.",
-  holiday: "Holiday leave.",
-  wfh: "Working from home.",
-  travelling: "Travelling for work.",
-  client_site: "Working from a client site.",
-  another_office: "Working from another office.",
   training: "Training or development.",
-  offsite_meeting: "Offsite meeting.",
-  contractor_unavailable: "Contractor unavailable.",
-  limited_availability: "Limited availability.",
-  alternative_contact: "Use another contact.",
-  other: "Other availability.",
+  travelling: "Travelling for work.",
+  unpaid_leave: "Unpaid leave.",
+  wfh: "Working from home.",
 };
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: This form coordinates record type, intent, submit-path and Xero balance state in one component; the explicit conditional rendering added by noLeakedRender pushed it just over the threshold.
 export function RecordForm({
   balanceAvailable,
   canSelectPerson,
@@ -208,20 +209,20 @@ export function RecordForm({
     >
       <div className="rounded-2xl bg-muted p-4 text-muted-foreground text-sm">
         <p>{dynamicPanel}</p>
-        {isXeroLeave && hasActiveXeroConnection && (
+        {isXeroLeave && hasActiveXeroConnection ? (
           <p className="mt-2 font-medium text-foreground">
             {balanceAvailable === null
               ? "Balance has not synced yet. You can still save a draft before submitting."
               : `Current Xero balance: ${balanceAvailable} days before this request.`}
           </p>
-        )}
+        ) : null}
       </div>
 
-      {error && (
+      {error ? (
         <div className="rounded-2xl bg-muted p-4 text-muted-foreground text-sm">
           We could not save this plan. {error}
         </div>
-      )}
+      ) : null}
 
       <Field label="Intent">
         <ToggleGroup
@@ -403,11 +404,11 @@ export function RecordForm({
       </Field>
 
       <div className="flex flex-wrap justify-end gap-3">
-        {showSubmitPath && (
+        {showSubmitPath ? (
           <Button disabled={isPending} type="submit" variant="secondary">
             {mode === "edit" ? "Save changes" : "Save draft"}
           </Button>
-        )}
+        ) : null}
         <Button
           disabled={isPending}
           formAction={
@@ -419,7 +420,7 @@ export function RecordForm({
         </Button>
       </div>
 
-      {confirmationRecord && (
+      {confirmationRecord ? (
         <SubmitConfirmationModal
           mode="submit"
           onClose={() => setConfirmationRecord(null)}
@@ -439,7 +440,7 @@ export function RecordForm({
             workingDays: confirmationRecord.workingDays,
           }}
         />
-      )}
+      ) : null}
     </form>
   );
 }

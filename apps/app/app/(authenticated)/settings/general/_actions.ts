@@ -111,15 +111,15 @@ export async function updateOrganisationAction(input: {
 
   try {
     const organisation = await database.organisation.findFirst({
-      where: {
-        clerk_org_id: context.value.clerkOrgId,
-        id: context.value.organisationId,
-      },
       select: {
         country_code: true,
         name: true,
         region_code: true,
         timezone: true,
+      },
+      where: {
+        clerk_org_id: context.value.clerkOrgId,
+        id: context.value.organisationId,
       },
     });
 
@@ -146,7 +146,6 @@ export async function updateOrganisationAction(input: {
     }
 
     const updated = await database.organisation.update({
-      where: { id: context.value.organisationId },
       data: {
         country_code: parsed.data.countryCode ?? organisation.country_code,
         name: parsed.data.name ?? organisation.name,
@@ -159,6 +158,7 @@ export async function updateOrganisationAction(input: {
         region_code: true,
         timezone: true,
       },
+      where: { id: context.value.organisationId },
     });
 
     await database.auditEvent.create({
@@ -267,30 +267,30 @@ async function resolveAdminContext(organisationId: string): Promise<
 
 function notAuthorised(): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "You do not have permission to manage organisation settings.",
     },
+    ok: false,
   };
 }
 
 function unknownError(message: string): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "unknown_error",
       message,
     },
+    ok: false,
   };
 }
 
 function validationError(message?: string): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: message ?? "Invalid settings request.",
     },
+    ok: false,
   };
 }

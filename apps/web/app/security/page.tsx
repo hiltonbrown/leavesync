@@ -11,59 +11,59 @@ import {
 import type { Metadata } from "next";
 
 export const metadata: Metadata = createMetadata({
-  title: "Security",
   description:
     "How Team Calendar handles data security, encryption, tenant isolation, Clerk-managed auth, and ICS feed token security.",
+  title: "Security",
 });
 
 const securitySections = [
   {
-    icon: ShieldCheck,
-    title: "Clerk-managed authentication",
     description:
       "Team Calendar uses Clerk for all authentication and authorisation. There are no custom user tables or password storage. Clerk handles session management, MFA options, and identity verification. All authenticated routes are protected by Clerk middleware.",
+    icon: ShieldCheck,
+    title: "Clerk-managed authentication",
   },
   {
-    icon: Building2,
-    title: "Tenant isolation",
     description:
       "Team Calendar is multi-tenant. Each Clerk Organisation is a strict tenant boundary. Every database query that accesses tenant data filters by the Clerk organisation ID. It is not possible for one organisation to access another organisation's data.",
+    icon: Building2,
+    title: "Tenant isolation",
   },
   {
-    icon: Users,
-    title: "Role-based access control",
     description:
       "Roles are managed in Clerk and enforced at the application layer. Owner and admin roles have full organisational access. Manager roles have access scoped to their team and direct reports. Viewer roles have read-only access. Permissions are checked on every request.",
+    icon: Users,
+    title: "Role-based access control",
   },
   {
-    icon: Lock,
-    title: "Encryption at rest and in transit",
     description:
       "All data is encrypted at rest using Neon PostgreSQL's encryption layer. All data in transit is protected by TLS. Xero OAuth tokens are encrypted at rest using application-level encryption and are never stored in plaintext or exposed to client-side code.",
+    icon: Lock,
+    title: "Encryption at rest and in transit",
   },
   {
-    icon: Key,
-    title: "Xero token security",
     description:
       "Team Calendar stores Xero OAuth refresh tokens encrypted at rest. Access tokens are short-lived and refreshed proactively before sync runs. Token refresh is handled server-side. If access is revoked in Xero, the Team Calendar connection is deactivated on the next sync attempt.",
+    icon: Key,
+    title: "Xero token security",
   },
   {
-    icon: Rss,
-    title: "ICS feed token security",
     description:
       "ICS feed URLs are secured with a signed token. Tokens are short, URL-safe, and revocable. The plaintext token value is never persisted in the database. If a feed URL is compromised, the token can be regenerated, immediately invalidating any existing subscriptions.",
+    icon: Rss,
+    title: "ICS feed token security",
   },
   {
-    icon: Globe,
-    title: "Data residency",
     description:
       "Team Calendar runs on Vercel (application layer) and Neon PostgreSQL (database layer). Both are cloud-hosted in data centres that comply with standard data protection requirements. Data is not intentionally replicated across regions. Specific data residency requirements for enterprise customers: contact us to discuss.",
+    icon: Globe,
+    title: "Data residency",
   },
   {
-    icon: ShieldCheck,
-    title: "Privacy controls on feeds",
     description:
       "ICS feeds publish only the availability information you configure. Privacy controls let administrators specify which leave categories and availability types appear on published feeds. Sensitive leave categories can be hidden entirely or shown as unavailable without category detail.",
+    icon: ShieldCheck,
+    title: "Privacy controls on feeds",
   },
 ];
 

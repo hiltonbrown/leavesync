@@ -78,22 +78,22 @@ const XeroIcon = () => (
 
 const steps: PathwayStep[] = [
   {
-    label: "Enter leave",
     copy: "Submitted once in Team Calendar.",
     icon: <PencilIcon />,
     iconClass: "fmkt-pathway__icon--primary",
+    label: "Enter leave",
   },
   {
-    label: "Xero syncs back",
     copy: "Approved leave keeps payroll records current.",
     icon: <XeroIcon />,
     iconClass: "fmkt-pathway__icon--xero",
+    label: "Xero syncs back",
   },
   {
-    label: "Outlook Calendar",
     copy: "Availability publishes to the calendars people check.",
     icon: <TeamCalendarIcon />,
     iconClass: "fmkt-pathway__icon--team",
+    label: "Outlook Calendar",
   },
 ];
 

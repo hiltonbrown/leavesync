@@ -6,24 +6,24 @@ interface ProcessStep {
 
 const steps: ProcessStep[] = [
   {
+    copy: "Employees add dates, leave type and notes in one place.",
     number: 1,
     title: "Request leave",
-    copy: "Employees add dates, leave type and notes in one place.",
   },
   {
+    copy: "Managers approve requests with team availability in view.",
     number: 2,
     title: "Review with context",
-    copy: "Managers approve requests with team availability in view.",
   },
   {
+    copy: "Approved requests write back to Xero Payroll.",
     number: 3,
     title: "Update the source of truth",
-    copy: "Approved requests write back to Xero Payroll.",
   },
   {
+    copy: "Shared calendars show who is available and when, updated within 60 seconds of approval.",
     number: 4,
     title: "Publish to calendars",
-    copy: "Shared calendars show who is available and when, updated within 60 seconds of approval.",
   },
 ];
 

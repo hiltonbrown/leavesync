@@ -25,8 +25,8 @@ import { inngest } from "../client";
 const ReconcileInputSchema = z.object({
   clerkOrgId: z.string().min(1),
   organisationId: z.string().uuid(),
-  triggerType: z.enum(["scheduled", "manual", "webhook"]).default("manual"),
   triggeredByUserId: z.string().min(1).nullable().optional(),
+  triggerType: z.enum(["scheduled", "manual", "webhook"]).default("manual"),
   xeroTenantId: z.string().uuid(),
 });
 
@@ -139,6 +139,7 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
 
   try {
     const existingRun = await database.syncRun.findFirst({
+      select: { id: true },
       where: {
         ...scoped(context),
         run_type: "approval_state_reconciliation",
@@ -146,7 +147,6 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
         status: "running",
         xero_tenant_id: context.xeroTenantId,
       },
-      select: { id: true },
     });
 
     if (existingRun) {
@@ -226,12 +226,6 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
     }
 
     const records = await database.availabilityRecord.findMany({
-      where: {
-        ...scoped(context),
-        archived_at: null,
-        approval_status: { in: [...ACTIVE_STATUSES] },
-        source_remote_id: { not: null },
-      },
       include: {
         person: {
           select: {
@@ -244,11 +238,17 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
         },
       },
       orderBy: { created_at: "asc" },
+      where: {
+        ...scoped(context),
+        approval_status: { in: [...ACTIVE_STATUSES] },
+        archived_at: null,
+        source_remote_id: { not: null },
+      },
     });
 
     const counts = {
-      archivedMissing: 0,
       approved: 0,
+      archivedMissing: 0,
       declined: 0,
       failed: 0,
       matched: 0,
@@ -257,8 +257,8 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
 
     for (let index = 0; index < records.length; index += BATCH_SIZE) {
       const runState = await database.syncRun.findFirst({
-        where: { ...scoped(context), id: run.id },
         select: { cancel_requested_at: true },
+        where: { ...scoped(context), id: run.id },
       });
       if (runState?.cancel_requested_at) {
         await completeRun(context, run.id, {
@@ -350,15 +350,16 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
       });
     }
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to reconcile Xero approval state.",
       },
+      ok: false,
     };
   }
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: This function reconciles a single record's approval state against Xero across several divergence cases (approved, declined, withdrawn, unchanged) with audit logging for each; splitting it during a release freeze risks the Xero write-back path more than the suppression does.
 async function reconcileRecord(
   context: ReconcileApprovalStateInput,
   runId: string,
@@ -609,8 +610,8 @@ async function completionRecipients(
     const clerk = await clerkClient();
     const memberships = await clerk.organizations.getOrganizationMembershipList(
       {
-        organizationId: context.clerkOrgId,
         limit: 100,
+        organizationId: context.clerkOrgId,
       }
     );
     return memberships.data
@@ -718,8 +719,8 @@ function loadXeroTenant(context: ReconcileApprovalStateInput) {
           access_token_iv: true,
           expires_at: true,
           last_refreshed_at: true,
-          status: true,
           revoked_at: true,
+          status: true,
         },
       },
     },
@@ -747,7 +748,6 @@ async function publishRunStatusChanged(
         organisationId: context.organisationId,
       },
       {
-        type: "sync.run_status_changed",
         payload: {
           organisationId: context.organisationId,
           runId,
@@ -755,6 +755,7 @@ async function publishRunStatusChanged(
           status,
           xeroTenantId: context.xeroTenantId,
         },
+        type: "sync.run_status_changed",
       }
     );
   } catch (error) {
@@ -813,8 +814,8 @@ function emptyResult(
   status: "cancelled" | "failed" | "partial_success" | "succeeded"
 ) {
   return {
-    archivedMissing: 0,
     approved: 0,
+    archivedMissing: 0,
     declined: 0,
     failed: 0,
     matched: 0,
@@ -862,11 +863,11 @@ function validationError(
   error: z.ZodError
 ): Result<never, ReconcileApprovalStateError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid reconciliation request.",
     },
+    ok: false,
   };
 }
 

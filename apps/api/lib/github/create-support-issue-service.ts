@@ -60,12 +60,12 @@ export async function createSupportGitHubIssue(
 
   if (!parsedInput.success) {
     return {
-      ok: false,
       error: {
         code: "validation_error",
         message:
           parsedInput.error.issues[0]?.message ?? "Invalid support submission.",
       },
+      ok: false,
     };
   }
 
@@ -105,11 +105,11 @@ export async function createSupportGitHubIssue(
     });
 
     return {
-      ok: false,
       error: {
         code: "integration_error",
         message: "Failed to create the GitHub issue.",
       },
+      ok: false,
     };
   }
 }
@@ -122,11 +122,11 @@ function resolveGitHubConfig(): Result<
 
   if (!(env.GITHUB_TOKEN && env.GITHUB_OWNER && env.GITHUB_REPO)) {
     return {
-      ok: false,
       error: {
         code: "configuration_error",
         message: "GitHub issue integration is not configured.",
       },
+      ok: false,
     };
   }
 
@@ -196,8 +196,8 @@ async function createIssue(
 
   if (!response.ok) {
     return {
-      ok: false,
       error: mapGitHubFailure(response.status),
+      ok: false,
     };
   }
 
@@ -211,11 +211,11 @@ async function createIssue(
     });
 
     return {
-      ok: false,
       error: {
         code: "integration_error",
         message: "GitHub issue creation failed.",
       },
+      ok: false,
     };
   }
 

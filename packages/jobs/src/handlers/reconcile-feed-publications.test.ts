@@ -141,8 +141,8 @@ describe("reconcileFeedPublications", () => {
   it("isolates record-level failures and keeps reconciling", async () => {
     mocks.materialiseAvailabilityPublication
       .mockResolvedValueOnce({
-        ok: false,
         error: { code: "internal", message: "boom" },
+        ok: false,
       })
       .mockResolvedValueOnce(materialised(true));
 

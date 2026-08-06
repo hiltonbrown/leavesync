@@ -30,8 +30,11 @@ describe("Xero OAuth callback route", () => {
 
   it("rejects a missing nonce cookie without exchanging the code", async () => {
     mocks.completeXeroOAuth.mockResolvedValue({
+      error: {
+        code: "invalid_state",
+        message: "The Xero OAuth state was invalid.",
+      },
       ok: false,
-      error: { code: "invalid_state", message: "The Xero OAuth state was invalid." },
     });
     const response = await GET(new Request(callbackUrl));
 
@@ -61,8 +64,11 @@ describe("Xero OAuth callback route", () => {
 
   it("returns the service error for a mismatched nonce", async () => {
     mocks.completeXeroOAuth.mockResolvedValue({
+      error: {
+        code: "invalid_state",
+        message: "The Xero OAuth state was invalid.",
+      },
       ok: false,
-      error: { code: "invalid_state", message: "The Xero OAuth state was invalid." },
     });
 
     const response = await GET(

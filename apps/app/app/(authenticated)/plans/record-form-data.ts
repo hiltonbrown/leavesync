@@ -36,16 +36,16 @@ export async function loadPlanFormData({
   const { clerkOrgId, organisationId, orgQueryValue } =
     await requireActiveOrgPageContext(org);
   const currentPerson = await database.person.findFirst({
-    where: {
-      ...scopedQuery(clerkOrgId, organisationId),
-      archived_at: null,
-      clerk_user_id: user.id,
-    },
     select: {
       email: true,
       first_name: true,
       id: true,
       last_name: true,
+    },
+    where: {
+      ...scopedQuery(clerkOrgId, organisationId),
+      archived_at: null,
+      clerk_user_id: user.id,
     },
   });
 
@@ -61,6 +61,13 @@ export async function loadPlanFormData({
   }> = [];
   if (canSelectPerson) {
     people = await database.person.findMany({
+      orderBy: [{ first_name: "asc" }, { last_name: "asc" }],
+      select: {
+        email: true,
+        first_name: true,
+        id: true,
+        last_name: true,
+      },
       where: {
         ...scopedQuery(clerkOrgId, organisationId),
         archived_at: null,
@@ -72,13 +79,6 @@ export async function loadPlanFormData({
               ],
             }
           : {}),
-      },
-      orderBy: [{ first_name: "asc" }, { last_name: "asc" }],
-      select: {
-        email: true,
-        first_name: true,
-        id: true,
-        last_name: true,
       },
     });
   } else if (currentPerson) {
@@ -129,13 +129,13 @@ export async function loadPlanFormData({
   const balance =
     balancePersonId && isXeroLeaveType(balanceRecordType)
       ? await database.leaveBalance.findFirst({
+          orderBy: { updated_at: "desc" },
+          select: { balance: true },
           where: {
             ...scopedQuery(clerkOrgId, organisationId),
             person_id: balancePersonId,
             record_type: balanceRecordType,
           },
-          orderBy: { updated_at: "desc" },
-          select: { balance: true },
         })
       : null;
 

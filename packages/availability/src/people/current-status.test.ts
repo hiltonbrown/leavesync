@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   availabilityFindMany: vi.fn(),
-  locationFindMany: vi.fn(),
   locationFindFirst: vi.fn(),
+  locationFindMany: vi.fn(),
   organisationFindFirst: vi.fn(),
-  publicHolidayFindMany: vi.fn(),
   publicHolidayFindFirst: vi.fn(),
+  publicHolidayFindMany: vi.fn(),
   scopedQuery: vi.fn((clerkOrgId: string, organisationId: string) => ({
     clerk_org_id: clerkOrgId,
     organisation_id: organisationId,
@@ -181,23 +181,23 @@ describe("current-status", () => {
     mocks.availabilityFindMany.mockResolvedValue([
       {
         ...activeRecord("wfh", "approved"),
-        person_id: people[0]?.personId,
+        person_id: people[0].personId,
       },
       {
         ...activeRecord("annual_leave", "approved"),
-        person_id: people[0]?.personId,
+        person_id: people[0].personId,
       },
       {
         ...activeRecord("sick_leave", "submitted"),
-        person_id: people[1]?.personId,
+        person_id: people[1].personId,
       },
       {
         ...activeRecord("wfh", "approved"),
-        person_id: people[3]?.personId,
+        person_id: people[3].personId,
       },
       {
         ...activeRecord("training", "approved"),
-        person_id: people[3]?.personId,
+        person_id: people[3].personId,
       },
     ]);
     mocks.publicHolidayFindMany.mockResolvedValue([
@@ -219,14 +219,10 @@ describe("current-status", () => {
       people,
     });
 
-    expect(statuses.get(people[0]?.personId ?? "")?.statusKey).toBe("on_leave");
-    expect(statuses.get(people[1]?.personId ?? "")?.statusKey).toBe(
-      "pending_leave"
-    );
-    expect(statuses.get(people[2]?.personId ?? "")?.statusKey).toBe(
-      "public_holiday"
-    );
-    expect(statuses.get(people[3]?.personId ?? "")?.statusKey).toBe("training");
+    expect(statuses.get(people[0].personId)?.statusKey).toBe("on_leave");
+    expect(statuses.get(people[1].personId)?.statusKey).toBe("pending_leave");
+    expect(statuses.get(people[2].personId)?.statusKey).toBe("public_holiday");
+    expect(statuses.get(people[3].personId)?.statusKey).toBe("training");
     expect(mocks.organisationFindFirst).toHaveBeenCalledOnce();
     expect(mocks.locationFindMany).toHaveBeenCalledOnce();
     expect(mocks.availabilityFindMany).toHaveBeenCalledOnce();

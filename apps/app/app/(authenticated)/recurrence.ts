@@ -47,22 +47,22 @@ export const WEEKDAY_OPTIONS: {
   shortLabel: string;
   value: Weekday;
 }[] = [
-  { value: 1, label: "Monday", shortLabel: "Mon" },
-  { value: 2, label: "Tuesday", shortLabel: "Tue" },
-  { value: 3, label: "Wednesday", shortLabel: "Wed" },
-  { value: 4, label: "Thursday", shortLabel: "Thu" },
-  { value: 5, label: "Friday", shortLabel: "Fri" },
-  { value: 6, label: "Saturday", shortLabel: "Sat" },
-  { value: 0, label: "Sunday", shortLabel: "Sun" },
+  { label: "Monday", shortLabel: "Mon", value: 1 },
+  { label: "Tuesday", shortLabel: "Tue", value: 2 },
+  { label: "Wednesday", shortLabel: "Wed", value: 3 },
+  { label: "Thursday", shortLabel: "Thu", value: 4 },
+  { label: "Friday", shortLabel: "Fri", value: 5 },
+  { label: "Saturday", shortLabel: "Sat", value: 6 },
+  { label: "Sunday", shortLabel: "Sun", value: 0 },
 ];
 
 const FREQUENCY_LABELS: Record<RecurrenceRuleFrequency, string> = {
-  daily: "Daily",
-  weekly: "Weekly",
-  fortnightly: "Fortnightly",
-  monthly: "Monthly",
   annually: "Annually",
   custom: "Custom",
+  daily: "Daily",
+  fortnightly: "Fortnightly",
+  monthly: "Monthly",
+  weekly: "Weekly",
 };
 
 const isValidDateString = (date: string) => {
@@ -216,65 +216,65 @@ export const createDefaultRecurrenceRule = (
 
   if (frequency === "daily") {
     return {
+      endMode: "count",
       frequency,
       interval: 1,
-      unit: "day",
-      endMode: "count",
+      monthMode: "day-of-month",
       occurrenceCount: 5,
+      unit: "day",
       untilDate: startDate,
       weekdays: [startWeekday],
-      monthMode: "day-of-month",
     };
   }
 
   if (frequency === "weekly" || frequency === "fortnightly") {
     return {
+      endMode: "count",
       frequency,
       interval: frequency === "fortnightly" ? 2 : 1,
-      unit: "week",
-      endMode: "count",
+      monthMode: "day-of-month",
       occurrenceCount: 5,
+      unit: "week",
       untilDate: startDate,
       weekdays: [startWeekday],
-      monthMode: "day-of-month",
     };
   }
 
   if (frequency === "monthly") {
     return {
+      endMode: "count",
       frequency,
       interval: 1,
-      unit: "month",
-      endMode: "count",
+      monthMode: "day-of-month",
       occurrenceCount: 5,
+      unit: "month",
       untilDate: startDate,
       weekdays: [startWeekday],
-      monthMode: "day-of-month",
     };
   }
 
   if (frequency === "annually") {
     return {
+      endMode: "count",
       frequency,
       interval: 1,
-      unit: "year",
-      endMode: "count",
+      monthMode: "day-of-month",
       occurrenceCount: 5,
+      unit: "year",
       untilDate: startDate,
       weekdays: [startWeekday],
-      monthMode: "day-of-month",
     };
   }
 
   return {
+    endMode: "count",
     frequency,
     interval: 1,
-    unit: "week",
-    endMode: "count",
+    monthMode: "day-of-month",
     occurrenceCount: 5,
+    unit: "week",
     untilDate: startDate,
     weekdays: [startWeekday],
-    monthMode: "day-of-month",
   };
 };
 
@@ -330,8 +330,8 @@ const buildOccurrence = (
   startDate: string,
   durationDays: number
 ): DateRangeOccurrence => ({
-  startDate,
   endDate: addDays(startDate, durationDays),
+  startDate,
 });
 
 const shouldAddOccurrence = (
@@ -387,7 +387,7 @@ const generateWeeklyCustomOccurrences = (
   const weekdays = sortedWeekdays(rule.weekdays);
   let weekOffset = 0;
 
-  while (true) {
+  for (;;) {
     const weekStart = addDays(anchorWeekStart, weekOffset * 7);
 
     if (rule.endMode === "until" && weekStart > rule.untilDate) {
@@ -400,15 +400,15 @@ const generateWeeklyCustomOccurrences = (
         continue;
       }
       if (!shouldAddOccurrence(candidate, rule, occurrences.length)) {
-        return { ok: true, occurrences };
+        return { occurrences, ok: true };
       }
 
       occurrences.push(buildOccurrence(candidate, durationDays));
 
       if (occurrences.length > MAX_RECURRENCE_OCCURRENCES) {
         return {
-          ok: false,
           error: `Recurring entries are limited to ${MAX_RECURRENCE_OCCURRENCES} occurrences`,
+          ok: false,
         };
       }
 
@@ -416,14 +416,14 @@ const generateWeeklyCustomOccurrences = (
         rule.endMode === "count" &&
         occurrences.length >= rule.occurrenceCount
       ) {
-        return { ok: true, occurrences };
+        return { occurrences, ok: true };
       }
     }
 
     weekOffset += rule.interval;
   }
 
-  return { ok: true, occurrences };
+  return { occurrences, ok: true };
 };
 
 export const generateRecurrenceOccurrences = (
@@ -437,7 +437,7 @@ export const generateRecurrenceOccurrences = (
     rule
   );
   if (validationError) {
-    return { ok: false, error: validationError };
+    return { error: validationError, ok: false };
   }
 
   const durationDays = daysBetween(startDate, endDate);
@@ -449,7 +449,7 @@ export const generateRecurrenceOccurrences = (
   const occurrences: DateRangeOccurrence[] = [];
   let step = 0;
 
-  while (true) {
+  for (;;) {
     const candidate = addStep(startDate, rule, step);
 
     if (!shouldAddOccurrence(candidate, rule, occurrences.length)) {
@@ -460,8 +460,8 @@ export const generateRecurrenceOccurrences = (
 
     if (occurrences.length > MAX_RECURRENCE_OCCURRENCES) {
       return {
-        ok: false,
         error: `Recurring entries are limited to ${MAX_RECURRENCE_OCCURRENCES} occurrences`,
+        ok: false,
       };
     }
 
@@ -475,13 +475,13 @@ export const generateRecurrenceOccurrences = (
     step += 1;
   }
 
-  return { ok: true, occurrences };
+  return { occurrences, ok: true };
 };
 
 export const getSingleOccurrence = (
   startDate: string,
   endDate: string
-): DateRangeOccurrence[] => [{ startDate, endDate }];
+): DateRangeOccurrence[] => [{ endDate, startDate }];
 
 export const describeRecurrenceRule = (rule: RecurrenceRule) => {
   if (rule.frequency !== "custom") {

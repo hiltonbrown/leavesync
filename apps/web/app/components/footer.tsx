@@ -5,38 +5,38 @@ import { signUpHref } from "@/src/lib/auth-links";
 
 const footerColumns = [
   {
+    items: [
+      { href: "/features#ics-feeds", title: "Calendar feeds" },
+      { href: "/features#leave-workflow", title: "Leave approvals" },
+      { href: "/integrations", title: "Xero integration" },
+      { href: "/pricing", title: "Pricing" },
+    ],
     title: "Product",
-    items: [
-      { title: "Calendar feeds", href: "/features#ics-feeds" },
-      { title: "Leave approvals", href: "/features#leave-workflow" },
-      { title: "Xero integration", href: "/integrations" },
-      { title: "Pricing", href: "/pricing" },
-    ],
   },
   {
+    items: [
+      { href: "/about", title: "About" },
+      { href: "/customers", title: "Customers" },
+      { href: "/blog", title: "Blog" },
+      { href: "/careers", title: "Careers" },
+    ],
     title: "Company",
-    items: [
-      { title: "About", href: "/about" },
-      { title: "Customers", href: "/customers" },
-      { title: "Blog", href: "/blog" },
-      { title: "Careers", href: "/careers" },
-    ],
   },
   {
-    title: "Resources",
     items: [
-      { title: "Security", href: "/security" },
-      { title: "Status", href: "/status" },
-      { title: "Help centre", href: "/help-centre" },
-      { title: "Contact", href: "/contact" },
-      { title: "Changelog", href: "/changelog" },
+      { href: "/security", title: "Security" },
+      { href: "/status", title: "Status" },
+      { href: "/help-centre", title: "Help centre" },
+      { href: "/contact", title: "Contact" },
+      { href: "/changelog", title: "Changelog" },
     ],
+    title: "Resources",
   },
 ];
 
 const legalLinks = [
-  { title: "Privacy", href: "/privacy-policy" },
-  { title: "Terms", href: "/terms-of-service" },
+  { href: "/privacy-policy", title: "Privacy" },
+  { href: "/terms-of-service", title: "Terms" },
 ];
 
 export const Footer = () => (

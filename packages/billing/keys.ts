@@ -3,14 +3,10 @@ import { z } from "zod";
 
 export const keys = () =>
   createEnv({
-    server: {
-      STRIPE_CHECKOUT_CANCEL_URL: z.string().url().optional(),
-      STRIPE_CHECKOUT_SUCCESS_URL: z.string().url().optional(),
-      STRIPE_PORTAL_RETURN_URL: z.string().url().optional(),
-      STRIPE_PRICE_BASIC: z.string().optional(),
-      STRIPE_PRICE_PREMIUM: z.string().optional(),
-      STRIPE_SECRET_KEY: z.string().startsWith("sk_").optional(),
-    },
+    // Treat an empty string (e.g. a blank Vercel env var) as unset so the
+    // format-constrained optional keys do not fail validation when billing is
+    // not configured for an environment.
+    emptyStringAsUndefined: true,
     runtimeEnv: {
       STRIPE_CHECKOUT_CANCEL_URL: process.env.STRIPE_CHECKOUT_CANCEL_URL,
       STRIPE_CHECKOUT_SUCCESS_URL: process.env.STRIPE_CHECKOUT_SUCCESS_URL,
@@ -19,8 +15,12 @@ export const keys = () =>
       STRIPE_PRICE_PREMIUM: process.env.STRIPE_PRICE_PREMIUM,
       STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     },
-    // Treat an empty string (e.g. a blank Vercel env var) as unset so the
-    // format-constrained optional keys do not fail validation when billing is
-    // not configured for an environment.
-    emptyStringAsUndefined: true,
+    server: {
+      STRIPE_CHECKOUT_CANCEL_URL: z.string().url().optional(),
+      STRIPE_CHECKOUT_SUCCESS_URL: z.string().url().optional(),
+      STRIPE_PORTAL_RETURN_URL: z.string().url().optional(),
+      STRIPE_PRICE_BASIC: z.string().optional(),
+      STRIPE_PRICE_PREMIUM: z.string().optional(),
+      STRIPE_SECRET_KEY: z.string().startsWith("sk_").optional(),
+    },
   });

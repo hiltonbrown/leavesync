@@ -85,8 +85,8 @@ describe("billing-service", () => {
     });
 
     expect(result).toMatchObject({
-      ok: false,
       error: { code: "not_authorised" },
+      ok: false,
     });
   });
 

@@ -128,8 +128,8 @@ describe("organisation-settings-service", () => {
     });
 
     expect(result).toMatchObject({
-      ok: false,
       error: { code: "validation_error" },
+      ok: false,
     });
   });
 
@@ -145,8 +145,8 @@ describe("organisation-settings-service", () => {
     });
 
     expect(result).toMatchObject({
-      ok: false,
       error: { code: "validation_error" },
+      ok: false,
     });
   });
 
@@ -167,8 +167,8 @@ describe("organisation-settings-service", () => {
     expect(result.ok).toBe(expectedOk);
     if (!expectedOk) {
       expect(result).toMatchObject({
-        ok: false,
         error: { code: "not_authorised" },
+        ok: false,
       });
     }
   });

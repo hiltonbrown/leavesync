@@ -62,7 +62,7 @@ describe("managerScopePersonIds", () => {
   });
 
   it("returns no people when settings cannot be read and self is excluded", async () => {
-    mocks.getSettings.mockResolvedValue({ ok: false, error: {} });
+    mocks.getSettings.mockResolvedValue({ error: {}, ok: false });
 
     await expect(
       managerScopePersonIds({ ...input, excludeSelf: true })

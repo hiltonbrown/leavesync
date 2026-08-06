@@ -1,5 +1,5 @@
-import { keys } from "../../keys";
 import { log } from "@repo/observability/log";
+import { keys } from "../../keys";
 import { decryptXeroToken } from "../crypto/tokens";
 import { orgRateLimitKey, xeroFetch } from "../rate-limit/xero-fetch";
 import type { XeroEmployee } from "../read/employees";
@@ -52,11 +52,11 @@ export async function fetchEmployees(input: {
 
   if (!decryptedAccessToken || input.xeroTenant.xero_connection.revoked_at) {
     return {
-      ok: false,
       error: {
         code: "auth_error",
         message: "Xero credentials are missing or revoked.",
       },
+      ok: false,
     };
   }
 
@@ -85,8 +85,8 @@ export async function fetchEmployees(input: {
 
       if (!response.ok) {
         return {
-          ok: false,
           error: mapXeroReadHttpError(response, rawPayload),
+          ok: false,
         };
       }
 
@@ -99,11 +99,11 @@ export async function fetchEmployees(input: {
           page,
         });
         return {
-          ok: false,
           error: {
             code: "unknown_error",
             message: "Xero returned an employee page that could not be read.",
           },
+          ok: false,
         };
       }
       employees.push(...mappedPage.employees);
@@ -121,20 +121,20 @@ export async function fetchEmployees(input: {
       page: XERO_MAX_PAGES,
     });
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Xero returned an employee page that could not be read.",
       },
+      ok: false,
     };
   } catch (error) {
     return {
-      ok: false,
       error: {
         code: "network_error",
         message:
           error instanceof Error ? error.message : "Failed to reach Xero.",
       },
+      ok: false,
     };
   }
 }
@@ -157,11 +157,11 @@ export async function fetchLeaveRecords(input: {
 
   if (!decryptedAccessToken || input.xeroTenant.xero_connection.revoked_at) {
     return {
-      ok: false,
       error: {
         code: "auth_error",
         message: "Xero credentials are missing or revoked.",
       },
+      ok: false,
     };
   }
 
@@ -190,8 +190,8 @@ export async function fetchLeaveRecords(input: {
 
       if (!response.ok) {
         return {
-          ok: false,
           error: mapXeroReadHttpError(response, rawPayload),
+          ok: false,
         };
       }
 
@@ -231,12 +231,12 @@ export async function fetchLeaveRecords(input: {
     };
   } catch (error) {
     return {
-      ok: false,
       error: {
         code: "network_error",
         message:
           error instanceof Error ? error.message : "Failed to reach Xero.",
       },
+      ok: false,
     };
   }
 }
@@ -267,11 +267,11 @@ export async function fetchLeaveBalances(input: {
 
   if (!decryptedAccessToken || input.xeroTenant.xero_connection.revoked_at) {
     return {
-      ok: false,
       error: {
         code: "auth_error",
         message: "Xero credentials are missing or revoked.",
       },
+      ok: false,
     };
   }
 
@@ -309,12 +309,12 @@ export async function fetchLeaveBalances(input: {
       // A transport failure is environmental rather than employee-specific, so
       // abort and let the run retry instead of flagging every employee.
       return {
-        ok: false,
         error: {
           code: "network_error",
           message:
             error instanceof Error ? error.message : "Failed to reach Xero.",
         },
+        ok: false,
       };
     }
 
@@ -330,7 +330,7 @@ export async function fetchLeaveBalances(input: {
         mappedError.code === "auth_error" ||
         mappedError.code === "rate_limit_error"
       ) {
-        return { ok: false, error: mappedError };
+        return { error: mappedError, ok: false };
       }
       failures.push({ employeeId, error: mappedError });
       await input.onProgress?.(index + 1, input.employeeIds.length);
@@ -363,11 +363,11 @@ export async function fetchLeaveApplicationStatus(
 
   if (!decryptedAccessToken || input.xeroTenant.xero_connection.revoked_at) {
     return {
-      ok: false,
       error: {
         code: "auth_error",
         message: "Xero credentials are missing or revoked.",
       },
+      ok: false,
     };
   }
 
@@ -393,20 +393,20 @@ export async function fetchLeaveApplicationStatus(
 
     if (!response.ok) {
       return {
-        ok: false,
         error: mapXeroReadHttpError(response, rawPayload),
+        ok: false,
       };
     }
 
     return { ok: true, value: mapLeaveApplicationStatus(rawPayload) };
   } catch (error) {
     return {
-      ok: false,
       error: {
         code: "network_error",
         message:
           error instanceof Error ? error.message : "Failed to reach Xero.",
       },
+      ok: false,
     };
   }
 }

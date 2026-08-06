@@ -33,7 +33,7 @@ const expectPrismaErrorCode = async (
 beforeEach(async () => {
   await cleanTestData();
   await database.plan.create({
-    data: { id: planId, key: planKey, plan_key: planKey, name: "Test plan" },
+    data: { id: planId, key: planKey, name: "Test plan", plan_key: planKey },
   });
 });
 
@@ -47,9 +47,9 @@ describe("plan_limits", () => {
     await database.planLimit.create({
       data: {
         id: "51000000-0000-4000-8000-000000000001",
-        plan_id: planId,
         limit_type: plan_limit_type.feeds,
         limit_value: 2,
+        plan_id: planId,
       },
     });
 
@@ -57,9 +57,9 @@ describe("plan_limits", () => {
       database.planLimit.create({
         data: {
           id: "51000000-0000-4000-8000-000000000002",
-          plan_id: planId,
           limit_type: plan_limit_type.feeds,
           limit_value: 5,
+          plan_id: planId,
         },
       }),
       "P2002"
@@ -70,9 +70,9 @@ describe("plan_limits", () => {
     await database.planLimit.create({
       data: {
         id: "51000000-0000-4000-8000-000000000003",
-        plan_id: planId,
         limit_type: plan_limit_type.feeds,
         limit_value: 2,
+        plan_id: planId,
       },
     });
 
@@ -80,9 +80,9 @@ describe("plan_limits", () => {
       database.planLimit.create({
         data: {
           id: "51000000-0000-4000-8000-000000000004",
-          plan_id: planId,
           limit_type: plan_limit_type.active_people,
           limit_value: 5,
+          plan_id: planId,
         },
       })
     ).resolves.toMatchObject({ limit_type: plan_limit_type.active_people });

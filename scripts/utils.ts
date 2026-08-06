@@ -15,8 +15,8 @@ export const run = (
   options?: SpawnSyncOptions
 ) => {
   const result = spawnSync(command, args, {
-    stdio: "inherit",
     shell: shellOption,
+    stdio: "inherit",
     ...options,
   });
 

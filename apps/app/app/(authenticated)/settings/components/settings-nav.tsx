@@ -20,40 +20,40 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
-  { label: "General", href: "/settings/general", icon: Settings2Icon },
+  { href: "/settings/general", icon: Settings2Icon, label: "General" },
   {
-    label: "Getting Started",
     href: "/settings/getting-started",
     icon: ListChecksIcon,
+    label: "Getting Started",
   },
   {
-    label: "Leave Approval",
     href: "/settings/leave-approval",
     icon: ClipboardListIcon,
+    label: "Leave Approval",
   },
-  { label: "Members", href: "/settings/members", icon: UsersIcon },
+  { href: "/settings/members", icon: UsersIcon, label: "Members" },
   {
-    label: "Integrations",
     href: "/settings/integrations",
     icon: PlugIcon,
+    label: "Integrations",
   },
   {
-    label: "Feeds & Publishing",
     href: "/settings/feeds",
     icon: RssIcon,
+    label: "Feeds & Publishing",
   },
-  { label: "Billing", href: "/settings/billing", icon: CreditCardIcon },
+  { href: "/settings/billing", icon: CreditCardIcon, label: "Billing" },
   {
+    href: "/settings/holidays",
+    icon: CalendarCheckIcon,
     // "Holidays" (not "Public Holidays") distinguishes this admin-config surface
     // (S-23) from the main-sidebar member view "Public Holidays" (S-11).
     label: "Holidays",
-    href: "/settings/holidays",
-    icon: CalendarCheckIcon,
   },
   {
-    label: "Audit Log",
     href: "/settings/audit-log",
     icon: ScrollTextIcon,
+    label: "Audit Log",
   },
 ] as const;
 

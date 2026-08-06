@@ -250,13 +250,13 @@ async function resolveActionContext(
   }
 
   const actingPerson = await database.person.findFirst({
-    where: {
-      clerk_org_id: context.value.clerkOrgId,
-      organisation_id: context.value.organisationId,
-      archived_at: null,
-      clerk_user_id: user.id,
-    },
     select: { id: true },
+    where: {
+      archived_at: null,
+      clerk_org_id: context.value.clerkOrgId,
+      clerk_user_id: user.id,
+      organisation_id: context.value.organisationId,
+    },
   });
 
   return {
@@ -308,20 +308,20 @@ function approvalValue(
 
 function notAuthorised(message?: string): ApprovalActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: message ?? "You do not have permission to manage approvals.",
     },
+    ok: false,
   };
 }
 
 function validationError(message?: string): ApprovalActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: message ?? "Invalid approval request.",
     },
+    ok: false,
   };
 }

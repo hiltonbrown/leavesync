@@ -53,9 +53,9 @@ describe("inviteMember", () => {
 
     expect(result.ok).toBe(true);
     expect(mocks.createOrganizationInvitation).toHaveBeenCalledWith({
-      organizationId: "org_1",
-      inviterUserId: "user_1",
       emailAddress: "new.member@example.com",
+      inviterUserId: "user_1",
+      organizationId: "org_1",
       role: "org:viewer",
     });
   });

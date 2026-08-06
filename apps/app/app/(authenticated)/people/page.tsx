@@ -51,12 +51,12 @@ const PeoplePage = async ({ searchParams }: PeoplePageProps) => {
 
   const actingPerson = userId
     ? await database.person.findFirst({
+        select: { id: true },
         where: {
           clerk_org_id: clerkOrgId,
           clerk_user_id: userId,
           organisation_id: organisationId,
         },
-        select: { id: true },
       })
     : null;
 
@@ -73,14 +73,14 @@ const PeoplePage = async ({ searchParams }: PeoplePageProps) => {
       role: peopleRole,
     }),
     database.team.findMany({
-      where: scopedQuery(clerkOrgId, organisationId),
       orderBy: { name: "asc" },
       select: { id: true, name: true },
+      where: scopedQuery(clerkOrgId, organisationId),
     }),
     database.location.findMany({
-      where: scopedQuery(clerkOrgId, organisationId),
       orderBy: { name: "asc" },
       select: { id: true, name: true },
+      where: scopedQuery(clerkOrgId, organisationId),
     }),
   ]);
 

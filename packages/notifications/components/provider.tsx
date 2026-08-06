@@ -57,6 +57,7 @@ export const NotificationsProvider = ({
     let cancelled = false;
 
     const close = () => {
+      // biome-ignore lint/suspicious/noUnnecessaryConditions: retryTimer.current is mutated imperatively elsewhere in this closure (connect's retry scheduling); this guard is load-bearing at runtime even though Biome cannot see those assignments.
       if (retryTimer.current) {
         clearTimeout(retryTimer.current);
         retryTimer.current = null;
@@ -74,7 +75,7 @@ export const NotificationsProvider = ({
       eventSource.onopen = () => {
         retryCount.current = 0;
         setStatus("open");
-        setConnectionVersion((value) => value + 1);
+        setConnectionVersion((version) => version + 1);
       };
       eventSource.onerror = () => {
         eventSource?.close();
@@ -133,12 +134,12 @@ function parseEvent(
   try {
     const payload = JSON.parse(String(message.data));
     if (type === "notification.created") {
-      return { type, payload };
+      return { payload, type };
     }
     if (type === "notification.read") {
-      return { type, payload };
+      return { payload, type };
     }
-    return { type, payload };
+    return { payload, type };
   } catch {
     return null;
   }
