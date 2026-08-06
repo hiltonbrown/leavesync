@@ -114,7 +114,7 @@ not.
 ### Relevant files
 
 - `packages/availability/src/approvals/approval-service.ts` — the fail-open
-  decline check (line 442) and the fail-open list default (line 239).
+  decline check (line 442), the fail-open list default (line 239), and the manager notification check (line 1414).
 - `packages/availability/src/approvals/approval-service.test.ts` — has a
   `requireDeclineReason: true` fixture at line 200 but never exercises either
   branch.
@@ -168,6 +168,22 @@ not.
       : ["submitted", "approved", "xero_sync_failed", "withdrawn"];
 ```
 
+### The notification dispatch setting check
+
+`packages/availability/src/approvals/approval-service.ts:1409-1417`:
+
+```typescript
+  const settingsResult = await getSettings({
+    clerkOrgId: input.clerkOrgId,
+    organisationId: input.organisationId,
+  });
+  if (
+    !(settingsResult.ok && settingsResult.value.notifyManagersOnStatusChange)
+  ) {
+    return;
+  }
+```
+
 ### The conservative convention this restores
 
 `packages/availability/src/settings/manager-scope.ts:28-30`:
@@ -213,7 +229,7 @@ reason is rejected at the action boundary whether the org requires one or not.
 | Install | `bun install` | exit 0 |
 | Typecheck | `bun run typecheck` | exit 0, no errors |
 | Module tests | `bunx vitest run packages/availability/src/approvals/approval-service.test.ts` | all pass |
-| Full unit tests | `bun run test` | exit 0 |
+| Full unit tests | `cd packages/availability && NODE_ENV=test bunx vitest run --exclude '**/*.integration.test.ts' --maxWorkers=2 --testTimeout=30000` | exit 0 |
 | Lint | `bun run check` | exit 0 |
 
 If `bun run typecheck` or `bun run test` fails before you have made any change
@@ -262,6 +278,14 @@ the policy:
     organisationId: parsed.data.organisationId,
   });
 
+  if (!settingsResult.ok) {
+    log.warn("Failed to load organisation settings for decline policy, failing closed", {
+      clerkOrgId: parsed.data.clerkOrgId,
+      organisationId: parsed.data.organisationId,
+      error: settingsResult.error,
+    });
+  }
+
   // A settings read failure must not silently disable a compliance control.
   // The stored default for requireDeclineReason is true, so treat an unreadable
   // setting as "required" rather than skipping the check.
@@ -298,6 +322,14 @@ deliberate, commented choice rather than a side effect of `&&`, and log a
 warning:
 
 ```typescript
+    if (!settingsResult.ok) {
+      log.warn("Failed to load organisation settings for list approvals, using default view", {
+        clerkOrgId: parsed.data.clerkOrgId,
+        organisationId: parsed.data.organisationId,
+        error: settingsResult.error,
+      });
+    }
+
     // On a settings read failure, keep the narrower default rather than
     // silently widening the queue. Logged so the outage is not invisible.
     const showDeclined = settingsResult.ok
@@ -307,12 +339,41 @@ warning:
 
 **Verify**: `bun run typecheck` → exit 0.
 
+### Step 2b: Make the notification dispatch check explicit about failure
+
+Apply explicit error handling to `sendApprovalStatusNotification` at line 1409 so that a failed settings lookup logs a warning and returns early rather than relying on `!(settingsResult.ok && ...)`:
+
+```typescript
+  const settingsResult = await getSettings({
+    clerkOrgId: input.clerkOrgId,
+    organisationId: input.organisationId,
+  });
+
+  if (!settingsResult.ok) {
+    log.warn(
+      "Failed to load organisation settings for manager notification, skipping notification",
+      {
+        clerkOrgId: input.clerkOrgId,
+        organisationId: input.organisationId,
+        error: settingsResult.error,
+      }
+    );
+    return;
+  }
+
+  if (!settingsResult.value.notifyManagersOnStatusChange) {
+    return;
+  }
+```
+
+**Verify**: `bun run typecheck` → exit 0.
+
 ### Step 3: Test both branches of the decline policy
 
 In `packages/availability/src/approvals/approval-service.test.ts`, using the
 existing `mocks.getSettings`, add:
 
-1. **The regression test**: `getSettings` mocked to return `{ ok: false, ... }`,
+1. **The regression test**: `getSettings` mocked to return `{ ok: false, error: { code: "not_found", message: "Failed" } }`,
    decline called with `reason: ""`. Assert the result is `ok: false` with
    `code: "validation_error"`, and that the Xero decline write was NOT called.
    Before Step 1 this test fails.
@@ -374,16 +435,14 @@ Append a section to the bottom of this plan file titled
 Machine-checkable. ALL must hold:
 
 - [ ] `bun run typecheck` exits 0
-- [ ] `bun run test` exits 0
+- [ ] `cd packages/availability && NODE_ENV=test bunx vitest run --exclude '**/*.integration.test.ts'` exits 0
 - [ ] `bun run check` exits 0
 - [ ] `grep -n "settingsResult.ok &&" packages/availability/src/approvals/approval-service.ts`
       returns no matches
 - [ ] `bunx vitest run packages/availability/src/approvals/approval-service.test.ts`
       passes with at least 7 new test cases
 - [ ] The "Open question" section has been added to this file
-- [ ] `git status --short` shows only the two in-scope files modified, plus this
-      plan file and `plans/README.md` for the status update
-- [ ] Status row for plan 011 updated in `plans/README.md`
+- [ ] `git status --short` shows only the two in-scope files modified in `packages/availability`
 
 ## STOP conditions
 
@@ -395,7 +454,7 @@ Stop and report back (do not improvise) if:
   definition. If it cannot fail, this plan's premise is wrong: report that
   rather than adding dead branches.
 - `grep -n "settingsResult.ok &&" packages/availability/src/approvals/approval-service.ts`
-  finds sites beyond the two in this plan. Report the additional line numbers;
+  finds sites beyond the three in this plan. Report the additional line numbers;
   do not fix them here without confirming each one's correct failure direction.
 - Case 5 (`requireDeclineReason: false`, empty reason succeeds) turns out to be
   impossible to reach because `performDecline` itself requires a reason. Report
