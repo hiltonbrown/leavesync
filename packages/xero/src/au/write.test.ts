@@ -267,4 +267,26 @@ describe("AU payroll write path", () => {
       expect(result.error.code).toBe(code);
     }
   });
+
+  it("returns auth_error Result without throwing when access_token_iv is null", async () => {
+    const tenant = buildXeroTenant();
+    tenant.xero_connection.access_token_iv = null;
+
+    await expect(
+      submitLeaveApplication({
+        endsAt: new Date("2026-05-05T00:00:00.000Z"),
+        startsAt: new Date("2026-05-04T00:00:00.000Z"),
+        units: 2,
+        xeroEmployeeId: "employee-1",
+        xeroLeaveTypeId: "type-1",
+        xeroTenant: tenant,
+      })
+    ).resolves.toMatchObject({
+      error: {
+        code: "auth_error",
+        message: "Xero credentials are missing or revoked.",
+      },
+      ok: false,
+    });
+  });
 });

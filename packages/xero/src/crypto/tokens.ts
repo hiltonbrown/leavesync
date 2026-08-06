@@ -4,6 +4,31 @@ import { keys, validateEncryptionKey } from "../../keys";
 const ALGORITHM = "aes-256-gcm";
 const IV_BYTES = 12;
 
+export type DecryptXeroTokenResult =
+  | { ok: true; token: string }
+  | { ok: false; reason: string };
+
+/**
+ * Non-throwing form of decryptXeroToken, for call sites that must return a
+ * Result rather than throw. A corrupt credential row or a missing encryption
+ * key is an expected failure at the Xero boundary, not an exception.
+ */
+export function tryDecryptXeroToken(input: {
+  authTag: null | string;
+  encrypted: string;
+  iv: null | string;
+}): DecryptXeroTokenResult {
+  try {
+    return { ok: true, token: decryptXeroToken(input) };
+  } catch (error) {
+    return {
+      ok: false,
+      reason:
+        error instanceof Error ? error.message : "Token decryption failed.",
+    };
+  }
+}
+
 export interface EncryptedToken {
   authTag: string;
   encrypted: string;
