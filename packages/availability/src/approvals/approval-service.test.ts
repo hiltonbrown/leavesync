@@ -437,6 +437,77 @@ describe("approval-service", () => {
     );
   });
 
+  it("persists failed approve when notification fails", async () => {
+    mocks.availabilityFindFirst
+      .mockResolvedValueOnce(record)
+      .mockResolvedValueOnce({
+        ...record,
+        approval_status: "xero_sync_failed",
+        failed_action: "approve",
+      });
+    mocks.approveLeaveApplicationForRegion.mockResolvedValue({
+      error: {
+        code: "conflict_error",
+        message: "Overlap",
+        rawPayload: { Message: "Overlap" },
+        userMessage: "This leave overlaps an existing record in Xero.",
+      },
+      ok: false,
+    });
+    mocks.dispatchNotification.mockResolvedValue({
+      error: { message: "Notification unavailable" },
+      ok: false,
+    });
+
+    const result = await approve(input, mockPort);
+
+    expect(result.ok).toBe(true);
+    expect(mocks.availabilityUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          approval_status: "xero_sync_failed",
+          failed_action: "approve",
+          xero_write_error: "This leave overlaps an existing record in Xero.",
+        }),
+      })
+    );
+    expect(mocks.auditCreate).toHaveBeenCalled();
+    // Verify notification was attempted
+    expect(mocks.dispatchNotification).toHaveBeenCalled();
+  });
+
+  it("dispatches failure notifications after the transaction completes", async () => {
+    mocks.availabilityFindFirst
+      .mockResolvedValueOnce(record)
+      .mockResolvedValueOnce({
+        ...record,
+        approval_status: "xero_sync_failed",
+        failed_action: "approve",
+      });
+    mocks.approveLeaveApplicationForRegion.mockResolvedValue({
+      error: {
+        code: "conflict_error",
+        message: "Overlap",
+        rawPayload: { Message: "Overlap" },
+        userMessage: "This leave overlaps an existing record in Xero.",
+      },
+      ok: false,
+    });
+
+    let transactionFinished = false;
+    mocks.availabilityUpdateMany.mockImplementation(() => {
+      transactionFinished = true;
+      return Promise.resolve({ count: 1 });
+    });
+    mocks.dispatchNotification.mockImplementation(() => {
+      expect(transactionFinished).toBe(true);
+      return Promise.resolve({ ok: true, value: undefined });
+    });
+
+    await approve(input, mockPort);
+    expect(mocks.dispatchNotification).toHaveBeenCalled();
+  });
+
   it("decline failure preserves the reason for retry", async () => {
     mocks.availabilityFindFirst
       .mockResolvedValueOnce(record)
