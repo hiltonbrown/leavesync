@@ -142,7 +142,7 @@ These are release blockers. `TODO` means the app remains a no-go.
 | Plan | Required outcome | Status |
 |---|---|---|
 | [010](010-return-auth-error-instead-of-throwing-on-token-decrypt.md) | Token decryption failures remain typed, diagnosable Xero errors | TODO, finding re-verified |
-| [011](011-fail-closed-on-decline-reason-policy.md) | A settings failure cannot disable the decline-reason policy | TODO, finding re-verified |
+| [011](011-fail-closed-on-decline-reason-policy.md) | A settings failure cannot disable the decline-reason policy | DONE |
 | [012](012-move-failure-notifications-out-of-the-state-transaction.md) | Notification failure cannot roll back durable Xero failure state | TODO, finding re-verified |
 | [013](013-paginate-and-narrow-the-approvals-list-query.md) | Raw Xero and write-error audit payloads never cross the manager browser boundary; the list is bounded | TODO, finding re-verified |
 | [017](017-make-leave-submission-idempotent.md) | Retries and concurrent requests cannot create duplicate Xero leave applications | TODO, finding re-verified |
