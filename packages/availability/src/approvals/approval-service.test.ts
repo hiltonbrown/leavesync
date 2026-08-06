@@ -815,6 +815,207 @@ describe("approval-service", () => {
     );
   });
 
+  describe("decline policy and organisation settings handling", () => {
+    it("fails closed when getSettings returns ok: false on decline with empty reason", async () => {
+      mocks.getSettings.mockResolvedValueOnce({
+        ok: false,
+        error: { code: "not_found", message: "Failed" },
+      });
+
+      const result = await decline(
+        { ...input, reason: "" },
+        mockPort
+      );
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toEqual({
+          code: "validation_error",
+          message: "Enter a decline reason of at least 3 characters.",
+        });
+      }
+      expect(mocks.declineLeaveApplicationForRegion).not.toHaveBeenCalled();
+    });
+
+    it("rejects empty reason when requireDeclineReason is true", async () => {
+      mocks.getSettings.mockResolvedValueOnce({
+        ok: true,
+        value: {
+          defaultFeedPrivacyMode: "named",
+          defaultLeaveRequestAdvanceDays: 0,
+          defaultPrivacyMode: "named",
+          feedsIncludePublicHolidaysDefault: false,
+          id: "settings_1",
+          managerVisibilityScope: "direct_reports_only",
+          notifyManagersOnStatusChange: true,
+          organisationId: input.organisationId,
+          requireDeclineReason: true,
+          showDeclinedOnApprovals: true,
+          showPendingOnCalendar: true,
+        },
+      });
+
+      const result = await decline(
+        { ...input, reason: "" },
+        mockPort
+      );
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toEqual({
+          code: "validation_error",
+          message: "Enter a decline reason of at least 3 characters.",
+        });
+      }
+      expect(mocks.declineLeaveApplicationForRegion).not.toHaveBeenCalled();
+    });
+
+    it("rejects reason shorter than 3 characters when requireDeclineReason is true", async () => {
+      mocks.getSettings.mockResolvedValueOnce({
+        ok: true,
+        value: {
+          defaultFeedPrivacyMode: "named",
+          defaultLeaveRequestAdvanceDays: 0,
+          defaultPrivacyMode: "named",
+          feedsIncludePublicHolidaysDefault: false,
+          id: "settings_1",
+          managerVisibilityScope: "direct_reports_only",
+          notifyManagersOnStatusChange: true,
+          organisationId: input.organisationId,
+          requireDeclineReason: true,
+          showDeclinedOnApprovals: true,
+          showPendingOnCalendar: true,
+        },
+      });
+
+      const result = await decline(
+        { ...input, reason: "ok" },
+        mockPort
+      );
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toEqual({
+          code: "validation_error",
+          message: "Enter a decline reason of at least 3 characters.",
+        });
+      }
+      expect(mocks.declineLeaveApplicationForRegion).not.toHaveBeenCalled();
+    });
+
+    it("succeeds with valid reason when requireDeclineReason is true", async () => {
+      mocks.availabilityFindFirst
+        .mockResolvedValueOnce(record)
+        .mockResolvedValueOnce({ ...record, approval_status: "declined" });
+      mocks.declineLeaveApplicationForRegion.mockResolvedValueOnce({
+        ok: true,
+        value: undefined,
+      });
+
+      const result = await decline(
+        { ...input, reason: "Too much overlap" },
+        mockPort
+      );
+
+      expect(result.ok).toBe(true);
+      expect(mocks.declineLeaveApplicationForRegion).toHaveBeenCalledWith(
+        expect.objectContaining({ remoteId: "xero-leave-1" })
+      );
+    });
+
+    it("succeeds with empty reason when requireDeclineReason is false", async () => {
+      mocks.getSettings.mockResolvedValueOnce({
+        ok: true,
+        value: {
+          defaultFeedPrivacyMode: "named",
+          defaultLeaveRequestAdvanceDays: 0,
+          defaultPrivacyMode: "named",
+          feedsIncludePublicHolidaysDefault: false,
+          id: "settings_1",
+          managerVisibilityScope: "direct_reports_only",
+          notifyManagersOnStatusChange: true,
+          organisationId: input.organisationId,
+          requireDeclineReason: false,
+          showDeclinedOnApprovals: true,
+          showPendingOnCalendar: true,
+        },
+      });
+      mocks.availabilityFindFirst
+        .mockResolvedValueOnce(record)
+        .mockResolvedValueOnce({ ...record, approval_status: "declined" });
+      mocks.declineLeaveApplicationForRegion.mockResolvedValueOnce({
+        ok: true,
+        value: undefined,
+      });
+
+      const result = await decline(
+        { ...input, reason: "" },
+        mockPort
+      );
+
+      expect(result.ok).toBe(true);
+      expect(mocks.declineLeaveApplicationForRegion).toHaveBeenCalledWith(
+        expect.objectContaining({ remoteId: "xero-leave-1" })
+      );
+    });
+
+    it("rejects whitespace-only reason when requireDeclineReason is true", async () => {
+      mocks.getSettings.mockResolvedValueOnce({
+        ok: true,
+        value: {
+          defaultFeedPrivacyMode: "named",
+          defaultLeaveRequestAdvanceDays: 0,
+          defaultPrivacyMode: "named",
+          feedsIncludePublicHolidaysDefault: false,
+          id: "settings_1",
+          managerVisibilityScope: "direct_reports_only",
+          notifyManagersOnStatusChange: true,
+          organisationId: input.organisationId,
+          requireDeclineReason: true,
+          showDeclinedOnApprovals: true,
+          showPendingOnCalendar: true,
+        },
+      });
+
+      const result = await decline(
+        { ...input, reason: "   " },
+        mockPort
+      );
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.error).toEqual({
+          code: "validation_error",
+          message: "Enter a decline reason of at least 3 characters.",
+        });
+      }
+      expect(mocks.declineLeaveApplicationForRegion).not.toHaveBeenCalled();
+    });
+
+    it("omits declined records from default list filter when getSettings fails", async () => {
+      mocks.getSettings.mockResolvedValueOnce({
+        ok: false,
+        error: { code: "not_found", message: "Failed" },
+      });
+      mocks.availabilityFindMany.mockResolvedValue([record]);
+
+      const result = await listForApprover({
+        ...input,
+      });
+
+      expect(result.ok).toBe(true);
+      expect(mocks.availabilityFindMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            approval_status: {
+              in: ["submitted", "approved", "xero_sync_failed", "withdrawn"],
+            },
+          }),
+        })
+      );
+    });
+  });
+
   it("passes explicit status filter through unchanged", async () => {
     mocks.availabilityFindMany.mockResolvedValue([record]);
 
