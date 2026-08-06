@@ -155,22 +155,100 @@ implement an unfinished dependency during the launch window.
 
 ## Recommended execution order
 
-Different owners may run independent plans in parallel, but preserve these
-hard sequences:
+**Execution is serial. One plan at a time, merged to `main` before the next
+begins.**
 
-1. **Restore the verification baseline**: 048 and 049, which are independent and
-   may run in parallel. Plan 047 is already done. Nothing else should be marked
-   DONE until these two are in.
-2. **Establish trustworthy gates**: 035, then 015; then 016 (after 049) and 020.
-3. **Close direct product risks**: 010-013, 017, 019, then 027, plus 042 and
-   043.
-4. **Make reconciliation safe**: execute 018, then 038. Plan 007 is already done.
-5. **Add production scheduling**: execute 044. Inbound scheduling is unblocked;
-   enable nightly approval reconciliation only after 018 and 038.
-6. **Make the release truthful and operable**: execute 045. It can proceed in
-   parallel with most code fixes but must be complete before deployment.
-7. **Release**: execute 046 only after every preceding go-live row is DONE on
-   the same release commit.
+Fan-out across plans is not used. Four of the queued plans (011, 013, 018 and
+012) all modify `packages/availability/src/approvals/approval-service.ts`, so
+running them concurrently produces conflicts in a single file that carries the
+approval state machine. Parallel execution would also invalidate the drift
+excerpts of whichever plan lands second. The cost of serialising the whole queue
+is lower than the cost of resolving conflicts in that file, and the queue is
+short enough that the throughput loss does not matter.
+
+### Before the queue: run manually and merge
+
+Run these two by hand, in this order, and merge each before starting the queue:
+
+1. **049**, so `bun run build` stops crashing the Bun runtime on `apps/app`.
+2. **048**, so `bun run check` exits 0.
+
+Until both are in, no plan's done criteria can be honestly evaluated: every
+queued plan lists `bun run check` and most list `bun run build`. Nothing in the
+queue should be marked DONE before these two land.
+
+Both failures are confirmed live, not theoretical. CI run 31071757693 fails at
+its `bun run check` step with `Found 2589 errors` and never reaches typecheck or
+either test lane, and every Vercel deployment of `main` since `754a5aac` has
+failed the build, including production. Plan 049 is repairing a live deployment
+outage.
+
+A clean local `bun run build` does not release this gate. The crash is
+platform-sensitive, so an executor may see a passing local build while every
+deployment still fails; plan 049's STOP conditions now say to verify against a
+deployment rather than stopping. Neither plan can deadlock the queue on a
+non-reproducing machine.
+
+### The queue
+
+Each row is merged to `main` before the next begins.
+
+| Position | Plan | Reason this position is fixed |
+|---|---|---|
+| 1 | [035](035-fix-the-turborepo-task-graph.md) | `035 -> 015`. Fixes the Turborepo task graph that false-greens `test` and `typecheck`, so every later gate is trustworthy |
+| 2 | [015](015-enable-the-test-harness-in-six-untestable-workspaces.md) | Test harness must exist in all six workspaces before a green `bun run test` means anything |
+| 3 | [016](016-add-a-build-step-to-ci.md) | Requires 049, which is merged before the queue starts |
+| 4 | [020](020-run-the-xero-disconnect-integration-test.md) | Grouped with the gates, but needs a live `DATABASE_URL`; may be deferred and run standalone without blocking the queue |
+| 5 | [010](010-return-auth-error-instead-of-throwing-on-token-decrypt.md) | Isolated in `packages/xero`, no dependencies either way; serves as the loop's smoke test |
+| 6 | [042](042-correct-all-day-ics-date-boundaries.md) | `packages/feeds`, independent |
+| 7 | [043](043-preserve-retryable-feed-errors.md) | `packages/feeds`, independent |
+| 8 | [017](017-make-leave-submission-idempotent.md) | Submission path, independent of the approvals cluster |
+| 9 | [019](019-close-two-tenant-scoping-gaps-in-server-actions.md) | `019 -> 027` |
+| 10 | [027](027-validate-the-clerk-user-before-binding-it-to-a-person.md) | Depends on 019 |
+| 11 | [011](011-fail-closed-on-decline-reason-policy.md) | Approvals cluster. Smallest change, target sites are grep-findable rather than line-dependent |
+| 12 | [013](013-paginate-and-narrow-the-approvals-list-query.md) | Approvals cluster |
+| 13 | [018](018-clear-stale-xero-write-errors-on-status-change.md) | Approvals cluster. `018 -> 038` |
+| 14 | [012](012-move-failure-notifications-out-of-the-state-transaction.md) | Approvals cluster, last. Moving notifications out of the state transaction is the largest structural change and would otherwise shift the other three |
+| 15 | [038](038-bound-the-approval-reconciler-so-it-can-be-enabled.md) | Depends on 018 |
+| 16 | [044](044-schedule-au-xero-syncs.md) | Depends on 018 and 038 for nightly approval reconciliation |
+| 17 | [045](045-make-closed-au-early-access-truthful-and-deployable.md) | Must be complete before deployment |
+
+Positions 11 to 14 are the approvals cluster. They are ordered smallest change
+first and largest structural change last, so each one disturbs the next as
+little as possible. Every plan in that cluster carries a `## Drift warning`
+section: its excerpts must be re-reviewed against current `HEAD` immediately
+before that plan executes, because the pass that produced them expires as soon
+as the first cluster plan merges.
+
+### After the queue: run manually
+
+**046**, the release-control plan. It must not be used to discover or implement
+an unfinished dependency during the launch window.
+
+### Plan 020 may be deferred and run standalone
+
+Plan 020 turns on the Xero disconnect integration test, and its own STOP
+conditions require a disposable `DATABASE_URL` to prove the test actually
+executes. If no disposable database is available when position 4 comes up, skip
+it and continue to position 5. Run it standalone whenever a database becomes
+available.
+
+Deferring 020 blocks nothing. No other plan depends on it, and it depends on
+nothing beyond the pre-queue gates. It remains a required go-live row, so it
+must be DONE before 046 regardless of when it runs.
+
+Plan 017 at position 8 also needs a reachable `DATABASE_URL`, because it adds
+`xero_write_claimed_at` and generates a migration. Unlike 020, it is in the
+serial path. Its instructions now direct the executor to use the `DATABASE_URL`
+already present in the environment, with `packages/database/.env` as the
+documented fallback.
+
+### Excluded from the queue, deliberately
+
+- **046**, run by hand after the queue, as above.
+- The deferred plans classified below: 028, 029, 030, 031, 034, 036, 037 and
+  039. Their triggers are stated in "Required after early access" and are
+  unchanged.
 
 ### Hard dependency graph
 
@@ -360,9 +438,13 @@ Recorded to prevent low-value re-audits:
 - Live Vercel, Clerk, Xero, Inngest, Neon, KV, Resend, Sentry, DNS, email-domain
   or backup configuration. Plan 046 requires operator evidence for each.
 - Production data, load, browser performance or support volume.
-- Whether the `apps/app` build crash also occurs on x64 CI and Vercel build
-  machines. It was reproduced on `Linux arm64` under WSL2. Plan 049 removes the
-  exposure regardless.
+- ~~Whether the `apps/app` build crash also occurs on x64 CI and Vercel build
+  machines.~~ **Answered on 2026-08-06: it does.** Every Vercel deployment of
+  `main` since `754a5aac` has failed, including the production build of
+  `fb9f1cc`, and all three deployable apps are affected rather than `apps/app`
+  alone. Plan 049 is therefore fixing a live deployment outage, not removing a
+  theoretical exposure. Evidence is recorded under "Deployment context" in
+  plan 049.
 - Full marketing-site brand, SEO and accessibility quality outside the
   go-live-critical pricing, contact, legal and help paths.
 - The Mintlify documentation content in depth.

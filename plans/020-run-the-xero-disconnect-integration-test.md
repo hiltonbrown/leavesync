@@ -205,6 +205,45 @@ mutates and deletes rows. It scopes every delete to its two fixture
 `DATABASE_URL` at anything you care about. If you do not have a throwaway
 database, go to STOP conditions.
 
+Check the execution environment before concluding you have none. A
+`DATABASE_URL` may already be exported there. Confirm presence without printing
+the value:
+
+```
+[ -n "$DATABASE_URL" ] && echo present
+```
+
+**It must be exported, not merely written to a file.** `packages/database/.env`
+is not enough for this plan. The disconnect test reads
+`process.env.DATABASE_URL` at module scope to decide whether to run, and nothing
+loads that file into the test process: `packages/xero` has no vitest config and
+no setup file, and only `packages/database`'s own integration tests call
+`dotenv`. `packages/database/prisma.config.ts` does load `.env`, but that is the
+Prisma CLI path, not the vitest path.
+
+So if your connection string lives in a file, export it into the shell that runs
+the tests before running them, for example:
+
+```
+set -a; . packages/database/.env; set +a
+```
+
+Verify with the presence check above. If you skip this the two destructive tests
+stay silently skipped, `bun run test:integration` still exits 0, and done
+criterion 4's "two more passing tests" cannot be met, which is the failure this
+plan exists to remove.
+
+**Unlike plan 017, presence is not sufficient here.** This test is destructive by
+design, so you must also establish that the database is disposable before
+pointing the test at it. A shared development or staging database is not
+disposable. If you cannot confirm that, treat it as "no throwaway database" and
+go to STOP conditions.
+
+Deferring this plan blocks nothing. It sits at position 4 of the serial queue,
+but no other plan depends on it, so if no disposable database is available when
+you reach it, skip to position 5 and run this one standalone later. It remains a
+required go-live row before plan 046.
+
 ## Scope
 
 **In scope:**
@@ -415,14 +454,21 @@ All of the following, verbatim:
 3. `bun run test` exits 0.
 4. `bun run test:integration` exits 0 with two more passing tests than the
    Step 1 baseline.
-5. `grep -c "RUN_XERO_DISCONNECT_INTEGRATION" -r . --include=*.ts --include=*.json --include=*.yml 2>/dev/null | grep -v node_modules` finds no occurrences.
+5. `grep -rl "RUN_XERO_DISCONNECT_INTEGRATION" --include=*.ts --include=*.json --include=*.yml . 2>/dev/null | grep -v node_modules`
+   prints nothing. Use `-l` (list matching files), not `-c`: with `-c` and `-r`,
+   grep prints a `path:0` line for every file it searches, so the output is
+   thousands of lines whether or not the string survives and you cannot read a
+   pass from it.
 6. `grep -c "describe.skip" packages/xero/src/oauth/disconnect.integration.test.ts`
    prints `0` (the only remaining conditional is the ternary on
    `process.env.DATABASE_URL`, which does not contain the literal string when
    written as in Step 3).
 7. `node -e "const s=require('./packages/xero/package.json').scripts; console.log(Boolean(s['test:integration']))"`
    prints `true`.
-8. `git diff --name-only` lists exactly two files.
+8. `git diff --name-only` lists exactly two source files,
+   `packages/xero/package.json` and
+   `packages/xero/src/oauth/disconnect.integration.test.ts`, plus this plan file
+   and `plans/README.md` for the status update.
 
 ## STOP conditions
 

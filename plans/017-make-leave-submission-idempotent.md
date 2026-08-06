@@ -65,6 +65,22 @@ Approve, decline and withdraw are not affected in the same way. They POST to
 application: a duplicate call fails with a conflict rather than creating
 anything. Only submission creates.
 
+## Drift warning
+
+Plan 010 runs at position 5 and this plan at position 8. **Plan 010 rewrites the
+`decryptXeroToken` call inside `xeroRequest`** to a non-throwing variant, so
+`packages/xero/src/au/write.ts` will already have changed when you open it. The
+`xeroRequest` excerpt under `## Current state` shows the pre-010 shape.
+
+The two findings are independent: 010 changes how a decryption failure is
+reported, this plan changes whether the creating POST is retried. Re-read
+`write.ts` as it then stands and add `retryOnAmbiguousFailure: false` to the
+submit call in place.
+
+Plan 012 at position 14 edits
+`packages/availability/src/plans/submit-service.ts` after you do, and carries the
+matching warning. Land this plan first, as the order requires.
+
 ## Current state
 
 ### `xeroFetch` retries every request, including creating POSTs
@@ -313,7 +329,7 @@ export async function retrySubmission(
 
 ### The failure path also guards on `derived_sequence`
 
-`persistXeroFailure`, lines 456-481, uses the same guard shape:
+`persistXeroFailure` (line 446) uses the same guard shape at lines 472-478:
 
 ```typescript
       where: {
@@ -418,6 +434,36 @@ cd packages/database && bunx prisma migrate dev --name add_xero_write_claim
 > If a test or typecheck fails with `Cannot find module
 > '@repo/observability/log'`, that is a stale local `node_modules` symlink, not
 > a repository defect. Run `bun install` once and retry.
+
+### Database connection for the migration step
+
+**Use the `DATABASE_URL` already provided in the execution environment's
+environment variables.** This plan adds a column and generates a migration, so
+Steps 6 and 7 need a reachable database. Do not ask for a connection string, do
+not copy one out of a deployment dashboard, and do not write one into a file in
+the repository.
+
+Resolve it in this order:
+
+1. `DATABASE_URL` exported in the environment you are running in. Confirm with
+   `[ -n "$DATABASE_URL" ] && echo present` (print the check, never the value).
+2. If it is not exported, `packages/database/.env`. That exact filename is the
+   only file-based fallback that works here: `packages/database/prisma.config.ts`
+   calls `process.loadEnvFile(path.join(__dirname, ".env"))` and nothing else,
+   and its `datasource.url` falls back to `""` when the variable is unset. A
+   `.env.local` is **not** read, and a `""` datasource makes
+   `prisma migrate dev` fail with a connection error rather than a clear message
+   about the missing variable. `packages/database/.env.example` documents the
+   expected shape.
+
+Only if neither is available does the "No reachable `DATABASE_URL`" STOP
+condition apply. Treat the environment variable as the normal path and stopping
+as the exception, not the reverse.
+
+The target must be a **disposable or development** database. `prisma migrate
+dev` is destructive on drift: it will offer to reset. Never point it at
+production, and never run it against a database whose contents you would mind
+losing.
 
 ## Scope
 
@@ -678,8 +724,10 @@ ALTER TABLE "availability_records" ADD COLUMN "xero_write_claimed_at" TIMESTAMP(
 Read the generated file and confirm it contains **only** that. Never hand-edit
 a generated migration; if it contains anything else, go to STOP conditions.
 
-This requires a reachable `DATABASE_URL`. If you do not have one, stop and
-report rather than inventing a connection string.
+This requires a reachable `DATABASE_URL`. Use the one in the execution
+environment's environment variables, as described under "Database connection for
+the migration step". Stop and report only if that variable is genuinely absent
+and `packages/database` carries no `.env`; never invent a connection string.
 
 **Verify** the schema and migrations agree:
 
@@ -963,8 +1011,9 @@ All of the following, verbatim:
    called before `externalWritePort.submitLeaveApplication`. Verify with:
    `grep -n "claimXeroWrite\|submitLeaveApplication" packages/availability/src/plans/submit-service.ts`
    and confirm the claim line number is lower.
-9. `git diff --name-only` lists only files from the "In scope" list, plus the
-   one new migration directory.
+9. `git diff --name-only` lists only files from the "In scope" list, the one new
+   migration directory, this plan file and `plans/README.md` for the status
+   update.
 
 ## STOP conditions
 
@@ -974,9 +1023,11 @@ Stop and report back rather than improvising if any of these occur:
 - **`prisma migrate dev` generates anything beyond the single `ALTER TABLE ADD
   COLUMN`.** That means the schema has drifted from the migrations and this
   plan's migration would carry unrelated changes. Report the generated SQL.
-- **No reachable `DATABASE_URL`.** The migration cannot be generated. Report
-  and stop; do not fabricate a connection string or hand-write the migration
-  directory.
+- **No reachable `DATABASE_URL`.** Check the environment variables first: this
+  plan expects to use the `DATABASE_URL` already present there, and a
+  `packages/database/.env` is the documented fallback. Only when neither exists
+  can the migration not be generated. Report and stop at that point; do not
+  fabricate a connection string or hand-write the migration directory.
 - **An existing test in `packages/xero/src/au/write.test.ts` asserts that a 5xx
   is retried.** Updating it is correct (that assertion encodes the bug), but
   say so explicitly in your report rather than quietly changing it.

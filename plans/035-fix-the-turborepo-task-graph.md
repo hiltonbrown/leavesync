@@ -451,7 +451,8 @@ All of the following, verbatim:
    `git diff`.
 8. Baseline and post-change `bun run test` timings are both recorded in the
    report.
-9. `git diff --name-only` lists exactly `turbo.json`.
+9. `git diff --name-only` lists exactly one source file, `turbo.json`, plus this
+   plan file and `plans/README.md` for the status update.
 
 ## STOP conditions
 

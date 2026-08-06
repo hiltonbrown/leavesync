@@ -85,7 +85,7 @@ done
 
 ### Why Turbo skips them
 
-`turbo.json:14-16`:
+`turbo.json:16-18`:
 
 ```json
     "test": {
@@ -166,7 +166,7 @@ From packages that also have integration tests, such as
     "test:integration": "NODE_ENV=test vitest run .integration.test.ts",
 ```
 
-`vitest` is declared as `"vitest": "^4.1.7"` in most manifests. Match the version
+`vitest` is declared as `"vitest": "^4.1.10"` in most manifests. Match the version
 already used by `packages/core`.
 
 ### Repo conventions that apply here
@@ -233,7 +233,7 @@ For each of the six manifests, add to `scripts`:
     "test": "NODE_ENV=test vitest run --passWithNoTests",
 ```
 
-and add `"vitest": "^4.1.7"` to `devDependencies`.
+and add `"vitest": "^4.1.10"` to `devDependencies`.
 
 `--passWithNoTests` is required: five of the six have no test files yet, and
 without it `bun run test` would fail the moment the script exists. It is a

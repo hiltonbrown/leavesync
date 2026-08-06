@@ -15,8 +15,9 @@
 - **Priority**: P1
 - **Effort**: M
 - **Risk**: HIGH
-- **Depends on**: plans 002, 003, 004, 005, 006, 007, 008, 010, 011, 012,
-  013, 015, 016, 017, 018, 019, 020, 027, 035, 038 and 042 through 045
+- **Depends on**: plans 048 and 049 first, then 002, 003, 004, 005, 006, 007,
+  008, 010, 011, 012, 013, 015, 016, 017, 018, 019, 020, 027, 035, 038 and 042
+  through 045
 - **Category**: operations, release
 - **Planned at**: commit `b261792`, 2026-08-04
 
@@ -60,6 +61,7 @@ The following must be DONE and merged into the release candidate:
 
 | Area | Plans | Gate |
 |---|---|---|
+| Verification baseline | 048, 049 | `bun run check` and `bun run build` both exit 0, so every gate below is trustworthy rather than absorbed |
 | Authorisation, privacy and tenancy | 002, 004, 013, 019, 027 | linked actor required, no self-approval, narrow browser payloads, tenant-isolated actions |
 | Xero read/write integrity | 003, 006, 007, 010, 011, 012, 017, 018, 038 | safe pagination, preserved user fields, idempotent and reconciled writes |
 | OAuth and dependencies | 005, 008 | current clean audit, frozen lockfile, bound OAuth state |

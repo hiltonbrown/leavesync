@@ -23,6 +23,13 @@
   This plan is ready to execute.
 - **Category**: dx
 - **Planned at**: commit `f1884db`, 2026-08-05
+- **Confirmed on CI**: 2026-08-06, run 31071757693 on PR #121 at `893b5b1`.
+  The `Test` job fails at its `bun run check` step and never reaches typecheck,
+  migrate or either test lane, so this plan gates the whole CI pipeline exactly
+  as described. Biome reported `Checked 727 files in 116s` and `Found 2589
+  errors`, matching this plan's calibration figure on x64 CI rather than only on
+  the machine where it was written. The 381-file figure below counts files
+  carrying diagnostics; 727 is the total checked.
 
 ## Why this matters
 

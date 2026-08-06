@@ -52,15 +52,68 @@ audit data that must never be exposed to employees, and `source_payload_json` is
 the raw payroll payload. Neither should be crossing the network to a client
 component at all, even if the UI does not render them.
 
+## Drift warning
+
+**The `## Current state` excerpts in this plan were verified on 2026-08-06
+against `fb9f1cc`, and that verification expires as soon as plan 011 merges.
+Re-verify immediately before executing.**
+
+Three queued plans modify
+`packages/availability/src/approvals/approval-service.ts`: plan 011 at position
+11, this one at position 12 and plan 012 at position 14. **Plan 011 lands
+first**, changing the two `settingsResult.ok &&` sites, one of which is the
+`showDeclinedOnApprovals` default quoted here at lines 239-243. Expect that
+excerpt in particular to have changed shape, not merely moved.
+
+Plan 018 runs at position 13. It is grouped with this set by execution order
+only: it edits the job handlers in `packages/jobs` and does not modify
+`approval-service.ts`.
+
+This plan also edits
+`apps/app/app/(authenticated)/leave-approvals/page.tsx` and
+`leave-approvals-client.tsx`, which plan 038 quotes at position 15. Plan 038
+carries the matching warning.
+
+Before executing this plan:
+
+1. Re-run the drift check at the top of this file against current `HEAD`, not
+   against the commit named in the Status block.
+2. Re-read every file quoted under `## Current state` and confirm the excerpts
+   still match. Line numbers alone are not enough; check the code shape.
+3. Treat a mismatch as a refresh task, not a licence to improvise. Update the
+   excerpts, then execute.
+
+### How this interacts with the header's STOP-on-mismatch rule
+
+The executor instructions at the top of this file say to compare the excerpts
+against live code and, on a mismatch, "treat it as a STOP condition". That rule
+exists to catch **unexpected** drift, where a mismatch may mean the finding
+itself has moved or been fixed. It is not the right response to drift this
+review has already predicted and attributed to a named predecessor plan.
+
+So, for the files named above only:
+
+- **Expected drift is a refresh.** The excerpt moved or changed shape because a
+  named earlier plan edited that file. Update the excerpt and continue.
+- **Unexpected drift is still a STOP.** Report and do not improvise if the
+  mismatch is in a file not named above, if the finding no longer holds because
+  the defect is already gone, or if the surrounding code has been restructured
+  enough that this plan's fix no longer applies as written.
+
+If you cannot tell which case you are in, that is itself a STOP: say what you
+found and let a human decide. The rule of thumb is that refreshing a line number
+or re-quoting a moved block is routine, while changing what the plan does is
+not.
+
 ## Current state
 
 ### Relevant files
 
 - `packages/availability/src/approvals/approval-service.ts` — the unbounded
-  query (line 257), the status defaults (line 239), `recordInclude` (line 1714),
+  query (line 258), the status defaults (line 239), `recordInclude` (line 1706),
   and `toApprovalListItem`, which defines what the UI actually needs.
 - `apps/app/app/(authenticated)/leave-approvals/page.tsx` — passes the result
-  into the client component (around line 122).
+  into the client component (around line 143).
 - `apps/app/app/(authenticated)/leave-approvals/leave-approvals-client.tsx` —
   the consumer.
 - `packages/availability/src/analytics/leave-reports-service.ts` — contains the
@@ -71,7 +124,7 @@ component at all, even if the UI does not render them.
 
 ### The unbounded query
 
-`packages/availability/src/approvals/approval-service.ts:257-278`:
+`packages/availability/src/approvals/approval-service.ts:258-281`:
 
 ```typescript
     const records = await database.availabilityRecord.findMany({
@@ -115,7 +168,7 @@ approved is returned, forever.
 
 ### `recordInclude` does not constrain the record's own columns
 
-`packages/availability/src/approvals/approval-service.ts:1714-1737`:
+`packages/availability/src/approvals/approval-service.ts:1706-1729`:
 
 ```typescript
 const recordInclude = {
@@ -360,7 +413,8 @@ Machine-checkable. ALL must hold:
 - [ ] `grep -n "approvalRecordSelect" packages/availability/src/approvals/approval-service.ts`
       returns at least two matches
 - [ ] `bunx vitest run packages/availability` passes with at least 8 new cases
-- [ ] `git status --short` shows only in-scope files modified
+- [ ] `git status --short` shows only in-scope files modified, plus this plan
+      file and `plans/README.md` for the status update
 - [ ] Status row for plan 013 updated in `plans/README.md`
 
 ## STOP conditions
