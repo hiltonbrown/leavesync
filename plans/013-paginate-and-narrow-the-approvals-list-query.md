@@ -83,6 +83,28 @@ Before executing this plan:
 3. Treat a mismatch as a refresh task, not a licence to improvise. Update the
    excerpts, then execute.
 
+### How this interacts with the header's STOP-on-mismatch rule
+
+The executor instructions at the top of this file say to compare the excerpts
+against live code and, on a mismatch, "treat it as a STOP condition". That rule
+exists to catch **unexpected** drift, where a mismatch may mean the finding
+itself has moved or been fixed. It is not the right response to drift this
+review has already predicted and attributed to a named predecessor plan.
+
+So, for the files named above only:
+
+- **Expected drift is a refresh.** The excerpt moved or changed shape because a
+  named earlier plan edited that file. Update the excerpt and continue.
+- **Unexpected drift is still a STOP.** Report and do not improvise if the
+  mismatch is in a file not named above, if the finding no longer holds because
+  the defect is already gone, or if the surrounding code has been restructured
+  enough that this plan's fix no longer applies as written.
+
+If you cannot tell which case you are in, that is itself a STOP: say what you
+found and let a human decide. The rule of thumb is that refreshing a line number
+or re-quoting a moved block is routine, while changing what the plan does is
+not.
+
 ## Current state
 
 ### Relevant files

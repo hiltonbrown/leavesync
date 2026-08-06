@@ -447,8 +447,13 @@ Resolve it in this order:
 
 1. `DATABASE_URL` exported in the environment you are running in. Confirm with
    `[ -n "$DATABASE_URL" ] && echo present` (print the check, never the value).
-2. If it is not exported, a `.env` or `.env.local` in `packages/database`, which
-   Prisma loads automatically. `packages/database/.env.example` documents the
+2. If it is not exported, `packages/database/.env`. That exact filename is the
+   only file-based fallback that works here: `packages/database/prisma.config.ts`
+   calls `process.loadEnvFile(path.join(__dirname, ".env"))` and nothing else,
+   and its `datasource.url` falls back to `""` when the variable is unset. A
+   `.env.local` is **not** read, and a `""` datasource makes
+   `prisma migrate dev` fail with a connection error rather than a clear message
+   about the missing variable. `packages/database/.env.example` documents the
    expected shape.
 
 Only if neither is available does the "No reachable `DATABASE_URL`" STOP

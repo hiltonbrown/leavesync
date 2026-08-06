@@ -177,6 +177,18 @@ Until both are in, no plan's done criteria can be honestly evaluated: every
 queued plan lists `bun run check` and most list `bun run build`. Nothing in the
 queue should be marked DONE before these two land.
 
+Both failures are confirmed live, not theoretical. CI run 31071757693 fails at
+its `bun run check` step with `Found 2589 errors` and never reaches typecheck or
+either test lane, and every Vercel deployment of `main` since `754a5aac` has
+failed the build, including production. Plan 049 is repairing a live deployment
+outage.
+
+A clean local `bun run build` does not release this gate. The crash is
+platform-sensitive, so an executor may see a passing local build while every
+deployment still fails; plan 049's STOP conditions now say to verify against a
+deployment rather than stopping. Neither plan can deadlock the queue on a
+non-reproducing machine.
+
 ### The queue
 
 Each row is merged to `main` before the next begins.

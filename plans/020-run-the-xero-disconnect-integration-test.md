@@ -206,13 +206,32 @@ mutates and deletes rows. It scopes every delete to its two fixture
 database, go to STOP conditions.
 
 Check the execution environment before concluding you have none. A
-`DATABASE_URL` may already be exported there, or configured in
-`packages/database/.env`; `packages/database/.env.example` documents the shape.
-Confirm presence without printing the value:
+`DATABASE_URL` may already be exported there. Confirm presence without printing
+the value:
 
 ```
 [ -n "$DATABASE_URL" ] && echo present
 ```
+
+**It must be exported, not merely written to a file.** `packages/database/.env`
+is not enough for this plan. The disconnect test reads
+`process.env.DATABASE_URL` at module scope to decide whether to run, and nothing
+loads that file into the test process: `packages/xero` has no vitest config and
+no setup file, and only `packages/database`'s own integration tests call
+`dotenv`. `packages/database/prisma.config.ts` does load `.env`, but that is the
+Prisma CLI path, not the vitest path.
+
+So if your connection string lives in a file, export it into the shell that runs
+the tests before running them, for example:
+
+```
+set -a; . packages/database/.env; set +a
+```
+
+Verify with the presence check above. If you skip this the two destructive tests
+stay silently skipped, `bun run test:integration` still exits 0, and done
+criterion 4's "two more passing tests" cannot be met, which is the failure this
+plan exists to remove.
 
 **Unlike plan 017, presence is not sufficient here.** This test is destructive by
 design, so you must also establish that the database is disposable before

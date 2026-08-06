@@ -338,8 +338,22 @@ Machine-checkable. ALL must hold:
 
 Stop and report back (do not improvise) if:
 
-- `bun run build` succeeds at Step 0. You are not reproducing the failure and
-  the change would be unverified.
+- `bun run build` succeeds at Step 0 **and** a fresh Vercel deployment of the
+  current commit also succeeds. Only then are you failing to reproduce, and only
+  then is the change unverified.
+
+  A locally succeeding build on its own is **not** a reason to stop. The crash
+  is platform-sensitive: it appears as a segfault on `Linux arm64` and as a
+  module-loading `TypeError` on Vercel's x64 builders, so an executor on a third
+  platform may see a clean local build while every deployment still fails. As of
+  2026-08-06 the authoritative reproduction is Vercel, where all three apps fail
+  on every deployment of `main`, evidence recorded under "Deployment context".
+
+  If your local build passes, verify against a deployment rather than stopping:
+  push the branch and read the Vercel result, or check the most recent
+  deployments of `main`. If those fail with the message quoted in this plan, you
+  have reproduced it and should proceed. Do not let a clean local build block
+  the queue, because every plan behind this one is waiting on it.
 - Node is not installed, or reports a version below the `engines.node` range
   (`22 || >=24.0.0`).
 - The build fails after Step 1 with a **code** error (a type error, a missing
