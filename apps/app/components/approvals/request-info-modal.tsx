@@ -80,9 +80,7 @@ export function RequestInfoModal({
           The employee will receive a notification with your question. They can
           withdraw and edit their request if needed.
         </p>
-        {message ? (
-          <p className="text-destructive text-sm">{message}</p>
-        ) : null}
+        {message ? <p className="text-destructive text-sm">{message}</p> : null}
         <div className="flex justify-end gap-3">
           <Button
             disabled={isPending}
