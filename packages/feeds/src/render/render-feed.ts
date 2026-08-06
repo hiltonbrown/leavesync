@@ -89,8 +89,7 @@ export async function cachedEtagForToken(
   });
 
   if (
-    !feedToken ||
-    feedToken.status !== "active" ||
+    feedToken?.status !== "active" ||
     (feedToken.expires_at && feedToken.expires_at < new Date()) ||
     feedToken.feed.status !== "active"
   ) {

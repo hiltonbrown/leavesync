@@ -48,33 +48,33 @@ export interface DeclineLeaveInput {
 }
 
 export interface ExternalWritePort {
-  approveLeaveApplication(
+  approveLeaveApplication: (
     input: ApproveLeaveInput
-  ): Promise<Result<void, ProviderWriteError>>;
+  ) => Promise<Result<void, ProviderWriteError>>;
 
-  declineLeaveApplication(
+  declineLeaveApplication: (
     input: DeclineLeaveInput
-  ): Promise<Result<void, ProviderWriteError>>;
-  resolveEmployeeId(input: {
+  ) => Promise<Result<void, ProviderWriteError>>;
+  resolveEmployeeId: (input: {
     personId: string;
     clerkOrgId: string;
     organisationId: string;
-  }): Promise<Result<string, ProviderResolutionError>>;
+  }) => Promise<Result<string, ProviderResolutionError>>;
 
-  resolveLeaveTypeId(input: {
+  resolveLeaveTypeId: (input: {
     personId: string;
     recordType: string;
     clerkOrgId: string;
     organisationId: string;
-  }): Promise<Result<string, ProviderResolutionError>>;
+  }) => Promise<Result<string, ProviderResolutionError>>;
 
-  submitLeaveApplication(
+  submitLeaveApplication: (
     input: SubmitLeaveInput
-  ): Promise<
+  ) => Promise<
     Result<{ remoteId: string; rawResponse: unknown }, ProviderWriteError>
   >;
 
-  withdrawLeaveApplication(
+  withdrawLeaveApplication: (
     input: WithdrawLeaveInput
-  ): Promise<Result<void, ProviderWriteError>>;
+  ) => Promise<Result<void, ProviderWriteError>>;
 }

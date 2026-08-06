@@ -295,7 +295,7 @@ function previewLabel(
   privacyMode: "masked" | "named" | "private",
   record?: Slice14AvailabilityRecordFixture
 ) {
-  if (!record || record.approvalStatus !== "approved") {
+  if (record?.approvalStatus !== "approved") {
     return null;
   }
   if (privacyMode === "masked") {

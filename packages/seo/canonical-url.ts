@@ -28,7 +28,9 @@ const parseOrigin = (value: string | undefined): URL | undefined => {
   try {
     const url = new URL(value);
     return new URL(url.origin);
-  } catch {}
+  } catch {
+    // An unparseable value has no canonical origin, so fall through to undefined.
+  }
 };
 
 export const resolveCanonicalWebUrl = (
