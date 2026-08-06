@@ -480,19 +480,19 @@ async function persistXeroFailure(input: {
       throw new OptimisticConflictError();
     }
 
-    await notifyOwnerAndManager(
-      tx,
-      input.input,
-      input.record,
-      "leave_xero_sync_failed",
-      { actionUrl: input.actionUrl }
-    );
     await tx.auditEvent.create({
       data: auditData(input.input, input.auditAction, {
         errorCode: input.error.code,
       }),
     });
   });
+
+  await notifySubmitFailureBestEffort(
+    input.input,
+    input.record,
+    "leave_xero_sync_failed",
+    { actionUrl: input.actionUrl }
+  );
 
   const updated = await loadBareRecord(input.input);
   if (!updated) {
@@ -650,6 +650,25 @@ async function notifyManagerBestEffort(
     await notifyManager(database, input, record, type, options);
   } catch (error) {
     log.error("Failed to dispatch manager notification", {
+      availabilityRecordId: record.id,
+      clerkOrgId: input.clerkOrgId,
+      error: error instanceof Error ? error.message : "Unknown error",
+      organisationId: input.organisationId,
+      type,
+    });
+  }
+}
+
+async function notifySubmitFailureBestEffort(
+  input: RecordActionInput,
+  record: LoadedRecord,
+  type: "leave_xero_sync_failed",
+  options: { actionUrl: string }
+): Promise<void> {
+  try {
+    await notifyOwnerAndManager(database, input, record, type, options);
+  } catch (error) {
+    log.error("Failed to dispatch failure notification", {
       availabilityRecordId: record.id,
       clerkOrgId: input.clerkOrgId,
       error: error instanceof Error ? error.message : "Unknown error",
