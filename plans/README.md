@@ -7,6 +7,11 @@ This index was reconciled on 2026-08-05 against local `main` at commit
 `f1884db`. It classifies all 49 plans by release stage and records the current
 go-live decision.
 
+**Plans 047 and 048 re-reconciled on 2026-08-06 at commit `454ded7`.** Both
+remain DONE: every done criterion was re-run on current `HEAD` and passed. The
+reconciliation also corrected the local test command that plan 048 published and
+that later plans were inheriting; see "Verified state" below.
+
 ## What changed in this reconciliation
 
 Eight plans that the previous index recorded as BLOCKED are **DONE**. They were
@@ -21,7 +26,7 @@ separate plan failures. One is now resolved; two remain:**
 |---|---|---|---|
 | The dependency refresh that fixes the test gate was **uncommitted** | 25 modified manifests plus `bun.lock`; CI installs `--frozen-lockfile` from the committed one | [047](047-land-the-uncommitted-dependency-refresh.md) | **RESOLVED**, committed as `f1884db` |
 | `bun run check` fails with **2,589 diagnostics across 381 files** | CI runs it at `.github/workflows/ci.yml:49`, before typecheck and tests, so CI never reaches the test step | [048](048-make-the-lint-gate-passable.md) | **RESOLVED**, merged as `b015511` |
-| `bun run build` **crashes** the Bun runtime on `apps/app` | `panic: Segmentation fault at address 0x13CB0`; the identical build under Node 24 exits 0 | [049](049-run-next-build-under-node.md) | TODO |
+| `bun run build` **crashes** the Bun runtime on `apps/app` | `panic: Segmentation fault at address 0x13CB0`; the identical build under Node 24 exits 0 | [049](049-run-next-build-under-node.md) | **RESOLVED**, merged as `8adeaa5`, verified at `44c2eb6` |
 
 The first is why plans 002, 004, 006, 007 and 008 were each reported blocked on
 "installed `react` and `react-dom` patch versions differ": the manifests pinned
@@ -42,8 +47,36 @@ failing loudly.
 | `bun run typecheck` | exit 0 |
 | `bun audit` | **2 vulnerabilities (1 moderate, 1 low)**, down from 43; no `next`, `hono`, `fast-uri` or `sharp` |
 | `bun run check` | **exit 0** on `main` since `b015511` (plan 048). Keep it that way: it is now a real gate |
-| `bun run test` | **Not a usable local gate.** Ten concurrent workspaces starve the vitest forks pool and the `app` suite dies with `Failed to start forks worker`, on clean `main` too. Use `cd apps/app && bunx vitest run --maxWorkers=2 --testTimeout=30000` and per-package runs. Turbo's `10 successful, 10 total` is a task count, not a test count |
-| `bun run build` | exit 137, Bun segfault on `apps/app`, see plan 049 |
+| `bun run test` | **Not a usable local gate.** Ten concurrent workspaces starve the vitest forks pool and the `app` suite dies with `Failed to start forks worker`, on clean `main` too. Turbo's `10 successful, 10 total` is a task count, not a test count. Use the per-package commands in the next table |
+| `bun run build` | **exit 0, `4 successful, 4 total`** on `main` since `8adeaa5` (plan 049), verified at `44c2eb6` on 2026-08-06. It is now a real gate |
+| `bun run test:integration` | **exit 1** in `@repo/database` against live Neon. Independent of plans 047 to 049; needs its own plan |
+
+**How to run tests locally. Corrected 2026-08-06 at `454ded7`; supersedes the
+command previously published in plan 048.** Both of the old forms produce
+output that looks like a regression but is not, which is the exact failure mode
+that cost this backlog eight wrongly-blocked plans:
+
+| Suite | Command | Expected |
+|---|---|---|
+| `app` | `cd apps/app && bunx vitest run --maxWorkers=1 --testTimeout=60000` | `Test Files 53 passed (53)`, `Tests 175 passed (175)` |
+| every other package | `cd <pkg> && NODE_ENV=test bunx vitest run --exclude '**/*.integration.test.ts' --maxWorkers=2 --testTimeout=30000` | the baseline table in plan 048 |
+
+- `--maxWorkers=2` is **too high for the `app` suite** on a loaded workstation.
+  It returned `49 passed (49)` / `156 passed (156)` with a separate `Errors 4`
+  line: four files were never collected, yet every collected file passed.
+  **Read the `Errors` line, not just the pass counts.** At `--maxWorkers=1` the
+  same tree returns the full 53 / 175.
+- A bare `bunx vitest run` outside `apps/app` runs **more** than that package's
+  own `test` script, which sets `NODE_ENV=test` and
+  `--exclude '**/*.integration.test.ts'`. Without the exclusion, integration
+  tests needing a live `DATABASE_URL` are swept in and fail:
+  `4 failed | 4 passed` in `@repo/database`, `1 failed | 12 passed` in
+  `@repo/jobs`. With it, both match baseline exactly.
+
+All ten packages were confirmed against the plan 048 baseline at `454ded7`:
+core 2/18, database 3/8, notifications 6/28, feeds 9/70, billing 1/4,
+availability 33/228, xero 16+1 skipped / 159+3 skipped, app 53/175, jobs 9/40,
+api 13/101.
 
 ## Current go-live decision
 
@@ -79,15 +112,22 @@ must not be executed because plan 041 supersedes it.
 
 ## Execute these first: the verification baseline
 
-Nothing below this section can be honestly verified until the remaining P0
-baseline plan is done. Plan 048 restored `bun run check`; most backlog plans
-also require `bun run build`, which remains blocked by plan 049.
+**All three P0 baseline plans are now DONE.** Plan 047 landed the dependency
+refresh, plan 048 restored `bun run check`, and plan 049 restored `bun run
+build`. The verification baseline is established: `check`, `typecheck` and
+`build` are all real, passing gates on `main`.
+
+One gap remains in that baseline. `bun run test` and `bun run test:integration`
+both exit 1, for reasons independent of plans 047 to 049: the vitest forks pool
+starves under ten concurrent workspaces, and the live-Neon integration suites
+fail and pollute shared database state. Use the per-package commands above.
+**This is the next thing to plan.**
 
 | Plan | Required outcome | Priority | Status |
 |---|---|---|---|
-| [047](047-land-the-uncommitted-dependency-refresh.md) | The react pins, `next 16.3.0` and the refreshed lockfile are committed, so CI and fresh worktrees install the same working dependency set | P0 | **DONE** (`f1884db`) |
-| [048](048-make-the-lint-gate-passable.md) | `bun run check` exits 0, so the lint gate stops blocking every plan and CI reaches its test step | P0 | **DONE**, reviewed and merged to `main` as `b015511` (6 commits, 373 files). Verified on `main`: `check` exit 0, `typecheck` exit 0, `app` 53 files / 175 tests |
-| [049](049-run-next-build-under-node.md) | `bun run build` exits 0 for all four tasks, unblocking plans 005, 016 and 046 | P0 | **MERGED, VERIFICATION BLOCKED**: implementation `71fa962`, merged as `8adeaa5` on 2026-08-06 at operator direction; the review host denies Turbopack's internal process port bind and times out Vitest workers |
+| [047](047-land-the-uncommitted-dependency-refresh.md) | The react pins, `next 16.3.0` and the refreshed lockfile are committed, so CI and fresh worktrees install the same working dependency set | P0 | **DONE** (`f1884db`). **Re-verified 2026-08-06** at `454ded7` and `44c2eb6`: pins all `19.2.8`, one copy of each in `node_modules`, lockfile clean and frozen-install clean, typecheck 0, audit unchanged at 2 |
+| [048](048-make-the-lint-gate-passable.md) | `bun run check` exits 0, so the lint gate stops blocking every plan and CI reaches its test step | P0 | **DONE**, reviewed and merged to `main` as `b015511` (6 commits, 373 files). **Re-verified 2026-08-06** at `454ded7` and `44c2eb6`: `check` exit 0, `typecheck` exit 0, all ten packages match baseline. Its published test command was wrong and is corrected above |
+| [049](049-run-next-build-under-node.md) | `bun run build` exits 0 for all four tasks, unblocking plans 005, 016 and 046 | P0 | **DONE and VERIFIED**: implementation `71fa962`, merged as `8adeaa5`, verified on the operator host at `44c2eb6` on 2026-08-06. `bun run build` exit 0, `4 successful, 4 total`; `apps/app` prints `ƒ Proxy (Middleware)`. The earlier "review host blocks Turbopack" report was a misdiagnosis: a stale `apps/web/.next` carrying a `dev/lock`, which reproduced under the old `bun --bun` command too |
 
 Plan 047 is done and needs no execution; it is retained as the record of the
 misdiagnosis and for the Dependabot grouping recommendation in its maintenance
@@ -131,12 +171,13 @@ pilot acceptance script and the customer support model.
 | Plan | Required outcome | Status |
 |---|---|---|
 | [015](015-enable-the-test-harness-in-six-untestable-workspaces.md) | Root and CI tests enter every owned workspace, including auth and web | TODO, finding re-verified |
-| [016](016-add-a-build-step-to-ci.md) | CI requires a production build for all deployable apps | TODO, **execute after plan 049** |
+| [016](016-add-a-build-step-to-ci.md) | CI requires a production build for all deployable apps | TODO, **unblocked**: plan 049 is done and `bun run build` exits 0 |
 | [020](020-run-the-xero-disconnect-integration-test.md) | Destructive Xero disconnect isolation runs in the integration lane | TODO, finding re-verified |
 | [035](035-fix-the-turborepo-task-graph.md) | Test and typecheck tasks express their real dependencies and do not false-green | TODO, finding re-verified |
 
-Plan 016 must not run before plan 049. Adding `bun run build` to CI while the
-build crashes would add a step that fails on its first run.
+Plan 016 was gated on plan 049 so that CI would not gain a build step that
+failed on its first run. Plan 049 is now done and verified, so plan 016 is free
+to execute.
 
 ### Production behaviour and launch controls
 
@@ -168,14 +209,18 @@ short enough that the throughput loss does not matter.
 
 ### Before the queue: run manually and merge
 
-Run these two by hand, in this order, and merge each before starting the queue:
+**Both prerequisites are now DONE and merged. The queue is clear to start.**
 
 1. **049**, so `bun run build` stops crashing the Bun runtime on `apps/app`.
-2. **048**, so `bun run check` exits 0.
+   Merged as `8adeaa5`, verified at `44c2eb6`: `bun run build` exits 0,
+   `4 successful, 4 total`.
+2. **048**, so `bun run check` exits 0. Merged as `b015511`, re-verified at
+   `44c2eb6`.
 
-Until both are in, no plan's done criteria can be honestly evaluated: every
-queued plan lists `bun run check` and most list `bun run build`. Nothing in the
-queue should be marked DONE before these two land.
+Queued plans can now be honestly evaluated against `bun run check`,
+`bun run typecheck` and `bun run build`. The one caveat: `bun run test` and
+`bun run test:integration` still exit 1 for unrelated reasons, so use the
+per-package test commands above rather than the turbo-wide ones.
 
 Both failures are confirmed live, not theoretical. CI run 31071757693 fails at
 its `bun run check` step with `Found 2589 errors` and never reaches typecheck or
@@ -183,10 +228,11 @@ either test lane, and every Vercel deployment of `main` since `754a5aac` has
 failed the build, including production. Plan 049 is repairing a live deployment
 outage.
 
-A clean local `bun run build` does not release this gate. The crash is
-platform-sensitive, so an executor may see a passing local build while every
-deployment still fails; plan 049's STOP conditions now say to verify against a
-deployment rather than stopping. Neither plan can deadlock the queue on a
+**Still outstanding: confirm a Vercel deployment.** The local build gate now
+passes, but the crash was platform-sensitive, appearing as a segfault on local
+`arm64` and as a module-loading `TypeError` on Vercel's x64 builders. The next
+deployment of `main` should be checked to confirm the production outage is
+actually cleared. Neither plan can deadlock the queue on a
 non-reproducing machine.
 
 ### The queue
@@ -327,7 +373,7 @@ execution, but their behaviour remains part of the release baseline.
 | [002](002-fix-null-actor-authorisation-bypass.md) | An unlinked Clerk user cannot pass the nullable manager check | DONE, merged (`4b84e49` in `b14e7c0`) |
 | [003](003-stop-mass-archive-on-unparseable-xero-page.md) | A malformed Xero page cannot be treated as a complete sync or trigger mass archive | DONE, merged (`5f5bdd7` in `3568795`); the missing `@repo/observability` dependency landed in `2095b1f` |
 | [004](004-prevent-manager-self-approval.md) | Managers cannot approve or decline their own leave | DONE, merged (`f880889` in `c151225`) |
-| [005](005-refresh-vulnerable-dependency-pins.md) | Manifests, overrides and lockfile agree; the `sharp` advisory is cleared | DONE, merged (`daa3985` in `fbaace4`, completed by `f1884db`); its `bun run build` criterion is deferred to plan 049 |
+| [005](005-refresh-vulnerable-dependency-pins.md) | Manifests, overrides and lockfile agree; the `sharp` advisory is cleared | DONE, merged (`daa3985` in `fbaace4`, completed by `f1884db`); its `bun run build` criterion was deferred to plan 049, which is now done and verified, so that criterion is met |
 | [006](006-stop-sync-overwriting-user-owned-privacy-fields.md) | Inbound sync preserves user-owned privacy and feed choices | DONE, merged (`f903a8f` in `0e0ea09`) |
 | [007](007-guard-reconciler-transitions-with-optimistic-concurrency.md) | Approval reconciliation cannot overwrite a newer local transition | DONE, merged (`ef0bdab` in `6f181ff`) |
 | [008](008-bind-xero-oauth-state-to-nonce-expiry-and-session.md) | Xero OAuth state is time-bound, browser-bound and replay-resistant | DONE, merged (`f183e2b` in `832c9ff`) |

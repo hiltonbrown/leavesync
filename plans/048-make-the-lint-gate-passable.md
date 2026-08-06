@@ -44,6 +44,24 @@
      criteria below now use per-package counts and a bounded worker pool.
 - **Step 1 is verified safe.** With all 331 files of safe fixes applied, the
   `app` suite passes 53 files / 175 tests, identical to unmodified `main`.
+- **Reconciled**: 2026-08-06 at commit `454ded7`, verified on `main` after the
+  merge, then **re-confirmed at `44c2eb6`** after plan 049 merged
+  mid-reconciliation. `bun run check` **exits 0** at both commits
+  (`Checked 722 files`), `bun run typecheck` exits 0 (18/18 tasks), all three
+  `biome.jsonc` grep criteria hold, and neither `check` nor `fix` script
+  definition changed. All ten packages match the baseline test table exactly.
+  **Status stands: DONE.**
+
+  Two things the reconciliation found that executors of later plans need:
+
+  1. **The gate has already caught real drift, which is the gate working.**
+     `9d46632` landed after the merge to fix `noNoninteractiveElementToInteractiveRole`
+     and `useSemanticElements` in the calendar week view. Expect this: a green
+     gate means new violations now surface at the point they are introduced
+     rather than accumulating.
+  2. **This plan's test command is wrong in two ways and must not be copied
+     verbatim.** Both produce failures that look exactly like a regression.
+     The corrected form is in "Commands you will need" below.
 - **Confirmed on CI**: 2026-08-06, run 31071757693 on PR #121 at `893b5b1`.
   The `Test` job fails at its `bun run check` step and never reaches typecheck,
   migrate or either test lane, so this plan gates the whole CI pipeline exactly
@@ -179,17 +197,39 @@ Steps 2 to 5.
 all ten workspaces concurrently, and on a loaded machine the `app` suite
 oversubscribes the vitest forks pool and fails with `Failed to start forks
 worker` / `Timeout waiting for worker to respond`. This happens on unmodified
-`main` too, so it proves nothing about your change. Bound the pool instead:
+`main` too, so it proves nothing about your change. Bound the pool instead.
+
+**Corrected 2026-08-06 during reconciliation at `454ded7`.** The commands
+originally given here were wrong in two ways, both measured on clean `main`:
+
+- **`--maxWorkers=2` is not low enough on a loaded workstation.** The `app`
+  suite returned `Test Files 49 passed (49)` / `Tests 156 passed (156)` with
+  `Errors 4` (`Timeout waiting for worker to respond`) in 173s. Four files were
+  never collected. Re-run at `--maxWorkers=1` it returns the full
+  `53 passed (53)` / `175 passed (175)` in 46s. A dropped file count with a
+  worker-timeout error is **environmental, not a regression**: drop to one
+  worker before concluding anything.
+- **A bare `bunx vitest run` is not what the package `test` scripts run.**
+  Every package except `app` sets
+  `NODE_ENV=test vitest run --exclude '**/*.integration.test.ts'`. Omitting
+  that sweeps in integration tests that need a live `DATABASE_URL`, yielding
+  `4 failed | 4 passed` in `@repo/database` and `1 failed | 12 passed` in
+  `@repo/jobs`. Those failures are an artefact of the wrong command, not a
+  defect in your change.
+
+Use these:
 
 ```
-cd apps/app && bunx vitest run --maxWorkers=2 --testTimeout=30000
+# the app suite: the one this plan puts at risk (Step 3 edits its components)
+cd apps/app && bunx vitest run --maxWorkers=1 --testTimeout=60000
+
+# every other package: match the package test script exactly
+cd <package> && NODE_ENV=test bunx vitest run \
+  --exclude '**/*.integration.test.ts' --maxWorkers=2 --testTimeout=30000
 ```
 
-That is the suite this plan actually puts at risk (Step 3 edits its
-components), and it completes in about 20 seconds. For the other packages a
-bare `bun run test` is fine, or run them individually. **Compare per-package
-`Test Files` and `Tests` counts against this baseline, measured on unmodified
-`main`:**
+**Compare per-package `Test Files` and `Tests` counts against this baseline.
+Measured on unmodified `main`, and re-confirmed in full at `454ded7`:**
 
 | Package | Test files | Tests |
 |---|---|---|
@@ -204,8 +244,11 @@ bare `bun run test` is fine, or run them individually. **Compare per-package
 | `@repo/jobs` | 9 | 40 |
 | `api` | 13 | 101 |
 
-A dropped *file* count is the silent failure to watch for. A `Failed to start
-forks worker` error is environmental noise, not a regression; re-run bounded.
+A dropped *file* count is the silent failure to watch for, but check the
+`Errors` line before treating it as one: a `Failed to start forks worker` or
+`Timeout waiting for worker to respond` error is environmental noise. Re-run at
+`--maxWorkers=1` and compare again. Only a drop that survives a single-worker
+run is a real regression.
 
 ## Scope
 
@@ -305,7 +348,7 @@ which is safe in JavaScript but touches a very large number of files:
 
 ```
 bun run typecheck
-cd apps/app && bunx vitest run --maxWorkers=2 --testTimeout=30000
+cd apps/app && bunx vitest run --maxWorkers=1 --testTimeout=60000
 ```
 
 **Verify**: typecheck exits 0, and the `app` suite reports
@@ -598,7 +641,7 @@ bun run check --max-diagnostics=5000 2>&1 | grep -c 'noLeakedRender'
 decreases as expected, reaching 0 at the end. Then:
 
 ```
-cd apps/app && bunx vitest run --maxWorkers=2 --testTimeout=30000
+cd apps/app && bunx vitest run --maxWorkers=1 --testTimeout=60000
 ```
 
 **Verify**: exit 0, `Test Files 53 passed (53)`, `Tests 175 passed (175)`.
@@ -713,7 +756,7 @@ bun run check
 ```
 bun run check
 bun run typecheck
-cd apps/app && bunx vitest run --maxWorkers=2 --testTimeout=30000
+cd apps/app && bunx vitest run --maxWorkers=1 --testTimeout=60000
 ```
 
 **Verify**: all three exit 0, and the `app` suite reports 53 files / 175 tests.
@@ -749,12 +792,14 @@ Machine-checkable. ALL must hold:
 
 - [ ] `bun run check` exits 0
 - [ ] `bun run typecheck` exits 0
-- [ ] `cd apps/app && bunx vitest run --maxWorkers=2 --testTimeout=30000` exits 0
+- [ ] `cd apps/app && bunx vitest run --maxWorkers=1 --testTimeout=60000` exits 0
       and reports `Test Files 53 passed (53)` and `Tests 175 passed (175)`
 - [ ] Every other package's `Test Files` and `Tests` counts match the baseline
-      table in "Commands you will need" exactly. Do NOT accept
-      `10 successful, 10 total` from `bun run test` as evidence: that is Turbo's
-      task count, and it stays 10/10 even when whole test files fail to collect
+      table in "Commands you will need" exactly, run with the
+      `NODE_ENV=test ... --exclude '**/*.integration.test.ts'` form given there.
+      Do NOT accept `10 successful, 10 total` from `bun run test` as evidence:
+      that is Turbo's task count, and it stays 10/10 even when whole test files
+      fail to collect
 - [ ] `grep -c 'noJsxPropsBind' biome.jsonc` returns 1 and the entry carries the reason comment
 - [ ] `grep -c 'noAwaitInLoops' biome.jsonc` returns 1 and the entry carries the reason comment
 - [ ] `grep -c 'apps/docs/\*\*/\*.svg' biome.jsonc` returns 1
@@ -815,3 +860,15 @@ Stop and report back (do not improvise) if:
   workers, on clean `main` as much as on any branch. CI's runner does not hit
   this, which is why it was never noticed. Any plan whose done criteria include
   `bun run test` should specify the bounded per-package form instead.
+- Two corrections from the 2026-08-06 reconciliation, both of which produce
+  false regressions and should be carried into every plan that runs tests
+  locally. First, `--maxWorkers=2` is still too high for the `app` suite on a
+  loaded machine: it silently collected only 49 of 53 files, reporting them all
+  as passing with a separate `Errors 4` line. **Always read the `Errors` line,
+  not just the pass counts**, and re-run at `--maxWorkers=1` before concluding
+  anything. Second, a bare `bunx vitest run` in any package other than `app`
+  runs more than the package's own `test` script does: the scripts set
+  `NODE_ENV=test` and `--exclude '**/*.integration.test.ts'`, and dropping that
+  exclusion pulls in integration tests requiring a live `DATABASE_URL`. Both
+  mistakes produce output indistinguishable from a broken change, which is the
+  precise failure mode that cost this backlog eight wrongly-blocked plans.

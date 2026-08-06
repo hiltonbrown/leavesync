@@ -32,6 +32,27 @@
   in this plan needs executing.** It is retained as the record of why five
   plans were repeatedly and wrongly marked BLOCKED, and as the reference for the
   Dependabot grouping change recommended under "Maintenance notes".
+- **Reconciled**: 2026-08-06 at commit `454ded7`, re-confirmed at `44c2eb6`
+  after plan 049 merged mid-reconciliation. Plan 049's implementation
+  (`71fa962`) touches only the three `build` scripts in `apps/api`, `apps/app`
+  and `apps/web`, so it cannot affect any criterion here; the pins, lockfile
+  cleanliness and typecheck were re-run at `44c2eb6` regardless and all pass.
+  Every done criterion re-verified on current `HEAD`, past the commit this plan
+  was closed against:
+
+  | Criterion | Result at `454ded7` |
+  |---|---|
+  | No modified manifest or lockfile | clean |
+  | `bun install --frozen-lockfile` | exit 0 (run as `--dry-run`; lockfile untouched) |
+  | `"react": "19.2.7"` in any manifest | no matches; all 15 declarations read `19.2.8` |
+  | Second copy of `react` / `react-dom` | none: `node_modules/.bun` holds one `react@19.2.8` and one `react-dom@19.2.8` |
+  | `bun run typecheck` | exit 0, 18/18 tasks |
+  | `bun audit` | 2 vulnerabilities (1 moderate `uuid`, 1 low `esbuild`), unchanged |
+  | "Advisories accepted" in plan 005 | present, line 328 |
+
+  The `bun run test` criterion is superseded: see the test-command correction
+  recorded in plan 048's Status block. Per-package counts were verified there
+  and all ten match baseline. **Status stands: DONE, nothing to execute.**
 
 ## Why this matters
 
