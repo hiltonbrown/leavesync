@@ -60,7 +60,7 @@ async function loadProfileViewModel(
   personId: string,
   searchParams: Record<string, string | string[] | undefined>
 ) {
-  const org = searchParams.org;
+  const { org } = searchParams;
   const orgParam = Array.isArray(org) ? org[0] : org;
   const { clerkOrgId, organisationId, orgQueryValue } =
     await requireActiveOrgPageContext(orgParam);

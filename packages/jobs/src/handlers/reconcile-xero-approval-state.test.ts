@@ -10,9 +10,9 @@ const mocks = vi.hoisted(() => ({
   fetchLeaveApplicationStatusForRegion: vi.fn(),
   inngestSend: vi.fn(() => Promise.resolve({ ids: ["event_1"] })),
   publishOrganisationNotificationEvent: vi.fn(),
-  scopedTo: vi.fn((input: { clerkOrgId: string; organisationId: string }) => ({
-    clerk_org_id: input.clerkOrgId,
-    organisation_id: input.organisationId,
+  scopedTo: vi.fn((scope: { clerkOrgId: string; organisationId: string }) => ({
+    clerk_org_id: scope.clerkOrgId,
+    organisation_id: scope.organisationId,
   })),
   syncRunCreate: vi.fn(),
   syncRunFindFirst: vi.fn(),

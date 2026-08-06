@@ -65,8 +65,8 @@ describeDisconnect("disconnectXeroOAuthConnection integration", () => {
       import("@repo/database"),
       import("./service"),
     ]);
-    database = databaseModule.database;
-    disconnectXeroOAuthConnection = serviceModule.disconnectXeroOAuthConnection;
+    ({ database } = databaseModule);
+    ({ disconnectXeroOAuthConnection } = serviceModule);
   });
 
   beforeEach(async () => {

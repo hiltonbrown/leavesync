@@ -499,7 +499,7 @@ export async function updateRecord(
       return editable;
     }
 
-    const patch = parsed.data.patch;
+    const { patch } = parsed.data;
     const nextStartsAt = patch.startsAt ?? existing.starts_at;
     const nextEndsAt = patch.endsAt ?? existing.ends_at;
     if (nextEndsAt < nextStartsAt) {

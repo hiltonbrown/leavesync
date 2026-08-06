@@ -135,7 +135,7 @@ export async function syncXeroPeople(input: unknown): Promise<
     if (!prepared.ready) {
       return prepared.result;
     }
-    const xeroTenant = prepared.xeroTenant;
+    const { xeroTenant } = prepared;
 
     const counts = emptyCounts();
 
@@ -184,7 +184,7 @@ export async function syncXeroPeople(input: unknown): Promise<
       };
     }
 
-    const employees = employeesResult.value.employees;
+    const { employees } = employeesResult.value;
     counts.fetched = employees.length;
 
     for (let index = 0; index < employees.length; index += BATCH_SIZE) {

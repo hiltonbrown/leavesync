@@ -29,7 +29,7 @@ export function CalendarEventChip({
             "border border-dashed opacity-85",
           event.renderTreatment === "draft" && "opacity-65"
         )}
-        onClick={(event) => event.stopPropagation()}
+        onClick={(clickEvent) => clickEvent.stopPropagation()}
         type="button"
       >
         {event.renderTreatment === "failed" && (

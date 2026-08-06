@@ -53,7 +53,7 @@ export const Header = () => {
             const isActive =
               link.href === "/"
                 ? pathname === "/"
-                : pathname?.startsWith(link.href);
+                : pathname.startsWith(link.href);
 
             return (
               <Link

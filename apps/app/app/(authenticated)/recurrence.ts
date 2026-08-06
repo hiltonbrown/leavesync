@@ -387,7 +387,7 @@ const generateWeeklyCustomOccurrences = (
   const weekdays = sortedWeekdays(rule.weekdays);
   let weekOffset = 0;
 
-  while (true) {
+  for (;;) {
     const weekStart = addDays(anchorWeekStart, weekOffset * 7);
 
     if (rule.endMode === "until" && weekStart > rule.untilDate) {
@@ -449,7 +449,7 @@ export const generateRecurrenceOccurrences = (
   const occurrences: DateRangeOccurrence[] = [];
   let step = 0;
 
-  while (true) {
+  for (;;) {
     const candidate = addStep(startDate, rule, step);
 
     if (!shouldAddOccurrence(candidate, rule, occurrences.length)) {

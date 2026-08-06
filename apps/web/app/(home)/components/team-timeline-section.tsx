@@ -445,8 +445,7 @@ export const TeamTimelineSection = () => {
     const nextWeekDays = getWeekDays(mondayNextWeek);
 
     const getWeekLabel = (days: ReturnType<typeof getWeekDays>) => {
-      const mon = days[0];
-      const sun = days[6];
+      const [mon, , , , , , sun] = days;
       if (mon.monthName === sun.monthName) {
         return `Mon ${mon.num} to Sun ${sun.num} ${mon.monthName}`;
       }

@@ -320,7 +320,7 @@ export async function completeXeroTenantSelection(input: {
     return payrollRegionResult;
   }
 
-  const payrollRegion = payrollRegionResult.value.payrollRegion;
+  const { payrollRegion } = payrollRegionResult.value;
   if (payrollRegion !== "AU") {
     return {
       error: {

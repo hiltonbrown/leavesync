@@ -84,7 +84,7 @@ export async function exportLeaveReportsCsvAction(input: {
     let cursor: string | null | undefined;
     const maxRecords = 10_000;
 
-    while (true) {
+    for (;;) {
       const result = await listLeaveReportRecordsForDrilldown({
         actingUserId: user.id,
         clerkOrgId: context.value.clerkOrgId,

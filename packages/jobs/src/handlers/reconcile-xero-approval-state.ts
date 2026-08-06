@@ -359,6 +359,7 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
   }
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: This function reconciles a single record's approval state against Xero across several divergence cases (approved, declined, withdrawn, unchanged) with audit logging for each; splitting it during a release freeze risks the Xero write-back path more than the suppression does.
 async function reconcileRecord(
   context: ReconcileApprovalStateInput,
   runId: string,

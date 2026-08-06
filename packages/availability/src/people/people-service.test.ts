@@ -9,9 +9,9 @@ const mocks = vi.hoisted(() => ({
   managerScopePersonIds: vi.fn(),
   personCount: vi.fn(),
   personFindMany: vi.fn(),
-  scopedQuery: vi.fn((clerkOrgId: string, organisationId: string) => ({
+  scopedQuery: vi.fn((clerkOrgId: string, scopedOrganisationId: string) => ({
     clerk_org_id: clerkOrgId,
-    organisation_id: organisationId,
+    organisation_id: scopedOrganisationId,
   })),
 }));
 

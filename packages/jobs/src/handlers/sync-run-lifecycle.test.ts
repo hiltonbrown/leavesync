@@ -8,9 +8,9 @@ const mocks = vi.hoisted(() => ({
   materialiseAvailabilityPublication: vi.fn(),
   normaliseInboundLeaveRecord: vi.fn(),
   publishOrganisationNotificationEvent: vi.fn(),
-  scopedTo: vi.fn((input: { clerkOrgId: string; organisationId: string }) => ({
-    clerk_org_id: input.clerkOrgId,
-    organisation_id: input.organisationId,
+  scopedTo: vi.fn((scope: { clerkOrgId: string; organisationId: string }) => ({
+    clerk_org_id: scope.clerkOrgId,
+    organisation_id: scope.organisationId,
   })),
   syncRunCreate: vi.fn(),
   syncRunFindFirst: vi.fn(),

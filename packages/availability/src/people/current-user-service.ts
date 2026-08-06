@@ -206,7 +206,7 @@ export const ensureCurrentUserPerson = async (
         };
       }
 
-      const sameEmailPerson = sameEmailPeople[0];
+      const [sameEmailPerson] = sameEmailPeople;
       if (sameEmailPerson) {
         const person = await database.person.update({
           data: {
