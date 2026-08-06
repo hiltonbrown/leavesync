@@ -100,6 +100,26 @@ If this signature reappears, clear the app's `.next` directory before suspecting
 the host, the runtime or this change. It is a git-ignored artefact and rebuilds
 from scratch.
 
+### Production deployment confirmed green, 2026-08-07
+
+The fix was committed locally on 2026-08-06 but **not pushed**, so Vercel kept
+building `454ded7`, the commit immediately before it, and production stayed
+broken for another day. The local build gate passing is not evidence that
+production is fixed; only a deployment is.
+
+Pushed `454ded7..6ae7291`. All three production deployments of `6ae7291` reached
+`READY`, the first green production builds since `754a5aac`:
+
+| App | Deployment | State |
+|---|---|---|
+| `teamcalendar-app` | `dpl_CxGfnMTo6cNvGkxW4dX7GbEqgnN4` | READY |
+| `teamcalendar-api` | `dpl_A4NW5mgWLyYKMFTAvVkGp3ssZPTu` | READY |
+| `teamcalendar-web` | `dpl_ENoziLD1duWPV3CNSmJfodDg4Pjy` | READY |
+
+This closes the last open question on this plan. The `Expected CommonJS module
+to have a function wrapper` failure is gone on x64 as well as arm64, confirming
+the diagnosis end to end.
+
 ### Two failures remain on `main`, both out of scope for this plan
 
 Neither is caused by this change: it edits three `"build"` scripts, which no

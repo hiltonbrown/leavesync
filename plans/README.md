@@ -228,11 +228,17 @@ either test lane, and every Vercel deployment of `main` since `754a5aac` has
 failed the build, including production. Plan 049 is repairing a live deployment
 outage.
 
-**Still outstanding: confirm a Vercel deployment.** The local build gate now
-passes, but the crash was platform-sensitive, appearing as a segfault on local
-`arm64` and as a module-loading `TypeError` on Vercel's x64 builders. The next
-deployment of `main` should be checked to confirm the production outage is
-actually cleared. Neither plan can deadlock the queue on a
+**Production is confirmed green, 2026-08-07.** All three apps deployed `6ae7291`
+to production and reached `READY`, the first green production builds since
+`754a5aac`. The crash was platform-sensitive, appearing as a segfault on local
+`arm64` and as a module-loading `TypeError` on Vercel's x64 builders, so the
+deployment was the authoritative test and it passed.
+
+One lesson worth keeping: the fix sat committed but **unpushed** for a day while
+production stayed broken, because a passing local build was mistaken for a
+cleared outage. For a deployment-affecting fix, check `git rev-list origin/main..main`
+and the newest Vercel deployment commit before calling it done. Neither plan can
+deadlock the queue on a
 non-reproducing machine.
 
 ### The queue
