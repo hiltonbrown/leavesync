@@ -458,17 +458,17 @@ function resolvePeopleForScope(
   }
 
   if (input.scope.type === "my_self") {
-    const self = people.find((person) => person.id === actingPersonId);
+    const self = people.find((candidate) => candidate.id === actingPersonId);
     return self ? { ok: true, value: [self] } : notAuthorised();
   }
 
   if (input.scope.type === "my_team") {
     const scopedPeople = people.filter(
-      (person) =>
-        person.id === actingPersonId ||
-        person.manager_person_id === actingPersonId ||
+      (candidate) =>
+        candidate.id === actingPersonId ||
+        candidate.manager_person_id === actingPersonId ||
         (options.includeIndirectReports &&
-          options.managerReportIds.has(person.id))
+          options.managerReportIds.has(candidate.id))
     );
     return { ok: true, value: scopedPeople };
   }
@@ -483,25 +483,25 @@ function resolvePeopleForScope(
     return {
       ok: true,
       value: people.filter(
-        (person) =>
-          person.id === actingPersonId ||
-          options.managerReportIds.has(person.id)
+        (candidate) =>
+          candidate.id === actingPersonId ||
+          options.managerReportIds.has(candidate.id)
       ),
     };
   }
 
   if (input.scope.type === "team") {
     const teamPeople = people.filter(
-      (person) => person.team_id === input.scope.value
+      (candidate) => candidate.team_id === input.scope.value
     );
     if (isAdminOrOwner(input.role)) {
       return { ok: true, value: teamPeople };
     }
     const hasDirectReportOnTeam = teamPeople.some(
-      (person) =>
-        person.manager_person_id === actingPersonId ||
+      (candidate) =>
+        candidate.manager_person_id === actingPersonId ||
         (options.includeIndirectReports &&
-          options.managerReportIds.has(person.id))
+          options.managerReportIds.has(candidate.id))
     );
     return hasDirectReportOnTeam
       ? { ok: true, value: teamPeople }

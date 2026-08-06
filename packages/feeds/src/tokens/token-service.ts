@@ -188,7 +188,7 @@ export async function rotateToken(
           status: "active",
         },
       });
-      const previousToken = activeTokens[0];
+      const [previousToken] = activeTokens;
       if (!previousToken) {
         return {
           error: {

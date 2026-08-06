@@ -1058,7 +1058,7 @@ async function listAllPeople(input: {
   let cursor: string | null = null;
   let totalCount = 0;
 
-  while (true) {
+  for (;;) {
     const result = await listPeople({
       actingPersonId: input.actingPersonId,
       clerkOrgId: input.clerkOrgId,
@@ -1079,7 +1079,7 @@ async function listAllPeople(input: {
       return result;
     }
 
-    totalCount = result.value.totalCount;
+    ({ totalCount } = result.value);
     collected.push(...result.value.people);
     if (!result.value.nextCursor) {
       break;

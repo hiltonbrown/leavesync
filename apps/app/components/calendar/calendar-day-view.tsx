@@ -18,7 +18,7 @@ export function CalendarDayView({
   orgQueryValue,
   selectedPersonId,
 }: CalendarDayViewProps) {
-  const day = data.days[0];
+  const [day] = data.days;
   if (!day) {
     return null;
   }

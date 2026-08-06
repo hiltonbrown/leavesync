@@ -65,7 +65,7 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    const data = parseResult.data;
+    const { data } = parseResult;
     const organisationId = body.organisationId as string | undefined;
 
     if (!organisationId) {

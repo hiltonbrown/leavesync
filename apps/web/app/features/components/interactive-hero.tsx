@@ -184,7 +184,7 @@ const getBlocksForTeammate = (
         i + span < 5 &&
         calendarState[`${teammateId}-${i + span}`] === state
       ) {
-        span++;
+        span += 1;
       }
       blocks.push({
         kind: tm.leaveKind,
@@ -195,7 +195,7 @@ const getBlocksForTeammate = (
       });
       i += span;
     } else {
-      i++;
+      i += 1;
     }
   }
   return blocks;
@@ -260,7 +260,7 @@ const useSyncParticles = (
       const targetPos = targetsRef.current[key];
       if (targetPos) {
         // Add 2-3 particles per target feed with slightly staggered speeds
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 3; i += 1) {
           particlesRef.current.push({
             color,
             curveY: (Math.random() - 0.5) * 120, // random wave curve
@@ -276,6 +276,7 @@ const useSyncParticles = (
     }
 
     // Start loop if not already running
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: animationFrameRef.current is mutated imperatively elsewhere in this closure (tick, cleanup); Biome cannot see across those assignments, but the guard is load-bearing at runtime.
     if (!animationFrameRef.current) {
       tick();
     }
@@ -284,6 +285,7 @@ const useSyncParticles = (
   // Canvas drawing loop
   const tick = () => {
     const canvas = canvasRef.current;
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: canvasRef.current is null until the <canvas> mounts; this guard is load-bearing at runtime even though Biome cannot see the ref assignment.
     if (!canvas) {
       return;
     }
@@ -361,6 +363,7 @@ const useSyncParticles = (
     const handleResize = () => {
       const canvas = canvasRef.current;
       const container = containerRef.current;
+      // biome-ignore lint/suspicious/noUnnecessaryConditions: canvasRef/containerRef are null until their elements mount; this guard is load-bearing at runtime even though Biome cannot see the ref assignment.
       if (!(canvas && container)) {
         return;
       }
@@ -387,6 +390,7 @@ const useSyncParticles = (
 
     return () => {
       window.removeEventListener("resize", handleResize);
+      // biome-ignore lint/suspicious/noUnnecessaryConditions: animationFrameRef.current is mutated imperatively elsewhere in this closure (tick, startLoop); this guard is load-bearing at runtime even though Biome cannot see those assignments.
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
@@ -413,7 +417,7 @@ const useSyncParticles = (
     for (const key of targetKeys) {
       const targetPos = targetsRef.current[key];
       if (targetPos) {
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 4; i += 1) {
           particlesRef.current.push({
             color,
             curveY: (Math.random() - 0.5) * 160,
@@ -428,6 +432,7 @@ const useSyncParticles = (
       }
     }
 
+    // biome-ignore lint/suspicious/noUnnecessaryConditions: animationFrameRef.current is mutated imperatively elsewhere in this closure (tick, cleanup); this guard is load-bearing at runtime even though Biome cannot see those assignments.
     if (!animationFrameRef.current) {
       tick();
     }
@@ -773,7 +778,7 @@ export const InteractiveHeroSection = () => {
 
     // Set span to approved
     const nextState = { ...calendarState };
-    for (let d = start - 1; d < start - 1 + span; d++) {
+    for (let d = start - 1; d < start - 1 + span; d += 1) {
       nextState[`${teammateId}-${d}`] = "approved";
     }
     setCalendarState(nextState);
@@ -794,7 +799,7 @@ export const InteractiveHeroSection = () => {
     const { teammateId, start, span } = selectedBlock;
 
     const nextState = { ...calendarState };
-    for (let d = start - 1; d < start - 1 + span; d++) {
+    for (let d = start - 1; d < start - 1 + span; d += 1) {
       delete nextState[`${teammateId}-${d}`];
     }
     setCalendarState(nextState);

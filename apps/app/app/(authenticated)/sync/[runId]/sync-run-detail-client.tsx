@@ -40,7 +40,7 @@ export function SyncRunDetailClient({
   const [confirmRerun, setConfirmRerun] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const run = detail.run;
+  const { run } = detail;
   const runningSameType =
     tenantSummary?.currentRun?.runType === run.runType &&
     tenantSummary.currentRun.id !== run.id;

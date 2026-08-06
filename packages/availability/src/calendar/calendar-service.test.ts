@@ -82,15 +82,16 @@ describe("calendar-service", () => {
     mocks.personFindMany.mockResolvedValue(people);
     mocks.availabilityFindMany.mockImplementation(({ where }) =>
       Promise.resolve(
-        records().filter((record) => {
+        records().filter((availabilityRecord) => {
           const personIds = where.person_id?.in ?? [];
           const sourceTypes = where.source_type?.in ?? [];
           const recordTypes = where.record_type?.in;
           return (
-            personIds.includes(record.person_id) &&
-            sourceTypes.includes(record.source_type) &&
-            (!recordTypes || recordTypes.includes(record.record_type)) &&
-            record.archived_at === null
+            personIds.includes(availabilityRecord.person_id) &&
+            sourceTypes.includes(availabilityRecord.source_type) &&
+            (!recordTypes ||
+              recordTypes.includes(availabilityRecord.record_type)) &&
+            availabilityRecord.archived_at === null
           );
         })
       )

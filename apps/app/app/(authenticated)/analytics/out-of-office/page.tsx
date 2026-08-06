@@ -125,8 +125,7 @@ const OutOfOfficePage = async ({ searchParams }: OutOfOfficePageProps) => {
     recordType: item.recordType,
   }));
 
-  const months = report.oooDaysByTypeMonthly.months;
-  const series = report.oooDaysByTypeMonthly.series;
+  const { months, series } = report.oooDaysByTypeMonthly;
 
   const monthlyChartData = months.map((month, monthIndex) => {
     const item: Record<string, string | number> = {

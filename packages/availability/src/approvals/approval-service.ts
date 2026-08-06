@@ -1022,7 +1022,7 @@ async function loadApprovalListContext(
     };
   }
 
-  const firstRecord = records[0];
+  const [firstRecord] = records;
   if (!firstRecord) {
     throw new Error("Approval records changed while loading list context");
   }

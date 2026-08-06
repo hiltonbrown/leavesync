@@ -335,7 +335,7 @@ describe("sync-xero-people handler", () => {
     }
 
     const run = await database.syncRun.findFirst({
-      where: { clerk_org_id: tenantA.clerkOrgId, id: result.value?.runId },
+      where: { clerk_org_id: tenantA.clerkOrgId, id: result.value.runId },
     });
     expect(run).toBeDefined();
     expect(run?.status).toBe("succeeded");

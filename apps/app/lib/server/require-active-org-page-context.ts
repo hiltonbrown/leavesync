@@ -46,7 +46,7 @@ export async function requireActiveOrgPageContext(
     notFound();
   }
 
-  const existingOrganisation = orgResult.value[0];
+  const [existingOrganisation] = orgResult.value;
   const organisationId =
     existingOrganisation?.id ??
     (await ensureDefaultOrganisation(clerkOrgId)).organisationId;

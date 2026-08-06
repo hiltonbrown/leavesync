@@ -102,7 +102,7 @@ export async function validateScopes(input: {
   try {
     for (const scope of parsed.data) {
       if (scope.scopeType === "team") {
-        const scopeValue = scope.scopeValue;
+        const { scopeValue } = scope;
         if (!scopeValue) {
           return invalidScope();
         }
@@ -119,7 +119,7 @@ export async function validateScopes(input: {
         }
       }
       if (scope.scopeType === "person") {
-        const scopeValue = scope.scopeValue;
+        const { scopeValue } = scope;
         if (!scopeValue) {
           return invalidScope();
         }

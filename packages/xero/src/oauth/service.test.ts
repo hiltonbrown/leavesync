@@ -773,7 +773,7 @@ describe("ensureFreshXeroConnection", () => {
       expect(requestBody.get("refresh_token")).toBe("refresh-token");
     }
     expect(dbMock.xeroConnection.updateMany).toHaveBeenCalledTimes(1);
-    const updateArg = dbMock.xeroConnection.updateMany.mock.calls[0][0];
+    const [[updateArg]] = dbMock.xeroConnection.updateMany.mock.calls;
     expect(updateArg.data.status).toBe("active");
     expect(updateArg.data.access_token_encrypted).not.toBe("");
   });
@@ -955,7 +955,7 @@ describe("ensureFreshXeroConnection", () => {
       expect(requestBody.get("refresh_token")).toBe("refresh-token");
     }
     expect(dbMock.xeroConnection.updateMany).toHaveBeenCalledTimes(1);
-    const updateArg = dbMock.xeroConnection.updateMany.mock.calls[0][0];
+    const [[updateArg]] = dbMock.xeroConnection.updateMany.mock.calls;
     expect(updateArg.data.refresh_token_encrypted).not.toBe(
       storedTokens.refresh_token_encrypted
     );

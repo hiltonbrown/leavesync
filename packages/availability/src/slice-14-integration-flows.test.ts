@@ -60,7 +60,7 @@ describe("Slice 14 cohesion flows", () => {
 
   it("employee creates WFH without Xero connected", () => {
     const fixture = createSlice14Fixture();
-    const person = fixture.people[0];
+    const [person] = fixture.people;
     const record: Slice14AvailabilityRecordFixture = {
       approvalStatus: "approved",
       clerkOrgId: person?.clerkOrgId ?? "org_a",
@@ -129,8 +129,7 @@ describe("Slice 14 cohesion flows", () => {
 
   it("tenant isolation keeps org A surfaces free of org B data", () => {
     const fixture = createSlice14Fixture();
-    const orgA = fixture.organisations[0];
-    const orgB = fixture.organisations[1];
+    const [orgA, orgB] = fixture.organisations;
     const orgARecordIds = fixture.availabilityRecords
       .filter((record) => record.organisationId === orgA?.id)
       .map((record) => record.id);

@@ -6,7 +6,7 @@ export const parseError = (error: unknown): string => {
   let message = "An error occurred";
 
   if (error instanceof Error) {
-    message = error.message;
+    ({ message } = error);
   } else if (error && typeof error === "object" && "message" in error) {
     message = error.message as string;
   } else {

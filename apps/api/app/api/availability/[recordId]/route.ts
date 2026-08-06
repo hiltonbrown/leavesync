@@ -133,7 +133,7 @@ export async function PATCH(
       );
     }
 
-    const data = parseResult.data;
+    const { data } = parseResult;
     const authResult = await auth();
 
     // Call availability service to update record

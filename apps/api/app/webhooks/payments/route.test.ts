@@ -134,9 +134,9 @@ describe("Stripe payments webhook", () => {
 
     // The event must only be recorded once the mirror write has completed, so
     // a failure mid-processing leaves the event un-recorded for Stripe to retry.
-    const mirrorOrder =
-      mocks.upsertSubscriptionFromWebhook.mock.invocationCallOrder[0];
-    const recordOrder = mocks.recordStripeEvent.mock.invocationCallOrder[0];
+    const [mirrorOrder] =
+      mocks.upsertSubscriptionFromWebhook.mock.invocationCallOrder;
+    const [recordOrder] = mocks.recordStripeEvent.mock.invocationCallOrder;
     expect(recordOrder).toBeGreaterThan(mirrorOrder);
   });
 

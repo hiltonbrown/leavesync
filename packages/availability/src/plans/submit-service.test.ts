@@ -13,9 +13,9 @@ const mocks = vi.hoisted(() => ({
   personFindFirst: vi.fn(),
   resolveXeroEmployeeId: vi.fn(),
   resolveXeroLeaveTypeId: vi.fn(),
-  scopedTo: vi.fn((input: { clerkOrgId: string; organisationId: string }) => ({
-    clerk_org_id: input.clerkOrgId,
-    organisation_id: input.organisationId,
+  scopedTo: vi.fn((scope: { clerkOrgId: string; organisationId: string }) => ({
+    clerk_org_id: scope.clerkOrgId,
+    organisation_id: scope.organisationId,
   })),
   submitLeaveApplicationForRegion: vi.fn(),
   withdrawLeaveApplicationForRegion: vi.fn(),
