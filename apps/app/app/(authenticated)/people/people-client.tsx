@@ -148,13 +148,13 @@ export function PeopleClient({
             <p className="text-muted-foreground text-sm">
               Profiles, balances and availability status for this organisation.
             </p>
-            {canIncludeArchived && (
+            {canIncludeArchived ? (
               <Button asChild size="sm" variant="outline">
                 <Link href={withOrg("/people/new", orgQueryValue)}>
                   Add person
                 </Link>
               </Button>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -163,9 +163,9 @@ export function PeopleClient({
         className="grid gap-4 rounded-2xl bg-muted p-5 lg:grid-cols-6"
         method="get"
       >
-        {orgQueryValue && (
+        {orgQueryValue ? (
           <input name="org" type="hidden" value={orgQueryValue} />
-        )}
+        ) : null}
         <FilterField className="lg:col-span-2" label="Search">
           <div className="relative">
             <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -260,7 +260,7 @@ export function PeopleClient({
             />
             Xero sync failed only
           </label>
-          {canIncludeArchived && (
+          {canIncludeArchived ? (
             <label className="flex items-center gap-2 text-sm">
               <input
                 defaultChecked={filters.includeArchived}
@@ -270,7 +270,7 @@ export function PeopleClient({
               />
               Include archived
             </label>
-          )}
+          ) : null}
         </div>
         <div className="flex items-end gap-2">
           <Button type="submit">Apply</Button>
@@ -321,11 +321,11 @@ export function PeopleClient({
                   </TableCell>
                   <TableCell className="text-sm">
                     {person.jobTitle ?? labelForPersonType(person.personType)}
-                    {person.archivedAt && (
+                    {person.archivedAt ? (
                       <Badge className="ml-2" variant="outline">
                         Archived
                       </Badge>
-                    )}
+                    ) : null}
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
                     {person.team?.name ?? "Unassigned"}
@@ -364,13 +364,13 @@ export function PeopleClient({
         </div>
       )}
 
-      {nextCursor && (
+      {nextCursor ? (
         <div className="flex justify-center">
           <Button asChild variant="secondary">
             <Link href={nextHref}>Load more</Link>
           </Button>
         </div>
-      )}
+      ) : null}
     </section>
   );
 }

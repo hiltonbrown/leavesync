@@ -68,12 +68,12 @@ const BlogIndex = async () => {
                           }
                         )}
                       </time>
-                      {post.frontmatter.author && (
+                      {post.frontmatter.author ? (
                         <>
                           <span>&middot;</span>
                           <span>{post.frontmatter.author}</span>
                         </>
-                      )}
+                      ) : null}
                     </div>
                     <h2>{post.frontmatter.title}</h2>
                     <p>{post.frontmatter.description}</p>

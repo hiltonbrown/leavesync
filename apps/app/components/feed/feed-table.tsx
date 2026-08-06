@@ -101,7 +101,7 @@ export function FeedTable({
 
   return (
     <div className="overflow-hidden rounded-2xl bg-muted">
-      {confirmation && (
+      {confirmation ? (
         <div className="m-3 rounded-2xl bg-error-container p-4 text-on-error-container text-sm">
           <p>
             {confirmation.action === "rotate"
@@ -132,7 +132,7 @@ export function FeedTable({
             </Button>
           </div>
         </div>
-      )}
+      ) : null}
       <div className="grid gap-4 p-4 text-muted-foreground text-sm lg:grid-cols-[1.4fr_0.7fr_0.7fr_0.7fr_1fr]">
         <span>Feed</span>
         <span>Status</span>
@@ -151,11 +151,11 @@ export function FeedTable({
                 >
                   {feed.name}
                 </Link>
-                {feed.description && (
+                {feed.description ? (
                   <p className="mt-1 text-muted-foreground text-sm">
                     {feed.description}
                   </p>
-                )}
+                ) : null}
               </div>
               <StatusDot status={feed.status} />
               <Badge variant="secondary">
@@ -190,7 +190,7 @@ export function FeedTable({
                 )}
                 {copiedFeedId === feed.id ? "Copied" : "Copy URL"}
               </Button>
-              {canManage && (
+              {canManage ? (
                 <>
                   <Button
                     disabled={isPending}
@@ -236,7 +236,7 @@ export function FeedTable({
                     Archive
                   </Button>
                 </>
-              )}
+              ) : null}
             </div>
           </article>
         ))}

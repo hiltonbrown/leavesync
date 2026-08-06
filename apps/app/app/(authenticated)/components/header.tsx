@@ -41,13 +41,13 @@ export const Header = async ({
       <div className="flex items-center gap-2">
         {children}
         <CommandMenuTrigger />
-        {bell && (
+        {bell ? (
           <NotificationsBell
             initialRecent={bell.recent}
             initialUnreadCount={bell.unreadCount}
             organisationId={bell.organisationId}
           />
-        )}
+        ) : null}
         <ModeToggle />
         <Suspense
           fallback={

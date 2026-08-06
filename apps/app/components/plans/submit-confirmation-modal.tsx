@@ -134,7 +134,7 @@ export function SubmitConfirmationModal({
         </dl>
       </div>
 
-      {message && (
+      {message ? (
         <XeroSyncFailedState
           message={message}
           retrySlot={
@@ -159,7 +159,7 @@ export function SubmitConfirmationModal({
             </Button>
           }
         />
-      )}
+      ) : null}
 
       <DialogFooter>
         <Button
@@ -171,7 +171,9 @@ export function SubmitConfirmationModal({
           Cancel
         </Button>
         <Button disabled={isPending} onClick={submit} type="button">
-          {isPending && <Loader2Icon className="mr-2 size-4 animate-spin" />}
+          {isPending ? (
+            <Loader2Icon className="mr-2 size-4 animate-spin" />
+          ) : null}
           {mode === "retry" ? "Retry Xero sync" : "Send to Xero"}
         </Button>
       </DialogFooter>

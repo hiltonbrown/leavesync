@@ -106,11 +106,11 @@ const FeedPage = async ({ searchParams }: FeedPageProps) => {
               URLs are only shown when a token is created or rotated.
             </p>
           </div>
-          {canManage && (
+          {canManage ? (
             <Button asChild>
               <Link href="/feeds/new">New feed</Link>
             </Button>
-          )}
+          ) : null}
         </section>
 
         <SubscribeInstructions />

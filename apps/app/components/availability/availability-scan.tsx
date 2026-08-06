@@ -32,6 +32,7 @@ export function AvailabilityScan({
         <div>
           <h2 className="font-semibold text-base">{title}</h2>
           <p className="mt-1 text-muted-foreground text-sm">
+            {/* biome-ignore lint/suspicious/noLeakedRender: both ternary branches render a non-empty string (a template literal, or the required emptyTitle prop), so there is no falsy value that could leak into the DOM. */}
             {items.length > 0
               ? `${items.length} people need attention`
               : emptyTitle}

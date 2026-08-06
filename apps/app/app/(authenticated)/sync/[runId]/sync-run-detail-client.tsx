@@ -140,7 +140,7 @@ export function SyncRunDetailClient({
           <StatCell label="Records failed" value={run.recordsFailed} />
         </div>
 
-        {run.errorSummary && (
+        {run.errorSummary ? (
           <div
             className={`rounded-2xl p-4 text-sm ${statusToneClasses.failed}`}
           >
@@ -151,7 +151,7 @@ export function SyncRunDetailClient({
               </p>
             )}
           </div>
-        )}
+        ) : null}
 
         <section className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -206,7 +206,7 @@ export function SyncRunDetailClient({
                         <p className="whitespace-pre-wrap text-sm">
                           {record.errorMessage}
                         </p>
-                        {record.rawPayload && (
+                        {record.rawPayload ? (
                           <>
                             <Button
                               onClick={() =>
@@ -228,7 +228,7 @@ export function SyncRunDetailClient({
                               </pre>
                             )}
                           </>
-                        )}
+                        ) : null}
                       </div>
                     )}
                   </article>
@@ -241,7 +241,9 @@ export function SyncRunDetailClient({
 
       <aside className="space-y-3 rounded-2xl bg-muted p-4 xl:sticky xl:top-20 xl:self-start">
         <h2 className="font-semibold">Actions</h2>
-        {message && <p className="text-muted-foreground text-sm">{message}</p>}
+        {message ? (
+          <p className="text-muted-foreground text-sm">{message}</p>
+        ) : null}
         <Button
           className="w-full"
           disabled={
@@ -281,7 +283,7 @@ export function SyncRunDetailClient({
             View timeline
           </Button>
         )}
-        {timelineOpen && (
+        {timelineOpen ? (
           <ol className="space-y-2 text-sm">
             {detail.timeline.map((event) => (
               <li key={event.id}>
@@ -292,7 +294,7 @@ export function SyncRunDetailClient({
               </li>
             ))}
           </ol>
-        )}
+        ) : null}
       </aside>
     </div>
   );

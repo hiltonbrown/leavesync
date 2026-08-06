@@ -20,9 +20,9 @@ export const EmptyState = ({
 }: EmptyStateProps) => (
   <Empty>
     <EmptyHeader>
-      {title && <EmptyTitle>{title}</EmptyTitle>}
+      {title ? <EmptyTitle>{title}</EmptyTitle> : null}
       <EmptyDescription>{description}</EmptyDescription>
     </EmptyHeader>
-    {actionSlot && <EmptyContent>{actionSlot}</EmptyContent>}
+    {actionSlot ? <EmptyContent>{actionSlot}</EmptyContent> : null}
   </Empty>
 );

@@ -93,11 +93,11 @@ export function FeedCreateForm({
 
   return (
     <form action={submit} className="space-y-5">
-      {error && (
+      {error ? (
         <div className="rounded-2xl bg-error-container p-3 text-on-error-container text-sm">
           {error}
         </div>
-      )}
+      ) : null}
       <div className="space-y-2">
         <Label htmlFor="feed-name">Name</Label>
         <Input id="feed-name" name="name" required />

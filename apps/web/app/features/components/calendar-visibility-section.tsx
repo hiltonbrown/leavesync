@@ -139,11 +139,11 @@ const BigCalendarMock = () => (
                   className={`fmkt-bigcal__cell ${inSpan ? `${row.barClass} fmkt-bigcal__cell--filled` : ""} ${isFirst && inSpan ? "fmkt-bigcal__cell--start" : ""}`}
                   key={day}
                 >
-                  {isFirst && inSpan && (
+                  {isFirst && inSpan ? (
                     <span className="fmkt-bigcal__event-label">
                       {row.label}
                     </span>
-                  )}
+                  ) : null}
                 </div>
               );
             })}

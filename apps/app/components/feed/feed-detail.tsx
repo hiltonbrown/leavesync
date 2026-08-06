@@ -108,14 +108,14 @@ export function FeedDetail({
           <h2 className="mt-3 font-semibold text-foreground text-title-lg">
             {detail.name}
           </h2>
-          {detail.description && (
+          {detail.description ? (
             <p className="mt-1 text-muted-foreground text-sm">
               {detail.description}
             </p>
-          )}
+          ) : null}
         </div>
 
-        {confirmation && (
+        {confirmation ? (
           <div className="rounded-2xl bg-error-container p-4 text-on-error-container text-sm">
             <p>
               {confirmation === "rotate"
@@ -142,7 +142,7 @@ export function FeedDetail({
               </Button>
             </div>
           </div>
-        )}
+        ) : null}
 
         <div className="rounded-2xl bg-muted p-4">
           <div className="font-medium text-sm">Scope</div>
@@ -156,13 +156,13 @@ export function FeedDetail({
           >
             View full scope
           </Button>
-          {showScope && (
+          {showScope ? (
             <ul className="mt-3 space-y-2 text-sm">
               {detail.scopes.map((scope) => (
                 <li key={scope.id}>{scope.label}</li>
               ))}
             </ul>
-          )}
+          ) : null}
         </div>
 
         <div className="rounded-2xl bg-muted p-4 text-sm">
@@ -179,7 +179,7 @@ export function FeedDetail({
               ? `Active token: xxxx${detail.activeTokenHint.hint}, created ${formatDate(detail.activeTokenHint.createdAt)}`
               : "No active token"}
           </p>
-          {canManage && (
+          {canManage ? (
             <Button
               className="mt-3"
               disabled={isPending}
@@ -191,7 +191,7 @@ export function FeedDetail({
               <RotateCwIcon className="mr-2 size-4" />
               Rotate token
             </Button>
-          )}
+          ) : null}
         </div>
 
         <div className="rounded-2xl bg-muted p-4 text-sm">
@@ -212,7 +212,7 @@ export function FeedDetail({
           </Button>
         </div>
 
-        {plaintext && (
+        {plaintext ? (
           <OneTimeTokenPanel
             feedId={detail.id}
             onDone={() => {
@@ -222,9 +222,9 @@ export function FeedDetail({
             origin={tokenSession.origin}
             plaintext={plaintext}
           />
-        )}
+        ) : null}
 
-        {canManage && (
+        {canManage ? (
           <div className="flex flex-wrap gap-2">
             {detail.status === "active" ? (
               <Button
@@ -257,7 +257,7 @@ export function FeedDetail({
               Archive
             </Button>
           </div>
-        )}
+        ) : null}
       </section>
 
       <section className="rounded-2xl bg-muted p-4">
@@ -301,11 +301,11 @@ function PreviewTabs({
                   {formatDate(new Date(event.startsAt))} to{" "}
                   {formatDate(new Date(event.endsAt))}
                 </div>
-                {event.description && (
+                {event.description ? (
                   <p className="mt-2 text-muted-foreground">
                     {event.description}
                   </p>
-                )}
+                ) : null}
               </div>
             ))
           )}
