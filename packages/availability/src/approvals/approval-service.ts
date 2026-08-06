@@ -236,8 +236,23 @@ export async function listForApprover(
       clerkOrgId: parsed.data.clerkOrgId,
       organisationId: parsed.data.organisationId,
     });
-    const showDeclined =
-      settingsResult.ok && settingsResult.value.showDeclinedOnApprovals;
+
+    if (!settingsResult.ok) {
+      log.warn(
+        "Failed to load organisation settings for list approvals, using default view",
+        {
+          clerkOrgId: parsed.data.clerkOrgId,
+          organisationId: parsed.data.organisationId,
+          error: settingsResult.error,
+        }
+      );
+    }
+
+    // On a settings read failure, keep the narrower default rather than
+    // silently widening the queue. Logged so the outage is not invisible.
+    const showDeclined = settingsResult.ok
+      ? settingsResult.value.showDeclinedOnApprovals
+      : false;
     const defaultStatus: z.infer<typeof ApprovalStatusSchema>[] = showDeclined
       ? ["submitted", "approved", "xero_sync_failed", "withdrawn", "declined"]
       : ["submitted", "approved", "xero_sync_failed", "withdrawn"];
@@ -439,11 +454,26 @@ export async function decline(
     clerkOrgId: parsed.data.clerkOrgId,
     organisationId: parsed.data.organisationId,
   });
-  if (
-    settingsResult.ok &&
-    settingsResult.value.requireDeclineReason &&
-    parsed.data.reason.trim().length < 3
-  ) {
+
+  if (!settingsResult.ok) {
+    log.warn(
+      "Failed to load organisation settings for decline policy, failing closed",
+      {
+        clerkOrgId: parsed.data.clerkOrgId,
+        organisationId: parsed.data.organisationId,
+        error: settingsResult.error,
+      }
+    );
+  }
+
+  // A settings read failure must not silently disable a compliance control.
+  // The stored default for requireDeclineReason is true, so treat an unreadable
+  // setting as "required" rather than skipping the check.
+  const requireDeclineReason = settingsResult.ok
+    ? settingsResult.value.requireDeclineReason
+    : true;
+
+  if (requireDeclineReason && parsed.data.reason.trim().length < 3) {
     return {
       error: {
         code: "validation_error",
@@ -1410,9 +1440,20 @@ async function notifyManagersIfEnabled(
     clerkOrgId: input.clerkOrgId,
     organisationId: input.organisationId,
   });
-  if (
-    !(settingsResult.ok && settingsResult.value.notifyManagersOnStatusChange)
-  ) {
+
+  if (!settingsResult.ok) {
+    log.warn(
+      "Failed to load organisation settings for manager notification, skipping notification",
+      {
+        clerkOrgId: input.clerkOrgId,
+        organisationId: input.organisationId,
+        error: settingsResult.error,
+      }
+    );
+    return;
+  }
+
+  if (!settingsResult.value.notifyManagersOnStatusChange) {
     return;
   }
 
