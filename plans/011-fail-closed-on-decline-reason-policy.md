@@ -59,6 +59,30 @@ is presented to admins in the settings UI, but the server action's Zod schema
 requires a reason unconditionally, so turning the toggle off changes nothing a
 user can observe. Both branches of a repo-mandated invariant are also untested.
 
+## Drift warning
+
+**The `## Current state` excerpts in this plan were verified on 2026-08-06
+against `fb9f1cc`, and that verification expires the moment any other plan in
+the approvals cluster merges.**
+
+Plans 011, 013, 018 and 012 all modify
+`packages/availability/src/approvals/approval-service.ts`. They execute serially
+in that order, each merged to `main` before the next begins, so every plan after
+the first opens a file its predecessors have already changed. Line numbers in
+this plan will move, and the surrounding code may be restructured.
+
+Before executing this plan:
+
+1. Re-run the drift check at the top of this file against current `HEAD`, not
+   against the commit named in the Status block.
+2. Re-read every file quoted under `## Current state` and confirm the excerpts
+   still match. Line numbers alone are not enough; check the code shape.
+3. Treat a mismatch as a refresh task, not a licence to improvise. Update the
+   excerpts, then execute.
+
+Do not rely on the 2026-08-06 pass. It confirmed the finding still holds at that
+commit; it cannot speak for the tree you will actually be editing.
+
 ## Current state
 
 ### Relevant files
@@ -128,10 +152,9 @@ user can observe. Both branches of a repo-mandated invariant are also untested.
   }
 ```
 
-Plan 004 added the `excludeSelf` branch here. Both arms still degrade to the
-narrowest safe answer, which is the property this plan copies.
-
-The failure is handled explicitly and degrades to the narrowest safe answer.
+Plan 004 added the `excludeSelf` branch here. The failure is still handled
+explicitly, and both arms still degrade to the narrowest safe answer, which is
+the property this plan copies.
 
 ### The server action makes the toggle inert
 
