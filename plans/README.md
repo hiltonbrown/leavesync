@@ -41,7 +41,8 @@ failing loudly.
 | `bun run test` | exit 0, `10 successful, 10 total`, app 53 files / 175 tests, api 13 files / 101 tests |
 | `bun run typecheck` | exit 0 |
 | `bun audit` | **2 vulnerabilities (1 moderate, 1 low)**, down from 43; no `next`, `hono`, `fast-uri` or `sharp` |
-| `bun run check` | exit 1, 2,589 diagnostics, see plan 048 |
+| `bun run check` | on `main`: exit 1, 2,589 diagnostics. Fixed on the unmerged branch `advisor/048-make-the-lint-gate-passable`, see plan 048 |
+| `bun run test` | **Not a usable local gate.** Ten concurrent workspaces starve the vitest forks pool and the `app` suite dies with `Failed to start forks worker`, on clean `main` too. Use `cd apps/app && bunx vitest run --maxWorkers=2 --testTimeout=30000` and per-package runs. Turbo's `10 successful, 10 total` is a task count, not a test count |
 | `bun run build` | exit 137, Bun segfault on `apps/app`, see plan 049 |
 
 ## Current go-live decision
@@ -86,7 +87,7 @@ plan.
 | Plan | Required outcome | Priority | Status |
 |---|---|---|---|
 | [047](047-land-the-uncommitted-dependency-refresh.md) | The react pins, `next 16.3.0` and the refreshed lockfile are committed, so CI and fresh worktrees install the same working dependency set | P0 | **DONE** (`f1884db`) |
-| [048](048-make-the-lint-gate-passable.md) | `bun run check` exits 0, so the lint gate stops blocking every plan and CI reaches its test step | P0 | TODO |
+| [048](048-make-the-lint-gate-passable.md) | `bun run check` exits 0, so the lint gate stops blocking every plan and CI reaches its test step | P0 | **DONE, reviewed, awaiting merge** on branch `advisor/048-make-the-lint-gate-passable` (6 commits, 373 files). `check` and `typecheck` exit 0; all per-package test counts match baseline. **Not yet merged to `main`**, so the gate is still red on `main` until it is |
 | [049](049-run-next-build-under-node.md) | `bun run build` exits 0 for all four tasks, unblocking plans 005, 016 and 046 | P0 | TODO |
 
 Plan 047 is done and needs no execution; it is retained as the record of the
