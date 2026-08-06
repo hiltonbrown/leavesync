@@ -21,6 +21,9 @@
       "!packages/design-system/lib",
       "!packages/design-system/hooks",
       "!apps/docs/**/*.json",
+      // Mintlify brand assets. These are decorative logo and hero images
+      // referenced from docs pages that supply their own alt text.
+      "!apps/docs/**/*.svg",
       "!apps/email/.react-email",
       "!packages/database/generated"
     ]
