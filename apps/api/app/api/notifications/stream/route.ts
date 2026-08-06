@@ -26,8 +26,8 @@ export async function GET(request: Request): Promise<Response> {
   } catch {
     return Response.json(
       {
-        ok: false,
         error: { code: "unauthorised", message: "Not authenticated" },
+        ok: false,
       },
       { status: 401 }
     );
@@ -36,7 +36,7 @@ export async function GET(request: Request): Promise<Response> {
   const user = await currentUser();
   if (!user) {
     return Response.json(
-      { ok: false, error: { code: "unauthorised", message: "User not found" } },
+      { error: { code: "unauthorised", message: "User not found" }, ok: false },
       { status: 401 }
     );
   }
@@ -46,23 +46,23 @@ export async function GET(request: Request): Promise<Response> {
   );
   if (!parsed.success) {
     return Response.json(
-      { ok: false, error: { code: "bad_request", message: "Invalid stream" } },
+      { error: { code: "bad_request", message: "Invalid stream" }, ok: false },
       { status: 400 }
     );
   }
 
   const organisation = await database.organisation.findFirst({
+    select: { id: true },
     where: {
       clerk_org_id: clerkOrgId,
       id: parsed.data.organisationId,
     },
-    select: { id: true },
   });
   if (!organisation) {
     return Response.json(
       {
-        ok: false,
         error: { code: "forbidden", message: "Invalid organisation" },
+        ok: false,
       },
       { status: 403 }
     );
@@ -73,6 +73,14 @@ export async function GET(request: Request): Promise<Response> {
   let poll: ReturnType<typeof setInterval> | null = null;
 
   const stream = new ReadableStream<Uint8Array>({
+    cancel() {
+      if (keepAlive) {
+        clearInterval(keepAlive);
+      }
+      if (poll) {
+        clearInterval(poll);
+      }
+    },
     start(controller) {
       const safeEnqueue = (chunk: Uint8Array): void => {
         try {
@@ -122,14 +130,6 @@ export async function GET(request: Request): Promise<Response> {
       keepAlive = setInterval(() => {
         safeEnqueue(encoder.encode(": keep-alive\n\n"));
       }, 25_000);
-    },
-    cancel() {
-      if (keepAlive) {
-        clearInterval(keepAlive);
-      }
-      if (poll) {
-        clearInterval(poll);
-      }
     },
   });
 

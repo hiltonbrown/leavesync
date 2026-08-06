@@ -139,8 +139,8 @@ export async function getEventDetail(
     });
     if (!event) {
       return {
-        ok: false,
         error: { code: "event_not_found", message: "Audit event not found." },
+        ok: false,
       };
     }
 
@@ -322,24 +322,24 @@ function validationError(
   error: z.ZodError
 ): Result<never, AuditLogServiceError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid audit log input.",
     },
+    ok: false,
   };
 }
 
 function notAuthorised(): Result<never, AuditLogServiceError> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "Only admins and owners can view the audit log.",
     },
+    ok: false,
   };
 }
 
 function unknownError(message: string): Result<never, AuditLogServiceError> {
-  return { ok: false, error: { code: "unknown_error", message } };
+  return { error: { code: "unknown_error", message }, ok: false };
 }

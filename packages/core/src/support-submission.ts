@@ -19,19 +19,8 @@ const optionalTrimmedString = () =>
   }, z.string().optional());
 
 export const SupportSubmissionPayloadSchema = z.object({
+  actual_outcome: optionalTrimmedString(),
   category: SupportSubmissionCategorySchema,
-  subject: z
-    .string()
-    .trim()
-    .min(1, "Subject is required.")
-    .max(256, "Subject must be 256 characters or fewer."),
-  message: z
-    .string()
-    .trim()
-    .min(1, "Message is required.")
-    .max(10_000, "Message must be 10000 characters or fewer."),
-  priority: SupportSubmissionPrioritySchema,
-  page_url: z.string().url(),
   email_override: z.preprocess((value) => {
     if (typeof value !== "string") {
       return value;
@@ -40,21 +29,32 @@ export const SupportSubmissionPayloadSchema = z.object({
     const trimmed = value.trim();
     return trimmed === "" ? undefined : trimmed;
   }, z.string().email().optional()),
-  reproduction_steps: optionalTrimmedString(),
   expected_outcome: optionalTrimmedString(),
-  actual_outcome: optionalTrimmedString(),
+  message: z
+    .string()
+    .trim()
+    .min(1, "Message is required.")
+    .max(10_000, "Message must be 10000 characters or fewer."),
+  page_url: z.string().url(),
+  priority: SupportSubmissionPrioritySchema,
+  reproduction_steps: optionalTrimmedString(),
+  subject: z
+    .string()
+    .trim()
+    .min(1, "Subject is required.")
+    .max(256, "Subject must be 256 characters or fewer."),
 });
 
 export const SupportSubmissionContextSchema = z.object({
+  app_version: optionalTrimmedString(),
   clerk_org_id: optionalTrimmedString(),
-  organisation_id: optionalTrimmedString(),
-  organisation_name: optionalTrimmedString(),
-  user_id: optionalTrimmedString(),
-  user_email: optionalTrimmedString(),
-  user_name: optionalTrimmedString(),
   current_route: optionalTrimmedString(),
   environment: optionalTrimmedString(),
-  app_version: optionalTrimmedString(),
+  organisation_id: optionalTrimmedString(),
+  organisation_name: optionalTrimmedString(),
+  user_email: optionalTrimmedString(),
+  user_id: optionalTrimmedString(),
+  user_name: optionalTrimmedString(),
 });
 
 export const SupportSubmissionIssueInputSchema =

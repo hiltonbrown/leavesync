@@ -145,20 +145,20 @@ function effectiveRole(
 
 function notAuthorised(message?: string): Result<never, SyncActionError> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: message ?? "Only admins and owners can manage sync health.",
     },
+    ok: false,
   };
 }
 
 function validationError(message?: string): Result<never, SyncActionError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: message ?? "Invalid sync request.",
     },
+    ok: false,
   };
 }

@@ -71,24 +71,24 @@ describe("setup organisation actions", () => {
     expect(mocks.redirect).toHaveBeenCalledWith("/");
   });
 
-  it.each([
-    "NZ",
-    "UK",
-  ] as const)("rejects unsupported %s payroll regions before creating an organisation", async (countryCode) => {
-    const result = await createOrganisationAction({
-      countryCode,
-      name: "Team Calendar Test",
-    });
+  it.each(["NZ", "UK"] as const)(
+    "rejects unsupported %s payroll regions before creating an organisation",
+    async (countryCode) => {
+      const result = await createOrganisationAction({
+        countryCode,
+        name: "Team Calendar Test",
+      });
 
-    expect(result).toEqual({
-      ok: false,
-      error: {
-        code: "validation_error",
-        message:
-          "Team Calendar currently supports Australian Xero Payroll files only.",
-      },
-    });
-    expect(mocks.ensureOrganisationForClerk).not.toHaveBeenCalled();
-    expect(mocks.redirect).not.toHaveBeenCalled();
-  });
+      expect(result).toEqual({
+        error: {
+          code: "validation_error",
+          message:
+            "Team Calendar currently supports Australian Xero Payroll files only.",
+        },
+        ok: false,
+      });
+      expect(mocks.ensureOrganisationForClerk).not.toHaveBeenCalled();
+      expect(mocks.redirect).not.toHaveBeenCalled();
+    }
+  );
 });

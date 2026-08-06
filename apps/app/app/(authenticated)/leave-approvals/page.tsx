@@ -18,8 +18,8 @@ import { Header } from "../components/header";
 import { LeaveApprovalsClient } from "./leave-approvals-client";
 
 export const metadata = {
-  title: "Leave Approvals | Team Calendar",
   description: "Approve and manage team leave requests.",
+  title: "Leave Approvals | Team Calendar",
 };
 
 interface LeaveApprovalsPageProps {
@@ -83,13 +83,13 @@ const LeaveApprovalsPage = async ({
   }
 
   const actingPerson = await database.person.findFirst({
+    select: { id: true },
     where: {
       archived_at: null,
       clerk_org_id: clerkOrgId,
       clerk_user_id: user.id,
       organisation_id: organisationId,
     },
-    select: { id: true },
   });
 
   const role = effectiveApprovalRole(orgRole);

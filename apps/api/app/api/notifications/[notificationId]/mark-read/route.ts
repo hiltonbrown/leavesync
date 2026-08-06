@@ -16,8 +16,8 @@ export async function POST(
   } catch {
     return Response.json(
       {
-        ok: false,
         error: { code: "unauthorised", message: "Not authenticated" },
+        ok: false,
       },
       { status: 401 }
     );
@@ -26,7 +26,7 @@ export async function POST(
   const user = await currentUser();
   if (!user) {
     return Response.json(
-      { ok: false, error: { code: "unauthorised", message: "User not found" } },
+      { error: { code: "unauthorised", message: "User not found" }, ok: false },
       { status: 401 }
     );
   }
@@ -41,8 +41,8 @@ export async function POST(
   if (!parsed.success) {
     return Response.json(
       {
-        ok: false,
         error: { code: "bad_request", message: "Invalid notification" },
+        ok: false,
       },
       { status: 400 }
     );
@@ -50,13 +50,13 @@ export async function POST(
 
   const result = await markAsRead({
     clerkOrgId,
-    organisationId: parsed.data.organisationId,
     notificationId: parsed.data.notificationId,
+    organisationId: parsed.data.organisationId,
     userId: user.id,
   });
   if (!result.ok) {
     const status = result.error.code === "not_recipient" ? 403 : 404;
-    return Response.json({ ok: false, error: result.error }, { status });
+    return Response.json({ error: result.error, ok: false }, { status });
   }
 
   return Response.json({ ok: true, value: result.value });

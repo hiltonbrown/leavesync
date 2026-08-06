@@ -11,10 +11,10 @@ import { NotificationsBell } from "./bell";
 const LEAVE_SUBMITTED_REGEX = /Leave submitted/i;
 
 const mocks = vi.hoisted(() => ({
+  markAllAsReadAction: vi.fn(),
+  markAsReadAction: vi.fn(),
   push: vi.fn(),
   subscribe: vi.fn(() => () => undefined),
-  markAsReadAction: vi.fn(),
-  markAllAsReadAction: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({

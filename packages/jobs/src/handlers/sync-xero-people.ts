@@ -20,8 +20,8 @@ import { inngest } from "../client";
 const SyncXeroPeopleInputSchema = z.object({
   clerkOrgId: z.string().min(1),
   organisationId: z.string().uuid(),
-  triggerType: z.enum(["scheduled", "manual", "webhook"]).default("manual"),
   triggeredByUserId: z.string().min(1).nullable().optional(),
+  triggerType: z.enum(["scheduled", "manual", "webhook"]).default("manual"),
   xeroTenantId: z.string().uuid(),
 });
 
@@ -84,6 +84,7 @@ export async function syncXeroPeople(input: unknown): Promise<
 
   try {
     const existingRun = await database.syncRun.findFirst({
+      select: { id: true },
       where: {
         ...scoped(context),
         run_type: "people",
@@ -91,7 +92,6 @@ export async function syncXeroPeople(input: unknown): Promise<
         status: "running",
         xero_tenant_id: context.xeroTenantId,
       },
-      select: { id: true },
     });
 
     if (existingRun) {
@@ -189,8 +189,8 @@ export async function syncXeroPeople(input: unknown): Promise<
 
     for (let index = 0; index < employees.length; index += BATCH_SIZE) {
       const runState = await database.syncRun.findFirst({
-        where: { ...scoped(context), id: run.id },
         select: { cancel_requested_at: true },
+        where: { ...scoped(context), id: run.id },
       });
       if (runState?.cancel_requested_at) {
         await completeRun(context, run.id, {
@@ -232,11 +232,11 @@ export async function syncXeroPeople(input: unknown): Promise<
       });
     }
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to sync Xero employees.",
       },
+      ok: false,
     };
   }
 }
@@ -267,39 +267,39 @@ async function processBatch(
         `${employee.firstName}.${employee.lastName}@${noemailFallbackDomain}`;
       const email = raw.toLowerCase();
       await database.person.upsert({
+        create: {
+          clerk_org_id: context.clerkOrgId,
+          display_name: `${employee.firstName} ${employee.lastName}`,
+          email,
+          employment_type: mapEmploymentType(employee.employmentType),
+          first_name: employee.firstName,
+          is_active: employee.status === "ACTIVE",
+          job_title: employee.jobTitle ?? null,
+          last_name: employee.lastName,
+          organisation_id: context.organisationId,
+          source_person_key: employee.employeeId,
+          source_system: "XERO",
+          start_date: employee.startDate ? new Date(employee.startDate) : null,
+          xero_employee_id: employee.employeeId,
+        },
+        update: {
+          display_name: `${employee.firstName} ${employee.lastName}`,
+          email,
+          employment_type: mapEmploymentType(employee.employmentType),
+          first_name: employee.firstName,
+          is_active: employee.status === "ACTIVE",
+          job_title: employee.jobTitle ?? null,
+          last_name: employee.lastName,
+          start_date: employee.startDate ? new Date(employee.startDate) : null,
+          updated_at: new Date(),
+          xero_employee_id: employee.employeeId,
+        },
         where: {
           organisation_id_source_system_source_person_key: {
             organisation_id: context.organisationId,
-            source_system: "XERO",
             source_person_key: employee.employeeId,
+            source_system: "XERO",
           },
-        },
-        update: {
-          first_name: employee.firstName,
-          last_name: employee.lastName,
-          email,
-          employment_type: mapEmploymentType(employee.employmentType),
-          is_active: employee.status === "ACTIVE",
-          job_title: employee.jobTitle ?? null,
-          start_date: employee.startDate ? new Date(employee.startDate) : null,
-          display_name: `${employee.firstName} ${employee.lastName}`,
-          xero_employee_id: employee.employeeId,
-          updated_at: new Date(),
-        },
-        create: {
-          clerk_org_id: context.clerkOrgId,
-          organisation_id: context.organisationId,
-          source_system: "XERO",
-          source_person_key: employee.employeeId,
-          first_name: employee.firstName,
-          last_name: employee.lastName,
-          email,
-          employment_type: mapEmploymentType(employee.employmentType),
-          is_active: employee.status === "ACTIVE",
-          job_title: employee.jobTitle ?? null,
-          start_date: employee.startDate ? new Date(employee.startDate) : null,
-          display_name: `${employee.firstName} ${employee.lastName}`,
-          xero_employee_id: employee.employeeId,
         },
       });
       counts.upserted += 1;
@@ -323,13 +323,13 @@ function validateEmployee(
   employee: XeroEmployee
 ): { valid: true } | { valid: false; message: string } {
   if (!(employee.employeeId && UUID_REGEX.test(employee.employeeId))) {
-    return { valid: false, message: "Invalid or missing Employee ID" };
+    return { message: "Invalid or missing Employee ID", valid: false };
   }
   if (!employee.firstName || employee.firstName.trim().length === 0) {
-    return { valid: false, message: "First name is required" };
+    return { message: "First name is required", valid: false };
   }
   if (!employee.lastName || employee.lastName.trim().length === 0) {
-    return { valid: false, message: "Last name is required" };
+    return { message: "Last name is required", valid: false };
   }
   return { valid: true };
 }
@@ -366,15 +366,15 @@ async function recordFailure(
   await database.failedRecord.create({
     data: {
       clerk_org_id: context.clerkOrgId,
-      organisation_id: context.organisationId,
-      sync_run_id: input.runId,
       entity_type: "people",
+      error_code: input.errorCode,
+      error_message: input.errorMessage,
+      organisation_id: context.organisationId,
+      raw_payload: toPrismaJsonValue(input.rawPayload),
       record_type: "people",
       source_id: input.sourceId,
       source_remote_id: input.sourceId,
-      error_code: input.errorCode,
-      error_message: input.errorMessage,
-      raw_payload: toPrismaJsonValue(input.rawPayload),
+      sync_run_id: input.runId,
     },
   });
 }
@@ -400,8 +400,8 @@ async function completeRun(
       records_failed: input.counts.failed,
       records_fetched: input.counts.fetched,
       records_skipped: input.counts.skipped,
-      records_upserted: input.counts.upserted,
       records_synced: input.counts.upserted,
+      records_upserted: input.counts.upserted,
       status: input.status,
     },
     where: { ...scoped(context), id: runId },
@@ -485,15 +485,15 @@ function loadXeroTenant(context: SyncXeroPeopleInput) {
           access_token_iv: true,
           expires_at: true,
           last_refreshed_at: true,
-          status: true,
           revoked_at: true,
+          status: true,
         },
       },
     },
     where: {
       clerk_org_id: context.clerkOrgId,
-      organisation_id: context.organisationId,
       id: context.xeroTenantId,
+      organisation_id: context.organisationId,
     },
   });
 }
@@ -514,7 +514,6 @@ async function publishRunStatusChanged(
         organisationId: context.organisationId,
       },
       {
-        type: "sync.run_status_changed",
         payload: {
           organisationId: context.organisationId,
           runId,
@@ -522,6 +521,7 @@ async function publishRunStatusChanged(
           status,
           xeroTenantId: context.xeroTenantId,
         },
+        type: "sync.run_status_changed",
       }
     );
   } catch (error) {
@@ -535,10 +535,10 @@ async function publishRunStatusChanged(
 
 function emptyCounts() {
   return {
-    fetched: 0,
-    upserted: 0,
-    skipped: 0,
     failed: 0,
+    fetched: 0,
+    skipped: 0,
+    upserted: 0,
   };
 }
 
@@ -547,12 +547,12 @@ function emptyResult(
   status: "cancelled" | "failed" | "partial_success" | "succeeded"
 ) {
   return {
-    fetched: 0,
-    upserted: 0,
-    skipped: 0,
     failed: 0,
+    fetched: 0,
     runId,
+    skipped: 0,
     status,
+    upserted: 0,
   };
 }
 
@@ -596,11 +596,11 @@ function validationError(
   error: z.ZodError
 ): Result<never, SyncXeroPeopleError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid sync people request.",
     },
+    ok: false,
   };
 }
 

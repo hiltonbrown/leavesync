@@ -38,8 +38,8 @@ describe("GET /ical/[token]", () => {
 
   it("returns 404 when the feed render fails", async () => {
     vi.mocked(renderFeedForToken).mockResolvedValue({
-      ok: false,
       error: { code: "not_found", message: "Feed not found" } as any,
+      ok: false,
     });
 
     const response = await GET(

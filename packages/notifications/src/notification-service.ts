@@ -68,23 +68,23 @@ const CategorySchema = z.enum([
 
 const ListSchema = z.object({
   clerkOrgId: z.string().min(1),
-  organisationId: z.string().uuid(),
-  userId: z.string().min(1),
   filters: z
     .object({
-      unreadOnly: z.boolean().optional(),
-      type: z.array(z.string()).optional(),
       category: z.array(CategorySchema).optional(),
       dateFrom: z.date().optional(),
       dateTo: z.date().optional(),
+      type: z.array(z.string()).optional(),
+      unreadOnly: z.boolean().optional(),
     })
     .optional(),
+  organisationId: z.string().uuid(),
   pagination: z
     .object({
       cursor: z.string().nullable().optional(),
       pageSize: z.number().int().positive().max(100).optional(),
     })
     .optional(),
+  userId: z.string().min(1),
 });
 
 const ScopedUserSchema = z.object({
@@ -132,11 +132,11 @@ export async function listForUser(
   const cursor = decodeCursor(parsed.data.pagination?.cursor ?? null);
   if (parsed.data.pagination?.cursor && !cursor) {
     return {
-      ok: false,
       error: {
         code: "validation_error",
         message: "Invalid notification cursor.",
       },
+      ok: false,
     };
   }
 
@@ -144,10 +144,10 @@ export async function listForUser(
     const where = buildWhere(parsed.data, filters.value, cursor);
     const [rows, unreadCount] = await Promise.all([
       client.notification.findMany({
-        where,
         orderBy: [{ created_at: "desc" }, { id: "desc" }],
-        take: pageSize + 1,
         select: notificationSelect,
+        take: pageSize + 1,
+        where,
       }),
       client.notification.count({
         where: {
@@ -166,11 +166,11 @@ export async function listForUser(
     return {
       ok: true,
       value: {
-        notifications: pageRows.map((row) => toListItem(row, actors)),
         nextCursor:
           rows.length > pageSize
             ? encodeCursor(pageRows.at(-1)?.created_at, pageRows.at(-1)?.id)
             : null,
+        notifications: pageRows.map((row) => toListItem(row, actors)),
         unreadCount,
       },
     };
@@ -195,29 +195,30 @@ export async function markAsRead(
 
   try {
     const existing = await client.notification.findFirst({
+      select: notificationSelect,
       where: {
         clerk_org_id: parsed.data.clerkOrgId,
         id: parsed.data.notificationId,
         organisation_id: parsed.data.organisationId,
       },
-      select: notificationSelect,
     });
     if (!existing) {
       return notFound();
     }
     if (existing.recipient_user_id !== parsed.data.userId) {
       return {
-        ok: false,
         error: {
           code: "not_recipient",
           message: "Only the recipient can mark this notification as read.",
         },
+        ok: false,
       };
     }
 
     const readAt = existing.read_at ?? new Date();
     if (!existing.read_at) {
       await client.notification.updateMany({
+        data: { read_at: readAt },
         where: {
           clerk_org_id: parsed.data.clerkOrgId,
           id: parsed.data.notificationId,
@@ -225,7 +226,6 @@ export async function markAsRead(
           read_at: null,
           recipient_user_id: parsed.data.userId,
         },
-        data: { read_at: readAt },
       });
       invalidateUnreadCount(parsed.data);
     }
@@ -238,12 +238,12 @@ export async function markAsRead(
         userId: parsed.data.userId,
       },
       {
-        type: "notification.read",
         payload: {
           notificationId: parsed.data.notificationId,
           readAt: readAt.toISOString(),
           unreadCount,
         },
+        type: "notification.read",
       }
     ).catch(() => undefined);
 
@@ -266,13 +266,13 @@ export async function markAllAsRead(
 
   try {
     const result = await client.notification.updateMany({
+      data: { read_at: new Date() },
       where: {
         clerk_org_id: parsed.data.clerkOrgId,
         organisation_id: parsed.data.organisationId,
         read_at: null,
         recipient_user_id: parsed.data.userId,
       },
-      data: { read_at: new Date() },
     });
     invalidateUnreadCount(parsed.data);
     publishNotificationEvent(
@@ -280,7 +280,7 @@ export async function markAllAsRead(
         organisationId: parsed.data.organisationId,
         userId: parsed.data.userId,
       },
-      { type: "notification.all_read", payload: { unreadCount: 0 } }
+      { payload: { unreadCount: 0 }, type: "notification.all_read" }
     ).catch(() => undefined);
     return { ok: true, value: { markedCount: result.count, unreadCount: 0 } };
   } catch {
@@ -305,7 +305,7 @@ export async function getUnreadCount(
 
   try {
     const value = await countUnreadDirect(client, parsed.data);
-    unreadCountCache.set(key, { value, expiresAt: Date.now() + 2000 });
+    unreadCountCache.set(key, { expiresAt: Date.now() + 2000, value });
     return { ok: true, value };
   } catch {
     return unknownError("Failed to count unread notifications.");
@@ -324,15 +324,15 @@ export async function listRecentUnread(
 
   try {
     const rows = await client.notification.findMany({
+      orderBy: [{ created_at: "desc" }, { id: "desc" }],
+      select: notificationSelect,
+      take: limit,
       where: {
         clerk_org_id: parsed.data.clerkOrgId,
         organisation_id: parsed.data.organisationId,
         read_at: null,
         recipient_user_id: parsed.data.userId,
       },
-      orderBy: [{ created_at: "desc" }, { id: "desc" }],
-      take: limit,
-      select: notificationSelect,
     });
     const actors = await loadActorDisplays(
       client,
@@ -381,21 +381,21 @@ function normaliseFilters(
   const types = filters?.type?.filter(isKnownNotificationType);
   if (filters?.type?.length && types?.length !== filters.type.length) {
     return {
-      ok: false,
       error: {
         code: "validation_error",
         message: "Invalid notification type.",
       },
+      ok: false,
     };
   }
   return {
     ok: true,
     value: {
-      unreadOnly: filters?.unreadOnly ?? false,
-      type: types,
       category: filters?.category,
       dateFrom: filters?.dateFrom,
       dateTo: filters?.dateTo,
+      type: types,
+      unreadOnly: filters?.unreadOnly ?? false,
     },
   };
 }
@@ -445,17 +445,17 @@ function buildWhere(
 }
 
 const notificationSelect = {
-  id: true,
-  type: true,
-  title: true,
-  body: true,
   action_url: true,
-  object_type: true,
-  object_id: true,
   actor_user_id: true,
-  recipient_user_id: true,
+  body: true,
   created_at: true,
+  id: true,
+  object_id: true,
+  object_type: true,
   read_at: true,
+  recipient_user_id: true,
+  title: true,
+  type: true,
 } as const;
 
 interface NotificationRow {
@@ -484,15 +484,15 @@ async function loadActorDisplays(
     return new Map();
   }
   const people = await client.person.findMany({
-    where: {
-      clerk_org_id: input.clerkOrgId,
-      organisation_id: input.organisationId,
-      clerk_user_id: { in: unique },
-    },
     select: {
       clerk_user_id: true,
       first_name: true,
       last_name: true,
+    },
+    where: {
+      clerk_org_id: input.clerkOrgId,
+      clerk_user_id: { in: unique },
+      organisation_id: input.organisationId,
     },
   });
   return new Map(
@@ -511,23 +511,23 @@ function toListItem(
 ): NotificationListItem {
   const config = getTypeConfig(row.type);
   return {
-    id: row.id,
-    type: row.type,
-    category: config.userFacingCategory,
-    label: config.label,
-    iconKey: config.iconKey,
-    title: row.title,
-    body: row.body,
-    actionUrl: row.action_url,
     actionLabel: config.actionLabel,
-    objectType: row.object_type,
-    objectId: row.object_id,
+    actionUrl: row.action_url,
     actorDisplay: row.actor_user_id
       ? (actors.get(row.actor_user_id) ?? "System")
       : "System",
+    body: row.body,
+    category: config.userFacingCategory,
     createdAt: row.created_at,
-    readAt: row.read_at,
+    iconKey: config.iconKey,
+    id: row.id,
     isUnread: row.read_at === null,
+    label: config.label,
+    objectId: row.object_id,
+    objectType: row.object_type,
+    readAt: row.read_at,
+    title: row.title,
+    type: row.type,
   };
 }
 
@@ -564,26 +564,26 @@ function validationError(
   error: z.ZodError
 ): Result<never, NotificationServiceError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid notification request.",
     },
+    ok: false,
   };
 }
 
 function notFound(): Result<never, NotificationServiceError> {
   return {
-    ok: false,
     error: {
       code: "notification_not_found",
       message: "Notification not found.",
     },
+    ok: false,
   };
 }
 
 function unknownError(
   message: string
 ): Result<never, NotificationServiceError> {
-  return { ok: false, error: { code: "unknown_error", message } };
+  return { error: { code: "unknown_error", message }, ok: false };
 }

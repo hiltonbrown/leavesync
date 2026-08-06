@@ -87,11 +87,11 @@ describe("sync run lifecycle guards", () => {
     const result = await syncXeroLeaveRecords(input());
 
     expect(result).toEqual({
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to sync Xero leave records.",
       },
+      ok: false,
     });
     expect(mocks.syncRunUpdateMany).toHaveBeenCalledWith(
       expect.objectContaining({

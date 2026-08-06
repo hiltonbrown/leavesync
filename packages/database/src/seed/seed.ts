@@ -31,104 +31,104 @@ const seedOrganisation = async (
   org: OrganisationSeed
 ): Promise<void> => {
   await db.organisation.upsert({
-    where: { id: org.id },
     create: {
-      id: org.id,
       clerk_org_id: clerkOrgId,
-      name: org.name,
       country_code: org.country_code,
+      id: org.id,
+      is_active: true,
+      name: org.name,
       region_code: org.region_code,
       timezone: org.timezone,
-      is_active: true,
     },
     update: {
       clerk_org_id: clerkOrgId,
-      name: org.name,
       country_code: org.country_code,
+      name: org.name,
       region_code: org.region_code,
       timezone: org.timezone,
     },
+    where: { id: org.id },
   });
 
   for (const team of org.teams) {
     await db.team.upsert({
-      where: { id: team.id },
       create: {
-        id: team.id,
         clerk_org_id: clerkOrgId,
-        organisation_id: org.id,
+        id: team.id,
         name: team.name,
+        organisation_id: org.id,
       },
       update: {
         clerk_org_id: clerkOrgId,
-        organisation_id: org.id,
         name: team.name,
+        organisation_id: org.id,
       },
+      where: { id: team.id },
     });
   }
 
   for (const location of org.locations) {
     await db.location.upsert({
-      where: { id: location.id },
       create: {
-        id: location.id,
         clerk_org_id: clerkOrgId,
-        organisation_id: org.id,
-        name: location.name,
         country_code: location.country_code,
+        id: location.id,
+        name: location.name,
+        organisation_id: org.id,
         region_code: location.region_code,
         timezone: location.timezone,
       },
       update: {
         clerk_org_id: clerkOrgId,
-        organisation_id: org.id,
-        name: location.name,
         country_code: location.country_code,
+        name: location.name,
+        organisation_id: org.id,
         region_code: location.region_code,
         timezone: location.timezone,
       },
+      where: { id: location.id },
     });
   }
 
   for (const person of org.people) {
     await db.person.upsert({
-      where: {
-        organisation_id_source_system_source_person_key: {
-          organisation_id: org.id,
-          source_system: person.source_system,
-          source_person_key: person.source_person_key,
-        },
-      },
       create: {
-        id: person.id,
         clerk_org_id: clerkOrgId,
-        organisation_id: org.id,
-        team_id: person.team_id,
+        email: person.email,
+        employment_type: person.employment_type,
+        first_name: person.first_name,
+        id: person.id,
+        is_active: true,
+        job_title: person.job_title,
+        last_name: person.last_name,
         location_id: person.location_id,
         manager_person_id: person.manager_person_id,
-        source_system: person.source_system,
-        source_person_key: person.source_person_key,
-        first_name: person.first_name,
-        last_name: person.last_name,
-        email: person.email,
-        job_title: person.job_title,
-        employment_type: person.employment_type,
+        organisation_id: org.id,
         person_type: person.person_type,
+        source_person_key: person.source_person_key,
+        source_system: person.source_system,
+        team_id: person.team_id,
         xero_employee_id: person.xero_employee_id,
-        is_active: true,
       },
       update: {
         clerk_org_id: clerkOrgId,
-        team_id: person.team_id,
+        email: person.email,
+        employment_type: person.employment_type,
+        first_name: person.first_name,
+        job_title: person.job_title,
+        last_name: person.last_name,
         location_id: person.location_id,
         manager_person_id: person.manager_person_id,
-        first_name: person.first_name,
-        last_name: person.last_name,
-        email: person.email,
-        job_title: person.job_title,
-        employment_type: person.employment_type,
         person_type: person.person_type,
+        team_id: person.team_id,
         xero_employee_id: person.xero_employee_id,
+      },
+      where: {
+        organisation_id_source_system_source_person_key: {
+          organisation_id: org.id,
+          source_person_key: person.source_person_key,
+          source_system: person.source_system,
+        },
       },
     });
   }
@@ -160,11 +160,11 @@ export const seedDevelopmentData = async (
 
   return {
     clerkOrgId,
-    organisations: seedOrganisations.length,
-    teams,
     locations,
+    organisations: seedOrganisations.length,
     people,
     planLimits: planSummary.limits,
     plans: planSummary.plans,
+    teams,
   };
 };

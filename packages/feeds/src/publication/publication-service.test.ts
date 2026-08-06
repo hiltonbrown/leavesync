@@ -9,16 +9,17 @@ const mocks = vi.hoisted(() => {
     published_all_day: true,
     published_at: new Date("2026-05-01T00:00:00.000Z"),
     published_description: null,
+    published_ends_at: new Date("2026-05-01T17:00:00.000Z"),
     published_sequence: 0,
+    published_starts_at: new Date("2026-05-01T09:00:00.000Z"),
     published_summary: "Jane Smith: Annual Leave",
     published_uid: "stable@ical.teamcalendar.online",
-    published_starts_at: new Date("2026-05-01T09:00:00.000Z"),
-    published_ends_at: new Date("2026-05-01T17:00:00.000Z"),
   };
   const record = {
     all_day: true,
     clerk_org_id: "org_publication",
     derived_uid_key: "stable@ical.teamcalendar.online",
+    ends_at: new Date("2026-05-01T17:00:00.000Z"),
     id: "10000000-0000-4000-8000-000000000001",
     notes_internal: "Initial note",
     organisation_id: "30000000-0000-4000-8000-000000000001",
@@ -30,9 +31,8 @@ const mocks = vi.hoisted(() => {
     privacy_mode: "named",
     publication: null as typeof publication | null,
     record_type: "annual_leave",
-    title: null as string | null,
     starts_at: new Date("2026-05-01T09:00:00.000Z"),
-    ends_at: new Date("2026-05-01T17:00:00.000Z"),
+    title: null as string | null,
   };
 
   return {
@@ -51,24 +51,25 @@ const mocks = vi.hoisted(() => {
             typeof data.published_description === "string"
               ? data.published_description
               : null,
-          published_sequence:
-            typeof data.published_sequence === "number"
-              ? data.published_sequence
-              : 0,
-          published_summary: String(data.published_summary),
-          published_uid: String(data.published_uid),
-          published_starts_at:
-            data.published_starts_at instanceof Date
-              ? data.published_starts_at
-              : null,
           published_ends_at:
             data.published_ends_at instanceof Date
               ? data.published_ends_at
               : null,
+          published_sequence:
+            typeof data.published_sequence === "number"
+              ? data.published_sequence
+              : 0,
+          published_starts_at:
+            data.published_starts_at instanceof Date
+              ? data.published_starts_at
+              : null,
+          published_summary: String(data.published_summary),
+          published_uid: String(data.published_uid),
         };
         return record.publication;
       }
     ),
+    availabilityPublicationFindUnique: vi.fn(() => ({ ...publication })),
     availabilityPublicationUpdate: vi.fn(
       ({ data }: { data: Record<string, unknown> }) => {
         if (!record.publication) {
@@ -87,6 +88,10 @@ const mocks = vi.hoisted(() => {
             typeof data.published_description === "string"
               ? data.published_description
               : null,
+          published_ends_at:
+            data.published_ends_at instanceof Date
+              ? data.published_ends_at
+              : record.publication.published_ends_at,
           published_sequence:
             typeof nextSequence === "object" &&
             nextSequence !== null &&
@@ -94,21 +99,16 @@ const mocks = vi.hoisted(() => {
               ? record.publication.published_sequence +
                 Number(nextSequence.increment)
               : Number(nextSequence),
-          published_summary: String(data.published_summary),
-          published_uid: String(data.published_uid),
           published_starts_at:
             data.published_starts_at instanceof Date
               ? data.published_starts_at
               : record.publication.published_starts_at,
-          published_ends_at:
-            data.published_ends_at instanceof Date
-              ? data.published_ends_at
-              : record.publication.published_ends_at,
+          published_summary: String(data.published_summary),
+          published_uid: String(data.published_uid),
         };
         return record.publication;
       }
     ),
-    availabilityPublicationFindUnique: vi.fn(() => ({ ...publication })),
     availabilityRecordFindFirst: vi.fn(() => record),
     record,
     reset: () => {
@@ -170,8 +170,8 @@ describe("materialiseAvailabilityPublication", () => {
     expect(mocks.availabilityPublicationCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          published_starts_at: mocks.record.starts_at,
           published_ends_at: mocks.record.ends_at,
+          published_starts_at: mocks.record.starts_at,
         }),
       })
     );
@@ -247,8 +247,8 @@ describe("materialiseAvailabilityPublication", () => {
     expect(mocks.availabilityPublicationUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          published_starts_at: mocks.record.starts_at,
           published_ends_at: mocks.record.ends_at,
+          published_starts_at: mocks.record.starts_at,
         }),
       })
     );
@@ -272,8 +272,8 @@ describe("materialiseAvailabilityPublication", () => {
     expect(mocks.availabilityPublicationUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          published_starts_at: mocks.record.starts_at,
           published_ends_at: mocks.record.ends_at,
+          published_starts_at: mocks.record.starts_at,
         }),
       })
     );

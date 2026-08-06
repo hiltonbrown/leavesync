@@ -8,9 +8,9 @@ import { InteractiveHeroSection } from "./components/interactive-hero";
 import { ScrollReveal } from "./components/scroll-reveal";
 
 export const metadata: Metadata = createMetadata({
-  title: "Team Calendar: Features",
   description:
     "Every absence, every person on the calendar. Employees, contractors and directors enter leave or out-of-office once. Team Calendar publishes the combined view to Outlook, Google Calendar and Apple Calendar.",
+  title: "Team Calendar: Features",
 });
 
 // ---- Personas ----------------------------------------------------------------
@@ -29,37 +29,37 @@ interface Persona {
 
 const personas: Persona[] = [
   {
+    copy: "Your Xero Payroll people request leave once. Approvals route to their manager, balances stay accurate, and the approved dates ship straight to every calendar they share.",
     mod: "employee",
     role: "Employee · on payroll",
-    title: "Annual, sick, parental, TOIL.",
-    copy: "Your Xero Payroll people request leave once. Approvals route to their manager, balances stay accurate, and the approved dates ship straight to every calendar they share.",
     source: {
-      mod: "sage",
       label: "Synced from Xero Payroll",
+      mod: "sage",
       sub: "Two-way · live",
     },
+    title: "Annual, sick, parental, TOIL.",
   },
   {
+    copy: "Contractors don't need a Xero record. Add them as a non-payroll teammate and they can mark unavailable days, project work and out-of-office, visible to everyone they collaborate with.",
     mod: "contractor",
     role: "Contractor · off payroll",
-    title: "Unavailable days, WFH, deep work.",
-    copy: "Contractors don't need a Xero record. Add them as a non-payroll teammate and they can mark unavailable days, project work and out-of-office, visible to everyone they collaborate with.",
     source: {
-      mod: "purple",
       label: "Added in Team Calendar",
+      mod: "purple",
       sub: "Manual entry",
     },
+    title: "Unavailable days, WFH, deep work.",
   },
   {
+    copy: "Directors who draw fees rather than wages stay invisible to payroll-only tools. In Team Calendar they get the same calendar presence as the rest of the team, without showing up in pay runs.",
     mod: "director",
     role: "Director · off payroll",
-    title: "Board days, travel, out of office.",
-    copy: "Directors who draw fees rather than wages stay invisible to payroll-only tools. In Team Calendar they get the same calendar presence as the rest of the team, without showing up in pay runs.",
     source: {
-      mod: "purple",
       label: "Added in Team Calendar",
+      mod: "purple",
       sub: "No payroll impact",
     },
+    title: "Board days, travel, out of office.",
   },
 ];
 
@@ -106,35 +106,35 @@ interface Cap {
 
 const caps: Cap[] = [
   {
+    copy: "Annual leave, sick, parental, TOIL, WFH, training, jury duty, conferences, out-of-office. If it removes you from a team's plan, it belongs here.",
     icon: "calendar",
     title: "One entry box for every kind of away",
-    copy: "Annual leave, sick, parental, TOIL, WFH, training, jury duty, conferences, out-of-office. If it removes you from a team's plan, it belongs here.",
   },
   {
+    copy: "Approved payroll leave writes back to Xero in the right type. Anything already in Xero shows up in Team Calendar. You only key it once, whichever side you keyed it on.",
     icon: "sync",
     title: "Two-way sync with Xero Payroll",
-    copy: "Approved payroll leave writes back to Xero in the right type. Anything already in Xero shows up in Team Calendar. You only key it once, whichever side you keyed it on.",
   },
   {
+    copy: "Each person and team gets a read-only calendar feed. Subscribe once in the app you already use; Team Calendar keeps it current.",
     icon: "link",
     title: "Outlook · Google · Apple",
-    copy: "Each person and team gets a read-only calendar feed. Subscribe once in the app you already use; Team Calendar keeps it current.",
   },
   {
+    accent: true,
+    copy: "Contractors, directors, board members, advisors. Anyone whose availability affects the team can sit on the calendar, without showing up in pay runs.",
     icon: "leaf",
     title: "Covers off-payroll people",
-    copy: "Contractors, directors, board members, advisors. Anyone whose availability affects the team can sit on the calendar, without showing up in pay runs.",
-    accent: true,
   },
   {
+    copy: "Managers see who else is away before they approve. No more rubber-stamping a fourth person off the same week.",
     icon: "check",
     title: "Approvals in context",
-    copy: "Managers see who else is away before they approve. No more rubber-stamping a fourth person off the same week.",
   },
   {
+    copy: "Every entry is colour-coded by where it came from, synced from Xero or added manually, so you always know what's authoritative.",
     icon: "shield",
     title: "Source-of-record, visible",
-    copy: "Every entry is colour-coded by where it came from, synced from Xero or added manually, so you always know what's authoritative.",
   },
 ];
 
@@ -307,46 +307,46 @@ interface MatrixRow {
 
 const matrixRows: MatrixRow[] = [
   {
-    label: "Request leave & out-of-office",
-    sub: "Annual, sick, WFH, board days, anything that removes you from the plan",
-    employees: <Mark kind="sage" label="Yes" />,
     contractors: <Mark kind="purple" label="Yes" />,
     directors: <Mark kind="purple" label="Yes" />,
+    employees: <Mark kind="sage" label="Yes" />,
+    label: "Request leave & out-of-office",
+    sub: "Annual, sick, WFH, board days, anything that removes you from the plan",
   },
   {
-    label: "Auto-sync from Xero",
-    sub: "Leave already keyed in Xero appears without re-entry",
-    employees: <Mark kind="sage" label="Two-way" />,
     contractors: <Mark kind="mute" label="N/A" />,
     directors: <Mark kind="mute" label="N/A" />,
+    employees: <Mark kind="sage" label="Two-way" />,
+    label: "Auto-sync from Xero",
+    sub: "Leave already keyed in Xero appears without re-entry",
   },
   {
-    label: "Manager approvals",
-    sub: "Routed with team availability in view",
-    employees: <Mark kind="sage" label="Required" />,
     contractors: <Mark kind="purple" label="Optional" />,
     directors: <Mark kind="mute" label="Self-managed" />,
+    employees: <Mark kind="sage" label="Required" />,
+    label: "Manager approvals",
+    sub: "Routed with team availability in view",
   },
   {
+    contractors: <Mark kind="sage" label="Yes" />,
+    directors: <Mark kind="sage" label="Yes" />,
+    employees: <Mark kind="sage" label="Yes" />,
     label: "Published to Outlook / Google / Apple",
     sub: "Live .ics feed per person and per team",
-    employees: <Mark kind="sage" label="Yes" />,
-    contractors: <Mark kind="sage" label="Yes" />,
-    directors: <Mark kind="sage" label="Yes" />,
   },
   {
-    label: "Counted in leave balances",
-    sub: "Drawn from Xero Payroll where applicable",
-    employees: <Mark kind="sage" label="Yes" />,
     contractors: <Mark kind="mute" label="No balance" />,
     directors: <Mark kind="mute" label="No balance" />,
+    employees: <Mark kind="sage" label="Yes" />,
+    label: "Counted in leave balances",
+    sub: "Drawn from Xero Payroll where applicable",
   },
   {
-    label: "Visible to the whole team",
-    sub: "On the calendar everyone already uses",
-    employees: <Mark kind="sage" label="Yes" />,
     contractors: <Mark kind="sage" label="Yes" />,
     directors: <Mark kind="sage" label="Yes" />,
+    employees: <Mark kind="sage" label="Yes" />,
+    label: "Visible to the whole team",
+    sub: "On the calendar everyone already uses",
   },
 ];
 
@@ -404,28 +404,28 @@ const FeaturesMatrix = () => (
 
 const faqs = [
   {
-    q: "Do contractors and directors need a Xero record?",
     a: "No. They're added directly in Team Calendar and never appear in Xero or your pay runs. They only show up on the calendar.",
+    q: "Do contractors and directors need a Xero record?",
   },
   {
-    q: "What happens to leave I've already keyed into Xero?",
     a: "It flows in on first connect. We don't ask you to re-enter it, and we don't change the leave types you've configured in Xero.",
+    q: "What happens to leave I've already keyed into Xero?",
   },
   {
-    q: "Is the calendar feed read-only?",
     a: "Yes. Outlook, Google and Apple subscribe to a .ics feed per person or per team. Edits happen in Team Calendar; calendars refresh within a minute.",
+    q: "Is the calendar feed read-only?",
   },
   {
-    q: "Can I tell which entries came from where?",
     a: "Every entry carries its source. Sage means it came from Xero Payroll. Purple means it was added by hand in Team Calendar.",
+    q: "Can I tell which entries came from where?",
   },
   {
-    q: "Which regions of Xero Payroll are supported?",
     a: "Australia is supported at launch. New Zealand and United Kingdom support is planned for future releases.",
+    q: "Which regions of Xero Payroll are supported?",
   },
   {
-    q: "Does an out-of-office count against a leave balance?",
     a: "Only if you map it to a Xero leave type. Out-of-office, WFH and travel default to calendar-only.",
+    q: "Does an out-of-office count against a leave balance?",
   },
 ] as const;
 

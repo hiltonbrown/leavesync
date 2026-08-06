@@ -74,24 +74,24 @@ const HeartIcon = () => (
 
 const benefits: Benefit[] = [
   {
-    title: "Easy for employees",
     copy: "Request leave and working patterns without chasing forms or side messages.",
     icon: <ClockIcon />,
+    title: "Easy for employees",
   },
   {
-    title: "Clear for managers",
     copy: "See who is away, who is working differently, and where cover is needed.",
     icon: <UsersIcon />,
+    title: "Clear for managers",
   },
   {
-    title: "Accurate for payroll",
     copy: "Approved leave writes back to Xero Payroll, reducing duplicate entry.",
     icon: <ShieldIcon />,
+    title: "Accurate for payroll",
   },
   {
-    title: "Respectful by default",
     copy: "Privacy controls keep sensitive leave details visible only where needed.",
     icon: <HeartIcon />,
+    title: "Respectful by default",
   },
 ];
 

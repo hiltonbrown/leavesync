@@ -36,54 +36,54 @@ const ADMIN_ROLES = ["org:admin", "org:owner"] as const;
  */
 export const navGroups: NavGroup[] = [
   {
+    items: [{ href: "/", icon: LayoutDashboardIcon, title: "Dashboard" }],
     label: null,
-    items: [{ title: "Dashboard", href: "/", icon: LayoutDashboardIcon }],
   },
   {
-    label: "My Work",
     items: [
-      { title: "My Plans", href: "/plans", icon: ClipboardListIcon },
-      { title: "Calendar", href: "/calendar", icon: CalendarDaysIcon },
-      { title: "Notifications", href: "/notifications", icon: BellIcon },
+      { href: "/plans", icon: ClipboardListIcon, title: "My Plans" },
+      { href: "/calendar", icon: CalendarDaysIcon, title: "Calendar" },
+      { href: "/notifications", icon: BellIcon, title: "Notifications" },
     ],
+    label: "My Work",
   },
   {
-    label: "Team",
     items: [
-      { title: "People", href: "/people", icon: UsersIcon },
-      { title: "Calendar Feeds", href: "/feeds", icon: LinkIcon },
+      { href: "/people", icon: UsersIcon, title: "People" },
+      { href: "/feeds", icon: LinkIcon, title: "Calendar Feeds" },
       {
-        title: "Leave Reports",
         href: "/analytics/leave-reports",
         icon: BarChart3Icon,
         roles: ANALYTICS_NAV_ROLES,
+        title: "Leave Reports",
       },
       {
-        title: "Out of Office",
         href: "/analytics/out-of-office",
         icon: BarChart3Icon,
         roles: ANALYTICS_NAV_ROLES,
+        title: "Out of Office",
       },
     ],
+    label: "Team",
   },
   {
-    label: "Admin",
     items: [
       {
-        title: "Leave Approvals",
         href: "/leave-approvals",
         icon: ClipboardListIcon,
+        title: "Leave Approvals",
       },
-      { title: "Public Holidays", href: "/public-holidays", icon: FlagIcon },
-      { title: "Sync Health", href: "/sync", icon: ActivityIcon },
+      { href: "/public-holidays", icon: FlagIcon, title: "Public Holidays" },
+      { href: "/sync", icon: ActivityIcon, title: "Sync Health" },
     ],
+    label: "Admin",
   },
 ];
 
 export const settingsNavItem: NavItem = {
-  title: "Settings",
   href: "/settings",
   icon: Settings2Icon,
+  title: "Settings",
 };
 
 export interface QuickAction {
@@ -97,36 +97,36 @@ export interface QuickAction {
 /** Create actions surfaced in the command palette's "Create" group. */
 export const quickActions: QuickAction[] = [
   {
-    title: "New leave request",
     href: "/availability/new",
     icon: CalendarPlusIcon,
     keywords: ["leave", "request", "time off", "annual", "sick"],
+    title: "New leave request",
   },
   {
-    title: "New plan",
     href: "/plans/new",
     icon: FilePlusIcon,
     keywords: ["plan", "availability"],
+    title: "New plan",
   },
   {
-    title: "New calendar feed",
     href: "/feeds/new",
     icon: LinkIcon,
     keywords: ["feed", "ics", "subscribe", "calendar"],
+    title: "New calendar feed",
   },
   {
-    title: "Add person",
     href: "/people/new",
     icon: UserPlusIcon,
     keywords: ["person", "member", "employee", "team"],
     roles: ADMIN_ROLES,
+    title: "Add person",
   },
   {
-    title: "Add public holiday",
     href: "/public-holidays/holidays/new",
     icon: FlagIcon,
     keywords: ["holiday", "public", "day off"],
     roles: ADMIN_ROLES,
+    title: "Add public holiday",
   },
 ];
 

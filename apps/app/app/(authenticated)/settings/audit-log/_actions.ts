@@ -70,7 +70,6 @@ export async function exportAuditLogCsvAction(input: {
   });
   if (!result.ok) {
     return {
-      ok: false,
       error: {
         code:
           result.error.code === "not_authorised" ||
@@ -79,6 +78,7 @@ export async function exportAuditLogCsvAction(input: {
             : "unknown_error",
         message: result.error.message,
       },
+      ok: false,
     };
   }
 
@@ -87,20 +87,20 @@ export async function exportAuditLogCsvAction(input: {
 
 function notAuthorised(): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "You do not have permission to export the audit log.",
     },
+    ok: false,
   };
 }
 
 function validationError(message?: string): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: message ?? "Invalid audit log export request.",
     },
+    ok: false,
   };
 }

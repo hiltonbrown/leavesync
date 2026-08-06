@@ -15,9 +15,9 @@ import { FeedFilterSchema } from "./_schemas";
 import { FeedFilterBar } from "./feed-filter-bar";
 
 export const metadata: Metadata = {
-  title: "Feeds | Team Calendar",
   description:
     "Create and manage iCal calendar feeds for your team's leave and availability.",
+  title: "Feeds | Team Calendar",
 };
 
 interface FeedPageProps {
@@ -58,11 +58,11 @@ const FeedPage = async ({ searchParams }: FeedPageProps) => {
         pagination: { cursor: filters.cursor, pageSize: 50 },
       })
     : {
-        ok: false as const,
         error: {
           code: "not_authorised" as const,
           message: "You must be signed in to view feeds.",
         },
+        ok: false as const,
       };
   let content = <FetchErrorState entityName="feeds" />;
   if (feedsResult.ok && feedsResult.value.length === 0) {

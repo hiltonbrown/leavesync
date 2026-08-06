@@ -43,14 +43,14 @@ const ScopedUserSchema = z.object({
 });
 
 const UpsertSchema = ScopedUserSchema.extend({
-  notificationType: z.string().min(1),
-  inAppEnabled: z.boolean(),
   emailEnabled: z.boolean(),
+  inAppEnabled: z.boolean(),
+  notificationType: z.string().min(1),
 });
 
 const ChannelSchema = ScopedUserSchema.extend({
-  notificationType: z.string().min(1),
   channel: z.enum(["email", "in_app"]),
+  notificationType: z.string().min(1),
 });
 
 export async function listPreferences(
@@ -64,15 +64,15 @@ export async function listPreferences(
 
   try {
     const storedRows = await client.notificationPreference.findMany({
+      select: {
+        email_enabled: true,
+        in_app_enabled: true,
+        notification_type: true,
+      },
       where: {
         clerk_org_id: parsed.data.clerkOrgId,
         organisation_id: parsed.data.organisationId,
         user_id: parsed.data.userId,
-      },
-      select: {
-        notification_type: true,
-        in_app_enabled: true,
-        email_enabled: true,
       },
     });
     const stored = new Map(
@@ -83,13 +83,13 @@ export async function listPreferences(
       value: listAllTypes().map((config) => {
         const row = stored.get(config.type);
         return {
-          type: config.type,
-          label: config.label,
-          description: config.description,
           category: config.userFacingCategory,
-          inAppEnabled: row?.in_app_enabled ?? config.defaultChannels.inApp,
+          description: config.description,
           emailEnabled: row?.email_enabled ?? config.defaultChannels.email,
+          inAppEnabled: row?.in_app_enabled ?? config.defaultChannels.inApp,
           isDefault: !row,
+          label: config.label,
+          type: config.type,
         };
       }),
     };
@@ -111,46 +111,46 @@ export async function upsertPreference(
   }
   if (!(parsed.data.inAppEnabled || parsed.data.emailEnabled)) {
     return {
-      ok: false,
       error: {
         code: "at_least_one_channel_required",
         message: "At least one notification channel must be enabled.",
       },
+      ok: false,
     };
   }
 
   try {
     const row = await client.notificationPreference.upsert({
-      where: {
-        user_id_organisation_id_notification_type: {
-          user_id: parsed.data.userId,
-          organisation_id: parsed.data.organisationId,
-          notification_type: parsed.data.notificationType,
-        },
-      },
       create: {
-        user_id: parsed.data.userId,
         clerk_org_id: parsed.data.clerkOrgId,
-        organisation_id: parsed.data.organisationId,
+        email_enabled: parsed.data.emailEnabled,
+        in_app_enabled: parsed.data.inAppEnabled,
         notification_type: parsed.data.notificationType,
-        in_app_enabled: parsed.data.inAppEnabled,
-        email_enabled: parsed.data.emailEnabled,
-      },
-      update: {
-        in_app_enabled: parsed.data.inAppEnabled,
-        email_enabled: parsed.data.emailEnabled,
+        organisation_id: parsed.data.organisationId,
+        user_id: parsed.data.userId,
       },
       select: {
-        notification_type: true,
-        in_app_enabled: true,
         email_enabled: true,
+        in_app_enabled: true,
+        notification_type: true,
+      },
+      update: {
+        email_enabled: parsed.data.emailEnabled,
+        in_app_enabled: parsed.data.inAppEnabled,
+      },
+      where: {
+        user_id_organisation_id_notification_type: {
+          notification_type: parsed.data.notificationType,
+          organisation_id: parsed.data.organisationId,
+          user_id: parsed.data.userId,
+        },
       },
     });
     return {
       ok: true,
       value: toPreferenceRow(row.notification_type, {
-        inAppEnabled: row.in_app_enabled,
         emailEnabled: row.email_enabled,
+        inAppEnabled: row.in_app_enabled,
         isDefault: false,
       }),
     };
@@ -173,16 +173,16 @@ export async function shouldDeliverToChannel(
 
   try {
     const row = await client.notificationPreference.findUnique({
+      select: {
+        email_enabled: true,
+        in_app_enabled: true,
+      },
       where: {
         user_id_organisation_id_notification_type: {
-          user_id: parsed.data.userId,
-          organisation_id: parsed.data.organisationId,
           notification_type: parsed.data.notificationType,
+          organisation_id: parsed.data.organisationId,
+          user_id: parsed.data.userId,
         },
-      },
-      select: {
-        in_app_enabled: true,
-        email_enabled: true,
       },
     });
     if (row) {
@@ -214,23 +214,23 @@ function toPreferenceRow(
 ): NotificationPreferenceRow {
   const config = getTypeConfig(type);
   return {
-    type,
-    label: config.label,
-    description: config.description,
     category: config.userFacingCategory,
-    inAppEnabled: values.inAppEnabled,
+    description: config.description,
     emailEnabled: values.emailEnabled,
+    inAppEnabled: values.inAppEnabled,
     isDefault: values.isDefault,
+    label: config.label,
+    type,
   };
 }
 
 function invalidType(): Result<never, PreferencesServiceError> {
   return {
-    ok: false,
     error: {
       code: "invalid_type",
       message: "Unknown notification type.",
     },
+    ok: false,
   };
 }
 
@@ -238,15 +238,15 @@ function validationError(
   error: z.ZodError
 ): Result<never, PreferencesServiceError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message:
         error.issues[0]?.message ?? "Invalid notification preference request.",
     },
+    ok: false,
   };
 }
 
 function unknownError(message: string): Result<never, PreferencesServiceError> {
-  return { ok: false, error: { code: "unknown_error", message } };
+  return { error: { code: "unknown_error", message }, ok: false };
 }

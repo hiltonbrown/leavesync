@@ -9,10 +9,10 @@ import { useEffect, useState } from "react";
 import { signInHref, signUpHref } from "@/src/lib/auth-links";
 
 const navLinks = [
-  { title: "Home", href: "/" },
-  { title: "Features", href: "/features" },
-  { title: "Integrations", href: "/integrations" },
-  { title: "Pricing", href: "/pricing" },
+  { href: "/", title: "Home" },
+  { href: "/features", title: "Features" },
+  { href: "/integrations", title: "Integrations" },
+  { href: "/pricing", title: "Pricing" },
 ];
 
 export const Header = () => {

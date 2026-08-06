@@ -7,12 +7,12 @@ import { z } from "zod";
 import { getActiveOrgContext } from "@/lib/server/get-active-org-context";
 
 const UpdateOrgSchema = z.object({
-  organisationId: z.string().uuid(),
-  name: z.string().min(1, "Name is required").max(128),
-  timezone: z.string().min(1),
-  locale: z.string().min(1),
   fiscalYearStart: z.number().int().min(1).max(12),
+  locale: z.string().min(1),
+  name: z.string().min(1, "Name is required").max(128),
+  organisationId: z.string().uuid(),
   reportingUnit: z.enum(["days", "hours"]).default("hours"),
+  timezone: z.string().min(1),
   workingHoursPerDay: z.number().min(1).max(24).default(7.6),
 });
 
@@ -26,20 +26,20 @@ export const updateOrg = async (
   const { orgId, orgRole } = await auth();
 
   if (!orgId) {
-    return { ok: false, error: "No active organisation" };
+    return { error: "No active organisation", ok: false };
   }
   if (orgRole !== "org:owner" && orgRole !== "org:admin") {
     return {
-      ok: false,
       error: "You do not have permission to update organisation settings",
+      ok: false,
     };
   }
 
   const parsed = UpdateOrgSchema.safeParse(input);
   if (!parsed.success) {
     return {
-      ok: false,
       error: parsed.error.issues[0]?.message ?? "Invalid input",
+      ok: false,
     };
   }
 
@@ -56,11 +56,10 @@ export const updateOrg = async (
   try {
     const contextResult = await getActiveOrgContext(organisationId);
     if (!contextResult.ok) {
-      return { ok: false, error: contextResult.error.message };
+      return { error: contextResult.error.message, ok: false };
     }
 
     const updateResult = await database.organisation.updateMany({
-      where: { clerk_org_id: orgId, id: organisationId },
       data: {
         fiscal_year_start: fiscalYearStart,
         locale,
@@ -69,20 +68,21 @@ export const updateOrg = async (
         timezone,
         working_hours_per_day: workingHoursPerDay,
       },
+      where: { clerk_org_id: orgId, id: organisationId },
     });
 
     if (updateResult.count !== 1) {
-      return { ok: false, error: "Organisation not found" };
+      return { error: "Organisation not found", ok: false };
     }
 
     const clerk = await clerkClient();
     await clerk.organizations.updateOrganization(orgId, {
       name,
       publicMetadata: {
-        timezone,
-        locale,
         fiscalYearStart,
+        locale,
         reportingUnit,
+        timezone,
         workingHoursPerDay,
       },
     });
@@ -93,6 +93,6 @@ export const updateOrg = async (
 
     return { ok: true, value: undefined };
   } catch {
-    return { ok: false, error: "Failed to update organisation" };
+    return { error: "Failed to update organisation", ok: false };
   }
 };

@@ -16,17 +16,17 @@ export const updateMemberRole = async (
   const { orgId, orgRole } = await auth();
 
   if (!orgId) {
-    return { ok: false, error: "Not authenticated" };
+    return { error: "Not authenticated", ok: false };
   }
   if (orgRole !== "org:owner" && orgRole !== "org:admin") {
-    return { ok: false, error: "You do not have permission to manage members" };
+    return { error: "You do not have permission to manage members", ok: false };
   }
 
   const parsed = UpdateRoleSchema.safeParse(input);
   if (!parsed.success) {
     return {
-      ok: false,
       error: parsed.error.issues[0]?.message ?? "Invalid input",
+      ok: false,
     };
   }
 
@@ -34,8 +34,8 @@ export const updateMemberRole = async (
   // role, otherwise an admin could escalate themselves (or others) to owner.
   if (parsed.data.role === "org:owner" && orgRole !== "org:owner") {
     return {
-      ok: false,
       error: "Only owners can assign the owner role",
+      ok: false,
     };
   }
 
@@ -43,13 +43,13 @@ export const updateMemberRole = async (
     const clerk = await clerkClient();
     await clerk.organizations.updateOrganizationMembership({
       organizationId: orgId,
-      userId: parsed.data.membershipId,
       role: parsed.data.role,
+      userId: parsed.data.membershipId,
     });
     return { ok: true, value: undefined };
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Failed to update role";
-    return { ok: false, error: message };
+    return { error: message, ok: false };
   }
 };

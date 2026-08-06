@@ -73,24 +73,24 @@ export async function createManualPersonAction(input: {
 
 function notAuthorised(): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "You do not have permission to add people.",
     },
+    ok: false,
   };
 }
 
 function unknownError(message: string): ActionResult<never> {
-  return { ok: false, error: { code: "unknown_error", message } };
+  return { error: { code: "unknown_error", message }, ok: false };
 }
 
 function validationError(message?: string): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: message ?? "Invalid input.",
     },
+    ok: false,
   };
 }

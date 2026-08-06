@@ -23,8 +23,8 @@ export const generateMetadata = async ({
   }
 
   return createMetadata({
-    title: post.frontmatter.title,
     description: post.frontmatter.description,
+    title: post.frontmatter.title,
   });
 };
 

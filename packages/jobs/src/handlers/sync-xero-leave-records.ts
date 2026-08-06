@@ -26,8 +26,8 @@ import { inngest } from "../client";
 const SyncXeroLeaveRecordsInputSchema = z.object({
   clerkOrgId: z.string().min(1),
   organisationId: z.string().uuid(),
-  triggerType: z.enum(["scheduled", "manual", "webhook"]).default("manual"),
   triggeredByUserId: z.string().min(1).nullable().optional(),
+  triggerType: z.enum(["scheduled", "manual", "webhook"]).default("manual"),
   xeroTenantId: z.string().uuid(),
 });
 
@@ -185,8 +185,8 @@ export async function syncXeroLeaveRecords(
 
     for (let index = 0; index < fetched.length; index += BATCH_SIZE) {
       const runState = await database.syncRun.findFirst({
-        where: { ...scoped(context), id: run.id },
         select: { cancel_requested_at: true },
+        where: { ...scoped(context), id: run.id },
       });
       if (runState?.cancel_requested_at) {
         await completeRun(context, run.id, {
@@ -294,11 +294,11 @@ export async function syncXeroLeaveRecords(
       });
     }
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to sync Xero leave records.",
       },
+      ok: false,
     };
   }
 }
@@ -308,6 +308,7 @@ async function cancelDuplicateRun(
   startedAt: Date
 ): Promise<{ id: string } | null> {
   const existingRun = await database.syncRun.findFirst({
+    select: { id: true },
     where: {
       ...scoped(context),
       run_type: "leave_records",
@@ -315,7 +316,6 @@ async function cancelDuplicateRun(
       status: "running",
       xero_tenant_id: context.xeroTenantId,
     },
-    select: { id: true },
   });
   if (!existingRun) {
     return null;
@@ -439,16 +439,16 @@ async function loadPeopleByEmployeeId(
   employeeIds: string[]
 ) {
   const people = await database.person.findMany({
-    where: {
-      ...scoped(context),
-      archived_at: null,
-      xero_employee_id: { in: [...new Set(employeeIds)] },
-    },
     select: {
       default_privacy_mode: true,
       id: true,
       include_in_feeds_by_default: true,
       xero_employee_id: true,
+    },
+    where: {
+      ...scoped(context),
+      archived_at: null,
+      xero_employee_id: { in: [...new Set(employeeIds)] },
     },
   });
   const peopleByEmployeeId = new Map<string, (typeof people)[number]>();
@@ -465,11 +465,6 @@ async function loadExistingRecordsBySourceRemoteId(
   sourceRemoteIds: string[]
 ) {
   const records = await database.availabilityRecord.findMany({
-    where: {
-      ...scoped(context),
-      source_remote_id: { in: [...new Set(sourceRemoteIds)] },
-      source_type: { in: ["xero_leave", "team_calendar_leave"] },
-    },
     select: {
       approval_status: true,
       failed_action: true,
@@ -477,6 +472,11 @@ async function loadExistingRecordsBySourceRemoteId(
       source_remote_hash: true,
       source_remote_id: true,
       source_type: true,
+    },
+    where: {
+      ...scoped(context),
+      source_remote_id: { in: [...new Set(sourceRemoteIds)] },
+      source_type: { in: ["xero_leave", "team_calendar_leave"] },
     },
   });
   const recordsBySourceRemoteId = new Map<string, (typeof records)[number]>();
@@ -688,13 +688,13 @@ async function archiveStaleRecords(
   }
 
   const stale = await database.availabilityRecord.findMany({
+    select: { id: true, person_id: true },
     where: {
       ...scoped(context),
       archived_at: null,
       source_remote_id: { notIn: fetchedRemoteIds },
       source_type: "xero_leave",
     },
-    select: { id: true, person_id: true },
   });
   if (stale.length === 0) {
     return { archived: 0, personIds: [] };
@@ -762,19 +762,20 @@ async function enqueueFeedRebuilds(
   }
 
   const people = await database.person.findMany({
-    where: { ...scoped(context), id: { in: personIds } },
     select: { id: true, team_id: true },
+    where: { ...scoped(context), id: { in: personIds } },
   });
   const teamIds = people
     .map((person) => person.team_id)
     .filter((teamId): teamId is string => Boolean(teamId));
   const feeds = await database.feed.findMany({
+    select: { id: true },
     where: {
       ...scoped(context),
       archived_at: null,
-      status: "active",
       scopes: {
         some: {
+          clerk_org_id: context.clerkOrgId,
           OR: [
             { scope_type: "org" },
             { scope_type: "person", scope_value: { in: personIds } },
@@ -782,12 +783,11 @@ async function enqueueFeedRebuilds(
               ? [{ scope_type: "team" as const, scope_value: { in: teamIds } }]
               : []),
           ],
-          clerk_org_id: context.clerkOrgId,
           organisation_id: context.organisationId,
         },
       },
+      status: "active",
     },
-    select: { id: true },
   });
 
   if (feeds.length === 0) {
@@ -933,8 +933,8 @@ function loadXeroTenant(context: SyncXeroLeaveRecordsInput) {
           access_token_iv: true,
           expires_at: true,
           last_refreshed_at: true,
-          status: true,
           revoked_at: true,
+          status: true,
         },
       },
     },
@@ -962,7 +962,6 @@ async function publishRunStatusChanged(
         organisationId: context.organisationId,
       },
       {
-        type: "sync.run_status_changed",
         payload: {
           organisationId: context.organisationId,
           runId,
@@ -970,6 +969,7 @@ async function publishRunStatusChanged(
           status,
           xeroTenantId: context.xeroTenantId,
         },
+        type: "sync.run_status_changed",
       }
     );
   } catch (error) {
@@ -1042,12 +1042,12 @@ function validationError(
   error: z.ZodError
 ): Result<never, SyncXeroLeaveRecordsError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message:
         error.issues[0]?.message ?? "Invalid sync leave records request.",
     },
+    ok: false,
   };
 }
 

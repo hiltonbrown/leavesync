@@ -131,8 +131,8 @@ describe("people-service", () => {
     expect(mocks.availabilityCount).not.toHaveBeenCalled();
     expect(mocks.availabilityGroupBy).toHaveBeenCalledOnce();
     expect(mocks.availabilityGroupBy).toHaveBeenCalledWith({
-      by: ["person_id"],
       _count: { _all: true },
+      by: ["person_id"],
       where: {
         approval_status: "xero_sync_failed",
         clerk_org_id: "org_1",

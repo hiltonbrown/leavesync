@@ -273,9 +273,9 @@ export async function listPeople(input: {
       filters.status?.length || filters.xeroSyncFailedOnly
     );
     const people = await database.person.findMany({
-      where: personWhere,
       orderBy: [{ last_name: "asc" }, { first_name: "asc" }, { id: "asc" }],
       select: personListSelect,
+      where: personWhere,
       ...(hasInMemoryFilters
         ? {}
         : {
@@ -287,8 +287,8 @@ export async function listPeople(input: {
       ? null
       : await database.person.count({ where: personWhere });
     const failedCounts = await database.availabilityRecord.groupBy({
-      by: ["person_id"],
       _count: { _all: true },
+      by: ["person_id"],
       where: {
         ...scoped,
         approval_status: "xero_sync_failed",
@@ -425,11 +425,11 @@ export async function getPersonProfile(input: {
       parsed.data.organisationId as OrganisationId
     );
     const person = await database.person.findFirst({
+      select: personProfileSelect,
       where: {
         ...scoped,
         id: parsed.data.personId,
       },
-      select: personProfileSelect,
     });
     if (!person) {
       return await personNotFoundOrLeak(parsed.data);
@@ -457,12 +457,12 @@ export async function getPersonProfile(input: {
         personId: person.id,
       }),
       database.leaveBalance.findMany({
+        orderBy: [{ leave_type_name: "asc" }, { leave_type_xero_id: "asc" }],
+        select: leaveBalanceProfileSelect,
         where: {
           ...scoped,
           person_id: person.id,
         },
-        orderBy: [{ leave_type_name: "asc" }, { leave_type_xero_id: "asc" }],
-        select: leaveBalanceProfileSelect,
       }),
       database.availabilityRecord.count({
         where: {
@@ -476,12 +476,12 @@ export async function getPersonProfile(input: {
         organisationId: parsed.data.organisationId,
       }),
       database.alternativeContact.findMany({
+        orderBy: [{ display_order: "asc" }, { created_at: "asc" }],
+        select: alternativeContactSelect,
         where: {
           ...scoped,
           person_id: person.id,
         },
-        orderBy: [{ display_order: "asc" }, { created_at: "asc" }],
-        select: alternativeContactSelect,
       }),
     ]);
 
@@ -579,8 +579,8 @@ export async function listHistoryPage(input: {
       parsed.data.organisationId as OrganisationId
     );
     const person = await database.person.findFirst({
-      where: { ...scoped, id: parsed.data.personId },
       select: { id: true },
+      where: { ...scoped, id: parsed.data.personId },
     });
     if (!person) {
       return await personNotFoundOrLeak(parsed.data);
@@ -588,6 +588,9 @@ export async function listHistoryPage(input: {
 
     const cursor = decodeDateCursor(parsed.data.cursor ?? null);
     const records = await database.availabilityRecord.findMany({
+      orderBy: [{ starts_at: "desc" }, { id: "desc" }],
+      select: availabilityRecordSelect,
+      take: parsed.data.pageSize + 1,
       where: {
         ...scoped,
         person_id: parsed.data.personId,
@@ -595,9 +598,6 @@ export async function listHistoryPage(input: {
           lt: cursor?.startsAt ?? new Date(),
         },
       },
-      orderBy: [{ starts_at: "desc" }, { id: "desc" }],
-      select: availabilityRecordSelect,
-      take: parsed.data.pageSize + 1,
     });
     const page = records
       .slice(0, parsed.data.pageSize)
@@ -632,8 +632,8 @@ export async function listUpcomingRecords(input: {
       parsed.data.organisationId as OrganisationId
     );
     const person = await database.person.findFirst({
-      where: { ...scoped, id: parsed.data.personId },
       select: { id: true },
+      where: { ...scoped, id: parsed.data.personId },
     });
     if (!person) {
       return await personNotFoundOrLeak(parsed.data);
@@ -643,18 +643,18 @@ export async function listUpcomingRecords(input: {
     const horizonEnd = new Date(now);
     horizonEnd.setUTCDate(horizonEnd.getUTCDate() + parsed.data.horizonDays);
     const records = await database.availabilityRecord.findMany({
+      orderBy: [{ starts_at: "asc" }, { id: "asc" }],
+      select: availabilityRecordSelect,
       where: {
         ...scoped,
-        archived_at: null,
         approval_status: { in: ["approved", "submitted"] },
+        archived_at: null,
         person_id: parsed.data.personId,
         starts_at: {
           gte: now,
           lt: horizonEnd,
         },
       },
-      orderBy: [{ starts_at: "asc" }, { id: "asc" }],
-      select: availabilityRecordSelect,
     });
 
     return {
@@ -675,9 +675,6 @@ const personListSelect = {
   id: true,
   job_title: true,
   last_name: true,
-  location_id: true,
-  person_type: true,
-  xero_employee_id: true,
   location: {
     select: {
       country_code: true,
@@ -687,6 +684,7 @@ const personListSelect = {
       timezone: true,
     },
   },
+  location_id: true,
   manager: {
     select: {
       first_name: true,
@@ -694,12 +692,14 @@ const personListSelect = {
       last_name: true,
     },
   },
+  person_type: true,
   team: {
     select: {
       id: true,
       name: true,
     },
   },
+  xero_employee_id: true,
 } as const;
 
 const personProfileSelect = {
@@ -982,8 +982,8 @@ async function personNotFoundOrLeak(input: {
   personId: string;
 }): Promise<Result<never, PeopleServiceError>> {
   const exists = await database.person.findFirst({
-    where: { id: input.personId },
     select: { clerk_org_id: true, organisation_id: true },
+    where: { id: input.personId },
   });
   if (
     exists &&
@@ -991,48 +991,48 @@ async function personNotFoundOrLeak(input: {
       exists.organisation_id !== input.organisationId)
   ) {
     return {
-      ok: false,
       error: {
         code: "cross_org_leak",
         message: "Person is outside this organisation.",
       },
+      ok: false,
     };
   }
   return {
-    ok: false,
     error: {
       code: "person_not_found",
       message: "Person not found.",
     },
+    ok: false,
   };
 }
 
 function validationError(error: z.ZodError): Result<never, PeopleServiceError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid people request.",
     },
+    ok: false,
   };
 }
 
 function notAuthorised(): Result<never, PeopleServiceError> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "You do not have permission to view this profile.",
     },
+    ok: false,
   };
 }
 
 function unknownError(message: string): Result<never, PeopleServiceError> {
   return {
-    ok: false,
     error: {
       code: "unknown_error",
       message,
     },
+    ok: false,
   };
 }

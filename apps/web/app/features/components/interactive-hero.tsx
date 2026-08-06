@@ -90,37 +90,37 @@ interface Teammate {
 
 const TEAMMATES: Teammate[] = [
   {
+    icon: "leaf",
     id: "sam",
-    name: "Sarah Mitchell",
-    role: "HR lead",
     initials: "SM",
-    type: "employee",
+    leaveKind: "annual",
     leaveLabel: "Annual leave",
     leaveType: "sage",
-    leaveKind: "annual",
-    icon: "leaf",
+    name: "Sarah Mitchell",
+    role: "HR lead",
+    type: "employee",
   },
   {
+    icon: "home",
     id: "priya",
-    name: "Daniel Chen",
-    role: "Engineering",
     initials: "DC",
-    type: "contractor",
+    leaveKind: "wfh",
     leaveLabel: "Working from home",
     leaveType: "purple",
-    leaveKind: "wfh",
-    icon: "home",
+    name: "Daniel Chen",
+    role: "Engineering",
+    type: "contractor",
   },
   {
+    icon: "briefcase",
     id: "dee",
-    name: "Patrick Nolan",
-    role: "Sales",
     initials: "PN",
-    type: "director",
+    leaveKind: "client",
     leaveLabel: "Client visit",
     leaveType: "purple",
-    leaveKind: "client",
-    icon: "briefcase",
+    name: "Patrick Nolan",
+    role: "Sales",
+    type: "director",
   },
 ];
 
@@ -187,10 +187,10 @@ const getBlocksForTeammate = (
         span++;
       }
       blocks.push({
-        start,
-        span,
         kind: tm.leaveKind,
         label: tm.leaveLabel,
+        span,
+        start,
         state,
       });
       i += span;
@@ -221,8 +221,8 @@ const getSelectedDatesLabel = (
 
 const BLOCK_KIND_ICONS = {
   annual: "leaf",
-  wfh: "home",
   client: "briefcase",
+  wfh: "home",
 } as const;
 
 const useSyncParticles = (
@@ -262,14 +262,14 @@ const useSyncParticles = (
         // Add 2-3 particles per target feed with slightly staggered speeds
         for (let i = 0; i < 3; i++) {
           particlesRef.current.push({
-            x: startX,
-            y: startY,
-            targetX: targetPos.x,
-            targetY: targetPos.y,
             color,
+            curveY: (Math.random() - 0.5) * 120, // random wave curve
             progress: 0,
             speed: 0.025 + Math.random() * 0.015 - i * 0.003,
-            curveY: (Math.random() - 0.5) * 120, // random wave curve
+            targetX: targetPos.x,
+            targetY: targetPos.y,
+            x: startX,
+            y: startY,
           });
         }
       }
@@ -347,9 +347,9 @@ const useSyncParticles = (
     if (hasCompleted) {
       const now = Date.now();
       setLastSyncTime({
-        outlook: now,
-        gcal: now,
         applecal: now,
+        gcal: now,
+        outlook: now,
       });
     }
 
@@ -415,14 +415,14 @@ const useSyncParticles = (
       if (targetPos) {
         for (let i = 0; i < 4; i++) {
           particlesRef.current.push({
-            x: startX,
-            y: startY,
-            targetX: targetPos.x,
-            targetY: targetPos.y,
             color,
+            curveY: (Math.random() - 0.5) * 160,
             progress: 0,
             speed: 0.02 + Math.random() * 0.015 - i * 0.003,
-            curveY: (Math.random() - 0.5) * 160,
+            targetX: targetPos.x,
+            targetY: targetPos.y,
+            x: startX,
+            y: startY,
           });
         }
       }
@@ -435,10 +435,10 @@ const useSyncParticles = (
 
   return {
     canvasRef,
-    containerRef,
     cellsRef,
-    emitParticles,
+    containerRef,
     emitLegendSpark,
+    emitParticles,
   };
 };
 
@@ -497,10 +497,10 @@ const TeammateTrackRow = ({
                 cellsRef.current[key] = el;
               }}
               style={{
-                left: `${(dayIdx / 5) * 100}%`,
-                width: "20%",
                 height: "100%",
+                left: `${(dayIdx / 5) * 100}%`,
                 position: "absolute",
+                width: "20%",
                 zIndex: 1,
               }}
               type="button"
@@ -514,8 +514,8 @@ const TeammateTrackRow = ({
           const iconId = (
             {
               annual: "leaf",
-              wfh: "home",
               client: "briefcase",
+              wfh: "home",
             } as const
           )[block.kind];
           const blockKey = `${tm.id}-${block.start}-${block.span}`;
@@ -533,12 +533,12 @@ const TeammateTrackRow = ({
               key={blockKey}
               onClick={() => {
                 setSelectedBlock({
-                  teammateId: tm.id,
-                  start: block.start,
-                  span: block.span,
                   kind: block.kind,
                   label: block.label,
+                  span: block.span,
+                  start: block.start,
                   state: block.state,
+                  teammateId: tm.id,
                 });
               }}
               style={{
@@ -598,8 +598,8 @@ const TimelineDetailStrip = ({
     <div
       className="tl-detail"
       style={{
-        marginTop: "12px",
         border: "1px solid var(--marketing-ghost-border)",
+        marginTop: "12px",
       }}
     >
       <div
@@ -680,12 +680,12 @@ export const InteractiveHeroSection = () => {
   const [calendarState, setCalendarState] = useState<
     Record<string, "approved" | "pending">
   >({
+    "dee-3": "pending",
+    "dee-4": "approved",
+    "priya-2": "approved",
     "sam-0": "approved",
     "sam-1": "approved",
     "sam-2": "pending",
-    "priya-2": "approved",
-    "dee-3": "pending",
-    "dee-4": "approved",
   });
 
   const [selectedBlock, setSelectedBlock] = useState<SelectedBlockState | null>(
@@ -693,9 +693,9 @@ export const InteractiveHeroSection = () => {
   );
 
   const [lastSyncTime, setLastSyncTime] = useState<Record<string, number>>({
-    outlook: Date.now() - 5000,
-    gcal: Date.now() - 5000,
     applecal: Date.now() - 5000,
+    gcal: Date.now() - 5000,
+    outlook: Date.now() - 5000,
   });
 
   const [activeTab, setActiveTab] = useState<"visual" | "ics">("visual");
@@ -750,12 +750,12 @@ export const InteractiveHeroSection = () => {
       }));
       // Auto-select the block to show manager controls
       setSelectedBlock({
-        teammateId,
-        start: dayIdx + 1,
-        span: 1,
         kind: tm.leaveKind,
         label: tm.leaveLabel,
+        span: 1,
+        start: dayIdx + 1,
         state: "pending",
+        teammateId,
       });
     }
   };
@@ -907,9 +907,9 @@ export const InteractiveHeroSection = () => {
                     className="tl-legend"
                     style={{
                       border: "none",
-                      padding: 0,
-                      margin: 0,
                       gap: "8px",
+                      margin: 0,
+                      padding: 0,
                     }}
                   >
                     <button

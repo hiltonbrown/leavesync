@@ -133,12 +133,12 @@ function parseEvent(
   try {
     const payload = JSON.parse(String(message.data));
     if (type === "notification.created") {
-      return { type, payload };
+      return { payload, type };
     }
     if (type === "notification.read") {
-      return { type, payload };
+      return { payload, type };
     }
-    return { type, payload };
+    return { payload, type };
   } catch {
     return null;
   }

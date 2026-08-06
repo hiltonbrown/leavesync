@@ -174,5 +174,5 @@ function createRestCacheClient(input: {
 }
 
 function cacheError(message: string): Result<never, FeedCacheError> {
-  return { ok: false, error: { code: "unknown_error", message } };
+  return { error: { code: "unknown_error", message }, ok: false };
 }

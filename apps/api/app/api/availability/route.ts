@@ -7,16 +7,16 @@ import { log } from "@repo/observability/log";
 import { z } from "zod";
 
 const CreateAvailabilitySchema = z.object({
+  allDay: z.boolean().optional().default(true),
+  contactability: z.enum(["contactable", "limited", "unavailable"]).optional(),
+  endsAt: z.string().datetime(),
+  notesInternal: z.string().optional().nullable(),
   personId: z.string().uuid(),
+  preferredContactMethod: z.string().optional().nullable(),
   recordType: z.enum(["leave", "wfh", "travel", "training", "client_site"]),
   startsAt: z.string().datetime(),
-  endsAt: z.string().datetime(),
-  allDay: z.boolean().optional().default(true),
   title: z.string().optional().nullable(),
-  notesInternal: z.string().optional().nullable(),
   workingLocation: z.string().optional().nullable(),
-  preferredContactMethod: z.string().optional().nullable(),
-  contactability: z.enum(["contactable", "limited", "unavailable"]).optional(),
 });
 
 export async function POST(request: Request): Promise<Response> {
@@ -28,8 +28,8 @@ export async function POST(request: Request): Promise<Response> {
     } catch {
       return Response.json(
         {
-          ok: false,
           error: { code: "unauthorised", message: "Not authenticated" },
+          ok: false,
         },
         { status: 401 }
       );
@@ -41,8 +41,8 @@ export async function POST(request: Request): Promise<Response> {
     if (!user) {
       return Response.json(
         {
-          ok: false,
           error: { code: "unauthorised", message: "User not found" },
+          ok: false,
         },
         { status: 401 }
       );
@@ -54,12 +54,12 @@ export async function POST(request: Request): Promise<Response> {
     if (!parseResult.success) {
       return Response.json(
         {
-          ok: false,
           error: {
             code: "invalid",
-            message: "Invalid request body",
             details: parseResult.error.issues,
+            message: "Invalid request body",
           },
+          ok: false,
         },
         { status: 400 }
       );
@@ -71,8 +71,8 @@ export async function POST(request: Request): Promise<Response> {
     if (!organisationId) {
       return Response.json(
         {
-          ok: false,
           error: { code: "invalid", message: "organisationId is required" },
+          ok: false,
         },
         { status: 400 }
       );
@@ -86,7 +86,7 @@ export async function POST(request: Request): Promise<Response> {
 
     if (!orgResult.ok) {
       return Response.json(
-        { ok: false, error: orgResult.error },
+        { error: orgResult.error, ok: false },
         { status: orgResult.error.code === "not_found" ? 404 : 500 }
       );
     }
@@ -99,7 +99,7 @@ export async function POST(request: Request): Promise<Response> {
 
     if (!peopleResult.ok) {
       return Response.json(
-        { ok: false, error: peopleResult.error },
+        { error: peopleResult.error, ok: false },
         { status: 500 }
       );
     }
@@ -109,8 +109,8 @@ export async function POST(request: Request): Promise<Response> {
     if (!personExists) {
       return Response.json(
         {
-          ok: false,
           error: { code: "not_found", message: "Person not found" },
+          ok: false,
         },
         { status: 404 }
       );
@@ -125,23 +125,23 @@ export async function POST(request: Request): Promise<Response> {
         organisationId: organisationId as OrganisationId,
       },
       {
+        allDay: data.allDay,
+        contactability: data.contactability,
+        endsAt: new Date(data.endsAt),
+        notesInternal: data.notesInternal,
         personId: data.personId,
+        preferredContactMethod: data.preferredContactMethod,
         recordType: data.recordType,
         startsAt: new Date(data.startsAt),
-        endsAt: new Date(data.endsAt),
         title: data.title,
-        allDay: data.allDay,
-        notesInternal: data.notesInternal,
         workingLocation: data.workingLocation,
-        preferredContactMethod: data.preferredContactMethod,
-        contactability: data.contactability,
       },
       { orgRole: authResult.orgRole, userId: user.id }
     );
 
     if (!createResult.ok) {
       return Response.json(
-        { ok: false, error: createResult.error },
+        { error: createResult.error, ok: false },
         { status: statusForCreateError(createResult.error.code) }
       );
     }
@@ -154,11 +154,11 @@ export async function POST(request: Request): Promise<Response> {
     log.error("Error creating availability record", { error });
     return Response.json(
       {
-        ok: false,
         error: {
           code: "internal",
           message: "Failed to create availability record",
         },
+        ok: false,
       },
       { status: 500 }
     );

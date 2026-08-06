@@ -5,23 +5,23 @@ import { parseFilterParams } from "./parse-filter-params";
 describe("parseFilterParams", () => {
   it("parses valid record", () => {
     const schema = z.object({
-      q: z.string().optional(),
       page: z.coerce.number().optional(),
+      q: z.string().optional(),
     });
 
-    const result = parseFilterParams({ q: "test", page: "1" }, schema);
-    expect(result).toEqual({ q: "test", page: 1 });
+    const result = parseFilterParams({ page: "1", q: "test" }, schema);
+    expect(result).toEqual({ page: 1, q: "test" });
   });
 
   it("parses URLSearchParams", () => {
     const schema = z.object({
-      q: z.string().optional(),
       page: z.coerce.number().optional(),
+      q: z.string().optional(),
     });
 
     const params = new URLSearchParams("?q=test&page=1");
     const result = parseFilterParams(params, schema);
-    expect(result).toEqual({ q: "test", page: 1 });
+    expect(result).toEqual({ page: 1, q: "test" });
   });
 
   it("returns null on validation failure", () => {

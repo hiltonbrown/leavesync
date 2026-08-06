@@ -15,9 +15,9 @@ import { getActiveOrgContext } from "@/lib/server/get-active-org-context";
 
 const ImportHolidaySchema = z.object({
   countryCode: z.string().length(2),
+  organisationId: z.string().uuid(),
   regionCode: z.string().nullable(),
   year: z.number().int().min(2000).max(2100),
-  organisationId: z.string().uuid(),
 });
 
 export async function importFromSourceAction(
@@ -26,37 +26,37 @@ export async function importFromSourceAction(
   const parsed = ImportHolidaySchema.safeParse(input);
   if (!parsed.success) {
     return {
-      ok: false as const,
       error: parsed.error.issues[0]?.message ?? "Invalid input",
+      ok: false as const,
     };
   }
 
   const hasAccess = await requireRole("org:admin");
   if (!hasAccess) {
-    return { ok: false as const, error: "Permission denied" };
+    return { error: "Permission denied", ok: false as const };
   }
 
   const user = await currentUser();
   if (!user) {
-    return { ok: false as const, error: "You need to sign in again." };
+    return { error: "You need to sign in again.", ok: false as const };
   }
 
   const contextResult = await getActiveOrgContext(parsed.data.organisationId);
   if (!contextResult.ok) {
-    return { ok: false as const, error: contextResult.error.message };
+    return { error: contextResult.error.message, ok: false as const };
   }
 
   const result = await importForJurisdiction({
     clerkOrgId: contextResult.value.clerkOrgId,
-    organisationId: contextResult.value.organisationId,
     countryCode: parsed.data.countryCode,
+    organisationId: contextResult.value.organisationId,
     regionCode: parsed.data.regionCode,
-    year: parsed.data.year,
     userId: user.id,
+    year: parsed.data.year,
   });
 
   if (!result.ok) {
-    return { ok: false as const, error: result.error.message };
+    return { error: result.error.message, ok: false as const };
   }
 
   revalidatePath("/public-holidays");
@@ -67,12 +67,12 @@ export async function importFromSourceAction(
 }
 
 const AddCustomHolidaySchema = z.object({
-  organisationId: z.string().uuid(),
+  appliesToAllJurisdictions: z.boolean(),
+  date: z.coerce.date(),
   jurisdictionId: z.string().uuid().nullable(),
   name: z.string().min(1).max(100),
-  date: z.coerce.date(),
+  organisationId: z.string().uuid(),
   recursAnnually: z.boolean(),
-  appliesToAllJurisdictions: z.boolean(),
 });
 
 export async function addCustomHolidayAction(
@@ -81,39 +81,39 @@ export async function addCustomHolidayAction(
   const parsed = AddCustomHolidaySchema.safeParse(input);
   if (!parsed.success) {
     return {
-      ok: false as const,
       error: parsed.error.issues[0]?.message ?? "Invalid input",
+      ok: false as const,
     };
   }
 
   const hasAccess = await requireRole("org:admin");
   if (!hasAccess) {
-    return { ok: false as const, error: "Permission denied" };
+    return { error: "Permission denied", ok: false as const };
   }
 
   const user = await currentUser();
   if (!user) {
-    return { ok: false as const, error: "You need to sign in again." };
+    return { error: "You need to sign in again.", ok: false as const };
   }
 
   const contextResult = await getActiveOrgContext(parsed.data.organisationId);
   if (!contextResult.ok) {
-    return { ok: false as const, error: contextResult.error.message };
+    return { error: contextResult.error.message, ok: false as const };
   }
 
   const result = await addCustomHoliday({
+    appliesToAllJurisdictions: parsed.data.appliesToAllJurisdictions,
     clerkOrgId: contextResult.value.clerkOrgId,
-    organisationId: contextResult.value.organisationId,
+    date: parsed.data.date,
     jurisdictionId: parsed.data.jurisdictionId,
     name: parsed.data.name,
-    date: parsed.data.date,
+    organisationId: contextResult.value.organisationId,
     recursAnnually: parsed.data.recursAnnually,
-    appliesToAllJurisdictions: parsed.data.appliesToAllJurisdictions,
     userId: user.id,
   });
 
   if (!result.ok) {
-    return { ok: false as const, error: result.error.message };
+    return { error: result.error.message, ok: false as const };
   }
 
   revalidatePath("/public-holidays");
@@ -124,8 +124,8 @@ export async function addCustomHolidayAction(
 }
 
 const HolidayIdSchema = z.object({
-  organisationId: z.string().uuid(),
   holidayId: z.string().uuid(),
+  organisationId: z.string().uuid(),
 });
 
 export async function suppressHolidayAction(
@@ -133,22 +133,22 @@ export async function suppressHolidayAction(
 ) {
   const parsed = HolidayIdSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false as const, error: "Invalid input" };
+    return { error: "Invalid input", ok: false as const };
   }
 
   const hasAccess = await requireRole("org:admin");
   if (!hasAccess) {
-    return { ok: false as const, error: "Permission denied" };
+    return { error: "Permission denied", ok: false as const };
   }
 
   const user = await currentUser();
   if (!user) {
-    return { ok: false as const, error: "You need to sign in again." };
+    return { error: "You need to sign in again.", ok: false as const };
   }
 
   const contextResult = await getActiveOrgContext(parsed.data.organisationId);
   if (!contextResult.ok) {
-    return { ok: false as const, error: contextResult.error.message };
+    return { error: contextResult.error.message, ok: false as const };
   }
 
   const result = await suppressHoliday(
@@ -159,7 +159,7 @@ export async function suppressHolidayAction(
   );
 
   if (!result.ok) {
-    return { ok: false as const, error: result.error.message };
+    return { error: result.error.message, ok: false as const };
   }
 
   revalidatePath("/public-holidays");
@@ -174,22 +174,22 @@ export async function restoreHolidayAction(
 ) {
   const parsed = HolidayIdSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false as const, error: "Invalid input" };
+    return { error: "Invalid input", ok: false as const };
   }
 
   const hasAccess = await requireRole("org:admin");
   if (!hasAccess) {
-    return { ok: false as const, error: "Permission denied" };
+    return { error: "Permission denied", ok: false as const };
   }
 
   const user = await currentUser();
   if (!user) {
-    return { ok: false as const, error: "You need to sign in again." };
+    return { error: "You need to sign in again.", ok: false as const };
   }
 
   const contextResult = await getActiveOrgContext(parsed.data.organisationId);
   if (!contextResult.ok) {
-    return { ok: false as const, error: contextResult.error.message };
+    return { error: contextResult.error.message, ok: false as const };
   }
 
   const result = await restoreHoliday(
@@ -200,7 +200,7 @@ export async function restoreHolidayAction(
   );
 
   if (!result.ok) {
-    return { ok: false as const, error: result.error.message };
+    return { error: result.error.message, ok: false as const };
   }
 
   revalidatePath("/public-holidays");
@@ -215,17 +215,17 @@ export async function deleteCustomHolidayAction(
 ) {
   const parsed = HolidayIdSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false as const, error: "Invalid input" };
+    return { error: "Invalid input", ok: false as const };
   }
 
   const hasAccess = await requireRole("org:admin");
   if (!hasAccess) {
-    return { ok: false as const, error: "Permission denied" };
+    return { error: "Permission denied", ok: false as const };
   }
 
   const contextResult = await getActiveOrgContext(parsed.data.organisationId);
   if (!contextResult.ok) {
-    return { ok: false as const, error: contextResult.error.message };
+    return { error: contextResult.error.message, ok: false as const };
   }
 
   const result = await deleteCustomHoliday(
@@ -235,7 +235,7 @@ export async function deleteCustomHolidayAction(
   );
 
   if (!result.ok) {
-    return { ok: false as const, error: result.error.message };
+    return { error: result.error.message, ok: false as const };
   }
 
   revalidatePath("/public-holidays");

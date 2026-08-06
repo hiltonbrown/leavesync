@@ -19,18 +19,18 @@ const {
 
 const tenantA = {
   clerkOrgId: "org_test_availability_a",
-  organisationId: "10000000-0000-4000-8000-000000000001",
-  teamId: "10000000-0000-4000-8000-000000000002",
   locationId: "10000000-0000-4000-8000-000000000003",
+  organisationId: "10000000-0000-4000-8000-000000000001",
   personId: "10000000-0000-4000-8000-000000000004",
+  teamId: "10000000-0000-4000-8000-000000000002",
 } as const;
 
 const tenantB = {
   clerkOrgId: "org_test_availability_b",
-  organisationId: "20000000-0000-4000-8000-000000000001",
-  teamId: "20000000-0000-4000-8000-000000000002",
   locationId: "20000000-0000-4000-8000-000000000003",
+  organisationId: "20000000-0000-4000-8000-000000000001",
   personId: "20000000-0000-4000-8000-000000000004",
+  teamId: "20000000-0000-4000-8000-000000000002",
 } as const;
 
 const testClerkOrgIds = [tenantA.clerkOrgId, tenantB.clerkOrgId] as const;
@@ -44,57 +44,57 @@ interface Tenant {
 }
 
 const availabilityRecordIds = {
-  scoped: "30000000-0000-4000-8000-000000000001",
-  otherTenant: "30000000-0000-4000-8000-000000000002",
-  xeroOriginal: "30000000-0000-4000-8000-000000000003",
-  xeroDuplicate: "30000000-0000-4000-8000-000000000004",
-  manualOriginal: "30000000-0000-4000-8000-000000000005",
   manualDuplicate: "30000000-0000-4000-8000-000000000006",
+  manualOriginal: "30000000-0000-4000-8000-000000000005",
+  otherTenant: "30000000-0000-4000-8000-000000000002",
+  scoped: "30000000-0000-4000-8000-000000000001",
+  xeroDuplicate: "30000000-0000-4000-8000-000000000004",
+  xeroOriginal: "30000000-0000-4000-8000-000000000003",
 } as const;
 
 const createTenant = async (tenant: Tenant) => {
   await database.organisation.create({
     data: {
-      id: tenant.organisationId,
       clerk_org_id: tenant.clerkOrgId,
-      name: `Test ${tenant.clerkOrgId}`,
       country_code: "AU",
+      id: tenant.organisationId,
+      name: `Test ${tenant.clerkOrgId}`,
     },
   });
 
   await database.team.create({
     data: {
-      id: tenant.teamId,
       clerk_org_id: tenant.clerkOrgId,
-      organisation_id: tenant.organisationId,
+      id: tenant.teamId,
       name: "Operations",
+      organisation_id: tenant.organisationId,
     },
   });
 
   await database.location.create({
     data: {
-      id: tenant.locationId,
       clerk_org_id: tenant.clerkOrgId,
-      organisation_id: tenant.organisationId,
+      id: tenant.locationId,
       name: "Brisbane",
+      organisation_id: tenant.organisationId,
       region_code: "QLD",
     },
   });
 
   await database.person.create({
     data: {
-      id: tenant.personId,
       clerk_org_id: tenant.clerkOrgId,
-      organisation_id: tenant.organisationId,
-      team_id: tenant.teamId,
-      location_id: tenant.locationId,
-      source_system: source_system.MANUAL,
-      source_person_key: null,
-      first_name: "Test",
-      last_name: "Person",
       email: `${tenant.clerkOrgId}@example.com`,
       employment_type: employment_type.employee,
+      first_name: "Test",
+      id: tenant.personId,
       is_active: true,
+      last_name: "Person",
+      location_id: tenant.locationId,
+      organisation_id: tenant.organisationId,
+      source_person_key: null,
+      source_system: source_system.MANUAL,
+      team_id: tenant.teamId,
     },
   });
 };
@@ -114,21 +114,21 @@ const createAvailabilityRecord = async ({
 }) =>
   database.availabilityRecord.create({
     data: {
-      id,
+      approval_status: availability_approval_status.approved,
       clerk_org_id: tenant.clerkOrgId,
+      contactability: availability_contactability.contactable,
+      derived_uid_key: `test:${id}`,
+      ends_at: new Date("2026-05-02T00:00:00.000Z"),
+      id,
+      include_in_feed: true,
       organisation_id: tenant.organisationId,
       person_id: tenant.personId,
-      record_type: availability_record_type.leave,
-      source_type: sourceType,
-      source_remote_id: sourceRemoteId,
-      starts_at: new Date("2026-05-01T00:00:00.000Z"),
-      ends_at: new Date("2026-05-02T00:00:00.000Z"),
-      approval_status: availability_approval_status.approved,
       privacy_mode: availability_privacy_mode.named,
-      contactability: availability_contactability.contactable,
-      include_in_feed: true,
       publish_status: availability_publish_status.eligible,
-      derived_uid_key: `test:${id}`,
+      record_type: availability_record_type.leave,
+      source_remote_id: sourceRemoteId,
+      source_type: sourceType,
+      starts_at: new Date("2026-05-01T00:00:00.000Z"),
     },
   });
 
@@ -234,8 +234,8 @@ describe("availability_records", () => {
     });
 
     expect(record).toMatchObject({
-      id: availabilityRecordIds.scoped,
       clerk_org_id: tenantA.clerkOrgId,
+      id: availabilityRecordIds.scoped,
       organisation_id: tenantA.organisationId,
       person_id: tenantA.personId,
       source_type: availability_source_type.manual,
@@ -252,23 +252,23 @@ describe("availability_records", () => {
 
     const crossOrgRecord = await database.availabilityRecord.findFirst({
       where: {
-        id: availabilityRecordIds.otherTenant,
         clerk_org_id: tenantA.clerkOrgId,
+        id: availabilityRecordIds.otherTenant,
         organisation_id: tenantA.organisationId,
       },
     });
     const correctlyScopedRecord = await database.availabilityRecord.findFirst({
       where: {
-        id: availabilityRecordIds.otherTenant,
         clerk_org_id: tenantB.clerkOrgId,
+        id: availabilityRecordIds.otherTenant,
         organisation_id: tenantB.organisationId,
       },
     });
 
     expect(crossOrgRecord).toBeNull();
     expect(correctlyScopedRecord).toMatchObject({
-      id: availabilityRecordIds.otherTenant,
       clerk_org_id: tenantB.clerkOrgId,
+      id: availabilityRecordIds.otherTenant,
       organisation_id: tenantB.organisationId,
     });
   });
@@ -277,17 +277,17 @@ describe("availability_records", () => {
     await createTenant(tenantA);
     await createAvailabilityRecord({
       id: availabilityRecordIds.xeroOriginal,
-      tenant: tenantA,
       sourceRemoteId: "xero-leave-1",
       sourceType: availability_source_type.xero,
+      tenant: tenantA,
     });
 
     await expectPrismaErrorCode(
       createAvailabilityRecord({
         id: availabilityRecordIds.xeroDuplicate,
-        tenant: tenantA,
         sourceRemoteId: "xero-leave-1",
         sourceType: availability_source_type.xero,
+        tenant: tenantA,
       }),
       "P2002"
     );
@@ -311,21 +311,21 @@ describe("availability_records", () => {
     await expectPrismaErrorCode(
       database.availabilityRecord.create({
         data: {
-          id: availabilityRecordIds.scoped,
+          approval_status: availability_approval_status.approved,
           clerk_org_id: tenantA.clerkOrgId,
+          contactability: availability_contactability.contactable,
+          derived_uid_key: "test:missing-person",
+          ends_at: new Date("2026-05-02T00:00:00.000Z"),
+          id: availabilityRecordIds.scoped,
+          include_in_feed: true,
           organisation_id: tenantA.organisationId,
           person_id: tenantB.personId,
-          record_type: availability_record_type.leave,
-          source_type: availability_source_type.manual,
-          source_remote_id: null,
-          starts_at: new Date("2026-05-01T00:00:00.000Z"),
-          ends_at: new Date("2026-05-02T00:00:00.000Z"),
-          approval_status: availability_approval_status.approved,
           privacy_mode: availability_privacy_mode.named,
-          contactability: availability_contactability.contactable,
-          include_in_feed: true,
           publish_status: availability_publish_status.eligible,
-          derived_uid_key: "test:missing-person",
+          record_type: availability_record_type.leave,
+          source_remote_id: null,
+          source_type: availability_source_type.manual,
+          starts_at: new Date("2026-05-01T00:00:00.000Z"),
         },
       }),
       "P2003"

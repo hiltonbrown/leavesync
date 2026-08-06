@@ -7,22 +7,22 @@ vi.mock("@repo/database/generated/enums", () => ({}));
 vi.mock("@repo/database/generated/client", () => ({}));
 vi.mock("@repo/database", () => ({
   database: {
-    publicHoliday: {
-      findFirst: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      upsert: vi.fn(),
-      findMany: vi.fn(),
-      count: vi.fn(),
-    },
-    publicHolidayJurisdiction: {
-      findFirst: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-    },
     organisation: {
       findFirst: vi.fn(),
+    },
+    publicHoliday: {
+      count: vi.fn(),
+      create: vi.fn(),
+      delete: vi.fn(),
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      upsert: vi.fn(),
+    },
+    publicHolidayJurisdiction: {
+      create: vi.fn(),
+      findFirst: vi.fn(),
+      update: vi.fn(),
     },
   },
   // scopedQuery must always return an object so spread works; use mockImplementation
@@ -65,13 +65,13 @@ describe("holiday-service", () => {
       } as never);
 
       const result = await addCustomHoliday({
+        appliesToAllJurisdictions: true,
         clerkOrgId: mockClerkOrgId,
-        organisationId: mockOrgId,
+        date: new Date("2024-12-25"),
         jurisdictionId: null,
         name: "Test Holiday",
-        date: new Date("2024-12-25"),
+        organisationId: mockOrgId,
         recursAnnually: false,
-        appliesToAllJurisdictions: true,
         userId: mockUserId,
       });
 
@@ -88,13 +88,13 @@ describe("holiday-service", () => {
       } as never);
 
       const result = await addCustomHoliday({
+        appliesToAllJurisdictions: true,
         clerkOrgId: mockClerkOrgId,
-        organisationId: mockOrgId,
+        date: new Date("2024-12-25"),
         jurisdictionId: null,
         name: "Test Holiday",
-        date: new Date("2024-12-25"),
+        organisationId: mockOrgId,
         recursAnnually: false,
-        appliesToAllJurisdictions: true,
         userId: mockUserId,
       });
 
@@ -220,23 +220,23 @@ describe("holiday-service", () => {
         ok: true,
         value: [
           {
-            date: "2026-01-01",
-            localName: "New Year's Day",
-            name: "New Year's Day",
+            counties: null,
             countryCode: "AU",
+            date: "2026-01-01",
             fixed: true,
             global: true,
-            counties: null,
+            localName: "New Year's Day",
+            name: "New Year's Day",
             types: ["Public"],
           },
           {
-            date: "2026-04-25",
-            localName: "Anzac Day",
-            name: "Anzac Day",
+            counties: ["AU-QLD"],
             countryCode: "AU",
+            date: "2026-04-25",
             fixed: true,
             global: false,
-            counties: ["AU-QLD"],
+            localName: "Anzac Day",
+            name: "Anzac Day",
             types: ["Public"],
           },
         ],
@@ -276,33 +276,33 @@ describe("holiday-service", () => {
         ok: true,
         value: [
           {
-            date: "2026-01-01",
-            localName: "New Year's Day",
-            name: "New Year's Day",
+            counties: null,
             countryCode: "AU",
+            date: "2026-01-01",
             fixed: true,
             global: true,
-            counties: null,
+            localName: "New Year's Day",
+            name: "New Year's Day",
             types: ["Public"],
           },
           {
+            counties: ["AU-QLD"],
+            countryCode: "AU",
             date: "2026-04-25",
+            fixed: true,
+            global: false,
             localName: "Anzac Day",
             name: "Anzac Day",
-            countryCode: "AU",
-            fixed: true,
-            global: false,
-            counties: ["AU-QLD"],
             types: ["Public"],
           },
           {
-            date: "2026-10-05",
-            localName: "Labour Day",
-            name: "Labour Day",
+            counties: ["AU-NSW"],
             countryCode: "AU",
+            date: "2026-10-05",
             fixed: true,
             global: false,
-            counties: ["AU-NSW"],
+            localName: "Labour Day",
+            name: "Labour Day",
             types: ["Public"],
           },
         ],
@@ -341,13 +341,13 @@ describe("holiday-service", () => {
         ok: true,
         value: [
           {
-            date: "2026-01-01",
-            localName: "New Year's Day",
-            name: "New Year's Day",
+            counties: null,
             countryCode: "GB",
+            date: "2026-01-01",
             fixed: true,
             global: true,
-            counties: null,
+            localName: "New Year's Day",
+            name: "New Year's Day",
             types: ["Public"],
           },
         ],
@@ -530,13 +530,13 @@ describe("holiday-service", () => {
         ok: true,
         value: [
           {
-            date: "2026-01-01",
-            localName: "New Year's Day",
-            name: "New Year's Day",
+            counties: null,
             countryCode: "AU",
+            date: "2026-01-01",
             fixed: true,
             global: true,
-            counties: null,
+            localName: "New Year's Day",
+            name: "New Year's Day",
             types: ["Public"],
           },
         ],

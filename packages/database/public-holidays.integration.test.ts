@@ -13,8 +13,8 @@ const { importPublicHolidaysForFeed } = await import(
 
 const tenantA = {
   clerkOrgId: "org_test_public_holidays_a",
-  organisationId: "53000000-0000-4000-8000-000000000001",
   feedId: "53000000-0000-4000-8000-000000000002",
+  organisationId: "53000000-0000-4000-8000-000000000001",
 } as const;
 
 const tenantB = {
@@ -54,15 +54,15 @@ const createTenant = async () => {
   await database.organisation.createMany({
     data: [
       {
-        id: tenantA.organisationId,
         clerk_org_id: tenantA.clerkOrgId,
         country_code: "AU",
+        id: tenantA.organisationId,
         name: "Public holiday tenant A",
       },
       {
-        id: tenantB.organisationId,
         clerk_org_id: tenantB.clerkOrgId,
         country_code: "AU",
+        id: tenantB.organisationId,
         name: "Public holiday tenant B",
       },
     ],
@@ -70,10 +70,10 @@ const createTenant = async () => {
 
   await database.feed.create({
     data: {
-      id: tenantA.feedId,
       clerk_org_id: tenantA.clerkOrgId,
-      organisation_id: tenantA.organisationId,
+      id: tenantA.feedId,
       name: "Team holidays",
+      organisation_id: tenantA.organisationId,
       slug: "team-holidays",
     },
   });
@@ -150,8 +150,8 @@ describe("public holiday imports", () => {
     ).resolves.toBe(1);
     await expect(
       database.publicHolidayAssignment.findFirstOrThrow({
-        where: { clerk_org_id: tenantA.clerkOrgId },
         select: { day_classification: true },
+        where: { clerk_org_id: tenantA.clerkOrgId },
       })
     ).resolves.toMatchObject({ day_classification: "working" });
   });

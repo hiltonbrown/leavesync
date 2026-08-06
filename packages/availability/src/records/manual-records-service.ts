@@ -27,18 +27,18 @@ const ContactabilityStatusSchema = z.enum([
 
 export const ManualAvailabilityInputSchema = z
   .object({
-    personId: z.string().uuid(),
-    recordType: RecordTypeSchema,
-    title: z.string().min(1).max(200),
-    startsAt: z.coerce.date(),
-    endsAt: z.coerce.date(),
     allDay: z.boolean().default(true),
-    workingLocation: z.string().max(200).optional(),
     contactability: ContactabilityStatusSchema.default("contactable"),
-    preferredContactMethod: z.string().max(200).optional(),
-    notesInternal: z.string().max(2000).optional(),
+    endsAt: z.coerce.date(),
     includeInFeed: z.boolean().default(true),
+    notesInternal: z.string().max(2000).optional(),
+    personId: z.string().uuid(),
+    preferredContactMethod: z.string().max(200).optional(),
     privacyMode: PrivacyModeSchema.default("named"),
+    recordType: RecordTypeSchema,
+    startsAt: z.coerce.date(),
+    title: z.string().min(1).max(200),
+    workingLocation: z.string().max(200).optional(),
   })
   .refine((value) => value.endsAt >= value.startsAt, {
     message: "End date must be after start date",
@@ -118,6 +118,8 @@ export const listAvailabilityRecords = async (
   range?: { startsBefore?: Date; endsAfter?: Date; personId?: string }
 ): Promise<AvailabilityRecordView[]> => {
   const records = await database.availabilityRecord.findMany({
+    include: { person: true },
+    orderBy: [{ starts_at: "asc" }, { title: "asc" }],
     where: {
       ...scopedQuery(tenant.clerkOrgId, tenant.organisationId),
       archived_at: null,
@@ -127,8 +129,6 @@ export const listAvailabilityRecords = async (
         : {}),
       ...(range?.endsAfter ? { ends_at: { gte: range.endsAfter } } : {}),
     },
-    include: { person: true },
-    orderBy: [{ starts_at: "asc" }, { title: "asc" }],
   });
 
   return records.map(mapRecord);
@@ -152,11 +152,11 @@ export const createManualAvailability = async (
   const parsed = ManualAvailabilityInputSchema.safeParse(input);
   if (!parsed.success) {
     return {
-      ok: false,
       error: appError(
         "bad_request",
         parsed.error.issues[0]?.message ?? "Invalid availability record"
       ),
+      ok: false,
     };
   }
 
@@ -169,7 +169,7 @@ export const createManualAvailability = async (
   });
 
   if (!person) {
-    return { ok: false, error: appError("not_found", "Person not found") };
+    return { error: appError("not_found", "Person not found"), ok: false };
   }
 
   const authorisation = await authoriseManualAvailabilityActor(
@@ -182,6 +182,7 @@ export const createManualAvailability = async (
   }
 
   const duplicate = await database.availabilityRecord.findFirst({
+    select: { id: true },
     where: {
       ...scopedQuery(tenant.clerkOrgId, tenant.organisationId),
       archived_at: null,
@@ -192,13 +193,12 @@ export const createManualAvailability = async (
       source_type: "manual",
       starts_at: parsed.data.startsAt,
     },
-    select: { id: true },
   });
 
   if (duplicate) {
     return {
-      ok: false,
       error: appError("conflict", DUPLICATE_MANUAL_MESSAGE),
+      ok: false,
     };
   }
 
@@ -206,22 +206,11 @@ export const createManualAvailability = async (
   try {
     const record = await database.availabilityRecord.create({
       data: {
-        id,
-        person_id: parsed.data.personId,
-        record_type: parsed.data.recordType,
-        title: parsed.data.title,
-        starts_at: parsed.data.startsAt,
-        ends_at: parsed.data.endsAt,
         all_day: parsed.data.allDay,
-        working_location: parsed.data.workingLocation,
-        contactability: parsed.data.contactability,
-        preferred_contact_method: parsed.data.preferredContactMethod,
-        notes_internal: parsed.data.notesInternal,
-        include_in_feed: parsed.data.includeInFeed,
-        privacy_mode: parsed.data.privacyMode,
         approval_status: "approved",
         approved_at: new Date(),
         clerk_org_id: tenant.clerkOrgId,
+        contactability: parsed.data.contactability,
         created_by_user_id: actor.userId,
         derived_uid_key: deriveAvailabilityUidKey({
           clerkOrgId: tenant.clerkOrgId,
@@ -233,9 +222,20 @@ export const createManualAvailability = async (
           stableSourceKey: id,
           startsAt: parsed.data.startsAt,
         }),
+        ends_at: parsed.data.endsAt,
+        id,
+        include_in_feed: parsed.data.includeInFeed,
+        notes_internal: parsed.data.notesInternal,
         organisation_id: tenant.organisationId,
+        person_id: parsed.data.personId,
+        preferred_contact_method: parsed.data.preferredContactMethod,
+        privacy_mode: parsed.data.privacyMode,
+        record_type: parsed.data.recordType,
         source_type: "manual",
+        starts_at: parsed.data.startsAt,
+        title: parsed.data.title,
         updated_by_user_id: actor.userId,
+        working_location: parsed.data.workingLocation,
       },
       include: { person: true },
     });
@@ -246,8 +246,8 @@ export const createManualAvailability = async (
   } catch (error) {
     if (isUniqueConflict(error)) {
       return {
-        ok: false,
         error: appError("conflict", DUPLICATE_MANUAL_MESSAGE),
+        ok: false,
       };
     }
     throw error;
@@ -263,23 +263,16 @@ export const updateManualAvailability = async (
   const parsed = ManualAvailabilityInputSchema.safeParse(input);
   if (!parsed.success) {
     return {
-      ok: false,
       error: appError(
         "bad_request",
         parsed.error.issues[0]?.message ?? "Invalid availability record"
       ),
+      ok: false,
     };
   }
 
   const existing = await database.availabilityRecord.findFirst({
-    where: {
-      ...scopedQuery(tenant.clerkOrgId, tenant.organisationId),
-      archived_at: null,
-      id: recordId,
-      source_type: "manual",
-    },
     select: {
-      person_id: true,
       person: {
         select: {
           clerk_user_id: true,
@@ -287,11 +280,18 @@ export const updateManualAvailability = async (
           manager_person_id: true,
         },
       },
+      person_id: true,
+    },
+    where: {
+      ...scopedQuery(tenant.clerkOrgId, tenant.organisationId),
+      archived_at: null,
+      id: recordId,
+      source_type: "manual",
     },
   });
 
   if (!existing) {
-    return { ok: false, error: appError("not_found", "Record not found") };
+    return { error: appError("not_found", "Record not found"), ok: false };
   }
 
   const authorisation = await authoriseManualAvailabilityActor(
@@ -304,6 +304,7 @@ export const updateManualAvailability = async (
   }
 
   const duplicate = await database.availabilityRecord.findFirst({
+    select: { id: true },
     where: {
       ...scopedQuery(tenant.clerkOrgId, tenant.organisationId),
       archived_at: null,
@@ -315,13 +316,12 @@ export const updateManualAvailability = async (
       source_type: "manual",
       starts_at: parsed.data.startsAt,
     },
-    select: { id: true },
   });
 
   if (duplicate) {
     return {
-      ok: false,
       error: appError("conflict", DUPLICATE_MANUAL_MESSAGE),
+      ok: false,
     };
   }
 
@@ -337,23 +337,23 @@ export const updateManualAvailability = async (
       startsAt: parsed.data.startsAt,
     });
     const record = await database.availabilityRecord.update({
-      where: { id: recordId },
       data: {
-        record_type: parsed.data.recordType,
-        title: parsed.data.title,
-        starts_at: parsed.data.startsAt,
-        ends_at: parsed.data.endsAt,
         all_day: parsed.data.allDay,
-        working_location: parsed.data.workingLocation,
         contactability: parsed.data.contactability,
-        preferred_contact_method: parsed.data.preferredContactMethod,
-        notes_internal: parsed.data.notesInternal,
-        include_in_feed: parsed.data.includeInFeed,
-        privacy_mode: parsed.data.privacyMode,
         derived_uid_key: derivedUidKey,
+        ends_at: parsed.data.endsAt,
+        include_in_feed: parsed.data.includeInFeed,
+        notes_internal: parsed.data.notesInternal,
+        preferred_contact_method: parsed.data.preferredContactMethod,
+        privacy_mode: parsed.data.privacyMode,
+        record_type: parsed.data.recordType,
+        starts_at: parsed.data.startsAt,
+        title: parsed.data.title,
         updated_by_user_id: actor.userId,
+        working_location: parsed.data.workingLocation,
       },
       include: { person: true },
+      where: { id: recordId },
     });
 
     await materialisePublication(tenant, record.id);
@@ -362,8 +362,8 @@ export const updateManualAvailability = async (
   } catch (error) {
     if (isUniqueConflict(error)) {
       return {
-        ok: false,
         error: appError("conflict", DUPLICATE_MANUAL_MESSAGE),
+        ok: false,
       };
     }
     throw error;
@@ -376,12 +376,6 @@ export const archiveManualAvailability = async (
   actor: ManualAvailabilityActor
 ): Promise<Result<void, ManualAvailabilityServiceError>> => {
   const existing = await database.availabilityRecord.findFirst({
-    where: {
-      ...scopedQuery(tenant.clerkOrgId, tenant.organisationId),
-      archived_at: null,
-      id: recordId,
-      source_type: "manual",
-    },
     select: {
       person: {
         select: {
@@ -391,10 +385,16 @@ export const archiveManualAvailability = async (
         },
       },
     },
+    where: {
+      ...scopedQuery(tenant.clerkOrgId, tenant.organisationId),
+      archived_at: null,
+      id: recordId,
+      source_type: "manual",
+    },
   });
 
   if (!existing) {
-    return { ok: false, error: appError("not_found", "Record not found") };
+    return { error: appError("not_found", "Record not found"), ok: false };
   }
 
   const authorisation = await authoriseManualAvailabilityActor(
@@ -407,12 +407,12 @@ export const archiveManualAvailability = async (
   }
 
   await database.availabilityRecord.update({
-    where: { id: recordId },
     data: {
       archived_at: new Date(),
       publish_status: "archived",
       updated_by_user_id: actor.userId,
     },
+    where: { id: recordId },
   });
 
   await materialisePublication(tenant, recordId);
@@ -456,12 +456,12 @@ async function authoriseManualAvailabilityActor(
   }
 
   const actingPerson = await database.person.findFirst({
+    select: { id: true },
     where: {
       ...scopedQuery(tenant.clerkOrgId, tenant.organisationId),
       archived_at: null,
       clerk_user_id: actor.userId,
     },
-    select: { id: true },
   });
 
   const isOwner = targetPerson.clerk_user_id === actor.userId;
@@ -472,11 +472,11 @@ async function authoriseManualAvailabilityActor(
   }
 
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "You do not have permission to manage this availability record.",
     },
+    ok: false,
   };
 }
 

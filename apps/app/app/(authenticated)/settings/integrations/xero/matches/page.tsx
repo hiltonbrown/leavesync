@@ -20,11 +20,6 @@ export default async function XeroMatchesPage() {
   }
 
   const matches = await database.xeroPersonMatch.findMany({
-    where: {
-      clerk_org_id: orgId,
-      status: "pending",
-    },
-    orderBy: [{ created_at: "asc" }, { id: "asc" }],
     include: {
       candidate_person: {
         select: {
@@ -43,6 +38,11 @@ export default async function XeroMatchesPage() {
           last_name: true,
         },
       },
+    },
+    orderBy: [{ created_at: "asc" }, { id: "asc" }],
+    where: {
+      clerk_org_id: orgId,
+      status: "pending",
     },
   });
 

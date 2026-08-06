@@ -59,21 +59,21 @@ export async function enqueueNotificationEmail(
     const unsubscribeUrl = preferencesUrl(parsed.data.notificationType);
     const row = await client.notificationEmailQueue.create({
       data: {
-        clerk_org_id: parsed.data.clerkOrgId,
-        organisation_id: parsed.data.organisationId,
-        notification_id: parsed.data.notificationId ?? null,
-        recipient_user_id: parsed.data.recipientUserId,
-        notification_type: parsed.data.notificationType,
-        email_template: parsed.data.emailTemplate,
-        recipient_email: parsed.data.recipientEmail,
-        title: parsed.data.title,
-        body: parsed.data.body,
         action_url: parsed.data.actionUrl ?? null,
-        unsubscribe_url: unsubscribeUrl,
+        body: parsed.data.body,
+        clerk_org_id: parsed.data.clerkOrgId,
+        email_template: parsed.data.emailTemplate,
         merge_data: {
           actionUrl: parsed.data.actionUrl ?? null,
           unsubscribeUrl,
         },
+        notification_id: parsed.data.notificationId ?? null,
+        notification_type: parsed.data.notificationType,
+        organisation_id: parsed.data.organisationId,
+        recipient_email: parsed.data.recipientEmail,
+        recipient_user_id: parsed.data.recipientUserId,
+        title: parsed.data.title,
+        unsubscribe_url: unsubscribeUrl,
       },
       select: { id: true },
     });
@@ -178,22 +178,22 @@ function validationError(
   error: z.ZodError
 ): Result<never, EmailQueueServiceError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid email queue request.",
     },
+    ok: false,
   };
 }
 
 function validationErrorMessage(
   message: string
 ): Result<never, EmailQueueServiceError> {
-  return { ok: false, error: { code: "validation_error", message } };
+  return { error: { code: "validation_error", message }, ok: false };
 }
 
 function unknownError(message: string): Result<never, EmailQueueServiceError> {
-  return { ok: false, error: { code: "unknown_error", message } };
+  return { error: { code: "unknown_error", message }, ok: false };
 }
 
 function isNotificationType(

@@ -10,10 +10,10 @@ describe("field-ownership", () => {
       firstName: "xero",
       jobTitle: "xero",
       lastName: "xero",
-      startDate: "xero",
       location: "team-calendar",
       manager: "team-calendar",
       personType: "team-calendar",
+      startDate: "xero",
       statusNote: "team-calendar",
       team: "team-calendar",
     });

@@ -2,14 +2,14 @@ import { appError, type Result } from "@repo/core";
 import { z } from "zod";
 
 const NagerHolidaySchema = z.object({
-  date: z.string(),
-  localName: z.string(),
-  name: z.string(),
+  counties: z.array(z.string()).nullable().optional(),
   countryCode: z.string(),
+  date: z.string(),
   fixed: z.boolean(),
   global: z.boolean(),
-  counties: z.array(z.string()).nullable().optional(),
   launchYear: z.number().nullable().optional(),
+  localName: z.string(),
+  name: z.string(),
   types: z.array(z.string()),
 });
 
@@ -29,19 +29,19 @@ export async function getPublicHolidays(
     if (!response.ok) {
       if (response.status === 404) {
         return {
-          ok: false,
           error: appError(
             "not_found",
             `No holidays found for country ${countryCode} in year ${year}`
           ),
+          ok: false,
         };
       }
       return {
-        ok: false,
         error: appError(
           "internal",
           `Nager.Date API returned status ${response.status}`
         ),
+        ok: false,
       };
     }
 
@@ -50,11 +50,11 @@ export async function getPublicHolidays(
 
     if (!parsed.success) {
       return {
-        ok: false,
         error: appError(
           "bad_request",
           "Failed to parse Nager.Date API response"
         ),
+        ok: false,
       };
     }
 
@@ -64,8 +64,8 @@ export async function getPublicHolidays(
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Network error while calling Nager.Date API"),
+      ok: false,
     };
   }
 }

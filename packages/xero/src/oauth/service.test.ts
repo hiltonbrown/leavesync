@@ -13,9 +13,9 @@ const dbMock = vi.hoisted(() => ({
   },
   xeroConnection: {
     findFirst: vi.fn(),
-    upsert: vi.fn(),
     update: vi.fn(),
     updateMany: vi.fn(),
+    upsert: vi.fn(),
   },
   xeroOAuthSession: {
     create: vi.fn(),
@@ -99,8 +99,8 @@ beforeEach(() => {
       ok: true,
       value: {
         importedCount: 2,
-        skippedCount: 0,
         importedYears: [2026, 2027],
+        skippedCount: 0,
         skippedYears: [],
       },
     }
@@ -258,7 +258,9 @@ describe("completeXeroOAuth", () => {
   it("rejects a missing nonce before exchanging the authorisation code", async () => {
     const start = buildXeroOAuthStartUrl({ clerkOrgId: "org_1" });
     expect(start.ok).toBe(true);
-    if (!start.ok) return;
+    if (!start.ok) {
+      return;
+    }
 
     const fetchSpy = vi.fn();
     vi.stubGlobal("fetch", fetchSpy);
@@ -268,14 +270,19 @@ describe("completeXeroOAuth", () => {
       state: new URL(start.value.redirectUrl).searchParams.get("state") ?? "",
     });
 
-    expect(result).toMatchObject({ ok: false, error: { code: "invalid_state" } });
+    expect(result).toMatchObject({
+      error: { code: "invalid_state" },
+      ok: false,
+    });
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it("rejects a mismatched nonce before exchanging the authorisation code", async () => {
     const start = buildXeroOAuthStartUrl({ clerkOrgId: "org_1" });
     expect(start.ok).toBe(true);
-    if (!start.ok) return;
+    if (!start.ok) {
+      return;
+    }
 
     const fetchSpy = vi.fn();
     vi.stubGlobal("fetch", fetchSpy);
@@ -285,7 +292,10 @@ describe("completeXeroOAuth", () => {
       state: new URL(start.value.redirectUrl).searchParams.get("state") ?? "",
     });
 
-    expect(result).toMatchObject({ ok: false, error: { code: "invalid_state" } });
+    expect(result).toMatchObject({
+      error: { code: "invalid_state" },
+      ok: false,
+    });
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 });
@@ -295,7 +305,9 @@ describe("Xero OAuth state", () => {
     const first = buildXeroOAuthStartUrl({ clerkOrgId: "org_1" });
     const second = buildXeroOAuthStartUrl({ clerkOrgId: "org_1" });
     expect(first.ok && second.ok).toBe(true);
-    if (!(first.ok && second.ok)) return;
+    if (!(first.ok && second.ok)) {
+      return;
+    }
 
     expect(first.value.nonce).not.toBe(second.value.nonce);
     expect(new URL(first.value.redirectUrl).searchParams.get("state")).not.toBe(
@@ -308,7 +320,9 @@ describe("Xero OAuth state", () => {
     nowSpy.mockReturnValueOnce(1_000_000).mockReturnValue(1_660_000);
     const start = buildXeroOAuthStartUrl({ clerkOrgId: "org_1" });
     expect(start.ok).toBe(true);
-    if (!start.ok) return;
+    if (!start.ok) {
+      return;
+    }
 
     const fetchSpy = vi.fn();
     vi.stubGlobal("fetch", fetchSpy);
@@ -318,16 +332,22 @@ describe("Xero OAuth state", () => {
       state: new URL(start.value.redirectUrl).searchParams.get("state") ?? "",
     });
 
-    expect(result).toMatchObject({ ok: false, error: { code: "invalid_state" } });
+    expect(result).toMatchObject({
+      error: { code: "invalid_state" },
+      ok: false,
+    });
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it("rejects a tampered state", async () => {
     const start = buildXeroOAuthStartUrl({ clerkOrgId: "org_1" });
     expect(start.ok).toBe(true);
-    if (!start.ok) return;
+    if (!start.ok) {
+      return;
+    }
 
-    const state = new URL(start.value.redirectUrl).searchParams.get("state") ?? "";
+    const state =
+      new URL(start.value.redirectUrl).searchParams.get("state") ?? "";
     const [encoded, signature] = state.split(".");
     const result = await completeXeroOAuth({
       code: "authorisation-code",
@@ -335,7 +355,10 @@ describe("Xero OAuth state", () => {
       state: `${encoded.slice(0, -1)}x.${signature}`,
     });
 
-    expect(result).toMatchObject({ ok: false, error: { code: "invalid_state" } });
+    expect(result).toMatchObject({
+      error: { code: "invalid_state" },
+      ok: false,
+    });
   });
 });
 
@@ -455,7 +478,6 @@ describe("refreshXeroOAuthConnection", () => {
       expect(result.error.code).toBe("refresh_token_invalid");
     }
     expect(dbMock.xeroConnection.update).toHaveBeenCalledWith({
-      where: { id: input.connectionId },
       data: {
         last_error_code: "refresh_token_invalid",
         last_error_message:
@@ -463,6 +485,7 @@ describe("refreshXeroOAuthConnection", () => {
         stale_since: expect.any(Date),
         status: "stale",
       },
+      where: { id: input.connectionId },
     });
   });
 
@@ -563,16 +586,16 @@ describe("refreshXeroOAuthConnection", () => {
       expect(result.error.code).toBe("unknown_error");
     }
     expect(dbMock.xeroConnection.update).toHaveBeenCalledWith({
-      where: {
-        id: input.connectionId,
-        clerk_org_id: input.clerkOrgId,
-        organisation_id: input.organisationId,
-      },
       data: {
         last_error_code: "refresh_persist_failed",
         last_error_message: "Database transaction aborted.",
         stale_since: expect.any(Date),
         status: "stale",
+      },
+      where: {
+        clerk_org_id: input.clerkOrgId,
+        id: input.connectionId,
+        organisation_id: input.organisationId,
       },
     });
   });
@@ -582,8 +605,8 @@ describe("ensureFreshXeroConnection", () => {
   const input = {
     clerkOrgId: "org_1",
     connectionId: "conn_1",
-    organisationId: "11111111-1111-1111-1111-111111111111",
     now: new Date("2026-06-09T12:00:00.000Z"),
+    organisationId: "11111111-1111-1111-1111-111111111111",
   };
 
   it("returns organisation_not_found when the connection is missing", async () => {
@@ -664,16 +687,16 @@ describe("ensureFreshXeroConnection", () => {
       expect(result.error.code).toBe("unknown_error");
     }
     expect(dbMock.xeroConnection.update).toHaveBeenCalledWith({
-      where: {
-        id: input.connectionId,
-        clerk_org_id: input.clerkOrgId,
-        organisation_id: input.organisationId,
-      },
       data: {
         last_error_code: "refresh_persist_failed",
         last_error_message: "Database connection timed out.",
         stale_since: expect.any(Date),
         status: "stale",
+      },
+      where: {
+        clerk_org_id: input.clerkOrgId,
+        id: input.connectionId,
+        organisation_id: input.organisationId,
       },
     });
   });
@@ -722,13 +745,13 @@ describe("ensureFreshXeroConnection", () => {
     dbMock.xeroConnection.updateMany.mockResolvedValueOnce({ count: 1 });
 
     const fetchSpy = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
       json: async () => ({
         access_token: "new-access-token",
         expires_in: 1800,
         refresh_token: "new-refresh-token",
       }),
+      ok: true,
+      status: 200,
     });
     vi.stubGlobal("fetch", fetchSpy);
 
@@ -872,16 +895,16 @@ describe("ensureFreshXeroConnection", () => {
       expect(result.error.code).toBe("unknown_error");
     }
     expect(dbMock.xeroConnection.update).toHaveBeenCalledWith({
-      where: {
-        id: input.connectionId,
-        clerk_org_id: input.clerkOrgId,
-        organisation_id: input.organisationId,
-      },
       data: {
         last_error_code: "refresh_persist_failed",
         last_error_message: "Database connection timed out.",
         stale_since: expect.any(Date),
         status: "stale",
+      },
+      where: {
+        clerk_org_id: input.clerkOrgId,
+        id: input.connectionId,
+        organisation_id: input.organisationId,
       },
     });
   });
@@ -909,13 +932,13 @@ describe("ensureFreshXeroConnection", () => {
       });
     dbMock.xeroConnection.updateMany.mockResolvedValueOnce({ count: 1 });
     const fetchSpy = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
       json: async () => ({
         access_token: "new-access-token",
         expires_in: 1800,
         refresh_token: "new-refresh-token",
       }),
+      ok: true,
+      status: 200,
     });
     vi.stubGlobal("fetch", fetchSpy);
 
@@ -987,13 +1010,13 @@ describe("ensureFreshXeroConnection", () => {
     });
 
     const fetchSpy = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
       json: async () => ({
         access_token: "new-access-token",
         expires_in: 1800,
         refresh_token: "new-refresh-token",
       }),
+      ok: true,
+      status: 200,
     });
     vi.stubGlobal("fetch", fetchSpy);
 
@@ -1076,16 +1099,16 @@ describe("ensureFreshXeroConnection", () => {
       expect(result.error.code).toBe("unknown_error");
     }
     expect(dbMock.xeroConnection.update).toHaveBeenCalledWith({
-      where: {
-        id: input.connectionId,
-        clerk_org_id: input.clerkOrgId,
-        organisation_id: input.organisationId,
-      },
       data: {
         last_error_code: "refresh_persist_failed",
         last_error_message: "Database connection timed out.",
         stale_since: expect.any(Date),
         status: "stale",
+      },
+      where: {
+        clerk_org_id: input.clerkOrgId,
+        id: input.connectionId,
+        organisation_id: input.organisationId,
       },
     });
   });
@@ -1251,51 +1274,51 @@ describe("completeXeroTenantSelection", () => {
     );
   });
 
-  it.each([
-    "NZ",
-    "UK",
-  ])("rejects an unsupported %s payroll tenant before persistence", async (countryCode) => {
-    vi.stubGlobal(
-      "fetch",
-      vi
-        .fn()
-        .mockResolvedValue(
-          new Response(
-            JSON.stringify({ Organisations: [{ CountryCode: countryCode }] }),
-            { headers: { "Content-Type": "application/json" }, status: 200 }
+  it.each(["NZ", "UK"])(
+    "rejects an unsupported %s payroll tenant before persistence",
+    async (countryCode) => {
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn()
+          .mockResolvedValue(
+            new Response(
+              JSON.stringify({ Organisations: [{ CountryCode: countryCode }] }),
+              { headers: { "Content-Type": "application/json" }, status: 200 }
+            )
           )
-        )
-    );
+      );
 
-    const result = await completeXeroTenantSelection({
-      clerkOrgId,
-      sessionId,
-      tenantId,
-      userId: "user_1",
-    });
+      const result = await completeXeroTenantSelection({
+        clerkOrgId,
+        sessionId,
+        tenantId,
+        userId: "user_1",
+      });
 
-    expect(result).toEqual({
-      ok: false,
-      error: {
-        code: "invalid_country",
-        message:
-          "Team Calendar currently supports Australian Xero Payroll files only.",
-      },
-    });
-    expect(dbMock.organisation.create).not.toHaveBeenCalled();
-    expect(dbMock.$transaction).not.toHaveBeenCalled();
-    expect(dbMock.xeroConnection.upsert).not.toHaveBeenCalled();
-    expect(dbMock.xeroTenant.upsert).not.toHaveBeenCalled();
-    expect(dbMock.xeroOAuthSession.update).not.toHaveBeenCalled();
-  });
+      expect(result).toEqual({
+        error: {
+          code: "invalid_country",
+          message:
+            "Team Calendar currently supports Australian Xero Payroll files only.",
+        },
+        ok: false,
+      });
+      expect(dbMock.organisation.create).not.toHaveBeenCalled();
+      expect(dbMock.$transaction).not.toHaveBeenCalled();
+      expect(dbMock.xeroConnection.upsert).not.toHaveBeenCalled();
+      expect(dbMock.xeroTenant.upsert).not.toHaveBeenCalled();
+      expect(dbMock.xeroOAuthSession.update).not.toHaveBeenCalled();
+    }
+  );
 
   it("fails tenant selection when default feed provisioning fails", async () => {
     feedMock.ensureDefaultCalendarFeed.mockResolvedValueOnce({
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to create default feed.",
       },
+      ok: false,
     });
 
     const result = await completeXeroTenantSelection({
@@ -1306,11 +1329,11 @@ describe("completeXeroTenantSelection", () => {
     });
 
     expect(result).toMatchObject({
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to create default feed.",
       },
+      ok: false,
     });
     expect(dbMock.xeroConnection.upsert).not.toHaveBeenCalled();
     expect(dbMock.xeroTenant.upsert).not.toHaveBeenCalled();
@@ -1320,11 +1343,11 @@ describe("completeXeroTenantSelection", () => {
   it("succeeds tenant selection even when default holiday provisioning fails", async () => {
     availabilityMock.ensureDefaultPublicHolidaysForOrganisation.mockResolvedValueOnce(
       {
-        ok: false,
         error: {
           code: "internal",
           message: "Network error while calling Nager.Date API",
         },
+        ok: false,
       }
     );
 

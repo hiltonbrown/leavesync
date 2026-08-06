@@ -25,15 +25,9 @@ const mocks = vi.hoisted(() => ({
 }));
 
 class ResizeObserverMock {
-  disconnect() {
-    return;
-  }
-  observe() {
-    return;
-  }
-  unobserve() {
-    return;
-  }
+  disconnect() {}
+  observe() {}
+  unobserve() {}
 }
 
 globalThis.ResizeObserver = ResizeObserverMock;

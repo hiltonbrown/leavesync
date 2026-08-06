@@ -33,29 +33,29 @@ export async function listPeopleForOrganisation(
 ): Promise<Result<PersonData[]>> {
   try {
     const people = await database.person.findMany({
+      orderBy: { first_name: "asc" },
+      select: {
+        clerk_org_id: true,
+        created_at: true,
+        email: true,
+        employment_type: true,
+        first_name: true,
+        id: true,
+        is_active: true,
+        last_name: true,
+        location_id: true,
+        organisation_id: true,
+        source_person_key: true,
+        source_system: true,
+        team_id: true,
+        updated_at: true,
+      },
       where: {
         ...scopedQuery(clerkOrgId, organisationId),
         ...(filters?.teamId && { team_id: filters.teamId }),
         ...(filters?.locationId && { location_id: filters.locationId }),
         ...(filters?.isActive !== undefined && { is_active: filters.isActive }),
       },
-      select: {
-        id: true,
-        clerk_org_id: true,
-        organisation_id: true,
-        team_id: true,
-        location_id: true,
-        source_system: true,
-        source_person_key: true,
-        first_name: true,
-        last_name: true,
-        email: true,
-        employment_type: true,
-        is_active: true,
-        created_at: true,
-        updated_at: true,
-      },
-      orderBy: { first_name: "asc" },
     });
 
     return {
@@ -64,8 +64,8 @@ export async function listPeopleForOrganisation(
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to list people"),
+      ok: false,
     };
   }
 }
@@ -84,44 +84,44 @@ export async function getPersonProfile(
 > {
   try {
     const person = await database.person.findFirst({
-      where: {
-        ...scopedQuery(clerkOrgId, organisationId),
-        id: personId,
-      },
       select: {
-        id: true,
         clerk_org_id: true,
-        organisation_id: true,
-        team_id: true,
-        location_id: true,
-        source_system: true,
-        source_person_key: true,
-        first_name: true,
-        last_name: true,
+        created_at: true,
         email: true,
         employment_type: true,
+        first_name: true,
+        id: true,
         is_active: true,
-        created_at: true,
-        updated_at: true,
-        team: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+        last_name: true,
         location: {
           select: {
             id: true,
             name: true,
           },
         },
+        location_id: true,
+        organisation_id: true,
+        source_person_key: true,
+        source_system: true,
+        team: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        team_id: true,
+        updated_at: true,
+      },
+      where: {
+        ...scopedQuery(clerkOrgId, organisationId),
+        id: personId,
       },
     });
 
     if (!person) {
       return {
-        ok: false,
         error: appError("not_found", "Person not found"),
+        ok: false,
       };
     }
 
@@ -129,14 +129,14 @@ export async function getPersonProfile(
       ok: true,
       value: {
         ...toPerson(person),
-        team: person.team,
         location: person.location,
+        team: person.team,
       },
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to get person profile"),
+      ok: false,
     };
   }
 }
@@ -158,19 +158,19 @@ function toPerson(p: {
   updated_at: Date;
 }): PersonData {
   return {
-    id: p.id as PersonId,
     clerkOrgId: p.clerk_org_id,
-    organisationId: p.organisation_id as OrganisationId,
-    teamId: p.team_id,
-    locationId: p.location_id,
-    sourceSystem: p.source_system,
-    sourcePersonKey: p.source_person_key,
-    firstName: p.first_name,
-    lastName: p.last_name,
+    createdAt: p.created_at,
     email: p.email,
     employmentType: p.employment_type,
+    firstName: p.first_name,
+    id: p.id as PersonId,
     isActive: p.is_active,
-    createdAt: p.created_at,
+    lastName: p.last_name,
+    locationId: p.location_id,
+    organisationId: p.organisation_id as OrganisationId,
+    sourcePersonKey: p.source_person_key,
+    sourceSystem: p.source_system,
+    teamId: p.team_id,
     updatedAt: p.updated_at,
   };
 }

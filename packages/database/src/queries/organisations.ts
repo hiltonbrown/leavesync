@@ -24,35 +24,35 @@ export async function listOrganisationsByClerkOrg(
 > {
   try {
     const organisations = await database.organisation.findMany({
-      where: { archived_at: null, clerk_org_id: clerkOrgId },
       orderBy: [{ created_at: "asc" }, { name: "asc" }],
       select: {
-        id: true,
         clerk_org_id: true,
-        name: true,
         country_code: true,
+        created_at: true,
         fiscal_year_start: true,
+        id: true,
         locale: true,
+        name: true,
         reporting_unit: true,
         timezone: true,
-        created_at: true,
         updated_at: true,
         working_hours_per_day: true,
       },
+      where: { archived_at: null, clerk_org_id: clerkOrgId },
     });
 
     return {
       ok: true,
       value: organisations.map((o) => ({
-        id: o.id as OrganisationId,
         clerkOrgId: o.clerk_org_id,
-        name: o.name,
         countryCode: o.country_code,
+        createdAt: o.created_at,
         fiscalYearStart: o.fiscal_year_start,
+        id: o.id as OrganisationId,
         locale: o.locale,
+        name: o.name,
         reportingUnit: o.reporting_unit,
         timezone: o.timezone,
-        createdAt: o.created_at,
         updatedAt: o.updated_at,
         workingHoursPerDay:
           o.working_hours_per_day === null
@@ -62,8 +62,8 @@ export async function listOrganisationsByClerkOrg(
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to list organisations"),
+      ok: false,
     };
   }
 }
@@ -88,45 +88,45 @@ export async function getOrganisationById(
 > {
   try {
     const organisation = await database.organisation.findFirst({
+      select: {
+        clerk_org_id: true,
+        country_code: true,
+        created_at: true,
+        fiscal_year_start: true,
+        id: true,
+        locale: true,
+        name: true,
+        reporting_unit: true,
+        timezone: true,
+        updated_at: true,
+        working_hours_per_day: true,
+      },
       where: {
         archived_at: null,
         clerk_org_id: clerkOrgId,
         id: organisationId,
       },
-      select: {
-        id: true,
-        clerk_org_id: true,
-        name: true,
-        country_code: true,
-        fiscal_year_start: true,
-        locale: true,
-        reporting_unit: true,
-        timezone: true,
-        created_at: true,
-        updated_at: true,
-        working_hours_per_day: true,
-      },
     });
 
     if (!organisation) {
       return {
-        ok: false,
         error: appError("not_found", "Organisation not found"),
+        ok: false,
       };
     }
 
     return {
       ok: true,
       value: {
-        id: organisation.id as OrganisationId,
         clerkOrgId: organisation.clerk_org_id,
-        name: organisation.name,
         countryCode: organisation.country_code,
+        createdAt: organisation.created_at,
         fiscalYearStart: organisation.fiscal_year_start,
+        id: organisation.id as OrganisationId,
         locale: organisation.locale,
+        name: organisation.name,
         reportingUnit: organisation.reporting_unit,
         timezone: organisation.timezone,
-        createdAt: organisation.created_at,
         updatedAt: organisation.updated_at,
         workingHoursPerDay:
           organisation.working_hours_per_day === null
@@ -136,8 +136,8 @@ export async function getOrganisationById(
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to get organisation"),
+      ok: false,
     };
   }
 }
@@ -148,8 +148,8 @@ export async function hasXeroConnection(
 ): Promise<Result<boolean>> {
   try {
     const connection = await database.xeroConnection.findFirst({
-      where: scopedQuery(clerkOrgId, organisationId),
       select: { id: true },
+      where: scopedQuery(clerkOrgId, organisationId),
     });
 
     return {
@@ -158,8 +158,8 @@ export async function hasXeroConnection(
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to check Xero connection"),
+      ok: false,
     };
   }
 }

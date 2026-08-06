@@ -4,76 +4,76 @@ import Link from "next/link";
 import { MarketingIcon } from "../(home)/components/marketing-icons";
 
 export const metadata: Metadata = createMetadata({
-  title: "Integrations",
   description:
     "How Team Calendar connects Xero Payroll to Outlook, Google Calendar, and Apple Calendar through secure calendar feeds.",
+  title: "Integrations",
 });
 
 const regions = [
   {
     code: "AU",
-    name: "Australia",
     detail:
       "Annual leave, sick leave, long service leave, personal carer's leave, and public holidays.",
+    name: "Australia",
   },
   {
     code: "NZ",
-    name: "New Zealand",
     detail: "Planned for a future release.",
+    name: "New Zealand",
   },
   {
     code: "UK",
-    name: "United Kingdom",
     detail: "Planned for a future release.",
+    name: "United Kingdom",
   },
 ];
 
 const flow = [
   {
-    title: "Xero Payroll",
-    label: "Source of truth",
     copy: "Employees, approved leave, balances, and leave type configuration sync from your connected payroll file.",
     icon: "sync",
+    label: "Source of truth",
+    title: "Xero Payroll",
   },
   {
-    title: "Team Calendar",
-    label: "Availability model",
     copy: "Leave and manual entries are normalised into one privacy-controlled availability layer.",
     icon: "calendar",
+    label: "Availability model",
+    title: "Team Calendar",
   },
   {
-    title: "Calendar feeds",
-    label: "Published view",
     copy: "Secure ICS feeds subscribe into Outlook, Google Calendar, and Apple Calendar.",
     icon: "link",
+    label: "Published view",
+    title: "Calendar feeds",
   },
 ] as const;
 
 const dataMoves = [
   {
-    title: "Reads from Xero",
     items: [
       "Employee records and employment status",
       "Leave entitlements and leave type configuration",
       "Approved leave applications and balances",
       "Payroll calendar and pay period information",
     ],
+    title: "Reads from Xero",
   },
   {
-    title: "Writes to Xero",
     items: [
       "Leave applications submitted in Team Calendar",
       "Manager approval and decline decisions",
       "Leave application status updates",
     ],
+    title: "Writes to Xero",
   },
   {
-    title: "Never reads",
     items: [
       "Salary, banking, tax, or superannuation data",
       "Personal calendar contents",
       "Plaintext feed or OAuth tokens",
     ],
+    title: "Never reads",
   },
 ];
 
@@ -86,34 +86,34 @@ const setupSteps = [
 
 const destinations = [
   {
-    name: "Outlook",
-    icon: "outlook",
     copy: "Subscribe from web in Microsoft 365 Calendar.",
+    icon: "outlook",
+    name: "Outlook",
   },
   {
-    name: "Google Calendar",
-    icon: "gcal",
     copy: "Add the feed URL from calendar settings.",
+    icon: "gcal",
+    name: "Google Calendar",
   },
   {
-    name: "Apple Calendar",
-    icon: "applecal",
     copy: "Create a calendar subscription on macOS or iOS.",
+    icon: "applecal",
+    name: "Apple Calendar",
   },
 ] as const;
 
 const syncDetails = [
   {
-    title: "Inbound sync",
     copy: "Scheduled jobs keep employees, leave, balances, and approval state current for Australian Xero Payroll files.",
+    title: "Inbound sync",
   },
   {
-    title: "Write-back",
     copy: "Submitted, approved, declined, and withdrawn leave writes to Xero synchronously so payroll records stay correct.",
+    title: "Write-back",
   },
   {
-    title: "Feed publishing",
     copy: "Every feed is scoped, signed, revocable, and cached by feed and etag so calendar clients receive the latest published view within 60 seconds of a change.",
+    title: "Feed publishing",
   },
 ];
 

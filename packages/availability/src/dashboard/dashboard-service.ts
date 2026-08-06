@@ -290,8 +290,8 @@ export interface AdminDashboardView extends EmployeeDashboardView {
 
 const ResolveRoleSchema = z.object({
   clerkOrgId: z.string().min(1),
-  orgRole: z.string().nullable().optional(),
   organisationId: z.string().uuid(),
+  orgRole: z.string().nullable().optional(),
   userId: z.string().min(1),
 });
 
@@ -350,13 +350,13 @@ export async function resolveDashboardRole(
 
   try {
     const person = await database.person.findFirst({
+      select: { id: true },
       where: {
         archived_at: null,
         clerk_org_id: parsed.data.clerkOrgId,
         clerk_user_id: parsed.data.userId,
         organisation_id: parsed.data.organisationId,
       },
-      select: { id: true },
     });
 
     if (parsed.data.orgRole === "org:owner") {
@@ -556,11 +556,11 @@ export async function getAdminView(
     ] = await Promise.all([
       getEmployeeView(parsed.data, cache),
       database.organisation.findFirst({
+        select: { name: true },
         where: {
           clerk_org_id: parsed.data.clerkOrgId,
           id: parsed.data.organisationId,
         },
-        select: { name: true },
       }),
       listPeople({
         actingPersonId: parsed.data.personId,
@@ -1007,11 +1007,11 @@ async function loadSyncHealthCard(input: {
 
   if (!(summaryResult.ok && runsResult.ok)) {
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: firstErrorMessage(summaryResult, runsResult),
       },
+      ok: false,
     };
   }
 
@@ -1476,26 +1476,26 @@ function validationError(
   error: z.ZodError
 ): Result<never, DashboardServiceError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid dashboard input.",
     },
+    ok: false,
   };
 }
 
 function personNotFound(): Result<never, DashboardServiceError> {
   return {
-    ok: false,
     error: {
       code: "person_not_found",
       message: "Person not found for this dashboard view.",
     },
+    ok: false,
   };
 }
 
 function unknownError(message: string): Result<never, DashboardServiceError> {
-  return { ok: false, error: { code: "unknown_error", message } };
+  return { error: { code: "unknown_error", message }, ok: false };
 }
 
 function cacheKey(scope: string, input: z.infer<typeof ViewSchema>) {

@@ -4,9 +4,6 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react()],
-  test: {
-    environment: "jsdom",
-  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "./"),
@@ -16,5 +13,8 @@ export default defineConfig({
         "../../node_modules/.bun/server-only@0.0.1/node_modules/server-only/empty.js"
       ),
     },
+  },
+  test: {
+    environment: "jsdom",
   },
 });

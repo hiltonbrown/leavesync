@@ -62,11 +62,11 @@ export async function listAvailabilityForCalendar(
   try {
     const whereConditions: Record<string, unknown> = {
       ...scopedQuery(clerkOrgId, organisationId),
-      starts_at: {
-        lte: dateRange.endDate,
-      },
       ends_at: {
         gte: dateRange.startDate,
+      },
+      starts_at: {
+        lte: dateRange.endDate,
       },
     };
 
@@ -87,27 +87,27 @@ export async function listAvailabilityForCalendar(
     }
 
     const records = await database.availabilityRecord.findMany({
-      where: whereConditions,
+      orderBy: [{ starts_at: "asc" }, { person_id: "asc" }],
       select: {
-        id: true,
+        approval_status: true,
         clerk_org_id: true,
+        contactability: true,
+        created_at: true,
+        derived_uid_key: true,
+        ends_at: true,
+        id: true,
+        include_in_feed: true,
         organisation_id: true,
         person_id: true,
-        record_type: true,
-        source_type: true,
-        source_remote_id: true,
-        starts_at: true,
-        ends_at: true,
-        approval_status: true,
         privacy_mode: true,
-        contactability: true,
-        include_in_feed: true,
         publish_status: true,
-        derived_uid_key: true,
-        created_at: true,
+        record_type: true,
+        source_remote_id: true,
+        source_type: true,
+        starts_at: true,
         updated_at: true,
       },
-      orderBy: [{ starts_at: "asc" }, { person_id: "asc" }],
+      where: whereConditions,
     });
 
     return {
@@ -116,8 +116,8 @@ export async function listAvailabilityForCalendar(
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to list calendar availability"),
+      ok: false,
     };
   }
 }
@@ -130,36 +130,36 @@ export async function listAvailabilityForPerson(
 ): Promise<Result<AvailabilityRecordData[]>> {
   try {
     const records = await database.availabilityRecord.findMany({
+      orderBy: { starts_at: "asc" },
+      select: {
+        approval_status: true,
+        clerk_org_id: true,
+        contactability: true,
+        created_at: true,
+        derived_uid_key: true,
+        ends_at: true,
+        id: true,
+        include_in_feed: true,
+        organisation_id: true,
+        person_id: true,
+        privacy_mode: true,
+        publish_status: true,
+        record_type: true,
+        source_remote_id: true,
+        source_type: true,
+        starts_at: true,
+        updated_at: true,
+      },
       where: {
         ...scopedQuery(clerkOrgId, organisationId),
+        ends_at: {
+          gte: dateRange.startDate,
+        },
         person_id: personId,
         starts_at: {
           lte: dateRange.endDate,
         },
-        ends_at: {
-          gte: dateRange.startDate,
-        },
       },
-      select: {
-        id: true,
-        clerk_org_id: true,
-        organisation_id: true,
-        person_id: true,
-        record_type: true,
-        source_type: true,
-        source_remote_id: true,
-        starts_at: true,
-        ends_at: true,
-        approval_status: true,
-        privacy_mode: true,
-        contactability: true,
-        include_in_feed: true,
-        publish_status: true,
-        derived_uid_key: true,
-        created_at: true,
-        updated_at: true,
-      },
-      orderBy: { starts_at: "asc" },
     });
 
     return {
@@ -168,8 +168,8 @@ export async function listAvailabilityForPerson(
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to list person availability"),
+      ok: false,
     };
   }
 }
@@ -196,27 +196,27 @@ export async function listPendingApprovalRecords(
     }
 
     const records = await database.availabilityRecord.findMany({
-      where: whereConditions,
+      orderBy: { created_at: "asc" },
       select: {
-        id: true,
+        approval_status: true,
         clerk_org_id: true,
+        contactability: true,
+        created_at: true,
+        derived_uid_key: true,
+        ends_at: true,
+        id: true,
+        include_in_feed: true,
         organisation_id: true,
         person_id: true,
-        record_type: true,
-        source_type: true,
-        source_remote_id: true,
-        starts_at: true,
-        ends_at: true,
-        approval_status: true,
         privacy_mode: true,
-        contactability: true,
-        include_in_feed: true,
         publish_status: true,
-        derived_uid_key: true,
-        created_at: true,
+        record_type: true,
+        source_remote_id: true,
+        source_type: true,
+        starts_at: true,
         updated_at: true,
       },
-      orderBy: { created_at: "asc" },
+      where: whereConditions,
     });
 
     return {
@@ -225,8 +225,8 @@ export async function listPendingApprovalRecords(
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to list pending approval records"),
+      ok: false,
     };
   }
 }
@@ -251,22 +251,22 @@ function toAvailabilityRecord(r: {
   updated_at: Date;
 }): AvailabilityRecordData {
   return {
-    id: r.id as AvailabilityRecordId,
+    approvalStatus: r.approval_status,
     clerkOrgId: r.clerk_org_id,
+    contactability: r.contactability,
+    createdAt: r.created_at,
+    derivedUidKey: r.derived_uid_key,
+    endsAt: r.ends_at,
+    id: r.id as AvailabilityRecordId,
+    includeInFeed: r.include_in_feed,
     organisationId: r.organisation_id as OrganisationId,
     personId: r.person_id as PersonId,
-    recordType: r.record_type,
-    sourceType: r.source_type,
-    sourceRemoteId: r.source_remote_id,
-    startsAt: r.starts_at,
-    endsAt: r.ends_at,
-    approvalStatus: r.approval_status,
     privacyMode: r.privacy_mode,
-    contactability: r.contactability,
-    includeInFeed: r.include_in_feed,
     publishStatus: r.publish_status,
-    derivedUidKey: r.derived_uid_key,
-    createdAt: r.created_at,
+    recordType: r.record_type,
+    sourceRemoteId: r.source_remote_id,
+    sourceType: r.source_type,
+    startsAt: r.starts_at,
     updatedAt: r.updated_at,
   };
 }
@@ -302,68 +302,68 @@ export async function listManualAvailability(
     }
 
     const records = await database.availabilityRecord.findMany({
-      where: whereConditions,
-      select: {
-        id: true,
-        clerk_org_id: true,
-        organisation_id: true,
-        person_id: true,
-        record_type: true,
-        source_type: true,
-        source_remote_id: true,
-        starts_at: true,
-        ends_at: true,
-        approval_status: true,
-        privacy_mode: true,
-        contactability: true,
-        include_in_feed: true,
-        publish_status: true,
-        derived_uid_key: true,
-        created_at: true,
-        updated_at: true,
-        title: true,
-        all_day: true,
-        notes_internal: true,
-        working_location: true,
-        archived_at: true,
-        person: { select: { first_name: true, last_name: true } },
-      },
       orderBy: { starts_at: "asc" },
+      select: {
+        all_day: true,
+        approval_status: true,
+        archived_at: true,
+        clerk_org_id: true,
+        contactability: true,
+        created_at: true,
+        derived_uid_key: true,
+        ends_at: true,
+        id: true,
+        include_in_feed: true,
+        notes_internal: true,
+        organisation_id: true,
+        person: { select: { first_name: true, last_name: true } },
+        person_id: true,
+        privacy_mode: true,
+        publish_status: true,
+        record_type: true,
+        source_remote_id: true,
+        source_type: true,
+        starts_at: true,
+        title: true,
+        updated_at: true,
+        working_location: true,
+      },
+      where: whereConditions,
     });
 
     return {
       ok: true,
       value: records.map((r) => ({
-        id: r.id as AvailabilityRecordId,
-        clerkOrgId: r.clerk_org_id,
-        organisationId: r.organisation_id as OrganisationId,
-        personId: r.person_id as PersonId,
-        recordType: r.record_type,
-        sourceType: r.source_type,
-        sourceRemoteId: r.source_remote_id,
-        startsAt: r.starts_at,
-        endsAt: r.ends_at,
-        approvalStatus: r.approval_status,
-        privacyMode: r.privacy_mode,
-        contactability: r.contactability,
-        includeInFeed: r.include_in_feed,
-        publishStatus: r.publish_status,
-        derivedUidKey: r.derived_uid_key,
-        createdAt: r.created_at,
-        updatedAt: r.updated_at,
-        title: r.title,
         allDay: r.all_day,
-        notesInternal: r.notes_internal,
-        workingLocation: r.working_location,
+        approvalStatus: r.approval_status,
         archivedAt: r.archived_at,
+        clerkOrgId: r.clerk_org_id,
+        contactability: r.contactability,
+        createdAt: r.created_at,
+        derivedUidKey: r.derived_uid_key,
+        endsAt: r.ends_at,
+        id: r.id as AvailabilityRecordId,
+        includeInFeed: r.include_in_feed,
+        notesInternal: r.notes_internal,
+        organisationId: r.organisation_id as OrganisationId,
         personFirstName: r.person.first_name,
+        personId: r.person_id as PersonId,
         personLastName: r.person.last_name,
+        privacyMode: r.privacy_mode,
+        publishStatus: r.publish_status,
+        recordType: r.record_type,
+        sourceRemoteId: r.source_remote_id,
+        sourceType: r.source_type,
+        startsAt: r.starts_at,
+        title: r.title,
+        updatedAt: r.updated_at,
+        workingLocation: r.working_location,
       })),
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to list manual availability"),
+      ok: false,
     };
   }
 }
@@ -375,77 +375,77 @@ export async function getAvailabilityRecordById(
 ): Promise<Result<ManualAvailabilityListData>> {
   try {
     const record = await database.availabilityRecord.findFirst({
+      select: {
+        all_day: true,
+        approval_status: true,
+        archived_at: true,
+        clerk_org_id: true,
+        contactability: true,
+        created_at: true,
+        derived_uid_key: true,
+        ends_at: true,
+        id: true,
+        include_in_feed: true,
+        notes_internal: true,
+        organisation_id: true,
+        person: { select: { first_name: true, last_name: true } },
+        person_id: true,
+        privacy_mode: true,
+        publish_status: true,
+        record_type: true,
+        source_remote_id: true,
+        source_type: true,
+        starts_at: true,
+        title: true,
+        updated_at: true,
+        working_location: true,
+      },
       where: {
         ...scopedQuery(clerkOrgId, organisationId),
         id: recordId,
-      },
-      select: {
-        id: true,
-        clerk_org_id: true,
-        organisation_id: true,
-        person_id: true,
-        record_type: true,
-        source_type: true,
-        source_remote_id: true,
-        starts_at: true,
-        ends_at: true,
-        approval_status: true,
-        privacy_mode: true,
-        contactability: true,
-        include_in_feed: true,
-        publish_status: true,
-        derived_uid_key: true,
-        created_at: true,
-        updated_at: true,
-        title: true,
-        all_day: true,
-        notes_internal: true,
-        working_location: true,
-        archived_at: true,
-        person: { select: { first_name: true, last_name: true } },
       },
     });
 
     if (!record) {
       return {
-        ok: false,
         error: appError("not_found", "Availability record not found"),
+        ok: false,
       };
     }
 
     return {
       ok: true,
       value: {
-        id: record.id as AvailabilityRecordId,
-        clerkOrgId: record.clerk_org_id,
-        organisationId: record.organisation_id as OrganisationId,
-        personId: record.person_id as PersonId,
-        recordType: record.record_type,
-        sourceType: record.source_type,
-        sourceRemoteId: record.source_remote_id,
-        startsAt: record.starts_at,
-        endsAt: record.ends_at,
-        approvalStatus: record.approval_status,
-        privacyMode: record.privacy_mode,
-        contactability: record.contactability,
-        includeInFeed: record.include_in_feed,
-        publishStatus: record.publish_status,
-        derivedUidKey: record.derived_uid_key,
-        createdAt: record.created_at,
-        updatedAt: record.updated_at,
-        title: record.title,
         allDay: record.all_day,
-        notesInternal: record.notes_internal,
-        workingLocation: record.working_location,
+        approvalStatus: record.approval_status,
         archivedAt: record.archived_at,
+        clerkOrgId: record.clerk_org_id,
+        contactability: record.contactability,
+        createdAt: record.created_at,
+        derivedUidKey: record.derived_uid_key,
+        endsAt: record.ends_at,
+        id: record.id as AvailabilityRecordId,
+        includeInFeed: record.include_in_feed,
+        notesInternal: record.notes_internal,
+        organisationId: record.organisation_id as OrganisationId,
         personFirstName: record.person.first_name,
+        personId: record.person_id as PersonId,
         personLastName: record.person.last_name,
+        privacyMode: record.privacy_mode,
+        publishStatus: record.publish_status,
+        recordType: record.record_type,
+        sourceRemoteId: record.source_remote_id,
+        sourceType: record.source_type,
+        startsAt: record.starts_at,
+        title: record.title,
+        updatedAt: record.updated_at,
+        workingLocation: record.working_location,
       },
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to get availability record"),
+      ok: false,
     };
   }
 }

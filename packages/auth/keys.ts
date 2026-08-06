@@ -3,17 +3,7 @@ import { z } from "zod";
 
 export const keys = () =>
   createEnv({
-    server: {
-      CLERK_SECRET_KEY: z.string().startsWith("sk_").optional(),
-      CLERK_WEBHOOK_SECRET: z.string().startsWith("whsec_").optional(),
-    },
     client: {
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z
-        .string()
-        .startsWith("pk_")
-        .optional(),
-      NEXT_PUBLIC_CLERK_SIGN_IN_URL: z.string().startsWith("/").optional(),
-      NEXT_PUBLIC_CLERK_SIGN_UP_URL: z.string().startsWith("/").optional(),
       NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: z
         .string()
         .startsWith("/")
@@ -22,20 +12,30 @@ export const keys = () =>
         .string()
         .startsWith("/")
         .optional(),
-    },
-    runtimeEnv: {
-      CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
-      CLERK_WEBHOOK_SECRET: process.env.CLERK_WEBHOOK_SECRET,
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
-        process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-      NEXT_PUBLIC_CLERK_SIGN_IN_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL,
-      NEXT_PUBLIC_CLERK_SIGN_UP_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL,
-      NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL:
-        process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL,
-      NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL:
-        process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL,
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z
+        .string()
+        .startsWith("pk_")
+        .optional(),
+      NEXT_PUBLIC_CLERK_SIGN_IN_URL: z.string().startsWith("/").optional(),
+      NEXT_PUBLIC_CLERK_SIGN_UP_URL: z.string().startsWith("/").optional(),
     },
     // Treat an empty string (e.g. a blank Vercel env var) as unset so the
     // format-constrained optional keys do not fail validation.
     emptyStringAsUndefined: true,
+    runtimeEnv: {
+      CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+      CLERK_WEBHOOK_SECRET: process.env.CLERK_WEBHOOK_SECRET,
+      NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL:
+        process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL,
+      NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL:
+        process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL,
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
+        process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+      NEXT_PUBLIC_CLERK_SIGN_IN_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL,
+      NEXT_PUBLIC_CLERK_SIGN_UP_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL,
+    },
+    server: {
+      CLERK_SECRET_KEY: z.string().startsWith("sk_").optional(),
+      CLERK_WEBHOOK_SECRET: z.string().startsWith("whsec_").optional(),
+    },
   });

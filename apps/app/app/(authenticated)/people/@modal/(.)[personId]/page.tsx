@@ -61,12 +61,12 @@ async function loadProfileViewModel(
   }
 
   const actingPerson = await database.person.findFirst({
+    select: { id: true },
     where: {
       ...scopedQuery(clerkOrgId, organisationId),
       archived_at: null,
       clerk_user_id: user.id,
     },
-    select: { id: true },
   });
 
   const profileResult = await getPersonProfile({

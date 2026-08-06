@@ -70,30 +70,30 @@ export async function updateFeedDefaultsAction(input: {
 
 function notAuthorised(): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "You do not have permission to manage feed defaults.",
     },
+    ok: false,
   };
 }
 
 function unknownError(message: string): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "unknown_error",
       message,
     },
+    ok: false,
   };
 }
 
 function validationError(message?: string): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: message ?? "Invalid feed defaults request.",
     },
+    ok: false,
   };
 }

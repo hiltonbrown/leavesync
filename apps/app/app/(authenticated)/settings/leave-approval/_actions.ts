@@ -65,7 +65,6 @@ export async function updateLeaveApprovalSettingsAction(input: {
   });
   if (!result.ok) {
     return {
-      ok: false,
       error: {
         code:
           result.error.code === "not_authorised" ||
@@ -74,6 +73,7 @@ export async function updateLeaveApprovalSettingsAction(input: {
             : "unknown_error",
         message: result.error.message,
       },
+      ok: false,
     };
   }
 
@@ -135,20 +135,20 @@ function revalidatePaths() {
 
 function notAuthorised(): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "You do not have permission to manage leave approval settings.",
     },
+    ok: false,
   };
 }
 
 function validationError(message?: string): ActionResult<never> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: message ?? "Invalid leave approval settings request.",
     },
+    ok: false,
   };
 }

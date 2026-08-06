@@ -42,6 +42,20 @@ export async function listNotificationsForUser(
 ): Promise<Result<NotificationData[]>> {
   try {
     const notifications = await database.notification.findMany({
+      orderBy: { created_at: "desc" },
+      select: {
+        action_url: true,
+        body: true,
+        clerk_org_id: true,
+        created_at: true,
+        id: true,
+        organisation_id: true,
+        read_at: true,
+        recipient_user_id: true,
+        title: true,
+        type: true,
+        updated_at: true,
+      },
       where: {
         clerk_org_id: clerkOrgId,
         organisation_id: organisationId,
@@ -50,42 +64,28 @@ export async function listNotificationsForUser(
         ...(filters?.isRead === false ? { read_at: null } : {}),
         ...(filters?.types?.length ? { type: { in: filters.types } } : {}),
       },
-      select: {
-        id: true,
-        clerk_org_id: true,
-        organisation_id: true,
-        recipient_user_id: true,
-        type: true,
-        title: true,
-        body: true,
-        action_url: true,
-        read_at: true,
-        created_at: true,
-        updated_at: true,
-      },
-      orderBy: { created_at: "desc" },
     });
 
     return {
       ok: true,
       value: notifications.map((notification) => ({
-        id: notification.id,
-        clerkOrgId: notification.clerk_org_id,
-        organisationId: notification.organisation_id,
-        recipientUserId: notification.recipient_user_id,
-        type: notification.type,
-        title: notification.title,
-        body: notification.body,
         actionUrl: notification.action_url,
-        readAt: notification.read_at,
+        body: notification.body,
+        clerkOrgId: notification.clerk_org_id,
         createdAt: notification.created_at,
+        id: notification.id,
+        organisationId: notification.organisation_id,
+        readAt: notification.read_at,
+        recipientUserId: notification.recipient_user_id,
+        title: notification.title,
+        type: notification.type,
         updatedAt: notification.updated_at,
       })),
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to list notifications"),
+      ok: false,
     };
   }
 }
@@ -100,15 +100,15 @@ export async function countUnreadNotifications(
       where: {
         clerk_org_id: clerkOrgId,
         organisation_id: organisationId,
-        recipient_user_id: userId,
         read_at: null,
+        recipient_user_id: userId,
       },
     });
     return { ok: true, value: count };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to count unread notifications"),
+      ok: false,
     };
   }
 }
@@ -121,20 +121,20 @@ export async function markNotificationRead(
 ): Promise<Result<void>> {
   try {
     await database.notification.updateMany({
-      where: {
-        id: notificationId,
-        clerk_org_id: clerkOrgId,
-        organisation_id: organisationId,
-        recipient_user_id: userId,
-        read_at: null,
-      },
       data: { read_at: new Date() },
+      where: {
+        clerk_org_id: clerkOrgId,
+        id: notificationId,
+        organisation_id: organisationId,
+        read_at: null,
+        recipient_user_id: userId,
+      },
     });
     return { ok: true, value: undefined };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to mark notification as read"),
+      ok: false,
     };
   }
 }
@@ -146,19 +146,19 @@ export async function markAllNotificationsRead(
 ): Promise<Result<{ updatedCount: number }>> {
   try {
     const result = await database.notification.updateMany({
+      data: { read_at: new Date() },
       where: {
         clerk_org_id: clerkOrgId,
         organisation_id: organisationId,
-        recipient_user_id: userId,
         read_at: null,
+        recipient_user_id: userId,
       },
-      data: { read_at: new Date() },
     });
     return { ok: true, value: { updatedCount: result.count } };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to mark notifications as read"),
+      ok: false,
     };
   }
 }
@@ -170,43 +170,43 @@ export async function listNotificationPreferencesForUser(
 ): Promise<Result<NotificationPreferenceData[]>> {
   try {
     const preferences = await database.notificationPreference.findMany({
+      orderBy: { notification_type: "asc" },
+      select: {
+        clerk_org_id: true,
+        created_at: true,
+        email_enabled: true,
+        id: true,
+        in_app_enabled: true,
+        notification_type: true,
+        organisation_id: true,
+        updated_at: true,
+        user_id: true,
+      },
       where: {
         clerk_org_id: clerkOrgId,
         organisation_id: organisationId,
         user_id: userId,
       },
-      select: {
-        id: true,
-        user_id: true,
-        clerk_org_id: true,
-        organisation_id: true,
-        notification_type: true,
-        in_app_enabled: true,
-        email_enabled: true,
-        created_at: true,
-        updated_at: true,
-      },
-      orderBy: { notification_type: "asc" },
     });
 
     return {
       ok: true,
       value: preferences.map((preference) => ({
-        id: preference.id,
-        userId: preference.user_id,
         clerkOrgId: preference.clerk_org_id,
-        organisationId: preference.organisation_id,
-        notificationType: preference.notification_type,
-        inAppEnabled: preference.in_app_enabled,
-        emailEnabled: preference.email_enabled,
         createdAt: preference.created_at,
+        emailEnabled: preference.email_enabled,
+        id: preference.id,
+        inAppEnabled: preference.in_app_enabled,
+        notificationType: preference.notification_type,
+        organisationId: preference.organisation_id,
         updatedAt: preference.updated_at,
+        userId: preference.user_id,
       })),
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to list notification preferences"),
+      ok: false,
     };
   }
 }
@@ -223,56 +223,56 @@ export async function upsertNotificationPreference(
 ): Promise<Result<NotificationPreferenceData>> {
   try {
     const preference = await database.notificationPreference.upsert({
-      where: {
-        user_id_organisation_id_notification_type: {
-          user_id: userId,
-          organisation_id: organisationId,
-          notification_type: input.notificationType,
-        },
-      },
       create: {
-        user_id: userId,
         clerk_org_id: clerkOrgId,
-        organisation_id: organisationId,
+        email_enabled: input.emailEnabled,
+        in_app_enabled: input.inAppEnabled,
         notification_type: input.notificationType,
-        in_app_enabled: input.inAppEnabled,
-        email_enabled: input.emailEnabled,
-      },
-      update: {
-        in_app_enabled: input.inAppEnabled,
-        email_enabled: input.emailEnabled,
+        organisation_id: organisationId,
+        user_id: userId,
       },
       select: {
-        id: true,
-        user_id: true,
         clerk_org_id: true,
-        organisation_id: true,
-        notification_type: true,
-        in_app_enabled: true,
-        email_enabled: true,
         created_at: true,
+        email_enabled: true,
+        id: true,
+        in_app_enabled: true,
+        notification_type: true,
+        organisation_id: true,
         updated_at: true,
+        user_id: true,
+      },
+      update: {
+        email_enabled: input.emailEnabled,
+        in_app_enabled: input.inAppEnabled,
+      },
+      where: {
+        user_id_organisation_id_notification_type: {
+          notification_type: input.notificationType,
+          organisation_id: organisationId,
+          user_id: userId,
+        },
       },
     });
 
     return {
       ok: true,
       value: {
-        id: preference.id,
-        userId: preference.user_id,
         clerkOrgId: preference.clerk_org_id,
-        organisationId: preference.organisation_id,
-        notificationType: preference.notification_type,
-        inAppEnabled: preference.in_app_enabled,
-        emailEnabled: preference.email_enabled,
         createdAt: preference.created_at,
+        emailEnabled: preference.email_enabled,
+        id: preference.id,
+        inAppEnabled: preference.in_app_enabled,
+        notificationType: preference.notification_type,
+        organisationId: preference.organisation_id,
         updatedAt: preference.updated_at,
+        userId: preference.user_id,
       },
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to update notification preference"),
+      ok: false,
     };
   }
 }

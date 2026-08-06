@@ -3,16 +3,16 @@ import type { Metadata } from "next";
 import { changelog } from "@/src/data/changelog";
 
 export const metadata: Metadata = createMetadata({
-  title: "Changelog",
   description:
     "Team Calendar product updates. A log of new features, improvements, and fixes.",
+  title: "Changelog",
 });
 
 const typeLabels: Record<string, { label: string }> = {
-  feat: { label: "New" },
-  improvement: { label: "Improved" },
-  fix: { label: "Fixed" },
   chore: { label: "Chore" },
+  feat: { label: "New" },
+  fix: { label: "Fixed" },
+  improvement: { label: "Improved" },
 };
 
 const ChangelogPage = () => (

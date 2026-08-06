@@ -40,19 +40,19 @@ export async function getLatestSyncRunSummary(
 ): Promise<Result<SyncRunSummaryData | null>> {
   try {
     const syncRun = await database.syncRun.findFirst({
+      orderBy: { started_at: "desc" },
+      select: {
+        completed_at: true,
+        entity_type: true,
+        id: true,
+        records_failed: true,
+        records_synced: true,
+        started_at: true,
+        status: true,
+      },
       where: {
         ...scopedQuery(clerkOrgId, organisationId),
       },
-      select: {
-        id: true,
-        status: true,
-        entity_type: true,
-        records_synced: true,
-        records_failed: true,
-        started_at: true,
-        completed_at: true,
-      },
-      orderBy: { started_at: "desc" },
     });
 
     if (!syncRun) {
@@ -65,19 +65,19 @@ export async function getLatestSyncRunSummary(
     return {
       ok: true,
       value: {
-        id: syncRun.id,
-        status: syncRun.status,
-        entityType: syncRun.entity_type,
-        recordsSynced: syncRun.records_synced,
-        recordsFailed: syncRun.records_failed,
-        startedAt: syncRun.started_at,
         completedAt: syncRun.completed_at,
+        entityType: syncRun.entity_type,
+        id: syncRun.id,
+        recordsFailed: syncRun.records_failed,
+        recordsSynced: syncRun.records_synced,
+        startedAt: syncRun.started_at,
+        status: syncRun.status,
       },
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to get latest sync run"),
+      ok: false,
     };
   }
 }
@@ -89,38 +89,38 @@ export async function listRecentSyncRuns(
 ): Promise<Result<SyncRunSummaryData[]>> {
   try {
     const syncRuns = await database.syncRun.findMany({
+      orderBy: { started_at: "desc" },
+      select: {
+        completed_at: true,
+        entity_type: true,
+        id: true,
+        records_failed: true,
+        records_synced: true,
+        started_at: true,
+        status: true,
+      },
+      take: limit ?? 10,
       where: {
         ...scopedQuery(clerkOrgId, organisationId),
       },
-      select: {
-        id: true,
-        status: true,
-        entity_type: true,
-        records_synced: true,
-        records_failed: true,
-        started_at: true,
-        completed_at: true,
-      },
-      orderBy: { started_at: "desc" },
-      take: limit ?? 10,
     });
 
     return {
       ok: true,
       value: syncRuns.map((r) => ({
-        id: r.id,
-        status: r.status,
-        entityType: r.entity_type,
-        recordsSynced: r.records_synced,
-        recordsFailed: r.records_failed,
-        startedAt: r.started_at,
         completedAt: r.completed_at,
+        entityType: r.entity_type,
+        id: r.id,
+        recordsFailed: r.records_failed,
+        recordsSynced: r.records_synced,
+        startedAt: r.started_at,
+        status: r.status,
       })),
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to list sync runs"),
+      ok: false,
     };
   }
 }
@@ -132,36 +132,36 @@ export async function listFailedRecordsForSyncRun(
 ): Promise<Result<FailedRecordData[]>> {
   try {
     const failedRecords = await database.failedRecord.findMany({
+      orderBy: { created_at: "desc" },
+      select: {
+        created_at: true,
+        entity_type: true,
+        error_message: true,
+        id: true,
+        source_id: true,
+        sync_run_id: true,
+      },
       where: {
         ...scopedQuery(clerkOrgId, organisationId),
         sync_run_id: syncRunId,
       },
-      select: {
-        id: true,
-        sync_run_id: true,
-        entity_type: true,
-        source_id: true,
-        error_message: true,
-        created_at: true,
-      },
-      orderBy: { created_at: "desc" },
     });
 
     return {
       ok: true,
       value: failedRecords.map((r) => ({
-        id: r.id,
-        syncRunId: r.sync_run_id,
-        entityType: r.entity_type,
-        sourceId: r.source_id,
-        errorMessage: r.error_message,
         createdAt: r.created_at,
+        entityType: r.entity_type,
+        errorMessage: r.error_message,
+        id: r.id,
+        sourceId: r.source_id,
+        syncRunId: r.sync_run_id,
       })),
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to list failed records"),
+      ok: false,
     };
   }
 }
@@ -173,42 +173,42 @@ export async function listRecentAuditEvents(
 ): Promise<Result<AuditEventData[]>> {
   try {
     const auditEvents = await database.auditEvent.findMany({
+      orderBy: { created_at: "desc" },
+      select: {
+        action: true,
+        actor_user_id: true,
+        clerk_org_id: true,
+        created_at: true,
+        id: true,
+        organisation_id: true,
+        payload: true,
+        resource_id: true,
+        resource_type: true,
+      },
+      take: limit ?? 20,
       where: {
         ...scopedQuery(clerkOrgId, organisationId),
       },
-      select: {
-        id: true,
-        clerk_org_id: true,
-        organisation_id: true,
-        actor_user_id: true,
-        action: true,
-        resource_type: true,
-        resource_id: true,
-        payload: true,
-        created_at: true,
-      },
-      orderBy: { created_at: "desc" },
-      take: limit ?? 20,
     });
 
     return {
       ok: true,
       value: auditEvents.map((e) => ({
-        id: e.id,
-        clerkOrgId: e.clerk_org_id,
-        organisationId: e.organisation_id as OrganisationId,
-        actorUserId: e.actor_user_id,
         action: e.action,
-        resourceType: e.resource_type,
-        resourceId: e.resource_id,
-        payload: e.payload,
+        actorUserId: e.actor_user_id,
+        clerkOrgId: e.clerk_org_id,
         createdAt: e.created_at,
+        id: e.id,
+        organisationId: e.organisation_id as OrganisationId,
+        payload: e.payload,
+        resourceId: e.resource_id,
+        resourceType: e.resource_type,
       })),
     };
   } catch {
     return {
-      ok: false,
       error: appError("internal", "Failed to list audit events"),
+      ok: false,
     };
   }
 }

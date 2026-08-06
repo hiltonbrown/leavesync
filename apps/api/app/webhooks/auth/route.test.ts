@@ -92,13 +92,13 @@ describe("Clerk organisation membership webhook handling", () => {
 
     expect(response.status).toBe(201);
     expect(mocks.organisationFindMany).toHaveBeenCalledWith({
-      where: {
-        archived_at: null,
-        clerk_org_id: "org_1",
-      },
       select: {
         clerk_org_id: true,
         id: true,
+      },
+      where: {
+        archived_at: null,
+        clerk_org_id: "org_1",
       },
     });
     expect(mocks.ensureCurrentUserPerson).toHaveBeenCalledTimes(2);
@@ -125,12 +125,12 @@ describe("Clerk organisation membership webhook handling", () => {
 
     expect(response.status).toBe(201);
     expect(mocks.personUpdateMany).toHaveBeenCalledWith({
+      data: {
+        clerk_user_id: null,
+      },
       where: {
         clerk_org_id: "org_1",
         clerk_user_id: "user_1",
-      },
-      data: {
-        clerk_user_id: null,
       },
     });
   });

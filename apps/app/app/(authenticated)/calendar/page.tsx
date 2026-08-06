@@ -57,12 +57,12 @@ const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
 
   const role = calendarRole(orgRole);
   const currentPerson = await database.person.findFirst({
+    select: { id: true },
     where: {
       ...scopedQuery(clerkOrgId, organisationId),
       archived_at: null,
       clerk_user_id: user.id,
     },
-    select: { id: true },
   });
   const defaultScopeType = defaultScopeForRole(role);
   const scope = resolveScope(parsedFilters, defaultScopeType);
@@ -77,22 +77,22 @@ const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
 
   const [organisation, teams, locations] = await Promise.all([
     database.organisation.findFirst({
+      select: { timezone: true },
       where: {
         archived_at: null,
         clerk_org_id: clerkOrgId,
         id: organisationId,
       },
-      select: { timezone: true },
     }),
     database.team.findMany({
-      where: scopedQuery(clerkOrgId, organisationId),
       orderBy: { name: "asc" },
       select: { id: true, name: true },
+      where: scopedQuery(clerkOrgId, organisationId),
     }),
     database.location.findMany({
-      where: scopedQuery(clerkOrgId, organisationId),
       orderBy: { name: "asc" },
       select: { id: true, name: true },
+      where: scopedQuery(clerkOrgId, organisationId),
     }),
   ]);
   const timezone = organisation?.timezone ?? "UTC";

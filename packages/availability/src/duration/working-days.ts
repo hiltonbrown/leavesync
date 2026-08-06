@@ -66,11 +66,11 @@ export async function computeWorkingDays(
 ): Promise<Result<number, DurationError>> {
   if (input.endsAt < input.startsAt) {
     return {
-      ok: false,
       error: {
         code: "invalid_range",
         message: "End date must be after start date",
       },
+      ok: false,
     };
   }
 
@@ -78,11 +78,11 @@ export async function computeWorkingDays(
     const location = await loadDurationLocation(input);
     if (!location) {
       return {
-        ok: false,
         error: {
           code: "location_not_found",
           message: "Location could not be found",
         },
+        ok: false,
       };
     }
 
@@ -90,9 +90,6 @@ export async function computeWorkingDays(
     const startParts = getLocalDateParts(input.startsAt, timezone);
     const endParts = getLocalDateParts(input.endsAt, timezone);
     const holidayDates = loadHolidayDatesFromResults({
-      location,
-      locationId: input.locationId,
-      timezone,
       holidayResults: await Promise.all(
         yearsBetween(startParts.year, endParts.year).map((year) =>
           listForOrganisation(
@@ -102,6 +99,9 @@ export async function computeWorkingDays(
           )
         )
       ),
+      location,
+      locationId: input.locationId,
+      timezone,
     });
 
     if (!holidayDates.ok) {
@@ -125,11 +125,11 @@ export async function computeWorkingDays(
     return { ok: true, value: roundHalfUpToQuarter(duration) };
   } catch {
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to compute working days",
       },
+      ok: false,
     };
   }
 }
@@ -140,22 +140,22 @@ export function workingDayYearsForInput(
 ): Result<number[], DurationError> {
   if (input.endsAt < input.startsAt) {
     return {
-      ok: false,
       error: {
         code: "invalid_range",
         message: "End date must be after start date",
       },
+      ok: false,
     };
   }
 
   const location = resolveDurationLocation(input, referenceData);
   if (!location) {
     return {
-      ok: false,
       error: {
         code: "location_not_found",
         message: "Location could not be found",
       },
+      ok: false,
     };
   }
 
@@ -171,11 +171,11 @@ export function computeWorkingDaysFromReferenceData(
 ): Result<number, DurationError> {
   if (input.endsAt < input.startsAt) {
     return {
-      ok: false,
       error: {
         code: "invalid_range",
         message: "End date must be after start date",
       },
+      ok: false,
     };
   }
 
@@ -183,11 +183,11 @@ export function computeWorkingDaysFromReferenceData(
     const location = resolveDurationLocation(input, referenceData);
     if (!location) {
       return {
-        ok: false,
         error: {
           code: "location_not_found",
           message: "Location could not be found",
         },
+        ok: false,
       };
     }
 
@@ -197,8 +197,8 @@ export function computeWorkingDaysFromReferenceData(
     const holidayResults = yearsBetween(startParts.year, endParts.year).map(
       (year) =>
         referenceData.holidaysByYear.get(year) ?? {
-          ok: false as const,
           error: { message: "Failed to load holidays" },
+          ok: false as const,
         }
     );
     const holidayDates = loadHolidayDatesFromResults({
@@ -229,11 +229,11 @@ export function computeWorkingDaysFromReferenceData(
     return { ok: true, value: roundHalfUpToQuarter(duration) };
   } catch {
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to compute working days",
       },
+      ok: false,
     };
   }
 }
@@ -241,6 +241,11 @@ export function computeWorkingDaysFromReferenceData(
 async function loadDurationLocation(input: ComputeWorkingDaysInput) {
   if (input.locationId) {
     return await database.location.findFirst({
+      select: {
+        country_code: true,
+        region_code: true,
+        timezone: true,
+      },
       where: {
         ...scopedQuery(
           input.clerkOrgId as ClerkOrgId,
@@ -248,23 +253,18 @@ async function loadDurationLocation(input: ComputeWorkingDaysInput) {
         ),
         id: input.locationId,
       },
-      select: {
-        country_code: true,
-        region_code: true,
-        timezone: true,
-      },
     });
   }
 
   const organisation = await database.organisation.findFirst({
+    select: {
+      country_code: true,
+      timezone: true,
+    },
     where: {
       archived_at: null,
       clerk_org_id: input.clerkOrgId,
       id: input.organisationId,
-    },
-    select: {
-      country_code: true,
-      timezone: true,
     },
   });
   return organisation
@@ -301,11 +301,11 @@ function loadHolidayDatesFromResults({
   for (const result of holidayResults) {
     if (!(result.ok && location)) {
       return {
-        ok: false,
         error: {
           code: "unknown_error",
           message: result.ok ? "Failed to load location" : result.error.message,
         },
+        ok: false,
       };
     }
 

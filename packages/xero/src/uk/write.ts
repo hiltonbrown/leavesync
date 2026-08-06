@@ -22,26 +22,26 @@ export function submitLeaveApplication(
   XeroWriteResult<{ rawResponse: unknown; xeroLeaveApplicationId: string }>
 > {
   // TODO(uk-payroll): implement UK payroll leave write-back.
-  return Promise.resolve({ ok: false, error: writeBackNotAvailableError });
+  return Promise.resolve({ error: writeBackNotAvailableError, ok: false });
 }
 
 export function approveLeaveApplication(
   _input: ApproveLeaveApplicationInput
 ): Promise<XeroWriteResult<{ rawResponse: unknown }>> {
   // TODO(uk-payroll): implement UK payroll leave write-back.
-  return Promise.resolve({ ok: false, error: approvalNotAvailableError });
+  return Promise.resolve({ error: approvalNotAvailableError, ok: false });
 }
 
 export function declineLeaveApplication(
   _input: DeclineLeaveApplicationInput
 ): Promise<XeroWriteResult<{ rawResponse: unknown }>> {
   // TODO(uk-payroll): implement UK payroll leave write-back.
-  return Promise.resolve({ ok: false, error: approvalNotAvailableError });
+  return Promise.resolve({ error: approvalNotAvailableError, ok: false });
 }
 
 export function withdrawLeaveApplication(
   _input: WithdrawLeaveApplicationInput
 ): Promise<XeroWriteResult<{ rawResponse: unknown }>> {
   // TODO(uk-payroll): implement UK payroll leave write-back.
-  return Promise.resolve({ ok: false, error: writeBackNotAvailableError });
+  return Promise.resolve({ error: writeBackNotAvailableError, ok: false });
 }

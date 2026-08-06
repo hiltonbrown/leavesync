@@ -230,12 +230,12 @@ export async function getCalendarRange(
   try {
     const [organisation, settingsResult] = await Promise.all([
       database.organisation.findFirst({
+        select: { timezone: true },
         where: {
           archived_at: null,
           clerk_org_id: parsed.data.clerkOrgId,
           id: parsed.data.organisationId,
         },
-        select: { timezone: true },
       }),
       getSettings({
         clerkOrgId: parsed.data.clerkOrgId,
@@ -357,6 +357,7 @@ export async function getEventDetail(
       organisationId: parsed.data.organisationId,
     });
     const record = await database.availabilityRecord.findFirst({
+      select: recordSelect,
       where: {
         ...scopedTo({
           clerkOrgId: parsed.data.clerkOrgId,
@@ -365,7 +366,6 @@ export async function getEventDetail(
         archived_at: null,
         id: parsed.data.recordId,
       },
-      select: recordSelect,
     });
     if (!record) {
       return await recordNotFoundOrLeak(parsed.data);
@@ -431,6 +431,8 @@ export async function getEventDetail(
 
 async function loadPeople(input: ParsedRangeInput): Promise<ScopedPerson[]> {
   return await database.person.findMany({
+    orderBy: [{ last_name: "asc" }, { first_name: "asc" }, { id: "asc" }],
+    select: personSelect,
     where: {
       ...scopedTo({
         clerkOrgId: input.clerkOrgId,
@@ -439,8 +441,6 @@ async function loadPeople(input: ParsedRangeInput): Promise<ScopedPerson[]> {
       archived_at: null,
       is_active: true,
     },
-    orderBy: [{ last_name: "asc" }, { first_name: "asc" }, { id: "asc" }],
-    select: personSelect,
   });
 }
 
@@ -573,14 +573,16 @@ async function loadRecords(
   ];
 
   return await database.availabilityRecord.findMany({
+    orderBy: [{ starts_at: "asc" }, { person_id: "asc" }, { id: "asc" }],
+    select: recordSelect,
     where: {
       ...scopedTo({
         clerkOrgId: input.clerkOrgId,
         organisationId: input.organisationId,
       }),
-      OR: approvalOr,
       archived_at: null,
       ends_at: { gt: range.start },
+      OR: approvalOr,
       person_id: { in: personIds },
       record_type: input.filters.recordType?.length
         ? { in: input.filters.recordType }
@@ -588,8 +590,6 @@ async function loadRecords(
       source_type: { in: sourceTypesForCategory(category) },
       starts_at: { lt: range.end },
     },
-    orderBy: [{ starts_at: "asc" }, { person_id: "asc" }, { id: "asc" }],
-    select: recordSelect,
   });
 }
 
@@ -1033,8 +1033,8 @@ async function recordNotFoundOrLeak(
   input: ParsedDetailInput
 ): Promise<Result<never, CalendarServiceError>> {
   const exists = await database.availabilityRecord.findFirst({
-    where: { id: input.recordId },
     select: { clerk_org_id: true, organisation_id: true },
+    where: { id: input.recordId },
   });
   if (
     exists &&
@@ -1042,16 +1042,16 @@ async function recordNotFoundOrLeak(
       exists.organisation_id !== input.organisationId)
   ) {
     return {
-      ok: false,
       error: {
         code: "cross_org_leak",
         message: "Record is outside this organisation.",
       },
+      ok: false,
     };
   }
   return {
-    ok: false,
     error: { code: "invalid_scope", message: "Record not found." },
+    ok: false,
   };
 }
 
@@ -1059,38 +1059,38 @@ function validationError(
   error: z.ZodError
 ): Result<never, CalendarServiceError> {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message: error.issues[0]?.message ?? "Invalid calendar request.",
     },
+    ok: false,
   };
 }
 
 function notAuthorised(): Result<never, CalendarServiceError> {
   return {
-    ok: false,
     error: {
       code: "not_authorised",
       message: "You do not have permission to view this calendar.",
     },
+    ok: false,
   };
 }
 
 function invalidScope(): Result<never, CalendarServiceError> {
   return {
-    ok: false,
     error: {
       code: "invalid_scope",
       message: "Calendar scope is not available.",
     },
+    ok: false,
   };
 }
 
 function unknownError(message: string): Result<never, CalendarServiceError> {
   return {
-    ok: false,
     error: { code: "unknown_error", message },
+    ok: false,
   };
 }
 
@@ -1102,10 +1102,6 @@ const personSelect = {
   first_name: true,
   id: true,
   last_name: true,
-  location_id: true,
-  manager_person_id: true,
-  person_type: true,
-  team_id: true,
   location: {
     select: {
       country_code: true,
@@ -1115,12 +1111,16 @@ const personSelect = {
       timezone: true,
     },
   },
+  location_id: true,
+  manager_person_id: true,
+  person_type: true,
   team: {
     select: {
       id: true,
       name: true,
     },
   },
+  team_id: true,
 } as const;
 
 const recordSelect = {
@@ -1132,6 +1132,9 @@ const recordSelect = {
   ends_at: true,
   id: true,
   notes_internal: true,
+  person: {
+    select: personSelect,
+  },
   person_id: true,
   privacy_mode: true,
   record_type: true,
@@ -1140,7 +1143,4 @@ const recordSelect = {
   submitted_at: true,
   title: true,
   xero_write_error: true,
-  person: {
-    select: personSelect,
-  },
 } as const;

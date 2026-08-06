@@ -28,9 +28,7 @@ const parseOrigin = (value: string | undefined): URL | undefined => {
   try {
     const url = new URL(value);
     return new URL(url.origin);
-  } catch {
-    return;
-  }
+  } catch {}
 };
 
 export const resolveCanonicalWebUrl = (

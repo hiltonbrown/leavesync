@@ -294,8 +294,8 @@ describeWithDatabase("feed services", () => {
         organisationId: otherTenant.organisationId,
       })
     ).resolves.toMatchObject({
-      ok: false,
       error: { code: "cross_org_leak" },
+      ok: false,
     });
 
     await expect(
@@ -307,8 +307,8 @@ describeWithDatabase("feed services", () => {
         tokenId: token.id,
       })
     ).resolves.toMatchObject({
-      ok: false,
       error: { code: "cross_org_leak" },
+      ok: false,
     });
 
     const activeToken = await database.feedToken.findUnique({
@@ -395,8 +395,8 @@ describeWithDatabase("feed services", () => {
         organisationId: otherTenant.organisationId,
       })
     ).resolves.toMatchObject({
-      ok: false,
       error: { code: "cross_org_leak" },
+      ok: false,
     });
 
     const paused = await pauseFeed({

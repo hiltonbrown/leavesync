@@ -87,11 +87,11 @@ async function mirrorSubscription(
     return;
   }
   await inngest.send({
-    name: "recount-usage",
     data: {
       clerkOrgId,
       organisationId,
     },
+    name: "recount-usage",
   });
 }
 

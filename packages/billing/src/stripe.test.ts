@@ -2,12 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 vi.mock("@repo/database", () => ({
+  getSubscriptionForOrg: vi.fn(),
   PLAN_CATALOGUE: [
     { plan_key: "basic", priceId: "price_basic" },
     { plan_key: "premium", priceId: "price_premium" },
     { plan_key: "enterprise", priceId: null },
   ],
-  getSubscriptionForOrg: vi.fn(),
 }));
 
 const { STRIPE_API_VERSION, getStripe, resolvePlanKey } = await import(

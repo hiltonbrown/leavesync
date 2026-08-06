@@ -139,23 +139,23 @@ export async function reconcileFeedPublications(
   } catch (error) {
     log.error("Unhandled exception in reconcileFeedPublications:", { error });
     return {
-      ok: false,
       error: {
         code: "unknown_error",
         message: "Failed to reconcile feed publications.",
       },
+      ok: false,
     };
   }
 }
 
 function validationError(error: z.ZodError): ReconcileFeedPublicationsResult {
   return {
-    ok: false,
     error: {
       code: "validation_error",
       message:
         error.issues[0]?.message ??
         "Invalid reconcile feed publications request.",
     },
+    ok: false,
   };
 }

@@ -50,59 +50,59 @@ interface SelectedState {
 
 const WEEKS: Week[] = [
   {
+    days: [
+      { dow: "Mon", monthName: "May", num: 11 },
+      { dow: "Tue", monthName: "May", num: 12 },
+      { dow: "Wed", monthName: "May", num: 13 },
+      { dow: "Thu", monthName: "May", num: 14 },
+      { dow: "Fri", monthName: "May", num: 15 },
+      { dow: "Sat", monthName: "May", num: 16 },
+      { dow: "Sun", monthName: "May", num: 17 },
+    ],
     id: "w-last",
     label: "Mon 11 to Sun 17 May",
     sub: "Last week",
-    days: [
-      { dow: "Mon", num: 11, monthName: "May" },
-      { dow: "Tue", num: 12, monthName: "May" },
-      { dow: "Wed", num: 13, monthName: "May" },
-      { dow: "Thu", num: 14, monthName: "May" },
-      { dow: "Fri", num: 15, monthName: "May" },
-      { dow: "Sat", num: 16, monthName: "May" },
-      { dow: "Sun", num: 17, monthName: "May" },
-    ],
     todayIdx: -1,
   },
   {
+    days: [
+      { dow: "Mon", monthName: "May", num: 18 },
+      { dow: "Tue", monthName: "May", num: 19 },
+      { dow: "Wed", monthName: "May", num: 20 },
+      { dow: "Thu", monthName: "May", num: 21 },
+      { dow: "Fri", monthName: "May", num: 22 },
+      { dow: "Sat", monthName: "May", num: 23 },
+      { dow: "Sun", monthName: "May", num: 24 },
+    ],
     id: "w-this",
     label: "Mon 18 to Sun 24 May",
     sub: "This week",
-    days: [
-      { dow: "Mon", num: 18, monthName: "May" },
-      { dow: "Tue", num: 19, monthName: "May" },
-      { dow: "Wed", num: 20, monthName: "May" },
-      { dow: "Thu", num: 21, monthName: "May" },
-      { dow: "Fri", num: 22, monthName: "May" },
-      { dow: "Sat", num: 23, monthName: "May" },
-      { dow: "Sun", num: 24, monthName: "May" },
-    ],
     todayIdx: 3,
   },
   {
+    days: [
+      { dow: "Mon", monthName: "May", num: 25 },
+      { dow: "Tue", monthName: "May", num: 26 },
+      { dow: "Wed", monthName: "May", num: 27 },
+      { dow: "Thu", monthName: "May", num: 28 },
+      { dow: "Fri", monthName: "May", num: 29 },
+      { dow: "Sat", monthName: "May", num: 30 },
+      { dow: "Sun", monthName: "May", num: 31 },
+    ],
     id: "w-next",
     label: "Mon 25 to Sun 31 May",
     sub: "Next week",
-    days: [
-      { dow: "Mon", num: 25, monthName: "May" },
-      { dow: "Tue", num: 26, monthName: "May" },
-      { dow: "Wed", num: 27, monthName: "May" },
-      { dow: "Thu", num: 28, monthName: "May" },
-      { dow: "Fri", num: 29, monthName: "May" },
-      { dow: "Sat", num: 30, monthName: "May" },
-      { dow: "Sun", num: 31, monthName: "May" },
-    ],
     todayIdx: -1,
   },
 ];
 
 const STAFF: Staff[] = [
-  { id: "sm", name: "Sarah Mitchell", role: "HR lead", initials: "SM" },
-  { id: "dc", name: "Daniel Chen", role: "Engineering", initials: "DC" },
-  { id: "pn", name: "Patrick Nolan", role: "Sales", initials: "PN" },
-  { id: "jo", name: "James O'Connor", role: "Operations", initials: "JO" },
-  { id: "mt", name: "Mia Tanaka", role: "Design", initials: "MT" },
-  { id: "rp", name: "Ruben Park", role: "Support", initials: "RP" },
+  { id: "sm", initials: "SM", name: "Sarah Mitchell", role: "HR lead" },
+  { id: "dc", initials: "DC", name: "Daniel Chen", role: "Engineering" },
+  { id: "pn", initials: "PN", name: "Patrick Nolan", role: "Sales" },
+  { id: "jo", initials: "JO", name: "James O'Connor", role: "Operations" },
+  { id: "mt", initials: "MT", name: "Mia Tanaka", role: "Design" },
+  { id: "rp", initials: "RP", name: "Ruben Park", role: "Support" },
 ];
 const weekGridTemplate = "repeat(7, minmax(7rem, 1fr))";
 
@@ -116,143 +116,143 @@ const KIND: Record<
   }
 > = {
   annual: {
-    label: "Annual leave",
     icon: "leaf",
-    tone: "sage",
+    label: "Annual leave",
     prov: "xero",
-  },
-  wfh: {
-    label: "Working from home",
-    icon: "home",
-    tone: "purple",
-    prov: "manual",
+    tone: "sage",
   },
   client: {
-    label: "Client visit",
     icon: "briefcase",
-    tone: "purple",
+    label: "Client visit",
     prov: "manual",
+    tone: "purple",
+  },
+  wfh: {
+    icon: "home",
+    label: "Working from home",
+    prov: "manual",
+    tone: "purple",
   },
 };
 
 const ENTRIES: Record<string, Record<string, Entry[]>> = {
   "w-last": {
-    sm: [
-      { kind: "wfh", start: 1, span: 2, note: "Catch-up day at home" },
-      { kind: "annual", start: 3, span: 3, note: "Mid-week break" },
-    ],
     dc: [
-      { kind: "wfh", start: 1, span: 5, note: "Remote week, sprint planning" },
-    ],
-    pn: [
-      { kind: "wfh", start: 1, span: 1 },
-      {
-        kind: "client",
-        start: 2,
-        span: 2,
-        note: "Auckland, Northwind onboarding",
-      },
-      { kind: "wfh", start: 4, span: 2 },
+      { kind: "wfh", note: "Remote week, sprint planning", span: 5, start: 1 },
     ],
     jo: [
       {
         kind: "annual",
-        start: 1,
-        span: 5,
         note: "Long service leave (week 1 of 2)",
-      },
-    ],
-    mt: [{ kind: "wfh", start: 1, span: 5, note: "Remote by default" }],
-    rp: [
-      { kind: "annual", start: 1, span: 3, note: "Sick leave, flu" },
-      { kind: "wfh", start: 4, span: 2 },
-    ],
-  },
-  "w-this": {
-    sm: [
-      { kind: "wfh", start: 1, span: 2, note: "School pickups this week" },
-      { kind: "annual", start: 3, span: 3, note: "Family trip to Byron Bay" },
-    ],
-    dc: [
-      { kind: "wfh", start: 1, span: 2 },
-      {
-        kind: "client",
-        start: 3,
-        span: 1,
-        note: "Brisbane, Beacon Logistics",
-      },
-      { kind: "wfh", start: 4, span: 2 },
-    ],
-    pn: [
-      {
-        kind: "client",
-        start: 1,
-        span: 2,
-        note: "Sydney, Acme Co quarterly review",
-      },
-      { kind: "wfh", start: 5, span: 1 },
-    ],
-    jo: [
-      {
-        kind: "annual",
-        start: 1,
         span: 5,
-        note: "Long service leave (week 2 of 2)",
+        start: 1,
       },
     ],
-    mt: [{ kind: "wfh", start: 1, span: 5, note: "Remote by default" }],
-    rp: [
-      { kind: "wfh", start: 1, span: 1 },
-      { kind: "wfh", start: 3, span: 1 },
+    mt: [{ kind: "wfh", note: "Remote by default", span: 5, start: 1 }],
+    pn: [
+      { kind: "wfh", span: 1, start: 1 },
       {
         kind: "client",
-        start: 4,
-        span: 1,
-        note: "Melbourne, onsite support training",
+        note: "Auckland, Northwind onboarding",
+        span: 2,
+        start: 2,
       },
-      { kind: "wfh", start: 5, span: 1 },
+      { kind: "wfh", span: 2, start: 4 },
+    ],
+    rp: [
+      { kind: "annual", note: "Sick leave, flu", span: 3, start: 1 },
+      { kind: "wfh", span: 2, start: 4 },
+    ],
+    sm: [
+      { kind: "wfh", note: "Catch-up day at home", span: 2, start: 1 },
+      { kind: "annual", note: "Mid-week break", span: 3, start: 3 },
     ],
   },
   "w-next": {
-    sm: [{ kind: "wfh", start: 1, span: 5, note: "Catching up after leave" }],
     dc: [
       {
         kind: "client",
-        start: 1,
-        span: 1,
         note: "Sydney, Beacon Logistics review",
+        span: 1,
+        start: 1,
       },
-      { kind: "wfh", start: 2, span: 4 },
-    ],
-    pn: [
-      { kind: "wfh", start: 1, span: 3 },
-      {
-        kind: "annual",
-        start: 4,
-        span: 2,
-        note: "Public holiday weekend extended",
-      },
+      { kind: "wfh", span: 4, start: 2 },
     ],
     jo: [
       {
         kind: "annual",
-        start: 1,
-        span: 2,
         note: "Buffer days returning to work",
+        span: 2,
+        start: 1,
       },
-      { kind: "wfh", start: 3, span: 3 },
+      { kind: "wfh", span: 3, start: 3 },
     ],
     mt: [
-      { kind: "wfh", start: 1, span: 2 },
+      { kind: "wfh", span: 2, start: 1 },
       {
         kind: "client",
-        start: 3,
-        span: 1,
         note: "Melbourne studio, quarterly review",
+        span: 1,
+        start: 3,
       },
-      { kind: "wfh", start: 4, span: 2 },
+      { kind: "wfh", span: 2, start: 4 },
     ],
-    rp: [{ kind: "wfh", start: 1, span: 5, note: "Remote by default" }],
+    pn: [
+      { kind: "wfh", span: 3, start: 1 },
+      {
+        kind: "annual",
+        note: "Public holiday weekend extended",
+        span: 2,
+        start: 4,
+      },
+    ],
+    rp: [{ kind: "wfh", note: "Remote by default", span: 5, start: 1 }],
+    sm: [{ kind: "wfh", note: "Catching up after leave", span: 5, start: 1 }],
+  },
+  "w-this": {
+    dc: [
+      { kind: "wfh", span: 2, start: 1 },
+      {
+        kind: "client",
+        note: "Brisbane, Beacon Logistics",
+        span: 1,
+        start: 3,
+      },
+      { kind: "wfh", span: 2, start: 4 },
+    ],
+    jo: [
+      {
+        kind: "annual",
+        note: "Long service leave (week 2 of 2)",
+        span: 5,
+        start: 1,
+      },
+    ],
+    mt: [{ kind: "wfh", note: "Remote by default", span: 5, start: 1 }],
+    pn: [
+      {
+        kind: "client",
+        note: "Sydney, Acme Co quarterly review",
+        span: 2,
+        start: 1,
+      },
+      { kind: "wfh", span: 1, start: 5 },
+    ],
+    rp: [
+      { kind: "wfh", span: 1, start: 1 },
+      { kind: "wfh", span: 1, start: 3 },
+      {
+        kind: "client",
+        note: "Melbourne, onsite support training",
+        span: 1,
+        start: 4,
+      },
+      { kind: "wfh", span: 1, start: 5 },
+    ],
+    sm: [
+      { kind: "wfh", note: "School pickups this week", span: 2, start: 1 },
+      { kind: "annual", note: "Family trip to Byron Bay", span: 3, start: 3 },
+    ],
   },
 };
 
@@ -435,8 +435,8 @@ export const TeamTimelineSection = () => {
         return {
           date,
           dow: format(date, "eee"),
-          num: date.getDate(),
           monthName: format(date, "MMM"),
+          num: date.getDate(),
         };
       });
 
@@ -455,24 +455,24 @@ export const TeamTimelineSection = () => {
 
     const updatedWeeks: Week[] = [
       {
+        days: lastWeekDays,
         id: "w-last",
         label: getWeekLabel(lastWeekDays),
         sub: "Last week",
-        days: lastWeekDays,
         todayIdx: lastWeekDays.findIndex((d) => d.date && isToday(d.date)),
       },
       {
+        days: thisWeekDays,
         id: "w-this",
         label: getWeekLabel(thisWeekDays),
         sub: "This week",
-        days: thisWeekDays,
         todayIdx: thisWeekDays.findIndex((d) => d.date && isToday(d.date)),
       },
       {
+        days: nextWeekDays,
         id: "w-next",
         label: getWeekLabel(nextWeekDays),
         sub: "Next week",
-        days: nextWeekDays,
         todayIdx: nextWeekDays.findIndex((d) => d.date && isToday(d.date)),
       },
     ];
@@ -558,21 +558,21 @@ export const TeamTimelineSection = () => {
                 <div className="tl-week-meta">
                   <div
                     style={{
-                      width: 140,
-                      height: 16,
+                      animation: "pulse 1.5s infinite",
                       background: "var(--surface-container-high)",
                       borderRadius: 4,
-                      animation: "pulse 1.5s infinite",
+                      height: 16,
+                      width: 140,
                     }}
                   />
                   <div
                     style={{
-                      width: 90,
-                      height: 12,
+                      animation: "pulse 1.5s infinite",
                       background: "var(--surface-container-high)",
                       borderRadius: 4,
+                      height: 12,
                       marginTop: 4,
-                      animation: "pulse 1.5s infinite",
+                      width: 90,
                     }}
                   />
                 </div>
@@ -589,12 +589,12 @@ export const TeamTimelineSection = () => {
                     <span className="tl-day-head__dow">...</span>
                     <span
                       style={{
-                        width: 30,
-                        height: 10,
+                        animation: "pulse 1.5s infinite",
                         background: "var(--surface-container-high)",
                         borderRadius: 2,
                         display: "inline-block",
-                        animation: "pulse 1.5s infinite",
+                        height: 10,
+                        width: 30,
                       }}
                     />
                   </div>

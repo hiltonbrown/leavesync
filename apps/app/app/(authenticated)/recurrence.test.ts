@@ -25,9 +25,9 @@ describe("generateRecurrenceOccurrences", () => {
     );
 
     expect(occurrences).toEqual([
-      { startDate: "2026-04-10", endDate: "2026-04-10" },
-      { startDate: "2026-04-11", endDate: "2026-04-11" },
-      { startDate: "2026-04-12", endDate: "2026-04-12" },
+      { endDate: "2026-04-10", startDate: "2026-04-10" },
+      { endDate: "2026-04-11", startDate: "2026-04-11" },
+      { endDate: "2026-04-12", startDate: "2026-04-12" },
     ]);
   });
 
@@ -41,8 +41,8 @@ describe("generateRecurrenceOccurrences", () => {
     );
 
     expect(occurrences).toEqual([
-      { startDate: "2026-04-10", endDate: "2026-04-12" },
-      { startDate: "2026-04-17", endDate: "2026-04-19" },
+      { endDate: "2026-04-12", startDate: "2026-04-10" },
+      { endDate: "2026-04-19", startDate: "2026-04-17" },
     ]);
   });
 
@@ -99,9 +99,9 @@ describe("generateRecurrenceOccurrences", () => {
     const occurrences = expectOccurrences(
       generateRecurrenceOccurrences("2026-04-06", "2026-04-06", {
         ...rule,
+        occurrenceCount: 4,
         unit: "week",
         weekdays: [1, 3],
-        occurrenceCount: 4,
       })
     );
 
@@ -138,8 +138,8 @@ describe("generateRecurrenceOccurrences", () => {
     });
 
     expect(result).toEqual({
-      ok: false,
       error: "Enter 1-50 occurrences",
+      ok: false,
     });
   });
 });
