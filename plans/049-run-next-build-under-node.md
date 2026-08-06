@@ -19,7 +19,53 @@
 - **Depends on**: none. **Unblocks**: plan 005's build gate, plan 016 (adds a
   build step to CI) and plan 046 (release build)
 - **Category**: dx
-- **Planned at**: commit `f1884db`, 2026-08-05
+- **Planned at**: commit `454ded7`, 2026-08-06
+- **Execution status**: MERGED at operator direction; verification remains
+  blocked by review infrastructure, 2026-08-06
+
+Reconciled at `454ded7`: the three in-scope manifests had changed since the
+original plan only because plan 048 sorted their `scripts` keys. Before this
+plan was executed, all three build commands still read
+`bun --bun next build`, so the diagnosis, scope and implementation steps were
+unchanged.
+
+### Execution attempt at `454ded7`
+
+The executor applied the intended one-line change to each of the three package
+manifests in the isolated worktree
+`/tmp/teamcalendar-plan-049-executor`, on branch
+`advisor/049-run-next-build-under-node`. The diff is scope-clean and remains
+confined to those manifests. It is commit `71fa962`, merged into `main` as
+`8adeaa5` at the operator's direction.
+The plan is not marked DONE because the mandatory gates could not be completed.
+
+Verified during review:
+
+- `bun run check` exits 0: 722 files checked, no fixes applied.
+- `bun run typecheck` exits 0: 18 successful tasks.
+- The API and web production builds exit 0 and print route tables.
+- The manifests contain exactly one `"build": "next build"` each; `dev` and
+  `start` remain unchanged; `git diff --check` passes.
+
+Blocked during review:
+
+- Every app production build attempt, including an escalated reviewer rerun,
+  stops when Turbopack tries to create an internal process that binds a local
+  port. The host returns `Operation not permitted`. This occurs for both the
+  Bun-runtime baseline and the Node-runtime build, so it is an execution-host
+  restriction rather than evidence against the change.
+- `bun run test` times out starting or stopping Vitest fork workers. A
+  package-serial Turbo rerun clears the jobs tests, but the app tests still
+  time out creating their own workers. No source assertion regression was
+  identified.
+- Because the app build does not complete, its route table and
+  `ƒ Proxy (Middleware)` artefact cannot be reviewed on this host.
+
+To resume, use a host that permits local process port binds and Vitest worker
+forks. Make the existing ignored environment files available to the isolated
+worktree without printing their values, then rerun every gate below. Do not
+mark DONE or change build/test configuration until all exact commands pass. Do
+not modify application source to accommodate restrictions of the review host.
 
 ## Why this matters
 
@@ -188,6 +234,8 @@ not add a CI build step until it is done.
 | Node version | `node --version` | `v22.x` or `>=v24.x` |
 | Typecheck | `bun run typecheck` | exit 0 |
 | Unit tests | `bun run test` | exit 0, `10 successful, 10 total` |
+| Lint and formatting check | `bun run check` | exit 0, no fixes applied |
+| Integration tests | `bun run test:integration` | exit 0 |
 
 ## Scope
 
@@ -293,19 +341,20 @@ From the repository root:
 
 ```
 bun run build
+bun run check
 bun run typecheck
 bun run test
+bun run test:integration
 ```
 
 **Verify**:
 
 - `bun run build` exits 0 and reports `4 successful, 4 total`. This is the gate
   that was impossible before.
+- `bun run check` exits 0 with no fixes applied.
 - `bun run typecheck` exits 0.
 - `bun run test` exits 0 and reports `10 successful, 10 total`.
-
-Note: `bun run check` will still fail. That is plan 048's backlog and is
-unrelated to this change. Do not attempt to fix it here.
+- `bun run test:integration` exits 0.
 
 ### Step 4: Confirm the build output is a real production build
 
@@ -348,8 +397,10 @@ Machine-checkable. ALL must hold:
       that prints a `path:count` line per file, never a bare `0`, and the glob
       also picks up `apps/docs` and `apps/email`, which this plan does not touch
 - [ ] `grep -c '"build": "next build"' apps/app/package.json apps/api/package.json apps/web/package.json` returns 1 for each
+- [ ] `bun run check` exits 0 with no fixes applied
 - [ ] `bun run typecheck` exits 0
 - [ ] `bun run test` exits 0 and reports `10 successful, 10 total`
+- [ ] `bun run test:integration` exits 0
 - [ ] `apps/app/.next`, `apps/api/.next` and `apps/web/.next` all exist
 - [ ] The `apps/app` build output lists `ƒ Proxy (Middleware)`
 - [ ] `git status --short` shows only the three `package.json` files and plan files modified
@@ -382,6 +433,10 @@ Stop and report back (do not improvise) if:
   module, an environment-variable validation failure) rather than a crash.
   Report the full error. Do not edit source to accommodate it; that is a
   different change with a different risk profile.
+- The verification host denies Turbopack's internal process creation or local
+  port bind, or cannot start Vitest workers, even after the prescribed command
+  is rerun outside its sandbox. Record the host error and resume on a capable
+  host; do not change build or test configuration to work around the reviewer.
 - Removing `--bun` changes the build **output** in a way beyond fixing the
   crash, for example a route disappearing from the table or
   `ƒ Proxy (Middleware)` no longer being listed.

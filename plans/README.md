@@ -79,16 +79,15 @@ must not be executed because plan 041 supersedes it.
 
 ## Execute these first: the verification baseline
 
-Nothing below this section can be honestly verified until these three are done.
-Every plan in the backlog lists `bun run check` and most list `bun run build`
-among their done criteria, and both currently fail for reasons unrelated to any
-plan.
+Nothing below this section can be honestly verified until the remaining P0
+baseline plan is done. Plan 048 restored `bun run check`; most backlog plans
+also require `bun run build`, which remains blocked by plan 049.
 
 | Plan | Required outcome | Priority | Status |
 |---|---|---|---|
 | [047](047-land-the-uncommitted-dependency-refresh.md) | The react pins, `next 16.3.0` and the refreshed lockfile are committed, so CI and fresh worktrees install the same working dependency set | P0 | **DONE** (`f1884db`) |
 | [048](048-make-the-lint-gate-passable.md) | `bun run check` exits 0, so the lint gate stops blocking every plan and CI reaches its test step | P0 | **DONE**, reviewed and merged to `main` as `b015511` (6 commits, 373 files). Verified on `main`: `check` exit 0, `typecheck` exit 0, `app` 53 files / 175 tests |
-| [049](049-run-next-build-under-node.md) | `bun run build` exits 0 for all four tasks, unblocking plans 005, 016 and 046 | P0 | TODO |
+| [049](049-run-next-build-under-node.md) | `bun run build` exits 0 for all four tasks, unblocking plans 005, 016 and 046 | P0 | **MERGED, VERIFICATION BLOCKED**: implementation `71fa962`, merged as `8adeaa5` on 2026-08-06 at operator direction; the review host denies Turbopack's internal process port bind and times out Vitest workers |
 
 Plan 047 is done and needs no execution; it is retained as the record of the
 misdiagnosis and for the Dependabot grouping recommendation in its maintenance
