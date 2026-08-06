@@ -952,14 +952,18 @@ async function persistApprovalFailure(input: {
       throw new OptimisticConflictError();
     }
 
-    await notifyOwnerAndApprover(tx, input.input, input.record, {
-      actionUrl: `/leave-approvals?recordId=${input.record.id}`,
-    });
     await tx.auditEvent.create({
       data: auditData(input.input, input.auditAction, {
         errorCode: input.error.code,
       }),
     });
+  });
+
+  // Notifications are at-most-once and must never roll back the failure state.
+  // Without the persisted xero_sync_failed status and failed_action, the retry
+  // and revert actions are unreachable and the failure has no diagnostic trail.
+  await notifyApprovalFailureBestEffort(input.input, input.record, {
+    actionUrl: `/leave-approvals?recordId=${input.record.id}`,
   });
 
   const updated = await loadRecord(input.input);
@@ -1474,7 +1478,7 @@ function logApprovalNotificationFailure(
   error: unknown,
   input: CommandInput,
   record: LoadedApprovalRecord,
-  type: "leave_approved" | "leave_declined"
+  type: "leave_approved" | "leave_declined" | "leave_xero_sync_failed"
 ): void {
   log.error("Failed to dispatch approval notification", {
     availabilityRecordId: record.id,
@@ -1483,6 +1487,25 @@ function logApprovalNotificationFailure(
     organisationId: input.organisationId,
     type,
   });
+}
+
+async function notifyApprovalFailureBestEffort(
+  input: CommandInput,
+  record: LoadedApprovalRecord,
+  options: { actionUrl: string }
+): Promise<void> {
+  try {
+    await notifyOwnerAndApprover(database, input, record, {
+      actionUrl: options.actionUrl,
+    });
+  } catch (error) {
+    logApprovalNotificationFailure(
+      error,
+      input,
+      record,
+      "leave_xero_sync_failed"
+    );
+  }
 }
 
 async function notifyOwnerAndApprover(
