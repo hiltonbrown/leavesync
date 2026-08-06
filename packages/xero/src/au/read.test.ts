@@ -238,4 +238,19 @@ describe("AU leave balance reads", () => {
     }
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  it("returns auth_error Result without throwing when access_token_iv is null", async () => {
+    const tenant = buildXeroTenant();
+    tenant.xero_connection.access_token_iv = null;
+
+    await expect(
+      fetchLeaveRecords({ xeroTenant: tenant })
+    ).resolves.toMatchObject({
+      error: {
+        code: "auth_error",
+        message: "Xero credentials are missing or revoked.",
+      },
+      ok: false,
+    });
+  });
 });

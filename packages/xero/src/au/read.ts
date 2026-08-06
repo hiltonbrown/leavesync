@@ -1,6 +1,6 @@
 import { log } from "@repo/observability/log";
 import { keys } from "../../keys";
-import { decryptXeroToken } from "../crypto/tokens";
+import { tryDecryptXeroToken } from "../crypto/tokens";
 import { orgRateLimitKey, xeroFetch } from "../rate-limit/xero-fetch";
 import type { XeroEmployee } from "../read/employees";
 import { tryMapXeroEmployees } from "../read/employees";
@@ -43,22 +43,11 @@ export async function fetchEmployees(input: {
 }): Promise<
   XeroWriteResult<{ rawResponse: unknown; employees: XeroEmployee[] }>
 > {
-  const accessToken = input.xeroTenant.xero_connection.access_token_encrypted;
-  const decryptedAccessToken = decryptXeroToken({
-    authTag: input.xeroTenant.xero_connection.access_token_auth_tag ?? null,
-    encrypted: accessToken,
-    iv: input.xeroTenant.xero_connection.access_token_iv ?? null,
-  });
-
-  if (!decryptedAccessToken || input.xeroTenant.xero_connection.revoked_at) {
-    return {
-      error: {
-        code: "auth_error",
-        message: "Xero credentials are missing or revoked.",
-      },
-      ok: false,
-    };
+  const tokenResult = resolveAccessToken(input.xeroTenant);
+  if (!tokenResult.ok) {
+    return tokenResult;
   }
+  const decryptedAccessToken = tokenResult.token;
 
   try {
     const employees: XeroEmployee[] = [];
@@ -148,22 +137,11 @@ export async function fetchLeaveRecords(input: {
     rawResponse: unknown;
   }>
 > {
-  const accessToken = input.xeroTenant.xero_connection.access_token_encrypted;
-  const decryptedAccessToken = decryptXeroToken({
-    authTag: input.xeroTenant.xero_connection.access_token_auth_tag ?? null,
-    encrypted: accessToken,
-    iv: input.xeroTenant.xero_connection.access_token_iv ?? null,
-  });
-
-  if (!decryptedAccessToken || input.xeroTenant.xero_connection.revoked_at) {
-    return {
-      error: {
-        code: "auth_error",
-        message: "Xero credentials are missing or revoked.",
-      },
-      ok: false,
-    };
+  const tokenResult = resolveAccessToken(input.xeroTenant);
+  if (!tokenResult.ok) {
+    return tokenResult;
   }
+  const decryptedAccessToken = tokenResult.token;
 
   try {
     const leaveRecords: XeroLeaveRecord[] = [];
@@ -258,22 +236,11 @@ export async function fetchLeaveBalances(input: {
     rawResponses: unknown[];
   }>
 > {
-  const accessToken = input.xeroTenant.xero_connection.access_token_encrypted;
-  const decryptedAccessToken = decryptXeroToken({
-    authTag: input.xeroTenant.xero_connection.access_token_auth_tag ?? null,
-    encrypted: accessToken,
-    iv: input.xeroTenant.xero_connection.access_token_iv ?? null,
-  });
-
-  if (!decryptedAccessToken || input.xeroTenant.xero_connection.revoked_at) {
-    return {
-      error: {
-        code: "auth_error",
-        message: "Xero credentials are missing or revoked.",
-      },
-      ok: false,
-    };
+  const tokenResult = resolveAccessToken(input.xeroTenant);
+  if (!tokenResult.ok) {
+    return tokenResult;
   }
+  const decryptedAccessToken = tokenResult.token;
 
   const intervalMs = input.readIntervalMs ?? LEAVE_BALANCE_READ_INTERVAL_MS;
   const leaveBalances: XeroLeaveBalance[] = [];
@@ -354,22 +321,11 @@ export async function fetchLeaveBalances(input: {
 export async function fetchLeaveApplicationStatus(
   input: FetchLeaveApplicationStatusInput
 ): Promise<XeroWriteResult<XeroLeaveApplicationStatusResult>> {
-  const accessToken = input.xeroTenant.xero_connection.access_token_encrypted;
-  const decryptedAccessToken = decryptXeroToken({
-    authTag: input.xeroTenant.xero_connection.access_token_auth_tag ?? null,
-    encrypted: accessToken,
-    iv: input.xeroTenant.xero_connection.access_token_iv ?? null,
-  });
-
-  if (!decryptedAccessToken || input.xeroTenant.xero_connection.revoked_at) {
-    return {
-      error: {
-        code: "auth_error",
-        message: "Xero credentials are missing or revoked.",
-      },
-      ok: false,
-    };
+  const tokenResult = resolveAccessToken(input.xeroTenant);
+  if (!tokenResult.ok) {
+    return tokenResult;
   }
+  const decryptedAccessToken = tokenResult.token;
 
   try {
     const response = await xeroFetch({
@@ -417,4 +373,37 @@ function baseUrl(): string {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function resolveAccessToken(
+  xeroTenant: XeroTenantForWrite
+): { ok: true; token: string } | { ok: false; error: XeroWriteError } {
+  const accessToken = xeroTenant.xero_connection.access_token_encrypted;
+  const decrypted = tryDecryptXeroToken({
+    authTag: xeroTenant.xero_connection.access_token_auth_tag ?? null,
+    encrypted: accessToken,
+    iv: xeroTenant.xero_connection.access_token_iv ?? null,
+  });
+
+  if (!decrypted.ok) {
+    log.warn("Xero token decryption failed", {
+      clerkOrgId: xeroTenant.clerk_org_id,
+      organisationId: xeroTenant.organisation_id,
+      reason: decrypted.reason,
+    });
+  }
+
+  const decryptedAccessToken = decrypted.ok ? decrypted.token : "";
+
+  if (!decryptedAccessToken || xeroTenant.xero_connection.revoked_at) {
+    return {
+      error: {
+        code: "auth_error",
+        message: "Xero credentials are missing or revoked.",
+      },
+      ok: false,
+    };
+  }
+
+  return { ok: true, token: decryptedAccessToken };
 }

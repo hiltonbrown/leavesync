@@ -1,6 +1,7 @@
+import { log } from "@repo/observability/log";
 import { z } from "zod";
 import { keys } from "../../keys";
-import { decryptXeroToken } from "../crypto/tokens";
+import { tryDecryptXeroToken } from "../crypto/tokens";
 import { orgRateLimitKey, xeroFetch } from "../rate-limit/xero-fetch";
 import type {
   ApproveLeaveApplicationInput,
@@ -147,11 +148,21 @@ async function xeroRequest(
   }
 ): Promise<XeroWriteResult<unknown>> {
   const accessToken = xeroTenant.xero_connection.access_token_encrypted;
-  const decryptedAccessToken = decryptXeroToken({
+  const decrypted = tryDecryptXeroToken({
     authTag: xeroTenant.xero_connection.access_token_auth_tag ?? null,
     encrypted: accessToken,
     iv: xeroTenant.xero_connection.access_token_iv ?? null,
   });
+
+  if (!decrypted.ok) {
+    log.warn("Xero token decryption failed", {
+      clerkOrgId: xeroTenant.clerk_org_id,
+      organisationId: xeroTenant.organisation_id,
+      reason: decrypted.reason,
+    });
+  }
+
+  const decryptedAccessToken = decrypted.ok ? decrypted.token : "";
 
   if (!decryptedAccessToken || xeroTenant.xero_connection.revoked_at) {
     return {

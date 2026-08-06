@@ -1,6 +1,10 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { validateEncryptionKey } from "../../keys";
-import { decryptXeroToken, encryptXeroToken } from "./tokens";
+import {
+  decryptXeroToken,
+  encryptXeroToken,
+  tryDecryptXeroToken,
+} from "./tokens";
 
 const MISSING_TOKEN_COMPONENTS_ERROR = /missing its IV or auth tag/;
 
@@ -128,5 +132,77 @@ describe("encryptXeroToken and decryptXeroToken", () => {
         authTag: tamperedAuthTag.toString("base64"),
       })
     ).toThrow();
+  });
+});
+
+describe("tryDecryptXeroToken", () => {
+  const originalEnv = process.env.XERO_TOKEN_ENCRYPTION_KEY;
+
+  beforeEach(() => {
+    process.env.XERO_TOKEN_ENCRYPTION_KEY =
+      "dGhpcyBpcyBhIDMyLWJ5dGUga2V5IGZvciB4ZXJvITE=";
+  });
+
+  afterEach(() => {
+    process.env.XERO_TOKEN_ENCRYPTION_KEY = originalEnv;
+  });
+
+  it("returns ok: true with decrypted plaintext for valid ciphertext, iv, and auth tag", () => {
+    const originalText = "my-secret-xero-oauth-token";
+    const encrypted = encryptXeroToken(originalText);
+
+    const result = tryDecryptXeroToken(encrypted);
+    expect(result).toEqual({ ok: true, token: originalText });
+  });
+
+  it("returns ok: false when iv is null and does not throw", () => {
+    const result = tryDecryptXeroToken({
+      authTag: "auth-tag",
+      encrypted: "encrypted-token",
+      iv: null,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.reason).toMatch(MISSING_TOKEN_COMPONENTS_ERROR);
+    }
+  });
+
+  it("returns ok: false when authTag is null and does not throw", () => {
+    const result = tryDecryptXeroToken({
+      authTag: null,
+      encrypted: "encrypted-token",
+      iv: "iv",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.reason).toMatch(MISSING_TOKEN_COMPONENTS_ERROR);
+    }
+  });
+
+  it("returns ok: true with empty string when encrypted is empty string", () => {
+    const result = tryDecryptXeroToken({
+      authTag: null,
+      encrypted: "",
+      iv: null,
+    });
+    expect(result).toEqual({ ok: true, token: "" });
+  });
+
+  it("decryptXeroToken still throws for missing iv or authTag while tryDecryptXeroToken returns ok: false", () => {
+    expect(() =>
+      decryptXeroToken({
+        authTag: "auth-tag",
+        encrypted: "encrypted-token",
+        iv: null,
+      })
+    ).toThrowError(MISSING_TOKEN_COMPONENTS_ERROR);
+
+    expect(
+      tryDecryptXeroToken({
+        authTag: "auth-tag",
+        encrypted: "encrypted-token",
+        iv: null,
+      }).ok
+    ).toBe(false);
   });
 });
