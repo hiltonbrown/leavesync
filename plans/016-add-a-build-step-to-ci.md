@@ -25,8 +25,13 @@
 - **Reviewed**: 2026-08-06 against `fb9f1cc`. Every "Current state" excerpt still
   matches live code: `.github/workflows/ci.yml` is unchanged and still contains
   no `bun run build`, and all three app `tsconfig.json` files still include
-  `.next/types/**/*.ts`. The `Depends on` line was corrected from `none` to plan
-  049 to match the recorded execution order; no other change.
+  `.next/types/**/*.ts`. No excerpt content changed. Four things were edited in
+  that review: the `Depends on` line was corrected from `none` to plan 049 to
+  match the recorded execution order; a `## Drift warning` section was added,
+  because plan 015 edits this same workflow file at an earlier queue position;
+  the `packages/xero/keys.ts` citation was corrected from 45-59 to 46-59, since
+  line 45 is `XERO_REDIRECT_URI`; and done criterion 7 now allows this plan file
+  and `plans/README.md`, which the plan's own status-row instruction requires.
 
 ## Why this matters
 
