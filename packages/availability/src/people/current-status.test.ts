@@ -221,9 +221,7 @@ describe("current-status", () => {
 
     expect(statuses.get(people[0].personId)?.statusKey).toBe("on_leave");
     expect(statuses.get(people[1].personId)?.statusKey).toBe("pending_leave");
-    expect(statuses.get(people[2].personId)?.statusKey).toBe(
-      "public_holiday"
-    );
+    expect(statuses.get(people[2].personId)?.statusKey).toBe("public_holiday");
     expect(statuses.get(people[3].personId)?.statusKey).toBe("training");
     expect(mocks.organisationFindFirst).toHaveBeenCalledOnce();
     expect(mocks.locationFindMany).toHaveBeenCalledOnce();

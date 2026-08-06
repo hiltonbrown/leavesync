@@ -14,7 +14,9 @@ describe("createSlice14Fixture", () => {
     expect(fixture.feeds).toHaveLength(10);
     expect(fixture.publicHolidayImports).toHaveLength(2);
     expect(
-      fixture.syncRuns.map((run) => run.status).sort((a, b) => a.localeCompare(b))
+      fixture.syncRuns
+        .map((run) => run.status)
+        .sort((a, b) => a.localeCompare(b))
     ).toEqual(["failed", "partial_success", "succeeded"]);
     expect(fixture.notifications.map((row) => row.type)).toContain(
       "sync_reconciliation_complete"
