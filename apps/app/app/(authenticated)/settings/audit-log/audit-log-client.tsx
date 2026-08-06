@@ -149,7 +149,7 @@ export const AuditLogClient = ({
                 <pre className="overflow-x-auto rounded-lg bg-background p-3 text-xs">
                   {JSON.stringify(event.metadata, null, 2)}
                 </pre>
-                {details[event.id] && (
+                {details[event.id] ? (
                   <div className="grid gap-3 md:grid-cols-2">
                     <pre className="overflow-x-auto rounded-lg bg-background p-3 text-xs">
                       {JSON.stringify(details[event.id].beforeValue, null, 2)}
@@ -158,7 +158,7 @@ export const AuditLogClient = ({
                       {JSON.stringify(details[event.id].afterValue, null, 2)}
                     </pre>
                   </div>
-                )}
+                ) : null}
               </div>
             </details>
           ))}

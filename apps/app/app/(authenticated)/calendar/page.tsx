@@ -227,14 +227,14 @@ function DisconnectedXeroBanner({
           Xero is not connected. Leave records will save locally only. Connect
           Xero from the integrations settings to enable submission for approval.
         </p>
-        {canConnect && (
+        {canConnect ? (
           <a
             className="font-medium text-primary"
             href={withOrg("/settings/integrations/xero", orgQueryValue)}
           >
             Connect Xero
           </a>
-        )}
+        ) : null}
       </div>
     </div>
   );

@@ -117,9 +117,9 @@ export function PersonProfileContent({
                   label={profile.currentStatus.label}
                   statusKey={profile.currentStatus.statusKey}
                 />
-                {profile.header.archivedAt && (
+                {profile.header.archivedAt ? (
                   <Badge variant="outline">Archived</Badge>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
@@ -193,7 +193,7 @@ export function PersonProfileContent({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {canRefreshBalances && (
+            {canRefreshBalances ? (
               <Button
                 disabled={Boolean(refreshDisabledReason) || isPending}
                 onClick={refreshBalances}
@@ -203,7 +203,7 @@ export function PersonProfileContent({
                 <RefreshCwIcon className="mr-2 size-4" />
                 Refresh balances
               </Button>
-            )}
+            ) : null}
             <Button
               onClick={() =>
                 setEditMessage("Profile editing is not yet available.")
@@ -213,16 +213,16 @@ export function PersonProfileContent({
             >
               Edit profile
             </Button>
-            {editMessage && (
+            {editMessage ? (
               <span className="self-center text-muted-foreground text-sm">
                 {editMessage}
               </span>
-            )}
-            {refreshMessage && (
+            ) : null}
+            {refreshMessage ? (
               <span className="self-center text-muted-foreground text-sm">
                 {refreshMessage}
               </span>
-            )}
+            ) : null}
           </div>
         </section>
 
@@ -234,7 +234,7 @@ export function PersonProfileContent({
               locked={false}
               value={profile.currentStatus.label}
             />
-            {profile.currentStatus.activeRecord && (
+            {profile.currentStatus.activeRecord ? (
               <>
                 <Field
                   label="Record"
@@ -252,14 +252,14 @@ export function PersonProfileContent({
                   )}
                 />
               </>
-            )}
-            {profile.currentStatus.activePublicHoliday && (
+            ) : null}
+            {profile.currentStatus.activePublicHoliday ? (
               <Field
                 label="Holiday"
                 locked={false}
                 value={`${profile.currentStatus.activePublicHoliday.name}, ${formatDate(profile.currentStatus.activePublicHoliday.date)}`}
               />
-            )}
+            ) : null}
             <Field
               label="Contactability"
               locked={false}
@@ -303,7 +303,7 @@ export function PersonProfileContent({
               emptyLabel="No archived or past records"
               records={history.records}
             />
-            {history.nextCursor && (
+            {history.nextCursor ? (
               <Button asChild variant="secondary">
                 <Link
                   href={withOrg(
@@ -314,7 +314,7 @@ export function PersonProfileContent({
                   Load more history
                 </Link>
               </Button>
-            )}
+            ) : null}
           </div>
         )}
         {tab === "balances" && (
@@ -371,9 +371,9 @@ function Field({
     <div className={className}>
       <div className="flex items-center gap-1.5 text-muted-foreground text-xs uppercase tracking-widest">
         {label}
-        {locked && (
+        {locked ? (
           <LockIcon aria-label="Xero-owned field" className="size-3" />
-        )}
+        ) : null}
       </div>
       <div className="mt-1 text-sm">{value}</div>
     </div>
@@ -521,15 +521,15 @@ function BalancesPanel({
           ))}
         </TableBody>
       </Table>
-      {showXeroBalances && (
+      {showXeroBalances ? (
         <p className="text-muted-foreground text-xs">
           Last refreshed:{" "}
           {profile.balances.balancesLastFetchedAt
             ? formatDateTime(profile.balances.balancesLastFetchedAt)
             : "Never refreshed"}
         </p>
-      )}
-      {showManualEditor && canEditManual && (
+      ) : null}
+      {showManualEditor && canEditManual ? (
         <div className="grid gap-3 rounded-2xl bg-surface-container-high p-4 sm:grid-cols-[1fr_1fr_120px_120px_auto]">
           <label className="flex flex-col gap-1 text-xs">
             Leave type id
@@ -590,13 +590,15 @@ function BalancesPanel({
             Save
           </Button>
         </div>
-      )}
+      ) : null}
       {showManualEditor && !canEditManual && (
         <p className="text-muted-foreground text-xs">
           Only admins and owners can edit manual balances.
         </p>
       )}
-      {message && <p className="text-muted-foreground text-xs">{message}</p>}
+      {message ? (
+        <p className="text-muted-foreground text-xs">{message}</p>
+      ) : null}
     </div>
   );
 }

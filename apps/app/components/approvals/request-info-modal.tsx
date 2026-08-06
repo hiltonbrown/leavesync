@@ -80,7 +80,9 @@ export function RequestInfoModal({
           The employee will receive a notification with your question. They can
           withdraw and edit their request if needed.
         </p>
-        {message && <p className="text-destructive text-sm">{message}</p>}
+        {message ? (
+          <p className="text-destructive text-sm">{message}</p>
+        ) : null}
         <div className="flex justify-end gap-3">
           <Button
             disabled={isPending}
@@ -95,7 +97,9 @@ export function RequestInfoModal({
             onClick={submit}
             type="button"
           >
-            {isPending && <Loader2Icon className="mr-2 size-4 animate-spin" />}
+            {isPending ? (
+              <Loader2Icon className="mr-2 size-4 animate-spin" />
+            ) : null}
             Send request
           </Button>
         </div>

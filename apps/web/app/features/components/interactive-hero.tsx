@@ -964,13 +964,18 @@ export const InteractiveHeroSection = () => {
                     className="tl-days-header"
                     style={{ gridTemplateColumns: "repeat(5, 1fr)" }}
                   >
-                    {mounted &&
-                      weekDays.map((day) => (
-                        <div className="tl-day-head" key={day.num}>
-                          <span className="tl-day-head__dow">{day.dow}</span>
-                          <span className="tl-day-head__num">{day.num}</span>
-                        </div>
-                      ))}
+                    {mounted
+                      ? weekDays.map((day) => (
+                          <div className="tl-day-head" key={day.num}>
+                            <span className="tl-day-head__dow">
+                              {day.dow}
+                            </span>
+                            <span className="tl-day-head__num">
+                              {day.num}
+                            </span>
+                          </div>
+                        ))
+                      : null}
                   </div>
 
                   {/* Teammate tracks */}

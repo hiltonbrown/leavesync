@@ -389,7 +389,7 @@ export function NotificationsClient({
                   >
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="font-semibold text-sm">{item.title}</p>
-                      {item.isUnread && <Badge>Unread</Badge>}
+                      {item.isUnread ? <Badge>Unread</Badge> : null}
                     </div>
                     <p className="mt-1 line-clamp-2 text-muted-foreground text-sm">
                       {item.body}
@@ -402,12 +402,12 @@ export function NotificationsClient({
                     </p>
                   </button>
                   <div className="flex shrink-0 flex-col items-end gap-2">
-                    {item.actionUrl && (
+                    {item.actionUrl ? (
                       <Button asChild size="sm" variant="secondary">
                         <Link href={item.actionUrl}>{item.actionLabel}</Link>
                       </Button>
-                    )}
-                    {item.isUnread && (
+                    ) : null}
+                    {item.isUnread ? (
                       <Button
                         disabled={isPending}
                         onClick={() => markOne(item, false)}
@@ -416,17 +416,17 @@ export function NotificationsClient({
                       >
                         Mark read
                       </Button>
-                    )}
+                    ) : null}
                   </div>
                 </article>
               ))}
             </div>
           )}
-          {nextCursor && (
+          {nextCursor ? (
             <Button asChild className="self-center" variant="secondary">
               <Link href={hrefFor({ cursor: nextCursor })}>Load more</Link>
             </Button>
-          )}
+          ) : null}
         </>
       ) : (
         <div className="space-y-6">
@@ -455,11 +455,11 @@ export function NotificationsClient({
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="font-semibold text-sm">{row.label}</p>
-                        {row.isDefault && (
+                        {row.isDefault ? (
                           <span className="text-muted-foreground text-xs">
                             Using default
                           </span>
-                        )}
+                        ) : null}
                       </div>
                       <p className="mt-1 text-muted-foreground text-sm">
                         {row.description}

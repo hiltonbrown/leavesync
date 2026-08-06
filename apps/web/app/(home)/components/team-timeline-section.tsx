@@ -379,12 +379,12 @@ const Detail = ({ selected, onClose }: DetailProps) => {
           <span>{entry.span === 1 ? "1 day" : `${entry.span} days`}</span>
           <span aria-hidden="true">·</span>
           <span>{staff.role}</span>
-          {entry.note && (
+          {entry.note ? (
             <>
               <span aria-hidden="true">·</span>
               <span>{entry.note}</span>
             </>
-          )}
+          ) : null}
         </div>
       </div>
       <div className="tl-detail-side">

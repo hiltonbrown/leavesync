@@ -52,11 +52,11 @@ export const InterceptingModalShell = ({
           }
         )}
       >
-        {title && (
+        {title ? (
           <DialogHeader className="mb-4">
             <DialogTitle>{title}</DialogTitle>
           </DialogHeader>
-        )}
+        ) : null}
         {children}
       </DialogContent>
     </Dialog>

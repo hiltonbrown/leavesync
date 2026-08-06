@@ -27,11 +27,11 @@ export const XeroSyncFailedState = ({
       </Badge>
     </div>
     <p className="text-muted-foreground text-sm">{message}</p>
-    {(retrySlot || revertSlot) && (
+    {retrySlot || revertSlot ? (
       <div className="mt-1 flex items-center gap-2">
         {retrySlot}
         {revertSlot}
       </div>
-    )}
+    ) : null}
   </div>
 );

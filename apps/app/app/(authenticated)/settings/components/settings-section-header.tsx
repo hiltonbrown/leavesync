@@ -19,6 +19,6 @@ export const SettingsSectionHeader = ({
       <h2 className="font-semibold text-[1.375rem] tracking-tight">{title}</h2>
       <p className="text-muted-foreground text-sm">{description}</p>
     </div>
-    {action && <div className="shrink-0 pt-1">{action}</div>}
+    {action ? <div className="shrink-0 pt-1">{action}</div> : null}
   </div>
 );

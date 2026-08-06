@@ -63,14 +63,14 @@ const BlogPost = async ({ params }: BlogPostProperties) => {
               year: "numeric",
             })}
           </time>
-          {post.frontmatter.author && (
+          {post.frontmatter.author ? (
             <>
               <span className="text-muted-foreground text-sm">&middot;</span>
               <span className="text-muted-foreground text-sm">
                 {post.frontmatter.author}
               </span>
             </>
-          )}
+          ) : null}
         </div>
 
         <h1 className="font-semibold text-4xl tracking-tight lg:text-5xl">

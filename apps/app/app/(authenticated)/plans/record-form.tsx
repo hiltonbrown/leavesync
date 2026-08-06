@@ -86,6 +86,7 @@ const recordTypeDescriptions: Record<string, string> = {
   wfh: "Working from home.",
 };
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: This form coordinates record type, intent, submit-path and Xero balance state in one component; the explicit conditional rendering added by noLeakedRender pushed it just over the threshold.
 export function RecordForm({
   balanceAvailable,
   canSelectPerson,
@@ -208,20 +209,20 @@ export function RecordForm({
     >
       <div className="rounded-2xl bg-muted p-4 text-muted-foreground text-sm">
         <p>{dynamicPanel}</p>
-        {isXeroLeave && hasActiveXeroConnection && (
+        {isXeroLeave && hasActiveXeroConnection ? (
           <p className="mt-2 font-medium text-foreground">
             {balanceAvailable === null
               ? "Balance has not synced yet. You can still save a draft before submitting."
               : `Current Xero balance: ${balanceAvailable} days before this request.`}
           </p>
-        )}
+        ) : null}
       </div>
 
-      {error && (
+      {error ? (
         <div className="rounded-2xl bg-muted p-4 text-muted-foreground text-sm">
           We could not save this plan. {error}
         </div>
-      )}
+      ) : null}
 
       <Field label="Intent">
         <ToggleGroup
@@ -403,11 +404,11 @@ export function RecordForm({
       </Field>
 
       <div className="flex flex-wrap justify-end gap-3">
-        {showSubmitPath && (
+        {showSubmitPath ? (
           <Button disabled={isPending} type="submit" variant="secondary">
             {mode === "edit" ? "Save changes" : "Save draft"}
           </Button>
-        )}
+        ) : null}
         <Button
           disabled={isPending}
           formAction={
@@ -419,7 +420,7 @@ export function RecordForm({
         </Button>
       </div>
 
-      {confirmationRecord && (
+      {confirmationRecord ? (
         <SubmitConfirmationModal
           mode="submit"
           onClose={() => setConfirmationRecord(null)}
@@ -439,7 +440,7 @@ export function RecordForm({
             workingDays: confirmationRecord.workingDays,
           }}
         />
-      )}
+      ) : null}
     </form>
   );
 }

@@ -103,9 +103,9 @@ export function SyncClient({
 
   return (
     <div className="space-y-6">
-      {message && (
+      {message ? (
         <div className="rounded-2xl bg-muted px-4 py-3 text-sm">{message}</div>
-      )}
+      ) : null}
 
       {summaries.length === 0 ? (
         <EmptyState
@@ -256,7 +256,7 @@ function TenantCard({
         />
       </dl>
 
-      {hasFailures && (
+      {hasFailures ? (
         <XeroSyncFailedState
           message="Recent sync failures need review before downstream data can be trusted."
           retrySlot={
@@ -269,7 +269,7 @@ function TenantCard({
             </Button>
           }
         />
-      )}
+      ) : null}
 
       <div className="flex flex-wrap gap-2">
         {runTypeOptions.map((option) => {
