@@ -111,11 +111,43 @@ wrapper under Bun buys no build speed. It costs a hard crash on this platform.
 ### Deployment context
 
 `apps/app/vercel.json`, `apps/api/vercel.json` and `apps/web/vercel.json` each
-set `"bunVersion": "1.x"`, so Vercel runs the build command under Bun too. The
-observed crash is on `Linux arm64`, and Vercel's build machines are x64, so
-production builds may not currently be hitting it. That is luck, not a
-guarantee, and plan 046 explicitly must not be discovering build failures during
-a launch window.
+set `"bunVersion": "1.x"`, so Vercel runs the build command under Bun too.
+
+**Confirmed on Vercel, 2026-08-06.** An earlier draft of this plan speculated
+that Vercel's x64 build machines might not be hitting the crash, since the local
+reproduction was `Linux arm64`. That was wrong, and the correction matters: this
+is not a preventive change, it is an active production outage.
+
+Every Vercel deployment of `main` since `754a5aac` has failed, including the
+production build of `fb9f1cc`
+(`dpl_88jvowzxWwv63RKNLQFUT3vmMsGV`, target `production`, state `ERROR`). All
+three deployable apps fail, not just `apps/app`:
+
+| App | Deployment | Exit |
+|---|---|---|
+| `apps/app` | `dpl_63eqWpwesZme9ooFJV3PWTqvF6HT` | `next` exited 1 |
+| `apps/api` | `dpl_ELdJu9ZgGgTVnYLGQMnRXnjrKhgP` | `next` exited 1 |
+| `apps/web` | `dpl_FAkE1f4YLiE5wkAspkmEQHjd3ovM` | SIGILL, exit 137 |
+
+All three fail at the same point, collecting page data, with the same message:
+
+```
+Error: Failed to load external module next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:
+TypeError: Expected CommonJS module to have a function wrapper.
+If you weren't messing around with Bun's internals, this is a bug in Bun
+> Build error occurred
+Error: Failed to collect page data for /_not-found
+```
+
+The x64 symptom differs from the arm64 one (a module-loading `TypeError` rather
+than a segfault, except on `apps/web`, which still exits 137 via SIGILL), but
+the cause is identical: `next build` running under the Bun runtime. Bun's own
+error text names Bun as the culprit.
+
+This raises the stakes on the fix rather than changing it. Removing `--bun` is
+still the whole change, and it now restores deployment for all three apps.
+Plan 046 must not be discovering this during a launch window, and plan 016 must
+not add a CI build step until it is done.
 
 ### Repo conventions that apply here
 

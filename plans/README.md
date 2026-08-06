@@ -426,9 +426,13 @@ Recorded to prevent low-value re-audits:
 - Live Vercel, Clerk, Xero, Inngest, Neon, KV, Resend, Sentry, DNS, email-domain
   or backup configuration. Plan 046 requires operator evidence for each.
 - Production data, load, browser performance or support volume.
-- Whether the `apps/app` build crash also occurs on x64 CI and Vercel build
-  machines. It was reproduced on `Linux arm64` under WSL2. Plan 049 removes the
-  exposure regardless.
+- ~~Whether the `apps/app` build crash also occurs on x64 CI and Vercel build
+  machines.~~ **Answered on 2026-08-06: it does.** Every Vercel deployment of
+  `main` since `754a5aac` has failed, including the production build of
+  `fb9f1cc`, and all three deployable apps are affected rather than `apps/app`
+  alone. Plan 049 is therefore fixing a live deployment outage, not removing a
+  theoretical exposure. Evidence is recorded under "Deployment context" in
+  plan 049.
 - Full marketing-site brand, SEO and accessibility quality outside the
   go-live-critical pricing, contact, legal and help paths.
 - The Mintlify documentation content in depth.
