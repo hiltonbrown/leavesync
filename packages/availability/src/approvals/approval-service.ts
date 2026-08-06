@@ -242,8 +242,8 @@ export async function listForApprover(
         "Failed to load organisation settings for list approvals, using default view",
         {
           clerkOrgId: parsed.data.clerkOrgId,
-          organisationId: parsed.data.organisationId,
           error: settingsResult.error,
+          organisationId: parsed.data.organisationId,
         }
       );
     }
@@ -460,8 +460,8 @@ export async function decline(
       "Failed to load organisation settings for decline policy, failing closed",
       {
         clerkOrgId: parsed.data.clerkOrgId,
-        organisationId: parsed.data.organisationId,
         error: settingsResult.error,
+        organisationId: parsed.data.organisationId,
       }
     );
   }
@@ -1446,8 +1446,8 @@ async function notifyManagersIfEnabled(
       "Failed to load organisation settings for manager notification, skipping notification",
       {
         clerkOrgId: input.clerkOrgId,
-        organisationId: input.organisationId,
         error: settingsResult.error,
+        organisationId: input.organisationId,
       }
     );
     return;
