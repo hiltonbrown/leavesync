@@ -129,6 +129,11 @@ three deployable apps fail, not just `apps/app`:
 | `apps/api` | `dpl_ELdJu9ZgGgTVnYLGQMnRXnjrKhgP` | `next` exited 1 |
 | `apps/web` | `dpl_FAkE1f4YLiE5wkAspkmEQHjd3ovM` | SIGILL, exit 137 |
 
+**The exit code is not a reliable signature; the message is.** `apps/web` exited
+137 via SIGILL on one deployment and plain 1 on another from the same branch, so
+match on the `Expected CommonJS module to have a function wrapper` text rather
+than on an exit code.
+
 All three fail at the same point, collecting page data, with the same message:
 
 ```
@@ -140,9 +145,26 @@ Error: Failed to collect page data for /_not-found
 ```
 
 The x64 symptom differs from the arm64 one (a module-loading `TypeError` rather
-than a segfault, except on `apps/web`, which still exits 137 via SIGILL), but
-the cause is identical: `next build` running under the Bun runtime. Bun's own
-error text names Bun as the culprit.
+than a segfault), but the cause is identical: `next build` running under the Bun
+runtime. Bun's own error text names Bun as the culprit.
+
+Three further details from the full Vercel logs, all of which support the fix:
+
+- **The compile succeeds.** Every app reports `✓ Compiled successfully` and
+  `Finished TypeScript` before failing. The failure is at `Collecting page
+  data`, which is where Next first *executes* the built server bundle. So this
+  is not a compile error, a type error or an environment-validation failure;
+  it is the Bun runtime failing to load a module Next just emitted, exactly as
+  this plan's premise states.
+- **Vercel runs `bun install v1.3.12`**, while the local reproduction was
+  `v1.3.14`. Two different Bun versions on two architectures produce the same
+  failure.
+- **It is Turbopack-specific.** All three builds report
+  `▲ Next.js 16.3.0 (Turbopack)`, the failing module is
+  `app-page-turbo.runtime.prod.js`, and the stack enters through
+  `externalRequire` in `[turbopack]_runtime.js`. Turbopack's runtime performs a
+  CommonJS `require` that Bun mishandles. Do not treat switching bundlers as the
+  fix here; removing `--bun` is smaller and is what this plan does.
 
 This raises the stakes on the fix rather than changing it. Removing `--bun` is
 still the whole change, and it now restores deployment for all three apps.
@@ -376,9 +398,13 @@ Stop and report back (do not improvise) if:
   longer forces the Bun runtime for `next build`, so production picks up the
   same protection. A reviewer should confirm the next preview deployment builds
   cleanly.
-- The crash is `Bun v1.3.14` on `Linux arm64`. If Bun ships a fix, restoring
-  `--bun` is possible but pointless: `next build` is compiler-bound, so the flag
-  buys no measurable time. Prefer leaving it off.
+- The crash spans **at least two Bun versions and two architectures**:
+  `v1.3.14` on `Linux arm64` locally, and `v1.3.12` on Vercel's x64 builders.
+  Do not read it as a single-version regression, and do not go looking for a
+  good version to pin. That reinforces the rejection of pinning or downgrading
+  Bun recorded in `plans/README.md`. If Bun ships a fix, restoring `--bun` is
+  possible but pointless: `next build` is compiler-bound, so the flag buys no
+  measurable time. Prefer leaving it off.
 - Plan 016 adds `bun run build` to CI. It should be executed **after** this
   plan, otherwise it adds a step that fails immediately.
 - Deliberately deferred: filing the Bun crash report. The crash URL is in the
