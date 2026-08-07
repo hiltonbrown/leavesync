@@ -7,7 +7,7 @@
 > `plans/README.md`.
 >
 > **Drift check (run first)**:
-> `git diff --stat 75202db..HEAD -- .github/workflows/ci.yml turbo.json apps/app/tsconfig.json apps/api/tsconfig.json apps/web/tsconfig.json`
+> `git diff --stat 75202db..HEAD -- .github/workflows/ci.yml turbo.json apps/app/tsconfig.json apps/api/tsconfig.json apps/web/tsconfig.json apps/app/package.json apps/api/package.json apps/web/package.json`
 > If any changed since this plan was written, re-check the "Current state"
 > facts before proceeding.
 
@@ -32,6 +32,25 @@
   the `packages/xero/keys.ts` citation was corrected from 45-59 to 46-59, since
   line 45 is `XERO_REDIRECT_URI`; and done criterion 7 now allows this plan file
   and `plans/README.md`, which the plan's own status-row instruction requires.
+- **Reviewed**: 2026-08-07 against `df1adb2`. `.github/workflows/ci.yml`,
+  `turbo.json` and all three `tsconfig.json` files are still unchanged from the
+  prior review, and `bun run build` was actually run: it exits 0, `4
+  successful, 4 total`, and populates `apps/app/.next/types`,
+  `apps/api/.next/types` and `apps/web/.next/types` exactly as Steps 1-2
+  predict. One excerpt had drifted: plan 049 merged as `71fa962` on
+  2026-08-06, after the prior review's `fb9f1cc` cutoff, and removed the
+  `--bun` flag from all three apps' `build` scripts. The "Current state"
+  section and the drift-check command are corrected below; nothing in Steps,
+  Done criteria or STOP conditions depended on the flag's presence, so no step
+  content changed. The Turborepo maintenance note about excluding
+  `apps/email` was also corrected: the root `bun run build` script is already
+  `turbo build --filter=!email` today, not a hypothetical future option.
+  Finally, the `packages/xero/keys.ts` line citation was still wrong after the
+  prior review's "45-59 to 46-59" correction: lines 46-59 span the tail of
+  `runtimeEnv` and the three preceding optional keys, not the
+  `XERO_TOKEN_ENCRYPTION_KEY` refine block, which is at lines 56-69. Corrected
+  below; the quoted code itself was already accurate, only the line numbers
+  were wrong.
 
 ## Why this matters
 
@@ -184,8 +203,10 @@ typecheck configuration of all three apps.
     },
 ```
 
-`apps/app`, `apps/api` and `apps/web` each define `"build": "bun --bun next
-build"`. Nothing needs to be added to `turbo.json` or to any package manifest.
+`apps/app`, `apps/api` and `apps/web` each define `"build": "next build"`
+(plan 049 removed the earlier `bun --bun` prefix so the build runs under
+Node instead of the Bun runtime). Nothing needs to be added to `turbo.json`
+or to any package manifest.
 
 ### Environment variables the build needs
 
@@ -208,7 +229,7 @@ export const keys = () =>
 
 `DATABASE_URL` is already set at the job level, so this one is satisfied.
 
-`packages/xero/keys.ts` lines 46-59 declares a **required** key:
+`packages/xero/keys.ts` lines 56-69 declares a **required** key:
 
 ```typescript
       XERO_TOKEN_ENCRYPTION_KEY: z.string().refine(
@@ -519,9 +540,10 @@ Stop and report back rather than improvising if any of these occur:
   `.next/types/` survives a cache restore.
 - **`apps/docs` has no build script** (it is Mintlify, with only `dev` and
   `lint`). Turbo will skip it. That is correct; do not add one.
-- **`apps/email` is dev-preview only** and is not deployed. If its build ever
-  becomes the slowest part of CI, excluding it with `--filter` is reasonable;
-  excluding `apps/app`, `apps/api` or `apps/web` is not.
+- **`apps/email` is dev-preview only** and is not deployed. The root `build`
+  script in `package.json` is already `turbo build --filter=!email`, so it is
+  excluded from `bun run build` today, not just a future option. Excluding
+  `apps/app`, `apps/api` or `apps/web` the same way would not be correct.
 - **Related plan**: plan 005 (refresh vulnerable dependency pins) requires a
   successful `bun run build` as its verification gate. Landing this plan first
   means CI enforces that gate on every subsequent dependency bump rather than
