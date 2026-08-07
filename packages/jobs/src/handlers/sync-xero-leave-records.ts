@@ -586,11 +586,20 @@ async function processLeaveRecord(
     ) {
       approvalStatusToPersist = "xero_sync_failed";
     }
+    const clearedWriteError =
+      approvalStatusToPersist === "xero_sync_failed"
+        ? {}
+        : {
+            failed_action: null,
+            xero_write_error: null,
+            xero_write_error_raw: Prisma.DbNull,
+          };
     const changed =
       existing?.source_remote_hash !== normalised.sourceRemoteHash;
     const xeroOwned = {
       all_day: normalised.allDay,
       approval_status: approvalStatusToPersist,
+      ...clearedWriteError,
       archived_at: normalised.publishStatus === "archived" ? new Date() : null,
       contactability: normalised.contactability,
       derived_uid_key: normalised.derivedUidKey,
@@ -628,7 +637,10 @@ async function processLeaveRecord(
       });
       existingRecordsBySourceRemoteId.set(normalised.sourceRemoteId, {
         approval_status: approvalStatusToPersist,
-        failed_action: existing?.failed_action ?? null,
+        failed_action:
+          approvalStatusToPersist === "xero_sync_failed"
+            ? (existing?.failed_action ?? null)
+            : null,
         id: recordId,
         source_remote_hash: normalised.sourceRemoteHash,
         source_remote_id: normalised.sourceRemoteId,
