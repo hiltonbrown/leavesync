@@ -1,0 +1,224 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { hasFeature, withinLimit } from "./entitlements";
+
+const mocks = vi.hoisted(() => ({
+  getPlanFeatures: vi.fn(),
+  getPlanLimits: vi.fn(),
+  getSubscriptionForOrg: vi.fn(),
+  getUsageCounter: vi.fn(),
+}));
+
+vi.mock("server-only", () => ({}));
+vi.mock("@repo/database", () => ({
+  getPlanFeatures: mocks.getPlanFeatures,
+  getPlanLimits: mocks.getPlanLimits,
+  getSubscriptionForOrg: mocks.getSubscriptionForOrg,
+  getUsageCounter: mocks.getUsageCounter,
+}));
+
+describe("entitlements", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  describe("withinLimit", () => {
+    it("allows usage when current usage is strictly less than limit", async () => {
+      mocks.getSubscriptionForOrg.mockResolvedValue({
+        plan_key: "premium",
+        status: "active",
+      });
+      mocks.getPlanLimits.mockReturnValue({ seats: 10 });
+      mocks.getUsageCounter.mockResolvedValue({ current_value: 5 });
+
+      const result = await withinLimit("org_123", "org_entity_123", "seats");
+
+      expect(result).toEqual({
+        ok: true,
+        value: { allowed: true, current: 5, limit: 10 },
+      });
+    });
+
+    it("denies usage when current usage equals limit", async () => {
+      mocks.getSubscriptionForOrg.mockResolvedValue({
+        plan_key: "premium",
+        status: "active",
+      });
+      mocks.getPlanLimits.mockReturnValue({ seats: 10 });
+      mocks.getUsageCounter.mockResolvedValue({ current_value: 10 });
+
+      const result = await withinLimit("org_123", "org_entity_123", "seats");
+
+      expect(result).toEqual({
+        ok: true,
+        value: { allowed: false, current: 10, limit: 10 },
+      });
+    });
+
+    it("denies usage when current usage exceeds limit", async () => {
+      mocks.getSubscriptionForOrg.mockResolvedValue({
+        plan_key: "premium",
+        status: "active",
+      });
+      mocks.getPlanLimits.mockReturnValue({ seats: 10 });
+      mocks.getUsageCounter.mockResolvedValue({ current_value: 11 });
+
+      const result = await withinLimit("org_123", "org_entity_123", "seats");
+
+      expect(result).toEqual({
+        ok: true,
+        value: { allowed: false, current: 11, limit: 10 },
+      });
+    });
+
+    it("allows usage when limit is -1 (unlimited)", async () => {
+      mocks.getSubscriptionForOrg.mockResolvedValue({
+        plan_key: "enterprise",
+        status: "active",
+      });
+      mocks.getPlanLimits.mockReturnValue({ seats: -1 });
+      mocks.getUsageCounter.mockResolvedValue({ current_value: 999_999 });
+
+      const result = await withinLimit("org_123", "org_entity_123", "seats");
+
+      expect(result).toEqual({
+        ok: true,
+        value: { allowed: true, current: 999_999, limit: -1 },
+      });
+    });
+
+    it("treats null usage counter as 0 and allows when under limit", async () => {
+      mocks.getSubscriptionForOrg.mockResolvedValue({
+        plan_key: "premium",
+        status: "active",
+      });
+      mocks.getPlanLimits.mockReturnValue({ seats: 10 });
+      mocks.getUsageCounter.mockResolvedValue(null);
+
+      const result = await withinLimit("org_123", "org_entity_123", "seats");
+
+      expect(result).toEqual({
+        ok: true,
+        value: { allowed: true, current: 0, limit: 10 },
+      });
+    });
+
+    it("returns error result when getPlanLimits throws", async () => {
+      mocks.getSubscriptionForOrg.mockResolvedValue({
+        plan_key: "premium",
+        status: "active",
+      });
+      mocks.getPlanLimits.mockImplementation(() => {
+        throw new Error("Database error");
+      });
+      mocks.getUsageCounter.mockResolvedValue({ current_value: 0 });
+
+      const result = await withinLimit("org_123", "org_entity_123", "seats");
+
+      expect(result).toEqual({
+        error: {
+          code: "internal",
+          message: "Failed to check billing limits.",
+        },
+        ok: false,
+      });
+    });
+  });
+
+  describe("activePlanKey resolution", () => {
+    it("resolves to premium for active subscription with premium plan key", async () => {
+      mocks.getSubscriptionForOrg.mockResolvedValue({
+        plan_key: "premium",
+        status: "active",
+      });
+      mocks.getPlanLimits.mockReturnValue({ seats: 10 });
+      mocks.getUsageCounter.mockResolvedValue({ current_value: 0 });
+
+      await withinLimit("org_123", "org_entity_123", "seats");
+
+      expect(mocks.getPlanLimits).toHaveBeenCalledWith("premium");
+    });
+
+    it("resolves to premium for trialing subscription with premium plan key", async () => {
+      mocks.getSubscriptionForOrg.mockResolvedValue({
+        plan_key: "premium",
+        status: "trialing",
+      });
+      mocks.getPlanLimits.mockReturnValue({ seats: 10 });
+      mocks.getUsageCounter.mockResolvedValue({ current_value: 0 });
+
+      await withinLimit("org_123", "org_entity_123", "seats");
+
+      expect(mocks.getPlanLimits).toHaveBeenCalledWith("premium");
+    });
+
+    it("falls back to basic for canceled subscription", async () => {
+      mocks.getSubscriptionForOrg.mockResolvedValue({
+        plan_key: "premium",
+        status: "canceled",
+      });
+      mocks.getPlanLimits.mockReturnValue({ seats: 5 });
+      mocks.getUsageCounter.mockResolvedValue({ current_value: 0 });
+
+      await withinLimit("org_123", "org_entity_123", "seats");
+
+      expect(mocks.getPlanLimits).toHaveBeenCalledWith("basic");
+    });
+
+    it("falls back to basic for unrecognised plan key", async () => {
+      mocks.getSubscriptionForOrg.mockResolvedValue({
+        plan_key: "enterprise_legacy",
+        status: "active",
+      });
+      mocks.getPlanLimits.mockReturnValue({ seats: 5 });
+      mocks.getUsageCounter.mockResolvedValue({ current_value: 0 });
+
+      await withinLimit("org_123", "org_entity_123", "seats");
+
+      expect(mocks.getPlanLimits).toHaveBeenCalledWith("basic");
+    });
+
+    it("falls back to basic when organisation has no subscription", async () => {
+      mocks.getSubscriptionForOrg.mockResolvedValue(null);
+      mocks.getPlanLimits.mockReturnValue({ seats: 5 });
+      mocks.getUsageCounter.mockResolvedValue({ current_value: 0 });
+
+      await withinLimit("org_123", "org_entity_123", "seats");
+
+      expect(mocks.getPlanLimits).toHaveBeenCalledWith("basic");
+    });
+  });
+
+  describe("hasFeature", () => {
+    it("returns feature flag value for resolved plan", async () => {
+      mocks.getSubscriptionForOrg.mockResolvedValue({
+        plan_key: "premium",
+        status: "active",
+      });
+      mocks.getPlanFeatures.mockReturnValue({
+        analytics: true,
+        priority_support: false,
+      });
+
+      const result = await hasFeature("org_123", "analytics");
+
+      expect(mocks.getPlanFeatures).toHaveBeenCalledWith("premium");
+      expect(result).toEqual({ ok: true, value: true });
+    });
+
+    it("returns error result when dependency throws", async () => {
+      mocks.getSubscriptionForOrg.mockRejectedValue(
+        new Error("Connection error")
+      );
+
+      const result = await hasFeature("org_123", "analytics");
+
+      expect(result).toEqual({
+        error: {
+          code: "internal",
+          message: "Failed to check billing features.",
+        },
+        ok: false,
+      });
+    });
+  });
+});
