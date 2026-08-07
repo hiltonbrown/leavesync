@@ -28,6 +28,34 @@
   hand; see its exported `scopedQuery`/`scopedTo` usage in
   `packages/availability/src/settings/manager-scope.ts`.
 
+- **Executed**: 2026-08-07, dispatched against HEAD `a56fe58`. **Gap 1 (feed
+  lookup) is fixed, verified, and committed as `af2c344` on branch
+  `worktree-agent-aedc7188b1fab86c5` in worktree
+  `.claude/worktrees/agent-aedc7188b1fab86c5`, not yet merged to `main`.** All
+  done criteria for that half pass: `bun run check` exit 0, `bun run
+  typecheck` exit 0, `apps/app` suite `53 passed / 175 passed` (matches
+  baseline), the `where` clause now carries `clerk_org_id`, `id` and
+  `organisation_id`, and the updated test in `feeds/_actions.test.ts` asserts
+  on the call arguments (not the result), per the plan's own guidance on why
+  that matters.
+
+  **Gap 2 (Xero match lookup) hit the plan's own Step 3 STOP condition and was
+  not fixed.** `resolveXeroPersonMatchAction` in
+  `apps/app/app/(authenticated)/settings/integrations/xero/matches/_actions.ts`
+  resolves only `orgId` (Clerk org) from `auth()` — no `organisationId` exists
+  anywhere in that action's call path. The sibling listing query,
+  `matches/page.tsx:22-47`, filters `xeroPersonMatch.findMany` by
+  `clerk_org_id` only, i.e. it deliberately lists matches across every
+  Organisation a Clerk Org owns; `matches-client.tsx` never sends an
+  `organisationId` to the action either. Threading one through to close gap 2
+  properly requires changes to `matches-client.tsx` and probably a scoping
+  decision on `page.tsx`'s listing query — both outside this plan's declared
+  scope, and the listing query's cross-Organisation visibility may be
+  intentional rather than a bug. This is a product/security judgment call, not
+  a two-line fix, and needs its own plan with a widened scope once the
+  intended behaviour (Clerk-org-wide matching vs. per-Organisation) is
+  confirmed with the user.
+
 ## A note on scope, read this first
 
 The audit that produced this plan initially reported a large number of
