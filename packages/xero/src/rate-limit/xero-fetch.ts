@@ -21,6 +21,13 @@ export interface XeroFetchInput {
   // Identity the limiter buckets are keyed by. Built from the connected
   // organisation so one org cannot starve another.
   orgKey: string;
+  // Set false for requests that create something in Xero. A 429 is still
+  // retried because Xero rejected the request before processing it, but a 5xx
+  // or a dropped connection is ambiguous: Xero may have completed the write and
+  // only the response was lost. Retrying then creates a duplicate leave
+  // application in the customer's payroll file, which cannot be repaired from
+  // this side.
+  retryOnAmbiguousFailure?: boolean;
   url: string;
 }
 
@@ -70,6 +77,7 @@ export async function xeroFetch(
   const fetchImpl = deps.fetchImpl ?? fetch;
   const sleep = deps.sleep ?? defaultSleep;
   const maxAttempts = input.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
+  const retryOnAmbiguousFailure = input.retryOnAmbiguousFailure ?? true;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const gate = await limiter.acquire(input.orgKey);
@@ -82,7 +90,7 @@ export async function xeroFetch(
       response = await fetchImpl(input.url, input.init);
     } catch (error) {
       gate.release();
-      if (attempt < maxAttempts) {
+      if (attempt < maxAttempts && retryOnAmbiguousFailure) {
         await sleep(backoffMs(attempt));
         continue;
       }
@@ -90,7 +98,11 @@ export async function xeroFetch(
     }
     gate.release();
 
-    if (attempt < maxAttempts && isTransientStatus(response.status)) {
+    const retryableStatus = retryOnAmbiguousFailure
+      ? isTransientStatus(response.status)
+      : response.status === 429;
+
+    if (attempt < maxAttempts && retryableStatus) {
       const retryAfterMs =
         response.status === 429
           ? parseRetryAfter(response.headers.get("Retry-After"))

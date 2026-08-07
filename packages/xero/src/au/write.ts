@@ -190,6 +190,10 @@ async function xeroRequest(
         clerkOrgId: xeroTenant.clerk_org_id,
         organisationId: xeroTenant.organisation_id,
       }),
+      // Every request through this helper mutates payroll state. See the field
+      // comment in xero-fetch.ts: an ambiguous failure must surface to the user
+      // rather than be retried into a duplicate.
+      retryOnAmbiguousFailure: false,
       url: `${baseUrl()}${request.path}`,
     });
     const rawPayload = await readPayload(response);
