@@ -593,6 +593,13 @@ model AvailabilityRecord {
   approved_at              DateTime?
   xero_write_error         String?
   xero_write_error_raw     Json?
+  // Set immediately before an outbound Xero write and cleared once the write
+  // has been recorded. A second request that finds a live claim stops before
+  // calling Xero, because the create endpoint has no idempotency key and a
+  // duplicate call creates a duplicate leave application in payroll. Claims
+  // older than the TTL in submit-service.ts are treated as abandoned so a
+  // crashed process cannot wedge a record permanently.
+  xero_write_claimed_at    DateTime?
   submitted_at             DateTime?
   withdrawn_at             DateTime?
   created_at               DateTime                     @default(now())

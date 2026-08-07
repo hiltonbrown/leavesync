@@ -3032,6 +3032,7 @@ export const AvailabilityRecordScalarFieldEnum = {
   approved_at: 'approved_at',
   xero_write_error: 'xero_write_error',
   xero_write_error_raw: 'xero_write_error_raw',
+  xero_write_claimed_at: 'xero_write_claimed_at',
   submitted_at: 'submitted_at',
   withdrawn_at: 'withdrawn_at',
   created_at: 'created_at',
