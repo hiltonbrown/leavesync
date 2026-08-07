@@ -90,7 +90,9 @@ export async function xeroFetch(
       response = await fetchImpl(input.url, input.init);
     } catch (error) {
       gate.release();
-      if (attempt < maxAttempts && retryOnAmbiguousFailure) {
+      if (
+        shouldRetryAfterThrow(attempt, maxAttempts, retryOnAmbiguousFailure)
+      ) {
         await sleep(backoffMs(attempt));
         continue;
       }
@@ -98,11 +100,10 @@ export async function xeroFetch(
     }
     gate.release();
 
-    const retryableStatus = retryOnAmbiguousFailure
-      ? isTransientStatus(response.status)
-      : response.status === 429;
-
-    if (attempt < maxAttempts && retryableStatus) {
+    if (
+      attempt < maxAttempts &&
+      isRetryableStatus(response.status, retryOnAmbiguousFailure)
+    ) {
       const retryAfterMs =
         response.status === 429
           ? parseRetryAfter(response.headers.get("Retry-After"))
@@ -132,6 +133,26 @@ async function cancelBody(response: Response): Promise<void> {
 
 function isTransientStatus(status: number): boolean {
   return status === 429 || (status >= 500 && status < 600);
+}
+
+// A 429 is always safe to retry: Xero rejected the request before processing
+// it. Any other transient status is only retried when the caller has not
+// opted out, because a 5xx is ambiguous about whether the write completed.
+function isRetryableStatus(
+  status: number,
+  retryOnAmbiguousFailure: boolean
+): boolean {
+  return retryOnAmbiguousFailure ? isTransientStatus(status) : status === 429;
+}
+
+// A thrown network error is always ambiguous (was the request received?), so
+// it is only retried when attempts remain and the caller has not opted out.
+function shouldRetryAfterThrow(
+  attempt: number,
+  maxAttempts: number,
+  retryOnAmbiguousFailure: boolean
+): boolean {
+  return attempt < maxAttempts && retryOnAmbiguousFailure;
 }
 
 function backoffMs(attempt: number): number {
