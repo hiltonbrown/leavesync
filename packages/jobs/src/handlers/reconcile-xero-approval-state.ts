@@ -50,8 +50,21 @@ const ACTIVE_STATUSES = [
   "declined",
   "xero_sync_failed",
 ] as const;
-const BATCH_SIZE = 50;
+const BATCH_SIZE = 5;
 const STALE_RUN_WINDOW_MS = 30 * 60 * 1000;
+
+// How far back to reconcile. A leave record that finished more than this long
+// ago cannot change what the calendar publishes, so re-checking it against Xero
+// on every run is pure rate-limit cost. The window is generous enough to catch
+// late payroll edits. Records outside it keep whatever state they last synced.
+const RECONCILE_LOOKBACK_DAYS = 90;
+
+// Ceiling on Xero requests per run. The per-organisation budget is 5,000 a day
+// (see the rate limiting section in CLAUDE.md); this leaves ample headroom for
+// the scheduled people, leave-record and balance syncs that share it. A run
+// that hits the cap finishes cleanly and reports itself as partial rather than
+// truncating silently.
+const MAX_REQUESTS_PER_RUN = 500;
 const FailedRecordTypeSchema = z.enum([
   "people",
   "leave_records",
@@ -121,6 +134,7 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
       declined: number;
       failed: number;
       matched: number;
+      partial: boolean;
       runId: string;
       status: "cancelled" | "failed" | "partial_success" | "succeeded";
       withdrawn: number;
@@ -225,6 +239,10 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
       return { ok: true, value: emptyResult(run.id, "failed") };
     }
 
+    const windowStart = new Date(
+      Date.now() - RECONCILE_LOOKBACK_DAYS * 24 * 60 * 60 * 1000
+    );
+
     const records = await database.availabilityRecord.findMany({
       include: {
         person: {
@@ -237,14 +255,18 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
           },
         },
       },
-      orderBy: { created_at: "asc" },
+      orderBy: [{ approval_status: "asc" }, { created_at: "asc" }],
+      take: MAX_REQUESTS_PER_RUN,
       where: {
         ...scoped(context),
         approval_status: { in: [...ACTIVE_STATUSES] },
         archived_at: null,
+        ends_at: { gte: windowStart },
         source_remote_id: { not: null },
       },
     });
+
+    const partial = records.length === MAX_REQUESTS_PER_RUN;
 
     const counts = {
       approved: 0,
@@ -268,77 +290,48 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
         });
         return {
           ok: true,
-          value: { ...counts, runId: run.id, status: "cancelled" },
+          value: { ...counts, partial, runId: run.id, status: "cancelled" },
         };
       }
 
       const batch = records.slice(index, index + BATCH_SIZE);
-      for (const record of batch) {
-        const xeroLeaveApplicationId = record.source_remote_id;
-        if (!xeroLeaveApplicationId) {
-          continue;
-        }
-        const status = await fetchLeaveApplicationStatusForRegion(
-          xeroTenant.payroll_region,
-          { xeroLeaveApplicationId, xeroTenant }
-        );
-        if (!status.ok) {
-          if (isBlanketFailure(status.error)) {
-            await completeRun(context, run.id, {
-              counts,
-              errorSummary: toPlainLanguageMessage(status.error),
-              recordsFetched: records.length,
-              status: "failed",
-            });
-            return {
-              ok: true,
-              value: { ...counts, runId: run.id, status: "failed" },
-            };
-          }
-          await recordFailure(context, {
-            error: status.error,
-            rawPayload: status.error.rawPayload ?? null,
-            recordId: record.id,
-            recordType: record.record_type,
-            runId: run.id,
-            sourceRemoteId: xeroLeaveApplicationId,
-          });
-          if (status.error.code === "not_found_error") {
-            await archiveMissing(
-              context,
-              run.id,
-              record,
-              xeroLeaveApplicationId
-            );
-            counts.archivedMissing += 1;
-          }
-          counts.failed += 1;
-          continue;
-        }
-
-        const reconciled = await reconcileRecord(context, run.id, record, {
-          approvedAt: status.value.approvedAt,
-          rawPayload: status.value.rawResponse,
-          status: status.value.status,
-          xeroLeaveApplicationId,
+      const results = await Promise.all(
+        batch.map((record) =>
+          reconcileOne(context, run.id, xeroTenant, record, counts)
+        )
+      );
+      const blanket = results.find((result) => result.blanketError);
+      if (blanket?.blanketError) {
+        await completeRun(context, run.id, {
+          counts,
+          errorSummary: toPlainLanguageMessage(blanket.blanketError),
+          recordsFetched: records.length,
+          status: "failed",
         });
-        counts[reconciled] += 1;
+        return {
+          ok: true,
+          value: { ...counts, partial, runId: run.id, status: "failed" },
+        };
       }
       if (index + BATCH_SIZE < records.length) {
         await sleep(150);
       }
     }
 
-    const finalStatus = counts.failed > 0 ? "partial_success" : "succeeded";
+    const finalStatus: "partial_success" | "succeeded" =
+      partial || counts.failed > 0 ? "partial_success" : "succeeded";
     await completeRun(context, run.id, {
       counts,
+      errorSummary: partial
+        ? `Reconciliation capped at ${MAX_REQUESTS_PER_RUN} records; rerun to continue`
+        : undefined,
       recordsFetched: records.length,
       status: finalStatus,
     });
     await notifyCompletion(context, run.id, counts);
     return {
       ok: true,
-      value: { ...counts, runId: run.id, status: finalStatus },
+      value: { ...counts, partial, runId: run.id, status: finalStatus },
     };
   } catch (error) {
     log.error("Unhandled exception in reconcileXeroApprovalState:", { error });
@@ -824,10 +817,72 @@ function emptyResult(
     declined: 0,
     failed: 0,
     matched: 0,
+    partial: false,
     runId,
     status,
     withdrawn: 0,
   };
+}
+
+async function reconcileOne(
+  context: ReconcileApprovalStateInput,
+  runId: string,
+  xeroTenant: NonNullable<Awaited<ReturnType<typeof loadXeroTenant>>>,
+  record: ReconciliationRecord,
+  counts: {
+    approved: number;
+    archivedMissing: number;
+    declined: number;
+    failed: number;
+    matched: number;
+    withdrawn: number;
+  }
+): Promise<{ blanketError?: XeroWriteError }> {
+  try {
+    const xeroLeaveApplicationId = record.source_remote_id;
+    if (!xeroLeaveApplicationId) {
+      return {};
+    }
+    const status = await fetchLeaveApplicationStatusForRegion(
+      xeroTenant.payroll_region,
+      { xeroLeaveApplicationId, xeroTenant }
+    );
+    if (!status.ok) {
+      if (isBlanketFailure(status.error)) {
+        return { blanketError: status.error };
+      }
+      await recordFailure(context, {
+        error: status.error,
+        rawPayload: status.error.rawPayload ?? null,
+        recordId: record.id,
+        recordType: record.record_type,
+        runId,
+        sourceRemoteId: xeroLeaveApplicationId,
+      });
+      if (status.error.code === "not_found_error") {
+        await archiveMissing(context, runId, record, xeroLeaveApplicationId);
+        counts.archivedMissing += 1;
+      }
+      counts.failed += 1;
+      return {};
+    }
+
+    const reconciled = await reconcileRecord(context, runId, record, {
+      approvedAt: status.value.approvedAt,
+      rawPayload: status.value.rawResponse,
+      status: status.value.status,
+      xeroLeaveApplicationId,
+    });
+    counts[reconciled] += 1;
+    return {};
+  } catch (error) {
+    log.error("Unhandled reconciliation error for record", {
+      error,
+      recordId: record.id,
+    });
+    counts.failed += 1;
+    return {};
+  }
 }
 
 function toPrismaJsonValue(

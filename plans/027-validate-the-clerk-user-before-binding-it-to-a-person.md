@@ -16,9 +16,10 @@
 - **Priority**: P2
 - **Effort**: S
 - **Risk**: LOW
-- **Depends on**: plan 019 is adjacent (same file); see "Git workflow"
+- **Depends on**: plan 050 is adjacent (same file; supersedes plan 019) — see README graph `050 -> 027`
 - **Category**: security
 - **Planned at**: commit `75202db`, 2026-07-25
+- **Reconciled**: 2026-08-08 against `b0fa224`. Finding confirmed still present. Diff `75202db..b0fa224` for the three drift files is cosmetic only (Biome key reordering: `where`/`include` and `data`/`where` swapped); no semantic change. `packages/auth/server.ts` unchanged. `schema.prisma` added `xero_write_claimed_at` on `AvailabilityRecord` — does not touch `@@unique([organisation_id, clerk_user_id])`. `clerkUserId` still `z.string().trim().min(1).optional()` with no prefix, membership or uniqueness check before the `person.update`.
 
 ## Why this matters
 
