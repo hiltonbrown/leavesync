@@ -104,6 +104,78 @@ describe("xeroFetch", () => {
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     expect(calls).toEqual([]);
   });
+
+  it("does not retry a 5xx when retryOnAmbiguousFailure is false", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(new Response("", { status: 500 }));
+    const { sleep } = recordingSleep();
+
+    const response = await xeroFetch(
+      {
+        orgKey: "org-a",
+        retryOnAmbiguousFailure: false,
+        url: "https://api.xero.com/x",
+      },
+      { fetchImpl, limiter: permissiveLimiter(), sleep }
+    );
+
+    expect(response.status).toBe(500);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it("still retries a 429 when retryOnAmbiguousFailure is false", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(new Response("", { status: 429 }))
+      .mockResolvedValueOnce(new Response("{}", { status: 200 }));
+    const { sleep } = recordingSleep();
+
+    const response = await xeroFetch(
+      {
+        orgKey: "org-a",
+        retryOnAmbiguousFailure: false,
+        url: "https://api.xero.com/x",
+      },
+      { fetchImpl, limiter: permissiveLimiter(), sleep }
+    );
+
+    expect(response.status).toBe(200);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  it("propagates a thrown network error after one attempt when retryOnAmbiguousFailure is false", async () => {
+    const networkError = new Error("socket reset");
+    const fetchImpl = vi.fn().mockRejectedValue(networkError);
+    const { sleep } = recordingSleep();
+
+    await expect(
+      xeroFetch(
+        {
+          orgKey: "org-a",
+          retryOnAmbiguousFailure: false,
+          url: "https://api.xero.com/x",
+        },
+        { fetchImpl, limiter: permissiveLimiter(), sleep }
+      )
+    ).rejects.toBe(networkError);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it("still retries a 5xx up to the default budget when the flag is omitted", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(new Response("", { status: 503 }));
+    const { sleep } = recordingSleep();
+
+    const response = await xeroFetch(
+      { orgKey: "org-a", url: "https://api.xero.com/x" },
+      { fetchImpl, limiter: permissiveLimiter(), sleep }
+    );
+
+    expect(response.status).toBe(503);
+    expect(fetchImpl).toHaveBeenCalledTimes(4);
+  });
 });
 
 describe("orgRateLimitKey", () => {

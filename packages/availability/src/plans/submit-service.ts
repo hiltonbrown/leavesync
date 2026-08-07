@@ -66,6 +66,12 @@ type JsonValue =
   | JsonValue[]
   | { [key: string]: JsonValue };
 
+// How long a claim on an outbound Xero write stays live. Long enough to cover
+// the full xeroFetch budget (rate-limiter wait plus backed-off retries) with
+// headroom, short enough that a process that dies mid-write does not lock the
+// record out of retry indefinitely.
+const XERO_WRITE_CLAIM_TTL_MS = 2 * 60 * 1000;
+
 export async function submitDraftRecord(
   input: RecordActionInput,
   externalWritePort: ExternalWritePort
@@ -270,12 +276,13 @@ async function performSubmission(
     return unknownError("Invalid submission request.");
   }
 
+  let record: LoadedRecord | null = null;
   try {
     const authorised = await loadAndAuthorise(parsed.data, "manager_allowed");
     if (!authorised.ok) {
       return authorised;
     }
-    const record = authorised.value;
+    record = authorised.value;
 
     if (
       record.source_type !== "team_calendar_leave" ||
@@ -304,16 +311,38 @@ async function performSubmission(
       return prepared;
     }
 
-    const submission = await externalWritePort.submitLeaveApplication({
-      clerkOrgId: parsed.data.clerkOrgId,
-      employeeId: prepared.value.xeroEmployeeId,
-      endsAt: record.ends_at,
-      leaveTypeId: prepared.value.xeroLeaveTypeId,
-      organisationId: parsed.data.organisationId,
-      startsAt: record.starts_at,
-      title: record.title ?? undefined,
-      units: prepared.value.units,
-    });
+    // Claim before calling Xero, not after. The guarded update further down
+    // protects the database row, but by the time it runs the leave application
+    // already exists in payroll. Xero's create endpoint has no idempotency key,
+    // so two concurrent submissions would create two applications and only one
+    // would be recorded here.
+    const claimed = await claimXeroWrite(
+      parsed.data,
+      record,
+      options.validStatus
+    );
+    if (!claimed) {
+      return invalidState(options.invalidStateCode);
+    }
+
+    let submission: Awaited<
+      ReturnType<ExternalWritePort["submitLeaveApplication"]>
+    >;
+    try {
+      submission = await externalWritePort.submitLeaveApplication({
+        clerkOrgId: parsed.data.clerkOrgId,
+        employeeId: prepared.value.xeroEmployeeId,
+        endsAt: record.ends_at,
+        leaveTypeId: prepared.value.xeroLeaveTypeId,
+        organisationId: parsed.data.organisationId,
+        startsAt: record.starts_at,
+        title: record.title ?? undefined,
+        units: prepared.value.units,
+      });
+    } catch (error) {
+      await releaseXeroWrite(parsed.data, record);
+      throw error;
+    }
 
     if (!submission.ok) {
       return await persistXeroFailure({
@@ -327,6 +356,11 @@ async function performSubmission(
       });
     }
 
+    // `record` is a `let` narrowed above; alias it to a const so the
+    // transaction closure (evaluated later, from TypeScript's perspective)
+    // keeps the non-null type instead of widening back to LoadedRecord | null.
+    const claimedRecord = record;
+
     await database.$transaction(async (tx) => {
       const update = await tx.availabilityRecord.updateMany({
         data: {
@@ -337,14 +371,15 @@ async function performSubmission(
           source_remote_id: submission.value.remoteId,
           submitted_at: new Date(),
           updated_by_user_id: parsed.data.actingUserId,
+          xero_write_claimed_at: null,
           xero_write_error: null,
           xero_write_error_raw: Prisma.DbNull,
         },
         where: {
           ...scoped(parsed.data),
           approval_status: options.validStatus,
-          derived_sequence: record.derived_sequence,
-          id: record.id,
+          derived_sequence: claimedRecord.derived_sequence,
+          id: claimedRecord.id,
         },
       });
       if (update.count !== 1) {
@@ -370,6 +405,9 @@ async function performSubmission(
     return { ok: true, value: updated };
   } catch (error) {
     if (error instanceof OptimisticConflictError) {
+      if (record) {
+        await releaseXeroWrite(parsed.data, record);
+      }
       return invalidState(options.invalidStateCode);
     }
     return unknownError("Failed to submit this record.");
@@ -459,6 +497,7 @@ async function persistXeroFailure(input: {
         approval_status: "xero_sync_failed",
         failed_action: input.failedAction,
         updated_by_user_id: input.input.actingUserId,
+        xero_write_claimed_at: null,
         xero_write_error: plainMessage,
         xero_write_error_raw: {
           code: input.error.code,
@@ -536,6 +575,48 @@ function loadBareRecord(input: RecordActionInput) {
       ...scoped(input),
       id: input.recordId,
     },
+  });
+}
+
+// Atomically take the write claim. Returns false when another request already
+// holds a live claim, in which case the caller must not call Xero. The status
+// and derived_sequence predicates keep this consistent with the guarded update
+// that follows; the claim itself never changes derived_sequence, because that
+// value is published as the ICS SEQUENCE and is the optimistic-concurrency key
+// for the failure path.
+async function claimXeroWrite(
+  input: RecordActionInput,
+  record: LoadedRecord,
+  expectedStatus: availability_approval_status
+): Promise<boolean> {
+  const staleBefore = new Date(Date.now() - XERO_WRITE_CLAIM_TTL_MS);
+  const claim = await database.availabilityRecord.updateMany({
+    data: { xero_write_claimed_at: new Date() },
+    where: {
+      ...scoped(input),
+      approval_status: expectedStatus,
+      derived_sequence: record.derived_sequence,
+      id: record.id,
+      OR: [
+        { xero_write_claimed_at: null },
+        { xero_write_claimed_at: { lt: staleBefore } },
+      ],
+    },
+  });
+  return claim.count === 1;
+}
+
+// Clear the claim. Best-effort: the record may legitimately no longer match
+// (for example the success path already moved it to submitted and cleared the
+// claim in the same transaction), and an uncleared claim self-heals after the
+// TTL.
+async function releaseXeroWrite(
+  input: RecordActionInput,
+  record: LoadedRecord
+): Promise<void> {
+  await database.availabilityRecord.updateMany({
+    data: { xero_write_claimed_at: null },
+    where: { ...scoped(input), id: record.id },
   });
 }
 
