@@ -2,6 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   auditCreate: vi.fn(),
+  // The xero-write claim/release helpers call database.availabilityRecord.
+  // updateMany directly (outside any $transaction), so they need their own
+  // mock handle distinct from the transaction-scoped updateMany below.
+  availabilityClaimUpdateMany: vi.fn(),
   availabilityFindFirst: vi.fn(),
   availabilityUpdateMany: vi.fn(),
   computeWorkingDays: vi.fn(),
@@ -30,7 +34,10 @@ vi.mock("@repo/database", () => ({
         auditEvent: { create: mocks.auditCreate },
         availabilityRecord: { updateMany: mocks.availabilityUpdateMany },
       }),
-    availabilityRecord: { findFirst: mocks.availabilityFindFirst },
+    availabilityRecord: {
+      findFirst: mocks.availabilityFindFirst,
+      updateMany: mocks.availabilityClaimUpdateMany,
+    },
     person: { findFirst: mocks.personFindFirst },
     xeroTenant: { findFirst: mocks.xeroTenantFindFirst },
   },
@@ -120,6 +127,7 @@ describe("submit-service", () => {
     vi.clearAllMocks();
     mocks.availabilityFindFirst.mockReset();
     mocks.availabilityUpdateMany.mockResolvedValue({ count: 1 });
+    mocks.availabilityClaimUpdateMany.mockResolvedValue({ count: 1 });
     mocks.computeWorkingDays.mockResolvedValue({ ok: true, value: 2 });
     mocks.hasActiveXeroConnection.mockResolvedValue(true);
     mocks.dispatchNotification.mockResolvedValue({
@@ -629,5 +637,155 @@ describe("submit-service", () => {
         }),
       })
     );
+  });
+
+  describe("xero write claim", () => {
+    it("claims the record and clears the claim on a successful submit", async () => {
+      mocks.availabilityFindFirst
+        .mockResolvedValueOnce(record)
+        .mockResolvedValueOnce({
+          ...record,
+          approval_status: "submitted",
+          source_remote_id: "xero-leave-1",
+        });
+      mocks.submitLeaveApplicationForRegion.mockResolvedValue({
+        ok: true,
+        value: {
+          rawResponse: {
+            LeaveApplications: [{ LeaveApplicationID: "xero-leave-1" }],
+          },
+          remoteId: "xero-leave-1",
+        },
+      });
+
+      const result = await submitDraftRecord(input, mockPort);
+
+      expect(result.ok).toBe(true);
+      expect(mocks.availabilityClaimUpdateMany).toHaveBeenCalledTimes(1);
+      expect(mocks.availabilityClaimUpdateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { xero_write_claimed_at: expect.any(Date) },
+        })
+      );
+      expect(mocks.submitLeaveApplicationForRegion).toHaveBeenCalledTimes(1);
+      expect(mocks.availabilityUpdateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            approval_status: "submitted",
+            xero_write_claimed_at: null,
+          }),
+        })
+      );
+    });
+
+    it("blocks the write and never calls Xero when a live claim already exists", async () => {
+      mocks.availabilityFindFirst.mockResolvedValueOnce(record);
+      mocks.availabilityClaimUpdateMany.mockResolvedValueOnce({ count: 0 });
+
+      const result = await submitDraftRecord(input, mockPort);
+
+      expect(result).toMatchObject({
+        error: { code: "invalid_state_for_submit" },
+        ok: false,
+      });
+      expect(mocks.submitLeaveApplicationForRegion).not.toHaveBeenCalled();
+    });
+
+    it("allows a stale claim to be reclaimed", async () => {
+      mocks.availabilityFindFirst
+        .mockResolvedValueOnce(record)
+        .mockResolvedValueOnce({
+          ...record,
+          approval_status: "submitted",
+          source_remote_id: "xero-leave-1",
+        });
+      mocks.submitLeaveApplicationForRegion.mockResolvedValue({
+        ok: true,
+        value: { rawResponse: {}, remoteId: "xero-leave-1" },
+      });
+
+      await submitDraftRecord(input, mockPort);
+
+      expect(mocks.availabilityClaimUpdateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            OR: [
+              { xero_write_claimed_at: null },
+              { xero_write_claimed_at: { lt: expect.any(Date) } },
+            ],
+          }),
+        })
+      );
+    });
+
+    it("releases the claim when Xero rejects the submission", async () => {
+      mocks.availabilityFindFirst
+        .mockResolvedValueOnce(record)
+        .mockResolvedValueOnce({
+          ...record,
+          approval_status: "xero_sync_failed",
+          xero_write_error: "This leave overlaps an existing record in Xero.",
+        });
+      mocks.submitLeaveApplicationForRegion.mockResolvedValue({
+        error: {
+          code: "conflict_error",
+          message: "Overlap",
+          rawPayload: { Message: "Overlap" },
+          userMessage: "This leave overlaps an existing record in Xero.",
+        },
+        ok: false,
+      });
+
+      const result = await submitDraftRecord(input, mockPort);
+
+      expect(result.ok).toBe(true);
+      expect(mocks.availabilityUpdateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            approval_status: "xero_sync_failed",
+            xero_write_claimed_at: null,
+          }),
+        })
+      );
+    });
+
+    it("releases the claim and surfaces unknown_error when the Xero call throws", async () => {
+      mocks.availabilityFindFirst.mockResolvedValueOnce(record);
+      mocks.submitLeaveApplicationForRegion.mockRejectedValue(
+        new Error("socket reset")
+      );
+
+      const result = await submitDraftRecord(input, mockPort);
+
+      expect(result).toMatchObject({
+        error: { code: "unknown_error" },
+        ok: false,
+      });
+      expect(mocks.availabilityClaimUpdateMany).toHaveBeenCalledTimes(2);
+      expect(mocks.availabilityClaimUpdateMany).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          data: { xero_write_claimed_at: null },
+        })
+      );
+    });
+
+    it("blocks retrySubmission and never calls Xero when a live claim already exists", async () => {
+      const failedRecord = {
+        ...record,
+        approval_status: "xero_sync_failed",
+        failed_action: "submit",
+      };
+      mocks.availabilityFindFirst.mockResolvedValueOnce(failedRecord);
+      mocks.availabilityClaimUpdateMany.mockResolvedValueOnce({ count: 0 });
+
+      const result = await retrySubmission(input, mockPort);
+
+      expect(result).toMatchObject({
+        error: { code: "invalid_state_for_retry" },
+        ok: false,
+      });
+      expect(mocks.submitLeaveApplicationForRegion).not.toHaveBeenCalled();
+    });
   });
 });
