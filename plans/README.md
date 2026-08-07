@@ -147,7 +147,7 @@ These are release blockers. `TODO` means the app remains a no-go.
 | [013](013-paginate-and-narrow-the-approvals-list-query.md) | Raw Xero and write-error audit payloads never cross the manager browser boundary; the list is bounded | TODO, finding re-verified |
 | [017](017-make-leave-submission-idempotent.md) | Retries and concurrent requests cannot create duplicate Xero leave applications | TODO, finding re-verified |
 | [018](018-clear-stale-xero-write-errors-on-status-change.md) | Reconciled records do not retain misleading stale write errors | DONE, executed and reviewed 2026-08-07, worktree `agent-a456001f35e41133c` branch `fix/clear-stale-xero-write-errors-018` (`08ea636`), unmerged |
-| [019](019-close-two-tenant-scoping-gaps-in-server-actions.md) | Feed and Xero-match actions enforce both tenant keys | BLOCKED, partial: feed-lookup fix done and verified in worktree `agent-aedc7188b1fab86c5` (`af2c344`), unmerged; Xero-match fix hit a genuine STOP (no `organisationId` resolvable without a scope/design change) and needs a follow-up plan |
+| [019](019-close-two-tenant-scoping-gaps-in-server-actions.md) | Feed and Xero-match actions enforce both tenant keys | PARTIAL: feed-lookup half DONE, merged (`b56106b`, cherry-picked from `af2c344`); Xero-match half superseded by [050](050-scope-the-xero-match-surface-to-a-single-organisation.md), which hit a genuine STOP in 019 requiring widened scope |
 | [050](050-scope-the-xero-match-surface-to-a-single-organisation.md) | The Xero person-match surface (list, resolve) is scoped to one Organisation, not the whole Clerk Org | TODO, new, written from plan 019's Gap 2 |
 | [027](027-validate-the-clerk-user-before-binding-it-to-a-person.md) | A Person can bind only to a valid Clerk member of the active organisation | TODO, no drift |
 | [038](038-bound-the-approval-reconciler-so-it-can-be-enabled.md) | Approval reconciliation is bounded, resumable and safe to schedule | TODO, scope narrowed after plan 007 landed batching |
@@ -256,7 +256,7 @@ Each row is merged to `main` before the next begins.
 | 6 | [042](042-correct-all-day-ics-date-boundaries.md) | `packages/feeds`, independent |
 | 7 | [043](043-preserve-retryable-feed-errors.md) | `packages/feeds`, independent |
 | 8 | [017](017-make-leave-submission-idempotent.md) | Submission path, independent of the approvals cluster |
-| 9 | [019](019-close-two-tenant-scoping-gaps-in-server-actions.md) | Feed-lookup half done and verified in an unmerged worktree (`af2c344`); merge that first. The matches-file half is superseded by 050 |
+| 9 | [019](019-close-two-tenant-scoping-gaps-in-server-actions.md) | Feed-lookup half DONE, merged (`b56106b`). The matches-file half is superseded by 050 |
 | 10 | [050](050-scope-the-xero-match-surface-to-a-single-organisation.md) | Closes 019's Gap 2 with widened scope (`page.tsx`, `matches-client.tsx`, `_actions.ts`). `050 -> 027`, same file as 027 |
 | 11 | [027](027-validate-the-clerk-user-before-binding-it-to-a-person.md) | Depends on 050 (same file, adjacent lines) rather than 019 directly |
 | 12 | [011](011-fail-closed-on-decline-reason-policy.md) | Approvals cluster. Smallest change, target sites are grep-findable rather than line-dependent |
