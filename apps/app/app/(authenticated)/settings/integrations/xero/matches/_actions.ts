@@ -5,10 +5,12 @@ import type { Result } from "@repo/core";
 import { database } from "@repo/database";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { getActiveOrgContext } from "@/lib/server/get-active-org-context";
 
 const ResolveMatchSchema = z.object({
   clerkUserId: z.string().trim().min(1).optional(),
   matchId: z.string().uuid(),
+  organisationId: z.string().uuid(),
   resolution: z.enum(["ignore", "match"]),
 });
 
@@ -22,6 +24,7 @@ type ActionResult<T> = Result<T, ActionError>;
 export async function resolveXeroPersonMatchAction(input: {
   clerkUserId?: string;
   matchId: string;
+  organisationId: string;
   resolution: "ignore" | "match";
 }): Promise<ActionResult<{ resolved: true }>> {
   const parsed = ResolveMatchSchema.safeParse(input);
@@ -35,6 +38,21 @@ export async function resolveXeroPersonMatchAction(input: {
     (orgRole !== "org:owner" && orgRole !== "org:admin")
   ) {
     return notAuthorised();
+  }
+
+  const context = await getActiveOrgContext(parsed.data.organisationId);
+  if (!context.ok) {
+    if (context.error.code === "unauthorised") {
+      return notAuthorised();
+    }
+    if (context.error.code === "not_found") {
+      return unknownError(
+        "Organisation not found or not accessible in your context."
+      );
+    }
+    return unknownError(
+      context.error.message ?? "Failed to resolve organisation context."
+    );
   }
 
   const match = await database.xeroPersonMatch.findFirst({
@@ -52,8 +70,11 @@ export async function resolveXeroPersonMatchAction(input: {
       },
     },
     where: {
-      clerk_org_id: orgId,
+      // Both tenant keys: one Clerk Organisation can own several Organisation
+      // rows (one per Xero file), so clerk_org_id alone spans payroll entities.
+      clerk_org_id: context.value.clerkOrgId,
       id: parsed.data.matchId,
+      organisation_id: context.value.organisationId,
     },
   });
   if (!match) {
@@ -108,7 +129,7 @@ export async function resolveXeroPersonMatchAction(input: {
           user.emailAddresses[0]?.emailAddress ||
           user.id,
         actor_user_id: user.id,
-        clerk_org_id: orgId,
+        clerk_org_id: context.value.clerkOrgId,
         entity_id: match.id,
         entity_type: "xero_person_match",
         metadata: {
