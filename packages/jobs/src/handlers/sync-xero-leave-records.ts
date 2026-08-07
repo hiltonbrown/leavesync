@@ -587,6 +587,14 @@ async function processLeaveRecord(
     ) {
       approvalStatusToPersist = "xero_sync_failed";
     }
+    const clearedWriteError =
+      approvalStatusToPersist === "xero_sync_failed"
+        ? {}
+        : {
+            failed_action: null,
+            xero_write_error: null,
+            xero_write_error_raw: Prisma.DbNull,
+          };
     const changed =
       existing?.source_remote_hash !== normalised.sourceRemoteHash;
     // The write-error fields describe the last failed outbound write and are
