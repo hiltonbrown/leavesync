@@ -168,6 +168,16 @@ export function projectSummaryLine(input: {
   return `${input.displayName}: ${input.recordTypeLabel}`;
 }
 
+function exclusiveAllDayEnd(inclusiveEnd: Date): Date {
+  return new Date(
+    Date.UTC(
+      inclusiveEnd.getUTCFullYear(),
+      inclusiveEnd.getUTCMonth(),
+      inclusiveEnd.getUTCDate() + 1
+    )
+  );
+}
+
 function projectAvailabilityRecord(
   record: RecordRow,
   privacyMode: availability_privacy_mode
@@ -182,7 +192,9 @@ function projectAvailabilityRecord(
     contactabilityStatus: record.contactability,
     description: null,
     displayName,
-    endsAt: record.ends_at,
+    endsAt: record.all_day
+      ? exclusiveAllDayEnd(record.ends_at)
+      : record.ends_at,
     isPublicHoliday: false,
     location:
       privacyMode === "private" ? null : (record.person.location?.name ?? null),
