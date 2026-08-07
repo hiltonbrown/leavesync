@@ -1,3 +1,4 @@
+import { Prisma } from "@repo/database/generated/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -190,5 +191,55 @@ describe("reconcile Xero approval state optimistic concurrency", () => {
     await reconcileXeroApprovalState(input());
 
     expect(mocks.auditEventCreate).not.toHaveBeenCalled();
+  });
+
+  it("clears the write-error fields on the decline branch", async () => {
+    mocks.availabilityRecordFindMany.mockResolvedValue([
+      {
+        ...record(),
+        approval_status: "xero_sync_failed",
+        failed_action: "decline",
+      },
+    ]);
+
+    await reconcileXeroApprovalState(input());
+
+    expect(mocks.availabilityRecordUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          approval_status: "declined",
+          failed_action: null,
+          xero_write_error: null,
+          xero_write_error_raw: Prisma.DbNull,
+        }),
+      })
+    );
+  });
+
+  it("clears the write-error fields on the final withdraw branch", async () => {
+    mocks.availabilityRecordFindMany.mockResolvedValue([
+      { ...record(), approval_status: "approved" },
+    ]);
+    mocks.fetchLeaveApplicationStatusForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        approvedAt: null,
+        rawResponse: {},
+        status: "WITHDRAWN",
+      },
+    });
+
+    await reconcileXeroApprovalState(input());
+
+    expect(mocks.availabilityRecordUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          approval_status: "withdrawn",
+          failed_action: null,
+          xero_write_error: null,
+          xero_write_error_raw: Prisma.DbNull,
+        }),
+      })
+    );
   });
 });
