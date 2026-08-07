@@ -101,7 +101,7 @@ privacy, feed, test, migration, backup or support gate.
 | Stage | Requirement | Current state |
 |---|---|---|
 | Unblock the verification baseline | Complete plans 048 and 049 | **Do these first.** Plan 047 is done; nothing else can be honestly verified until the other two land |
-| Closed AU early access | Complete plans 010-013, 015-020, 027, 035, 038 and 042-046 | NO-GO, all TODO |
+| Closed AU early access | Complete plans 010-013, 015-020, 027, 035, 038, 050 and 042-046 | NO-GO, all TODO |
 | Broader cohort or public GA | Complete plans 028, 029, 034 and 036 after the early-access gate | Not started |
 | Scale-triggered work | Reassess and execute plan 030 when production data shows the named round trips matter | Deferred pending evidence |
 | Architecture maintenance | Complete plans 031 and 039 when launch stabilises or the affected area changes | Deferred |
@@ -148,6 +148,7 @@ These are release blockers. `TODO` means the app remains a no-go.
 | [017](017-make-leave-submission-idempotent.md) | Retries and concurrent requests cannot create duplicate Xero leave applications | TODO, finding re-verified |
 | [018](018-clear-stale-xero-write-errors-on-status-change.md) | Reconciled records do not retain misleading stale write errors | DONE, executed and reviewed 2026-08-07, worktree `agent-a456001f35e41133c` branch `fix/clear-stale-xero-write-errors-018` (`08ea636`), unmerged |
 | [019](019-close-two-tenant-scoping-gaps-in-server-actions.md) | Feed and Xero-match actions enforce both tenant keys | BLOCKED, partial: feed-lookup fix done and verified in worktree `agent-aedc7188b1fab86c5` (`af2c344`), unmerged; Xero-match fix hit a genuine STOP (no `organisationId` resolvable without a scope/design change) and needs a follow-up plan |
+| [050](050-scope-the-xero-match-surface-to-a-single-organisation.md) | The Xero person-match surface (list, resolve) is scoped to one Organisation, not the whole Clerk Org | TODO, new, written from plan 019's Gap 2 |
 | [027](027-validate-the-clerk-user-before-binding-it-to-a-person.md) | A Person can bind only to a valid Clerk member of the active organisation | TODO, no drift |
 | [038](038-bound-the-approval-reconciler-so-it-can-be-enabled.md) | Approval reconciliation is bounded, resumable and safe to schedule | TODO, scope narrowed after plan 007 landed batching |
 | [042](042-correct-all-day-ics-date-boundaries.md) | One-day and multi-day all-day leave emit correct exclusive ICS end dates | TODO, no drift |
@@ -255,15 +256,16 @@ Each row is merged to `main` before the next begins.
 | 6 | [042](042-correct-all-day-ics-date-boundaries.md) | `packages/feeds`, independent |
 | 7 | [043](043-preserve-retryable-feed-errors.md) | `packages/feeds`, independent |
 | 8 | [017](017-make-leave-submission-idempotent.md) | Submission path, independent of the approvals cluster |
-| 9 | [019](019-close-two-tenant-scoping-gaps-in-server-actions.md) | `019 -> 027` |
-| 10 | [027](027-validate-the-clerk-user-before-binding-it-to-a-person.md) | Depends on 019 |
-| 11 | [011](011-fail-closed-on-decline-reason-policy.md) | Approvals cluster. Smallest change, target sites are grep-findable rather than line-dependent |
-| 12 | [013](013-paginate-and-narrow-the-approvals-list-query.md) | Approvals cluster |
-| 13 | [018](018-clear-stale-xero-write-errors-on-status-change.md) | Approvals cluster. `018 -> 038` |
-| 14 | [012](012-move-failure-notifications-out-of-the-state-transaction.md) | Approvals cluster, last. Moving notifications out of the state transaction is the largest structural change and would otherwise shift the other three |
-| 15 | [038](038-bound-the-approval-reconciler-so-it-can-be-enabled.md) | Depends on 018 |
-| 16 | [044](044-schedule-au-xero-syncs.md) | Depends on 018 and 038 for nightly approval reconciliation |
-| 17 | [045](045-make-closed-au-early-access-truthful-and-deployable.md) | Must be complete before deployment |
+| 9 | [019](019-close-two-tenant-scoping-gaps-in-server-actions.md) | Feed-lookup half done and verified in an unmerged worktree (`af2c344`); merge that first. The matches-file half is superseded by 050 |
+| 10 | [050](050-scope-the-xero-match-surface-to-a-single-organisation.md) | Closes 019's Gap 2 with widened scope (`page.tsx`, `matches-client.tsx`, `_actions.ts`). `050 -> 027`, same file as 027 |
+| 11 | [027](027-validate-the-clerk-user-before-binding-it-to-a-person.md) | Depends on 050 (same file, adjacent lines) rather than 019 directly |
+| 12 | [011](011-fail-closed-on-decline-reason-policy.md) | Approvals cluster. Smallest change, target sites are grep-findable rather than line-dependent |
+| 13 | [013](013-paginate-and-narrow-the-approvals-list-query.md) | Approvals cluster |
+| 14 | [018](018-clear-stale-xero-write-errors-on-status-change.md) | Approvals cluster. `018 -> 038` |
+| 15 | [012](012-move-failure-notifications-out-of-the-state-transaction.md) | Approvals cluster, last. Moving notifications out of the state transaction is the largest structural change and would otherwise shift the other three |
+| 16 | [038](038-bound-the-approval-reconciler-so-it-can-be-enabled.md) | Depends on 018 |
+| 17 | [044](044-schedule-au-xero-syncs.md) | Depends on 018 and 038 for nightly approval reconciliation |
+| 18 | [045](045-make-closed-au-early-access-truthful-and-deployable.md) | Must be complete before deployment |
 
 Positions 11 to 14 are the approvals cluster. They are ordered smallest change
 first and largest structural change last, so each one disturbs the next as
@@ -311,7 +313,7 @@ documented fallback.
 049 -> everything with a `bun run build` gate
 
 035 -> 015
-019 -> 027
+050 -> 027
 018 -> 038
 
 044 inbound scheduling: unblocked (003 and 006 DONE)
@@ -319,10 +321,13 @@ documented fallback.
 
 048 + 049
 + 010 + 011 + 012 + 013 + 015 + 016 + 017
-+ 018 + 019 + 020 + 027 + 035 + 038
++ 018 + 019 + 020 + 027 + 035 + 038 + 050
 + 042 + 043 + 044 + 045
 -> 046
 ```
+
+019's feed-lookup gap is independent of 027; only its matches-file gap, now
+owned by 050, is same-file adjacent to 027.
 
 ## Required after early access
 
@@ -334,7 +339,7 @@ at the trigger stated below.
 | Plan | Trigger and required outcome | Status |
 |---|---|---|
 | [028](028-fix-three-test-quality-gaps.md) | Before GA: pin role hierarchy, feed-preview privacy and tenant-query behaviour with meaningful tests | TODO |
-| [029](029-test-the-untested-server-actions.md) | Before GA: cover authenticated mutation boundaries after plans 019 and 027 settle their final shape | TODO |
+| [029](029-test-the-untested-server-actions.md) | Before GA: cover authenticated mutation boundaries after plans 019, 050 and 027 settle their final shape | TODO |
 | [034](034-bound-and-batch-the-feed-publication-reconciler.md) | Before enabling global feed reconciliation or materially increasing tenant count: bound and batch the job | TODO, finding re-verified: `reconcile-feed-publications.ts:63` still loads every record before its in-memory `BATCH_SIZE = 100` loop |
 | [036](036-stop-returning-a-cross-tenant-existence-oracle.md) | Before unrestricted GA: keep server-side detection but return indistinguishable not-found errors | TODO |
 
