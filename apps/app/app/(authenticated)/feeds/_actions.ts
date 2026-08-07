@@ -157,6 +157,9 @@ export async function rotateTokenAction(
     const feed = await database.feed.findFirst({
       select: { name: true },
       where: {
+        // Both tenant keys: one Clerk Organisation can own several Organisation
+        // rows (one per Xero file), so clerk_org_id alone spans payroll entities.
+        clerk_org_id: context.value.clerkOrgId,
         id: parsed.data.feedId,
         organisation_id: context.value.organisationId,
       },
