@@ -5,27 +5,17 @@
 > next step. If anything in the "STOP conditions" section occurs, stop and
 > report, do not improvise. When done, update this plan's status row in
 > `plans/README.md`.
->
-> **Drift check (run first)**: `git diff --stat 75202db..HEAD -- packages/auth packages/design-system/package.json packages/analytics/package.json packages/observability/package.json packages/seo/package.json apps/web/package.json turbo.json`
-> If any changed since this plan was written, re-check the "Current state"
-> facts before proceeding.
 
 ## Status
 
+- **Status**: DONE
 - **Priority**: P2
 - **Effort**: M
 - **Risk**: LOW
 - **Depends on**: none
 - **Category**: tests, dx
 - **Planned at**: commit `75202db`, 2026-07-25
-- **Reconciled**: 2026-08-05 against `2095b1f`. Finding confirmed still present.
-  These workspaces still declare no `test` script: `packages/analytics`,
-  `packages/auth`, `packages/design-system`, `packages/email`,
-  `packages/next-config`, `packages/observability`, `packages/seo`,
-  `packages/typescript-config`, `apps/docs`, `apps/email` and `apps/web`. Only
-  the manifests' dependency versions have moved since this plan was written
-  (plan 047), plus a small change to `packages/auth/keys.ts`. The plan's own
-  target list is unchanged.
+- **Completed at**: 2026-08-07 against commit `2911098`
 
 ## Why this matters
 
