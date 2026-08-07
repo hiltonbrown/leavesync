@@ -1,5 +1,45 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const icalMocks = vi.hoisted(() => {
+  const state: { events: unknown[] } = { events: [] };
+  const createEvent = vi.fn((opts: unknown) => {
+    state.events.push(opts);
+  });
+  const calendarToString = vi.fn(() => {
+    let body = "BEGIN:VCALENDAR\r\n";
+    for (const e of state.events as Array<{
+      description?: string | null;
+      id: string;
+      location?: string | null;
+      sequence: number;
+      summary: string;
+    }>) {
+      body += `UID:${e.id}\r\n`;
+      body += `SEQUENCE:${e.sequence}\r\n`;
+      body += `SUMMARY:${e.summary}\r\n`;
+      if (e.description) {
+        body += `DESCRIPTION:${e.description}\r\n`;
+      }
+      if (e.location) {
+        body += `LOCATION:${e.location}\r\n`;
+      }
+    }
+    body += "END:VCALENDAR\r\n";
+    return body;
+  });
+  const ctor = vi.fn(() => {
+    state.events = [];
+    return { createEvent, toString: calendarToString };
+  });
+  return {
+    calendarToString,
+    createEvent,
+    ctor,
+    state,
+    toString: calendarToString,
+  };
+});
+
 const mocks = vi.hoisted(() => ({
   feedTokenFindUnique: vi.fn(),
   feedTokenUpdate: vi.fn(() => Promise.resolve({})),
@@ -54,8 +94,12 @@ vi.mock("../cache/feed-cache", () => ({
 vi.mock("../projection/feed-projection", () => ({
   projectFeedEvents: mocks.projectFeedEvents,
 }));
+vi.mock("ical-generator", () => ({
+  default: icalMocks.ctor,
+  ICalEventTransparency: { OPAQUE: "OPAQUE" },
+}));
 
-const { cachedEtagForToken, renderFeedForToken } = await import(
+const { cachedEtagForToken, renderFeedBody, renderFeedForToken } = await import(
   "./render-feed"
 );
 
@@ -78,6 +122,146 @@ function feedTokenFixture(overrides: Record<string, unknown> = {}) {
     ...overrides,
   };
 }
+
+const renderBodyInput = {
+  clerkOrgId: "org_render",
+  feedId: "20000000-0000-4000-8000-000000000001",
+  feedName: "Team feed",
+  organisationId: "40000000-0000-4000-8000-000000000001",
+  privacyMode: "named" as const,
+};
+
+describe("renderFeedBody", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.projectFeedEvents.mockResolvedValue({
+      ok: true,
+      value: [
+        {
+          allDay: true,
+          contactabilityStatus: "unavailable",
+          description: null,
+          displayName: "Jane Smith",
+          endsAt: new Date("2026-05-08T00:00:00.000Z"),
+          isPublicHoliday: false,
+          location: "Brisbane",
+          publishedSequence: 2,
+          publishedUid: "stable@ical.teamcalendar.online",
+          recordType: "annual_leave",
+          sourceRecordId: "10000000-0000-4000-8000-000000000001",
+          startsAt: new Date("2026-05-07T00:00:00.000Z"),
+          summary: "Jane Smith: Annual Leave",
+        },
+      ],
+    });
+  });
+
+  it("returns not_found when projection returns feed_not_found", async () => {
+    mocks.projectFeedEvents.mockResolvedValue({
+      error: { code: "feed_not_found", message: "Feed not found." },
+      ok: false,
+    });
+
+    const result = await renderFeedBody(renderBodyInput);
+
+    expect(result).toEqual({
+      error: { code: "not_found", message: "Feed not found" },
+      ok: false,
+    });
+    expect(mocks.logWarn).not.toHaveBeenCalled();
+  });
+
+  it("returns unknown_error and logs warning when projection returns unknown_error", async () => {
+    mocks.projectFeedEvents.mockResolvedValue({
+      error: {
+        code: "unknown_error",
+        message: "Failed to project feed events.",
+      },
+      ok: false,
+    });
+
+    const result = await renderFeedBody(renderBodyInput);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+    expect(result.error.code).toBe("unknown_error");
+    expect(result.error.message).toBe("Failed to render feed");
+    expect(mocks.logWarn).toHaveBeenCalledTimes(1);
+    expect(mocks.logWarn).toHaveBeenCalledWith(
+      expect.stringContaining("unknown_error")
+    );
+    expect(mocks.logWarn.mock.calls[0][0]).not.toContain("plaintext-token");
+  });
+
+  it.each([
+    "invalid_scope",
+    "not_authorised",
+    "validation_error",
+    "unknown_error",
+  ] as const)(
+    "maps %s to unknown_error and logs warning without token",
+    async (code) => {
+      mocks.projectFeedEvents.mockResolvedValue({
+        error: { code, message: "boom" },
+        ok: false,
+      });
+
+      const result = await renderFeedBody(renderBodyInput);
+
+      expect(result.ok).toBe(false);
+      if (result.ok) {
+        return;
+      }
+      expect(result.error.code).toBe("unknown_error");
+      expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining(code));
+      const logged = mocks.logWarn.mock.calls
+        .map((c) => String(c[0]))
+        .join(" ");
+      expect(logged).not.toContain("plaintext-token");
+      expect(logged).not.toContain("super-secret-token");
+    }
+  );
+
+  it("returns unknown_error when ical createEvent throws", async () => {
+    icalMocks.createEvent.mockImplementationOnce(() => {
+      throw new Error("createEvent boom");
+    });
+
+    const result = await renderFeedBody(renderBodyInput);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+    expect(result.error.code).toBe("unknown_error");
+    expect(result.error.message).toBe("Failed to render feed");
+    expect(mocks.logWarn).toHaveBeenCalledWith(
+      expect.stringContaining("Feed ICS serialisation failed")
+    );
+    expect(mocks.logWarn.mock.calls[0][0]).not.toContain("plaintext-token");
+  });
+
+  it("returns unknown_error when calendar toString throws", async () => {
+    icalMocks.toString.mockImplementationOnce(() => {
+      throw new Error("toString boom");
+    });
+
+    const result = await renderFeedBody(renderBodyInput);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+    expect(result.error.code).toBe("unknown_error");
+    expect(mocks.logWarn).toHaveBeenCalledWith(
+      expect.stringContaining("Feed ICS serialisation failed")
+    );
+    const logged = mocks.logWarn.mock.calls.map((c) => String(c[0])).join(" ");
+    expect(logged).not.toContain("plaintext-token");
+  });
+});
 
 describe("renderFeedForToken", () => {
   beforeEach(() => {
@@ -254,11 +438,94 @@ describe("renderFeedForToken", () => {
       ok: true,
       value: { body: "cached-ics", etag: "cached-etag", status: "active" },
     });
-    // Wait microtask tick for floating promise catch handler
     await new Promise((r) => setTimeout(r, 10));
     expect(mocks.logWarn).toHaveBeenCalledWith(
       "Feed token use write failed: Error: DB timeout"
     );
+  });
+
+  it("returns not_found when projection returns feed_not_found", async () => {
+    mocks.projectFeedEvents.mockResolvedValue({
+      error: { code: "feed_not_found", message: "Feed not found." },
+      ok: false,
+    });
+
+    const result = await renderFeedForToken("any-token");
+
+    expect(result).toEqual({
+      error: { code: "not_found", message: "Feed not found" },
+      ok: false,
+    });
+    expect(mocks.logWarn).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    "unknown_error",
+    "invalid_scope",
+    "not_authorised",
+    "validation_error",
+  ] as const)(
+    "maps %s from projection to unknown_error and logs without token",
+    async (code) => {
+      mocks.projectFeedEvents.mockResolvedValue({
+        error: { code, message: "boom" },
+        ok: false,
+      });
+
+      const result = await renderFeedForToken("super-secret-token-xyz");
+
+      expect(result.ok).toBe(false);
+      if (result.ok) {
+        return;
+      }
+      expect(result.error.code).toBe("unknown_error");
+      expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining(code));
+      const logged = mocks.logWarn.mock.calls
+        .map((c) => String(c[0]))
+        .join(" ");
+      expect(logged).not.toContain("super-secret-token-xyz");
+    }
+  );
+
+  it("preserves unknown_error from renderFeedBody instead of rewriting to not_found", async () => {
+    mocks.projectFeedEvents.mockResolvedValue({
+      error: {
+        code: "unknown_error",
+        message: "Failed to project feed events.",
+      },
+      ok: false,
+    });
+
+    const result = await renderFeedForToken("super-secret-token-xyz");
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+    expect(result.error.code).toBe("unknown_error");
+    expect(result.error.code).not.toBe("not_found");
+    expect(mocks.logWarn).toHaveBeenCalled();
+    const logged = mocks.logWarn.mock.calls.map((c) => String(c[0])).join(" ");
+    expect(logged).not.toContain("super-secret-token-xyz");
+  });
+
+  it("returns unknown_error when ical serialisation throws", async () => {
+    icalMocks.toString.mockImplementationOnce(() => {
+      throw new Error("ical toString boom");
+    });
+
+    const result = await renderFeedForToken("super-secret-token-xyz");
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+    expect(result.error.code).toBe("unknown_error");
+    expect(mocks.logWarn).toHaveBeenCalledWith(
+      expect.stringContaining("Feed ICS serialisation failed")
+    );
+    const logged = mocks.logWarn.mock.calls.map((c) => String(c[0])).join(" ");
+    expect(logged).not.toContain("super-secret-token-xyz");
   });
 });
 
