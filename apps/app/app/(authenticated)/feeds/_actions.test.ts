@@ -138,7 +138,11 @@ describe("feed actions", () => {
       expect(result.ok).toBe(true);
       expect(mocks.database.feed.findFirst).toHaveBeenCalledWith({
         select: { name: true },
-        where: { id: feedId, organisation_id: organisationId },
+        where: {
+          clerk_org_id: "org_1",
+          id: feedId,
+          organisation_id: organisationId,
+        },
       });
       expect(mocks.dispatchNotification).toHaveBeenCalledWith({
         actionUrl: `/feeds/${feedId}?org=org_1`,
