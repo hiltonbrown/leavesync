@@ -25,6 +25,10 @@ export interface RenderedFeed {
   status: "active" | "expired" | "revoked";
 }
 
+export type FeedRenderError =
+  | { code: "not_found"; message: string }
+  | { code: "unknown_error"; message: string };
+
 export interface FeedBody {
   body: string;
   etag: string;
@@ -39,7 +43,7 @@ export async function renderFeedBody(input: {
   feedName: string;
   organisationId: string;
   privacyMode: availability_privacy_mode;
-}): Promise<Result<FeedBody>> {
+}): Promise<Result<FeedBody, FeedRenderError>> {
   const projected = await projectFeedEvents({
     actingRole: "viewer",
     clerkOrgId: input.clerkOrgId,
@@ -49,35 +53,53 @@ export async function renderFeedBody(input: {
     privacyMode: input.privacyMode,
   });
   if (!projected.ok) {
+    if (projected.error.code === "feed_not_found") {
+      return {
+        error: { code: "not_found", message: "Feed not found" },
+        ok: false,
+      };
+    }
+    log.warn(
+      `Feed projection failed for feed ${input.feedId}: ${projected.error.code}`
+    );
     return {
-      error: { code: "not_found", message: "Feed not found" },
+      error: { code: "unknown_error", message: "Failed to render feed" },
       ok: false,
     };
   }
 
-  const calendar = ical({
-    name: input.feedName,
-    prodId: { company: "Team Calendar", product: "Team Calendar" },
-  });
-
-  for (const event of projected.value) {
-    calendar.createEvent({
-      allDay: event.allDay,
-      description: event.description ?? undefined,
-      end: event.endsAt,
-      id: event.publishedUid,
-      location: event.location ?? undefined,
-      sequence: event.publishedSequence,
-      start: event.startsAt,
-      summary: event.summary,
-      // All published events mark the subscriber as busy.
-      transparency: ICalEventTransparency.OPAQUE,
+  try {
+    const calendar = ical({
+      name: input.feedName,
+      prodId: { company: "Team Calendar", product: "Team Calendar" },
     });
-  }
 
-  const body = calendar.toString();
-  const etag = createHash("sha256").update(body).digest("hex");
-  return { ok: true, value: { body, etag } };
+    for (const event of projected.value) {
+      calendar.createEvent({
+        allDay: event.allDay,
+        description: event.description ?? undefined,
+        end: event.endsAt,
+        id: event.publishedUid,
+        location: event.location ?? undefined,
+        sequence: event.publishedSequence,
+        start: event.startsAt,
+        summary: event.summary,
+        transparency: ICalEventTransparency.OPAQUE,
+      });
+    }
+
+    const body = calendar.toString();
+    const etag = createHash("sha256").update(body).digest("hex");
+    return { ok: true, value: { body, etag } };
+  } catch (error) {
+    log.warn(
+      `Feed ICS serialisation failed for feed ${input.feedId}: ${String(error)}`
+    );
+    return {
+      error: { code: "unknown_error", message: "Failed to render feed" },
+      ok: false,
+    };
+  }
 }
 
 export async function cachedEtagForToken(
@@ -110,7 +132,7 @@ export async function cachedEtagForToken(
 
 export async function renderFeedForToken(
   token: string
-): Promise<Result<RenderedFeed>> {
+): Promise<Result<RenderedFeed, FeedRenderError>> {
   const feedToken = await database.feedToken.findUnique({
     include: { feed: true },
     where: { token_hash: hashFeedToken(token) },
@@ -163,10 +185,7 @@ export async function renderFeedForToken(
     privacyMode: feedToken.feed.privacy_mode,
   });
   if (!rendered.ok) {
-    return {
-      error: { code: "not_found", message: "Feed not found" },
-      ok: false,
-    };
+    return { error: rendered.error, ok: false };
   }
   const { body, etag } = rendered.value;
 
