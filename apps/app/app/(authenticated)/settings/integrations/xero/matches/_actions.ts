@@ -1,14 +1,17 @@
 "use server";
 
-import { auth, currentUser } from "@repo/auth/server";
+import { auth, clerkClient, currentUser } from "@repo/auth/server";
 import type { Result } from "@repo/core";
 import { database } from "@repo/database";
+import { log } from "@repo/observability/log";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { getActiveOrgContext } from "@/lib/server/get-active-org-context";
 
 const ResolveMatchSchema = z.object({
-  clerkUserId: z.string().trim().min(1).optional(),
+  clerkUserId: z.string().trim().startsWith("user_").optional(),
   matchId: z.string().uuid(),
+  organisationId: z.string().uuid(),
   resolution: z.enum(["ignore", "match"]),
 });
 
@@ -22,6 +25,7 @@ type ActionResult<T> = Result<T, ActionError>;
 export async function resolveXeroPersonMatchAction(input: {
   clerkUserId?: string;
   matchId: string;
+  organisationId: string;
   resolution: "ignore" | "match";
 }): Promise<ActionResult<{ resolved: true }>> {
   const parsed = ResolveMatchSchema.safeParse(input);
@@ -35,6 +39,21 @@ export async function resolveXeroPersonMatchAction(input: {
     (orgRole !== "org:owner" && orgRole !== "org:admin")
   ) {
     return notAuthorised();
+  }
+
+  const context = await getActiveOrgContext(parsed.data.organisationId);
+  if (!context.ok) {
+    if (context.error.code === "unauthorised") {
+      return notAuthorised();
+    }
+    if (context.error.code === "not_found") {
+      return unknownError(
+        "Organisation not found or not accessible in your context."
+      );
+    }
+    return unknownError(
+      context.error.message ?? "Failed to resolve organisation context."
+    );
   }
 
   const match = await database.xeroPersonMatch.findFirst({
@@ -52,8 +71,11 @@ export async function resolveXeroPersonMatchAction(input: {
       },
     },
     where: {
-      clerk_org_id: orgId,
+      // Both tenant keys: one Clerk Organisation can own several Organisation
+      // rows (one per Xero file), so clerk_org_id alone spans payroll entities.
+      clerk_org_id: context.value.clerkOrgId,
       id: parsed.data.matchId,
+      organisation_id: context.value.organisationId,
     },
   });
   if (!match) {
@@ -70,6 +92,33 @@ export async function resolveXeroPersonMatchAction(input: {
     return validationError(
       "Enter the Clerk user ID to link, or create a candidate person with a linked user first."
     );
+  }
+
+  if (parsed.data.resolution === "match" && parsed.data.clerkUserId) {
+    const membership = await isOrganisationMember({
+      clerkOrgId: orgId,
+      clerkUserId: parsed.data.clerkUserId,
+    });
+    if (!membership.ok) {
+      return validationError(membership.message);
+    }
+  }
+
+  if (resolvedClerkUserId) {
+    const alreadyLinked = await database.person.findFirst({
+      select: { id: true },
+      where: {
+        clerk_org_id: orgId,
+        clerk_user_id: resolvedClerkUserId,
+        id: { not: match.xero_person.id },
+        organisation_id: match.organisation_id,
+      },
+    });
+    if (alreadyLinked) {
+      return validationError(
+        "That user is already linked to another person in this organisation."
+      );
+    }
   }
 
   await database.$transaction(async (tx) => {
@@ -108,7 +157,7 @@ export async function resolveXeroPersonMatchAction(input: {
           user.emailAddresses[0]?.emailAddress ||
           user.id,
         actor_user_id: user.id,
-        clerk_org_id: orgId,
+        clerk_org_id: context.value.clerkOrgId,
         entity_id: match.id,
         entity_type: "xero_person_match",
         metadata: {
@@ -154,4 +203,35 @@ function validationError(message?: string): ActionResult<never> {
     },
     ok: false,
   };
+}
+
+async function isOrganisationMember(input: {
+  clerkOrgId: string;
+  clerkUserId: string;
+}): Promise<{ ok: true } | { ok: false; message: string }> {
+  try {
+    const clerk = await clerkClient();
+    const memberships =
+      await clerk.organizations.getOrganizationMembershipList({
+        organizationId: input.clerkOrgId,
+        userId: [input.clerkUserId],
+      });
+    if (memberships.data.length === 0) {
+      return {
+        message:
+          "That user is not a member of this account. Invite them first, then link the person.",
+        ok: false,
+      };
+    }
+    return { ok: true };
+  } catch (error) {
+    log.error("Failed to verify Clerk organisation membership", {
+      clerkOrgId: input.clerkOrgId,
+      error,
+    });
+    return {
+      message: "Could not verify that user right now. Try again shortly.",
+      ok: false,
+    };
+  }
 }

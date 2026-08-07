@@ -1,7 +1,7 @@
-import { auth } from "@repo/auth/server";
 import { database } from "@repo/database";
 import type { Metadata } from "next";
 import { requirePageRole } from "@/lib/auth/require-page-role";
+import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
 import { SettingsSectionHeader } from "../../../components/settings-section-header";
 import { MatchesClient } from "./matches-client";
 
@@ -11,13 +11,18 @@ export const metadata: Metadata = {
   title: "Xero Person Matches - Settings - Team Calendar",
 };
 
-export default async function XeroMatchesPage() {
+interface XeroMatchesPageProps {
+  searchParams: Promise<{ org?: string }>;
+}
+
+export default async function XeroMatchesPage({
+  searchParams,
+}: XeroMatchesPageProps) {
   await requirePageRole("org:admin");
 
-  const { orgId } = await auth();
-  if (!orgId) {
-    throw new Error("Organisation context is required.");
-  }
+  const { org: orgParam } = await searchParams;
+  const { clerkOrgId, organisationId } =
+    await requireActiveOrgPageContext(orgParam);
 
   const matches = await database.xeroPersonMatch.findMany({
     include: {
@@ -41,7 +46,8 @@ export default async function XeroMatchesPage() {
     },
     orderBy: [{ created_at: "asc" }, { id: "asc" }],
     where: {
-      clerk_org_id: orgId,
+      clerk_org_id: clerkOrgId,
+      organisation_id: organisationId,
       status: "pending",
     },
   });
@@ -52,7 +58,7 @@ export default async function XeroMatchesPage() {
         description="Possible matches are never merged automatically. Review and resolve each one explicitly."
         title="Xero Person Matches"
       />
-      <MatchesClient matches={matches} />
+      <MatchesClient matches={matches} organisationId={organisationId} />
     </div>
   );
 }
