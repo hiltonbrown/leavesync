@@ -1,3 +1,4 @@
+import { Prisma } from "@repo/database/generated/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -512,6 +513,105 @@ describe("leave records stale archival", () => {
       ends_at: new Date("2026-05-08T00:00:00.000Z"),
       source_remote_hash: `hash-${LEAVE_APPLICATION_ID}`,
       starts_at: new Date("2026-05-07T00:00:00.000Z"),
+    });
+  });
+
+  it("clears the write-error fields when Xero reports a status that settles the record", async () => {
+    mocks.fetchLeaveRecordsForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: true,
+        leaveRecords: [xeroLeaveRecord()],
+        rawResponse: {},
+      },
+    });
+    mocks.personFindMany.mockResolvedValue([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+    ]);
+    mocks.availabilityRecordFindMany
+      .mockResolvedValueOnce([
+        {
+          approval_status: "xero_sync_failed",
+          failed_action: "approve",
+          id: "80000000-0000-4000-8000-000000000001",
+          source_remote_hash: "hash-before-update",
+          source_remote_id: LEAVE_APPLICATION_ID,
+          source_type: "xero_leave",
+        },
+      ])
+      .mockResolvedValueOnce([]);
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    expect(
+      mocks.availabilityRecordUpdateMany.mock.calls[0]?.[0]?.data
+    ).toMatchObject({
+      approval_status: "approved",
+      failed_action: null,
+      xero_write_error: null,
+      xero_write_error_raw: Prisma.DbNull,
+    });
+  });
+
+  it("keeps the write-error fields untouched for the failed-withdraw exception", async () => {
+    mocks.fetchLeaveRecordsForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: true,
+        leaveRecords: [xeroLeaveRecord()],
+        rawResponse: {},
+      },
+    });
+    mocks.personFindMany.mockResolvedValue([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+    ]);
+    mocks.availabilityRecordFindMany
+      .mockResolvedValueOnce([
+        {
+          approval_status: "xero_sync_failed",
+          failed_action: "withdraw",
+          id: "80000000-0000-4000-8000-000000000001",
+          source_remote_hash: "hash-before-update",
+          source_remote_id: LEAVE_APPLICATION_ID,
+          source_type: "xero_leave",
+        },
+      ])
+      .mockResolvedValueOnce([]);
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    const data = mocks.availabilityRecordUpdateMany.mock.calls[0]?.[0]?.data;
+    expect(data).toMatchObject({ approval_status: "xero_sync_failed" });
+    expect(data).not.toHaveProperty("failed_action");
+    expect(data).not.toHaveProperty("xero_write_error");
+    expect(data).not.toHaveProperty("xero_write_error_raw");
+  });
+
+  it("leaves the write-error fields cleared when creating a brand-new record", async () => {
+    mocks.fetchLeaveRecordsForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: true,
+        leaveRecords: [xeroLeaveRecord()],
+        rawResponse: {},
+      },
+    });
+    mocks.personFindMany.mockResolvedValue([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+    ]);
+    mocks.availabilityRecordFindMany.mockResolvedValue([]);
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    expect(
+      mocks.availabilityRecordCreate.mock.calls[0]?.[0]?.data
+    ).toMatchObject({
+      failed_action: null,
+      xero_write_error: null,
+      xero_write_error_raw: Prisma.DbNull,
     });
   });
 });

@@ -488,6 +488,7 @@ async function loadExistingRecordsBySourceRemoteId(
   return recordsBySourceRemoteId;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: This function validates, normalises and persists a single inbound Xero leave record, including the failed-withdraw carve-out and write-error clearing; splitting it risks the sync correctness the surrounding logic protects more than the suppression does.
 async function processLeaveRecord(
   context: SyncXeroLeaveRecordsInput,
   runId: string,
@@ -588,9 +589,25 @@ async function processLeaveRecord(
     }
     const changed =
       existing?.source_remote_hash !== normalised.sourceRemoteHash;
+    // The write-error fields describe the last failed outbound write and are
+    // only meaningful while the record sits in xero_sync_failed. Any status
+    // Xero reports that settles the record must clear them, or the UI keeps
+    // showing a sync failure on a record that is fine. The one exception is the
+    // failed-withdraw case handled above, which deliberately stays in the
+    // failed state.
+    const clearedWriteError =
+      approvalStatusToPersist === "xero_sync_failed"
+        ? {}
+        : {
+            failed_action: null,
+            xero_write_error: null,
+            xero_write_error_raw: Prisma.DbNull,
+          };
+
     const xeroOwned = {
       all_day: normalised.allDay,
       approval_status: approvalStatusToPersist,
+      ...clearedWriteError,
       archived_at: normalised.publishStatus === "archived" ? new Date() : null,
       contactability: normalised.contactability,
       derived_uid_key: normalised.derivedUidKey,
@@ -628,7 +645,10 @@ async function processLeaveRecord(
       });
       existingRecordsBySourceRemoteId.set(normalised.sourceRemoteId, {
         approval_status: approvalStatusToPersist,
-        failed_action: existing?.failed_action ?? null,
+        failed_action:
+          approvalStatusToPersist === "xero_sync_failed"
+            ? (existing?.failed_action ?? null)
+            : null,
         id: recordId,
         source_remote_hash: normalised.sourceRemoteHash,
         source_remote_id: normalised.sourceRemoteId,
