@@ -158,8 +158,10 @@ const ListSchema = z.object({
   actingPersonId: z.string().uuid().nullable(),
   actingUserId: z.string().min(1),
   clerkOrgId: z.string().min(1),
+  cursor: z.string().uuid().nullable().optional(),
   filters: FiltersSchema.optional(),
   organisationId: z.string().uuid(),
+  pageSize: z.coerce.number().int().min(1).max(200).optional(),
   role: RoleSchema,
 });
 
@@ -186,7 +188,7 @@ const DispatchSchema = z.object({
   role: RoleSchema,
 });
 
-type ListInput = z.infer<typeof ListSchema>;
+type ListInput = z.input<typeof ListSchema>;
 type CommandInput = z.infer<typeof CommandSchema>;
 type DeclineInput = z.infer<typeof DeclineSchema>;
 type InfoInput = z.infer<typeof InfoSchema>;
@@ -217,9 +219,18 @@ const HISTORY_ACTIONS = [
   "availability_records.reverted_to_draft",
 ];
 
+const TERMINAL_STATUS_WINDOW_DAYS = 90;
+const ACTIONABLE_STATUSES = ["submitted", "xero_sync_failed"] as const;
+const TERMINAL_STATUSES = ["approved", "withdrawn", "declined"] as const;
+
 export async function listForApprover(
   input: ListInput
-): Promise<Result<ApprovalListItem[], ApprovalServiceError>> {
+): Promise<
+  Result<
+    { items: ApprovalListItem[]; nextCursor: string | null },
+    ApprovalServiceError
+  >
+> {
   const parsed = ListSchema.safeParse(input);
   if (!parsed.success) {
     return validationError(parsed.error);
@@ -260,6 +271,9 @@ export async function listForApprover(
       ...parsed.data.filters,
       status: parsed.data.filters?.status ?? defaultStatus,
     };
+    const pageSize = parsed.data.pageSize ?? 50;
+    const cursor = parsed.data.cursor ?? null;
+    const hasExplicitDateFilter = Boolean(filters.dateFrom ?? filters.dateTo);
     const managedPersonIds =
       parsed.data.role === "manager" && parsed.data.actingPersonId
         ? (
@@ -270,12 +284,48 @@ export async function listForApprover(
             })
           ).filter((personId) => personId !== parsed.data.actingPersonId)
         : [];
+
+    const actionableInFilter = filters.status.filter((status) =>
+      (ACTIONABLE_STATUSES as readonly string[]).includes(status)
+    );
+    const terminalInFilter = filters.status.filter((status) =>
+      (TERMINAL_STATUSES as readonly string[]).includes(status)
+    );
+    const terminalCutoff = new Date();
+    terminalCutoff.setUTCDate(
+      terminalCutoff.getUTCDate() - TERMINAL_STATUS_WINDOW_DAYS
+    );
+    const approvalStatusWhere: Prisma.AvailabilityRecordWhereInput =
+      !hasExplicitDateFilter &&
+      terminalInFilter.length > 0 &&
+      actionableInFilter.length > 0
+        ? {
+            OR: [
+              { approval_status: { in: actionableInFilter as never[] } },
+              {
+                approval_status: { in: terminalInFilter as never[] },
+                ends_at: { gte: terminalCutoff },
+              },
+            ],
+          }
+        : !hasExplicitDateFilter &&
+            terminalInFilter.length > 0 &&
+            actionableInFilter.length === 0
+          ? {
+              approval_status: { in: terminalInFilter as never[] },
+              ends_at: { gte: terminalCutoff },
+            }
+          : { approval_status: { in: filters.status as never[] } };
+
     const records = await database.availabilityRecord.findMany({
-      include: recordInclude,
-      orderBy: [{ submitted_at: "asc" }, { starts_at: "asc" }],
+      cursor: cursor ? { id: cursor } : undefined,
+      orderBy: [{ submitted_at: "asc" }, { starts_at: "asc" }, { id: "asc" }],
+      select: approvalRecordSelect,
+      skip: cursor ? 1 : 0,
+      take: pageSize + 1,
       where: {
         ...scoped(parsed.data),
-        approval_status: { in: filters.status },
+        ...approvalStatusWhere,
         archived_at: null,
         source_type: { in: ["team_calendar_leave", "xero_leave"] },
         ...(filters.personId?.length
@@ -292,11 +342,19 @@ export async function listForApprover(
       },
     });
 
-    const listContext = await loadApprovalListContext(records);
-    const items = await Promise.all(
-      records.map((record) => toApprovalListItem(record, listContext))
+    const hasNext = records.length > pageSize;
+    const pageRecords = hasNext ? records.slice(0, pageSize) : records;
+    const nextCursor = hasNext ? (pageRecords.at(-1)?.id ?? null) : null;
+
+    const listContext = await loadApprovalListContext(
+      pageRecords as unknown as LoadedApprovalRecord[]
     );
-    return { ok: true, value: items };
+    const items = await Promise.all(
+      (pageRecords as unknown as LoadedApprovalRecord[]).map((record) =>
+        toApprovalListItem(record, listContext)
+      )
+    );
+    return { ok: true, value: { items, nextCursor } };
   } catch {
     return unknownError("Failed to load leave approvals.");
   }
@@ -1790,6 +1848,32 @@ const recordInclude = {
       },
     },
   },
+} as const;
+
+// Explicit projection: source_payload_json and xero_write_error_raw are audit
+// data and must never cross the RSC boundary to a client component.
+const approvalRecordSelect = {
+  all_day: true,
+  approval_note: true,
+  approval_status: true,
+  approved_at: true,
+  archived_at: true,
+  clerk_org_id: true,
+  created_at: true,
+  created_by_user_id: true,
+  ends_at: true,
+  failed_action: true,
+  id: true,
+  notes_internal: true,
+  organisation_id: true,
+  person: recordInclude.person,
+  person_id: true,
+  record_type: true,
+  source_remote_id: true,
+  source_type: true,
+  starts_at: true,
+  submitted_at: true,
+  xero_write_error: true,
 } as const;
 
 class OptimisticConflictError extends Error {
