@@ -243,3 +243,201 @@ describe("reconcile Xero approval state optimistic concurrency", () => {
     );
   });
 });
+
+describe("reconcile Xero approval state bounding", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.syncRunCreate.mockResolvedValue({ id: RUN_ID });
+    mocks.syncRunFindFirst.mockResolvedValue(null);
+    mocks.syncRunUpdateMany.mockResolvedValue({ count: 1 });
+    mocks.xeroTenantFindFirst.mockResolvedValue({
+      id: XERO_TENANT_ID,
+      payroll_region: "AU",
+      sync_paused_at: null,
+      xero_connection_id: XERO_CONNECTION_ID,
+    });
+    mocks.ensureFreshXeroConnection.mockResolvedValue({
+      ok: true,
+      value: { refreshed: false },
+    });
+    mocks.auditEventCreate.mockResolvedValue({});
+    mocks.dispatchNotification.mockResolvedValue({});
+    mocks.failedRecordCreate.mockResolvedValue({});
+    mocks.availabilityRecordUpdateMany.mockResolvedValue({ count: 1 });
+  });
+
+  it("windows candidates by ends_at and caps with take 500 ordered by approval_status", async () => {
+    mocks.availabilityRecordFindMany.mockResolvedValue([]);
+    mocks.fetchLeaveApplicationStatusForRegion.mockResolvedValue({
+      ok: true,
+      value: { approvedAt: null, rawResponse: {}, status: "APPROVED" },
+    });
+
+    await reconcileXeroApprovalState(input());
+
+    expect(mocks.availabilityRecordFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: [{ approval_status: "asc" }, { created_at: "asc" }],
+        take: 500,
+        where: expect.objectContaining({
+          ends_at: expect.objectContaining({ gte: expect.any(Date) }),
+          source_remote_id: { not: null },
+        }),
+      })
+    );
+  });
+
+  it("cap translates to partial_success with capped error summary and partial flag", async () => {
+    vi.useFakeTimers();
+    const records = Array.from({ length: 500 }, (_, i) => ({
+      ...record(),
+      approval_status: "submitted" as const,
+      id: `80000000-0000-4000-8000-00000000${String(i).padStart(4, "0")}`.slice(0, 36),
+      source_remote_id: `xero-leave-${i}`,
+    }));
+    mocks.availabilityRecordFindMany.mockResolvedValue(records as unknown as Awaited<ReturnType<typeof mocks.availabilityRecordFindMany>>);
+    mocks.fetchLeaveApplicationStatusForRegion.mockResolvedValue({
+      ok: true,
+      value: { approvedAt: null, rawResponse: {}, status: "APPROVED" },
+    });
+
+    const promise = reconcileXeroApprovalState(input());
+    await vi.runAllTimersAsync();
+    const result = await promise;
+    vi.useRealTimers();
+
+    expect(result).toEqual(expect.objectContaining({ ok: true }));
+    if (result.ok) {
+      expect(result.value.partial).toBe(true);
+      expect(result.value.status).toBe("partial_success");
+    }
+    expect(mocks.syncRunUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          error_summary: expect.stringContaining("capped at 500"),
+          status: "partial_success",
+        }),
+      })
+    );
+  });
+
+  it("non-capped run is succeeded when no failures and partial is false", async () => {
+    mocks.availabilityRecordFindMany.mockResolvedValue([record()]);
+    mocks.fetchLeaveApplicationStatusForRegion.mockResolvedValue({
+      ok: true,
+      value: { approvedAt: null, rawResponse: {}, status: "REJECTED" },
+    });
+
+    const result = await reconcileXeroApprovalState(input());
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        ok: true,
+        value: expect.objectContaining({ partial: false, status: "succeeded" }),
+      })
+    );
+  });
+
+  it("partial run is distinct from failed and succeeded via status enum", async () => {
+    vi.useFakeTimers();
+    const records = Array.from({ length: 500 }, (_, i) => ({
+      ...record(),
+      id: `80000000-0000-4000-8000-00000001${String(i).padStart(4, "0")}`.slice(-4).padStart(8, "0") + "-0000-4000-8000-000000000001".slice(8),
+      source_remote_id: `xero-leave-partial-${i}`,
+    }));
+    mocks.availabilityRecordFindMany.mockResolvedValue(records as unknown as Awaited<ReturnType<typeof mocks.availabilityRecordFindMany>>);
+    mocks.fetchLeaveApplicationStatusForRegion.mockResolvedValue({
+      ok: true,
+      value: { approvedAt: new Date("2026-06-10T00:00:00.000Z"), rawResponse: {}, status: "APPROVED" },
+    });
+
+    const promise = reconcileXeroApprovalState(input());
+    await vi.runAllTimersAsync();
+    const result = await promise;
+    vi.useRealTimers();
+    expect(result.ok && result.value.status).toBe("partial_success");
+    expect(result.ok && result.value.partial).toBe(true);
+  });
+
+  it("keeps processing other records when one Xero request fails under bounded concurrency", async () => {
+    const second = { ...record(), id: "80000000-0000-4000-8000-000000000002", source_remote_id: "xero-leave-2" };
+    mocks.availabilityRecordFindMany.mockResolvedValue([record(), second]);
+    mocks.fetchLeaveApplicationStatusForRegion
+      .mockResolvedValueOnce({ error: { code: "network_error", message: "fail", rawPayload: null }, ok: false } as unknown as Awaited<ReturnType<typeof mocks.fetchLeaveApplicationStatusForRegion>>)
+      .mockResolvedValueOnce({ ok: true, value: { approvedAt: null, rawResponse: {}, status: "REJECTED" } } as unknown as Awaited<ReturnType<typeof mocks.fetchLeaveApplicationStatusForRegion>>);
+
+    const result = await reconcileXeroApprovalState(input());
+
+    expect(result).toEqual(expect.objectContaining({ ok: true, value: expect.objectContaining({ declined: 1, failed: 1 }) }));
+    expect(mocks.fetchLeaveApplicationStatusForRegion).toHaveBeenCalledTimes(2);
+  });
+
+  it("stops mid-way when cancellation is requested", async () => {
+    vi.useFakeTimers();
+    const many = Array.from({ length: 10 }, (_, i) => ({
+      ...record(),
+      id: `80000000-0000-4000-8000-00000000${String(i).padStart(4, "0")}`.slice(0, 36),
+      source_remote_id: `xero-leave-cancel-${i}`,
+    }));
+    mocks.availabilityRecordFindMany.mockResolvedValue(many as unknown as Awaited<ReturnType<typeof mocks.availabilityRecordFindMany>>);
+    mocks.fetchLeaveApplicationStatusForRegion.mockResolvedValue({
+      ok: true,
+      value: { approvedAt: null, rawResponse: {}, status: "REJECTED" },
+    });
+    let call = 0;
+    mocks.syncRunFindFirst.mockImplementation(async () => {
+      call += 1;
+      if (call === 1) return null as unknown as Awaited<ReturnType<typeof mocks.syncRunFindFirst>>;
+      if (call === 2) return null as unknown as Awaited<ReturnType<typeof mocks.syncRunFindFirst>>;
+      return { cancel_requested_at: new Date() } as unknown as Awaited<ReturnType<typeof mocks.syncRunFindFirst>>;
+    });
+
+    const promise = reconcileXeroApprovalState(input());
+    await vi.runAllTimersAsync();
+    const result = await promise;
+    vi.useRealTimers();
+
+    expect(result).toEqual(expect.objectContaining({ ok: true, value: expect.objectContaining({ status: "cancelled" }) }));
+    expect(mocks.fetchLeaveApplicationStatusForRegion).toHaveBeenCalledTimes(5);
+  });
+
+  it("uses BATCH_SIZE 5 to respect Xero five-concurrent limit", async () => {
+    vi.useFakeTimers();
+    const many = Array.from({ length: 6 }, (_, i) => ({
+      ...record(),
+      id: `80000000-0000-4000-8000-00000000${String(i).padStart(4, "0")}`.slice(0, 36),
+      source_remote_id: `xero-leave-batch-${i}`,
+    }));
+    mocks.availabilityRecordFindMany.mockResolvedValue(many as unknown as Awaited<ReturnType<typeof mocks.availabilityRecordFindMany>>);
+    let concurrent = 0;
+    let peak = 0;
+    mocks.fetchLeaveApplicationStatusForRegion.mockImplementation(async () => {
+      concurrent += 1;
+      peak = Math.max(peak, concurrent);
+      await new Promise((r) => setTimeout(r, 5));
+      concurrent -= 1;
+      return { ok: true, value: { approvedAt: null, rawResponse: {}, status: "REJECTED" } } as unknown as Awaited<ReturnType<typeof mocks.fetchLeaveApplicationStatusForRegion>>;
+    });
+
+    const promise = reconcileXeroApprovalState(input());
+    await vi.runAllTimersAsync();
+    await promise;
+    vi.useRealTimers();
+
+    expect(peak).toBeLessThanOrEqual(5);
+    expect(mocks.syncRunFindFirst).toHaveBeenCalledTimes(3);
+  });
+
+  it("prioritises submitted records via approval_status ordering", async () => {
+    mocks.availabilityRecordFindMany.mockResolvedValue([]);
+    mocks.fetchLeaveApplicationStatusForRegion.mockResolvedValue({
+      ok: true,
+      value: { approvedAt: null, rawResponse: {}, status: "REJECTED" },
+    });
+
+    await reconcileXeroApprovalState(input());
+
+    const call = mocks.availabilityRecordFindMany.mock.calls[0]?.[0] as { orderBy: unknown };
+    expect(call.orderBy).toEqual([{ approval_status: "asc" }, { created_at: "asc" }]);
+  });
+});
