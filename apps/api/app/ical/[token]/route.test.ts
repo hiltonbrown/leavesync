@@ -101,6 +101,22 @@ describe("GET /ical/:token.ics", () => {
     expect(await response.text()).toBe("Not found");
   });
 
+  it("returns 503 with Retry-After when render returns unknown_error", async () => {
+    mocks.renderFeedForToken.mockResolvedValue({
+      error: { code: "unknown_error", message: "Failed to render feed" },
+      ok: false,
+    });
+
+    const response = await getFeed();
+    const body = await response.text();
+
+    expect(response.status).toBe(503);
+    expect(body).toBe("Temporarily unavailable");
+    expect(response.headers.get("Retry-After")).toBe("60");
+    expect(body).not.toContain("Failed to render feed");
+    expect(body).not.toContain("unknown_error");
+  });
+
   it.each(["expired", "revoked"] as const)(
     "returns 410 when the token is %s",
     async (status) => {

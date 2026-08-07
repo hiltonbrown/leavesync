@@ -1,4 +1,5 @@
 import { cachedEtagForToken, renderFeedForToken } from "@repo/feeds";
+import { log } from "@repo/observability/log";
 
 const weakEtagPrefixPattern = /^W\//;
 
@@ -19,8 +20,10 @@ function etagMatches(
  *
  * Responses:
  * - 200 OK: Active feed (ICS body)
+ * - 304 Not Modified: ETag matches If-None-Match
  * - 410 Gone: Expired or revoked token
  * - 404 Not Found: Token not found or feed inactive
+ * - 503 Service Unavailable: Transient render/projection failure (retryable)
  */
 export async function GET(
   request: Request,
@@ -49,7 +52,13 @@ export async function GET(
   const feedResult = await renderFeedForToken(token);
 
   if (!feedResult.ok) {
-    // Token not found or feed inactive
+    if (feedResult.error.code === "unknown_error") {
+      log.warn(`Feed render failed: ${feedResult.error.code}`);
+      return new Response("Temporarily unavailable", {
+        headers: { "Retry-After": "60" },
+        status: 503,
+      });
+    }
     return new Response("Not found", { status: 404 });
   }
 
