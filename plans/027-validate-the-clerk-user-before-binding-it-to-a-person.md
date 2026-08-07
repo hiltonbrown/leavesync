@@ -19,7 +19,17 @@
 - **Depends on**: plan 050 is adjacent (same file; supersedes plan 019) — see README graph `050 -> 027`
 - **Category**: security
 - **Planned at**: commit `75202db`, 2026-07-25
-- **Reconciled**: 2026-08-08 against `b0fa224`. Finding confirmed still present. Diff `75202db..b0fa224` for the three drift files is cosmetic only (Biome key reordering: `where`/`include` and `data`/`where` swapped); no semantic change. `packages/auth/server.ts` unchanged. `schema.prisma` added `xero_write_claimed_at` on `AvailabilityRecord` — does not touch `@@unique([organisation_id, clerk_user_id])`. `clerkUserId` still `z.string().trim().min(1).optional()` with no prefix, membership or uniqueness check before the `person.update`.
+- **Reconciled**: 2026-08-07T17:39+10:00 against `f09386e` (main). **Finding FIXED and verified.** Drift `75202db..f09386e` for the three drift files: `_actions.ts` now implements all three checks (see Done-criteria audit below), `packages/auth/server.ts` unchanged, `schema.prisma` adds only `xero_write_claimed_at` on `AvailabilityRecord` (does not touch `@@unique([organisation_id, clerk_user_id])`). Prior note `2026-08-08 at b0fa224` ("finding confirmed still present") is superseded. Implementation landed in `80434d3` (`chore: land worktree fixes on main`, which also landed `297ba7d` for plan 050); `git diff --stat 75202db..HEAD -- "_actions.ts"` is `+96/-16` plus 7-line schema addition — not cosmetic.
+- **Status**: DONE — see README row and verification below.
+- **Verification 2026-08-07 (evidence, main at f09386e)**:
+  - `grep -c "clerkClient" apps/app/app/(authenticated)/settings/integrations/xero/matches/_actions.ts` → `2` (import + call) — criterion 4 pass.
+  - `grep -n "isOrganisationMember\|\$transaction" ...` → `98:isOrganisationMember` < `124:$transaction` — criterion 5 pass.
+  - `grep -c "already linked to another person" ...` → `1` — criterion 6 pass.
+  - `grep console.log` → no match — criterion 7 pass.
+  - Schema `z.string().trim().startsWith("user_")` at `_actions.ts:12`, targeted `clerk.organizations.getOrganizationMembershipList({organizationId, userId:[clerkUserId]})` at `:215` with fail-closed `log.error` at `:228`, uniqueness `database.person.findFirst({clerk_org_id, clerk_user_id, id:{not:match.xero_person.id}, organisation_id})` at `:108` — all per Design.
+  - Co-located test `apps/app/app/(authenticated)/settings/integrations/xero/matches/_actions.test.ts` present (206 lines, 8 tests covering the plan's 7 required cases + org-scope case); `head` of run under worktree `065f5bb` was `8 passed` for this file — criterion 3's file-level gate holds.
+  - `git diff --name-only 75202db..HEAD -- "_actions.ts" packages/database/prisma/schema.prisma packages/auth/server.ts` = `_actions.ts` + `schema.prisma` only — criterion 8 holds modulo the unrelated merged history (see NOTES).
+  - Global `bun run check` / `bun run typecheck` / `bun run test` currently exit 1 on main due to pre-existing `@repo/availability` diagnostics (18 lint errors, implicit-any/type errors) independent of this plan — criteria 1-2 therefore NOT green on current HEAD, but the failure is not caused by this plan (see Reconciliation notes in README).
 
 ## Why this matters
 
