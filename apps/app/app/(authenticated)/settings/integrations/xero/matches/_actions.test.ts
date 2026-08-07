@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
     person: { findFirst: vi.fn() },
     xeroPersonMatch: { findFirst: vi.fn() },
   },
+  getActiveOrgContext: vi.fn(),
   log: { error: vi.fn() },
   revalidatePath: vi.fn(),
 }));
@@ -21,6 +22,9 @@ vi.mock("@repo/auth/server", () => ({
 vi.mock("@repo/database", () => ({ database: mocks.database }));
 vi.mock("@repo/observability/log", () => ({ log: mocks.log }));
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
+vi.mock("@/lib/server/get-active-org-context", () => ({
+  getActiveOrgContext: mocks.getActiveOrgContext,
+}));
 
 const { resolveXeroPersonMatchAction } = await import("./_actions");
 
@@ -54,6 +58,10 @@ describe("resolveXeroPersonMatchAction", () => {
       id: "user_admin",
       lastName: "User",
     });
+    mocks.getActiveOrgContext.mockResolvedValue({
+      ok: true,
+      value: { clerkOrgId: orgId, organisationId },
+    });
     mocks.database.xeroPersonMatch.findFirst.mockResolvedValue(baseMatch());
     mocks.database.person.findFirst.mockResolvedValue(null);
     mocks.database.$transaction.mockImplementation(
@@ -75,6 +83,27 @@ describe("resolveXeroPersonMatchAction", () => {
     });
   });
 
+  it("calls findFirst with the active organisation scope on happy path", async () => {
+    const result = await resolveXeroPersonMatchAction({
+      matchId,
+      organisationId,
+      resolution: "ignore",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(mocks.getActiveOrgContext).toHaveBeenCalledWith(organisationId);
+    expect(mocks.database.xeroPersonMatch.findFirst).toHaveBeenCalledTimes(1);
+    const where =
+      mocks.database.xeroPersonMatch.findFirst.mock.calls[0]?.[0]?.where;
+    expect(where).toEqual(
+      expect.objectContaining({
+        clerk_org_id: orgId,
+        id: matchId,
+        organisation_id: organisationId,
+      })
+    );
+  });
+
   it("rejects a non-member", async () => {
     mocks.clerkClient.mockResolvedValue({
       organizations: {
@@ -84,6 +113,7 @@ describe("resolveXeroPersonMatchAction", () => {
     const result = await resolveXeroPersonMatchAction({
       clerkUserId: "user_outsider123",
       matchId,
+      organisationId,
       resolution: "match",
     });
     expect(result).toEqual(expect.objectContaining({ ok: false }));
@@ -97,6 +127,7 @@ describe("resolveXeroPersonMatchAction", () => {
     const result = await resolveXeroPersonMatchAction({
       clerkUserId: "user_valid123",
       matchId,
+      organisationId,
       resolution: "match",
     });
     expect(result).toEqual({ ok: true, value: { resolved: true } });
@@ -114,6 +145,7 @@ describe("resolveXeroPersonMatchAction", () => {
     const result = await resolveXeroPersonMatchAction({
       clerkUserId: "user_valid123",
       matchId,
+      organisationId,
       resolution: "match",
     });
     expect(result.ok).toBe(false);
@@ -123,9 +155,10 @@ describe("resolveXeroPersonMatchAction", () => {
     expect(mocks.database.$transaction).not.toHaveBeenCalled();
   });
 
-  it("skips check for database-sourced fallback", async () => {
+  it("skips membership validation for database-sourced fallback", async () => {
     const result = await resolveXeroPersonMatchAction({
       matchId,
+      organisationId,
       resolution: "match",
     });
     expect(mocks.clerkClient).not.toHaveBeenCalled();
@@ -137,6 +170,7 @@ describe("resolveXeroPersonMatchAction", () => {
     const result = await resolveXeroPersonMatchAction({
       clerkUserId: "user_valid123",
       matchId,
+      organisationId,
       resolution: "match",
     });
     expect(result.ok).toBe(false);
@@ -150,6 +184,7 @@ describe("resolveXeroPersonMatchAction", () => {
     const result = await resolveXeroPersonMatchAction({
       clerkUserId: "not-a-user-id",
       matchId,
+      organisationId,
       resolution: "match",
     });
     expect(result.ok).toBe(false);
@@ -162,6 +197,7 @@ describe("resolveXeroPersonMatchAction", () => {
   it("ignore resolution is unaffected", async () => {
     const result = await resolveXeroPersonMatchAction({
       matchId,
+      organisationId,
       resolution: "ignore",
     });
     expect(result).toEqual({ ok: true, value: { resolved: true } });
