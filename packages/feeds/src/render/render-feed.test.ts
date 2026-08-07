@@ -260,6 +260,49 @@ describe("renderFeedForToken", () => {
       "Feed token use write failed: Error: DB timeout"
     );
   });
+
+  it("serialises a one-day all-day event with exclusive DTEND", async () => {
+    const result = await renderFeedForToken("plaintext-token");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.body).toContain("DTSTART;VALUE=DATE:20260507");
+    expect(result.value.body).toContain("DTEND;VALUE=DATE:20260508");
+  });
+
+  it("serialises a multi-day all-day event with exclusive DTEND", async () => {
+    mocks.projectFeedEvents.mockResolvedValueOnce({
+      ok: true,
+      value: [
+        {
+          allDay: true,
+          contactabilityStatus: "unavailable",
+          description: null,
+          displayName: "Jane Smith",
+          endsAt: new Date("2026-05-10T00:00:00.000Z"),
+          isPublicHoliday: false,
+          location: "Brisbane",
+          publishedSequence: 2,
+          publishedUid: "stable@ical.teamcalendar.online",
+          recordType: "annual_leave",
+          sourceRecordId: "10000000-0000-4000-8000-000000000001",
+          startsAt: new Date("2026-05-07T00:00:00.000Z"),
+          summary: "Jane Smith: Annual Leave",
+        },
+      ],
+    });
+
+    const result = await renderFeedForToken("plaintext-token");
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.body).toContain("DTSTART;VALUE=DATE:20260507");
+    expect(result.value.body).toContain("DTEND;VALUE=DATE:20260510");
+  });
 });
 
 describe("cachedEtagForToken", () => {

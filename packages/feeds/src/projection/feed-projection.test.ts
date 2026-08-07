@@ -282,4 +282,196 @@ describe("projectFeedEvents", () => {
       "Public holiday: State Holiday"
     );
   });
+
+  it("converts a one-day all-day record inclusive end at 23:59:59.999 to the next midnight exclusive", async () => {
+    mocks.feedFindFirst.mockResolvedValueOnce({
+      created_by_user_id: "user_1",
+      includes_public_holidays: false,
+      privacy_mode: "named",
+      scopes: [{ scope_type: "org", scope_value: null }],
+    });
+    mocks.availabilityRecordFindMany.mockResolvedValueOnce([
+      {
+        all_day: true,
+        contactability: "unavailable",
+        derived_sequence: 0,
+        derived_uid_key: "fallback@ical.teamcalendar.online",
+        ends_at: new Date("2026-05-07T23:59:59.999Z"),
+        id: "10000000-0000-4000-8000-000000000002",
+        person: {
+          display_name: null,
+          first_name: "Jane",
+          last_name: "Smith",
+          location: { name: "Brisbane" },
+        },
+        publication: null,
+        record_type: "annual_leave",
+        starts_at: new Date("2026-05-07T00:00:00.000Z"),
+        title: null,
+      },
+    ]);
+
+    const result = await projectFeedEvents({
+      ...baseInput,
+      privacyMode: "named",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value).toHaveLength(1);
+    expect(result.value[0].endsAt.toISOString()).toBe(
+      "2026-05-08T00:00:00.000Z"
+    );
+    expect(result.value[0].startsAt.toISOString()).toBe(
+      "2026-05-07T00:00:00.000Z"
+    );
+  });
+
+  it("converts a multi-day Xero-shaped all-day record inclusive midnight end to the following midnight", async () => {
+    mocks.feedFindFirst.mockResolvedValueOnce({
+      created_by_user_id: "user_1",
+      includes_public_holidays: false,
+      privacy_mode: "named",
+      scopes: [{ scope_type: "org", scope_value: null }],
+    });
+    mocks.availabilityRecordFindMany.mockResolvedValueOnce([
+      {
+        all_day: true,
+        contactability: "unavailable",
+        derived_sequence: 0,
+        derived_uid_key: "fallback@ical.teamcalendar.online",
+        ends_at: new Date("2026-05-09T00:00:00.000Z"),
+        id: "10000000-0000-4000-8000-000000000003",
+        person: {
+          display_name: null,
+          first_name: "Jane",
+          last_name: "Smith",
+          location: { name: "Brisbane" },
+        },
+        publication: null,
+        record_type: "annual_leave",
+        starts_at: new Date("2026-05-07T00:00:00.000Z"),
+        title: null,
+      },
+    ]);
+
+    const result = await projectFeedEvents({
+      ...baseInput,
+      privacyMode: "named",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value[0].endsAt.toISOString()).toBe(
+      "2026-05-10T00:00:00.000Z"
+    );
+  });
+
+  it("leaves timed records unchanged", async () => {
+    const startsAt = new Date("2026-05-07T09:00:00.000Z");
+    const endsAt = new Date("2026-05-07T17:00:00.000Z");
+    mocks.feedFindFirst.mockResolvedValueOnce({
+      created_by_user_id: "user_1",
+      includes_public_holidays: false,
+      privacy_mode: "named",
+      scopes: [{ scope_type: "org", scope_value: null }],
+    });
+    mocks.availabilityRecordFindMany.mockResolvedValueOnce([
+      {
+        all_day: false,
+        contactability: "unavailable",
+        derived_sequence: 0,
+        derived_uid_key: "fallback@ical.teamcalendar.online",
+        ends_at: endsAt,
+        id: "10000000-0000-4000-8000-000000000004",
+        person: {
+          display_name: null,
+          first_name: "Jane",
+          last_name: "Smith",
+          location: { name: "Brisbane" },
+        },
+        publication: null,
+        record_type: "annual_leave",
+        starts_at: startsAt,
+        title: null,
+      },
+    ]);
+
+    const result = await projectFeedEvents({
+      ...baseInput,
+      privacyMode: "named",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value[0].endsAt).toBe(endsAt);
+    expect(result.value[0].startsAt).toBe(startsAt);
+    expect(result.value[0].allDay).toBe(false);
+  });
+
+  it("does not double-extend public holiday exclusive ends", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-20T09:00:00.000Z"));
+
+    mocks.feedFindFirst.mockResolvedValueOnce({
+      created_by_user_id: "user_1",
+      includes_public_holidays: true,
+      privacy_mode: "named",
+      scopes: [{ scope_type: "org", scope_value: null }],
+    });
+    mocks.availabilityRecordFindMany.mockResolvedValueOnce([]);
+    mocks.resolvePeopleForFeed.mockResolvedValueOnce({
+      ok: true,
+      value: [
+        {
+          displayName: "Jane Smith",
+          firstName: "Jane",
+          id: "20000000-0000-4000-8000-000000000001",
+          lastName: "Smith",
+          location: {
+            countryCode: "AU",
+            id: "50000000-0000-4000-8000-000000000001",
+            name: "Brisbane",
+            regionCode: "QLD",
+            timezone: "Australia/Brisbane",
+          },
+          locationId: "50000000-0000-4000-8000-000000000001",
+          managerPersonId: null,
+          team: null,
+          teamId: null,
+        },
+      ],
+    });
+    mocks.publicHolidayFindMany.mockResolvedValueOnce([
+      {
+        archived_at: null,
+        assignments: [],
+        country_code: "CUSTOM",
+        default_classification: "non_working",
+        holiday_date: new Date("2026-06-22T00:00:00.000Z"),
+        id: "60000000-0000-4000-8000-000000000005",
+        name: "Holiday Day",
+        region_code: null,
+      },
+    ]);
+
+    const result = await projectFeedEvents({
+      ...baseInput,
+      privacyMode: "named",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    const holiday = result.value.find((event) => event.isPublicHoliday);
+    expect(holiday?.startsAt.toISOString()).toBe("2026-06-22T00:00:00.000Z");
+    expect(holiday?.endsAt.toISOString()).toBe("2026-06-23T00:00:00.000Z");
+  });
 });
