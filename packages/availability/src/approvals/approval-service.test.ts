@@ -814,13 +814,13 @@ describe("approval-service", () => {
     expect(mocks.leaveBalanceFindMany).toHaveBeenCalledOnce();
     expect(mocks.leaveBalanceFindFirst).not.toHaveBeenCalled();
     expect(mocks.computeWorkingDaysFromReferenceData).toHaveBeenCalledTimes(2);
-    expect(result.value[0]?.durationWorkingDays).toBe(2);
-    expect(result.value[0]?.balanceSnapshot).toMatchObject({
+    expect(result.value.items[0]?.durationWorkingDays).toBe(2);
+    expect(result.value.items[0]?.balanceSnapshot).toMatchObject({
       balanceAvailable: 10,
       balanceRemainingAfterApproval: 8,
     });
-    expect(result.value[1]?.durationWorkingDays).toBe(1);
-    expect(result.value[1]?.balanceSnapshot).toMatchObject({
+    expect(result.value.items[1]?.durationWorkingDays).toBe(1);
+    expect(result.value.items[1]?.balanceSnapshot).toMatchObject({
       balanceAvailable: 4,
       balanceRemainingAfterApproval: 3,
     });
@@ -837,15 +837,23 @@ describe("approval-service", () => {
     expect(mocks.availabilityFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          approval_status: {
-            in: [
-              "submitted",
-              "approved",
-              "xero_sync_failed",
-              "withdrawn",
-              "declined",
-            ],
-          },
+          OR: expect.arrayContaining([
+            expect.objectContaining({
+              approval_status: expect.objectContaining({
+                in: expect.arrayContaining(["submitted", "xero_sync_failed"]),
+              }),
+            }),
+            expect.objectContaining({
+              approval_status: expect.objectContaining({
+                in: expect.arrayContaining([
+                  "approved",
+                  "withdrawn",
+                  "declined",
+                ]),
+              }),
+              ends_at: expect.objectContaining({ gte: expect.any(Date) }),
+            }),
+          ]),
         }),
       })
     );
@@ -878,9 +886,19 @@ describe("approval-service", () => {
     expect(mocks.availabilityFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          approval_status: {
-            in: ["submitted", "approved", "xero_sync_failed", "withdrawn"],
-          },
+          OR: expect.arrayContaining([
+            expect.objectContaining({
+              approval_status: expect.objectContaining({
+                in: expect.arrayContaining(["submitted", "xero_sync_failed"]),
+              }),
+            }),
+            expect.objectContaining({
+              approval_status: expect.objectContaining({
+                in: expect.arrayContaining(["approved", "withdrawn"]),
+              }),
+              ends_at: expect.objectContaining({ gte: expect.any(Date) }),
+            }),
+          ]),
         }),
       })
     );
@@ -1063,9 +1081,19 @@ describe("approval-service", () => {
       expect(mocks.availabilityFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            approval_status: {
-              in: ["submitted", "approved", "xero_sync_failed", "withdrawn"],
-            },
+            OR: expect.arrayContaining([
+              expect.objectContaining({
+                approval_status: expect.objectContaining({
+                  in: expect.arrayContaining(["submitted", "xero_sync_failed"]),
+                }),
+              }),
+              expect.objectContaining({
+                approval_status: expect.objectContaining({
+                  in: expect.arrayContaining(["approved", "withdrawn"]),
+                }),
+                ends_at: expect.objectContaining({ gte: expect.any(Date) }),
+              }),
+            ]),
           }),
         })
       );
@@ -1087,6 +1115,174 @@ describe("approval-service", () => {
           approval_status: {
             in: ["submitted"],
           },
+        }),
+      })
+    );
+  });
+
+  it("does not select audit blobs source_payload_json or xero_write_error_raw", async () => {
+    mocks.availabilityFindMany.mockResolvedValue([record]);
+
+    const result = await listForApprover({
+      ...input,
+      filters: { status: ["submitted"] },
+    });
+
+    expect(result.ok).toBe(true);
+    const select = mocks.availabilityFindMany.mock.calls[0]?.[0]
+      ?.select as Record<string, unknown>;
+    expect(select).not.toHaveProperty("source_payload_json");
+    expect(select).not.toHaveProperty("xero_write_error_raw");
+  });
+
+  it("selects the plain-language xero_write_error column", async () => {
+    mocks.availabilityFindMany.mockResolvedValue([record]);
+
+    const result = await listForApprover({
+      ...input,
+      filters: { status: ["submitted"] },
+    });
+
+    expect(result.ok).toBe(true);
+    const select = mocks.availabilityFindMany.mock.calls[0]?.[0]
+      ?.select as Record<string, unknown>;
+    expect(select).toHaveProperty("xero_write_error");
+  });
+
+  it("requests take as pageSize plus one", async () => {
+    mocks.availabilityFindMany.mockResolvedValue([record]);
+
+    const result = await listForApprover({
+      ...input,
+      filters: { status: ["submitted"] },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(mocks.availabilityFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({ take: 51 })
+    );
+  });
+
+  it("returns nextCursor and truncates items when more results than page size", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-01T00:00:00.000Z"));
+    const rows = Array.from({ length: 51 }, (_, index) => ({
+      ...record,
+      id: `00000000-0000-4000-8000-000000000${String(100 + index).padStart(3, "0")}`,
+    }));
+    mocks.availabilityFindMany.mockResolvedValue(rows);
+    mocks.locationFindMany.mockResolvedValue([]);
+    mocks.organisationFindFirst.mockResolvedValue({
+      country_code: "AU",
+      timezone: "Australia/Brisbane",
+    });
+    mocks.listForOrganisation.mockResolvedValue({ ok: true, value: [] });
+    mocks.leaveBalanceFindMany.mockResolvedValue([]);
+
+    const result = await listForApprover({
+      ...input,
+      pageSize: 50,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.items).toHaveLength(50);
+    expect(result.value.nextCursor).toBe(rows[49]?.id ?? null);
+    vi.useRealTimers();
+  });
+
+  it("returns null nextCursor when fewer results than page size", async () => {
+    mocks.availabilityFindMany.mockResolvedValue([record]);
+
+    const result = await listForApprover({
+      ...input,
+      filters: { status: ["submitted"] },
+      pageSize: 50,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.nextCursor).toBeNull();
+    expect(result.value.items).toHaveLength(1);
+  });
+
+  it("does not hide actionable submitted records with old ends_at", async () => {
+    mocks.availabilityFindMany.mockResolvedValue([record]);
+
+    const result = await listForApprover({
+      ...input,
+      filters: { status: ["submitted"] },
+    });
+
+    expect(result.ok).toBe(true);
+    const where = mocks.availabilityFindMany.mock.calls[0]?.[0]
+      ?.where as Record<string, unknown>;
+    expect(where).not.toHaveProperty("ends_at");
+    expect(where).toMatchObject({
+      approval_status: { in: ["submitted"] },
+    });
+  });
+
+  it("windows terminal approved records to recent ends_at by default", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-01T00:00:00.000Z"));
+    mocks.availabilityFindMany.mockResolvedValue([]);
+
+    const result = await listForApprover({ ...input });
+
+    expect(result.ok).toBe(true);
+    const where = mocks.availabilityFindMany.mock.calls[0]?.[0]?.where as {
+      OR?: Array<Record<string, unknown>>;
+    };
+    expect(where?.OR).toBeDefined();
+    const terminalClause = where?.OR?.find(
+      (clause) =>
+        JSON.stringify(clause).includes("approved") &&
+        JSON.stringify(clause).includes("ends_at")
+    );
+    expect(terminalClause).toMatchObject({
+      ends_at: expect.objectContaining({ gte: expect.any(Date) }),
+    });
+    vi.useRealTimers();
+  });
+
+  it("does not window terminal records when caller supplies explicit dateFrom", async () => {
+    const dateFrom = new Date("2024-01-01T00:00:00.000Z");
+    mocks.availabilityFindMany.mockResolvedValue([]);
+
+    const result = await listForApprover({
+      ...input,
+      filters: { dateFrom, status: ["approved"] },
+    });
+
+    expect(result.ok).toBe(true);
+    const where = mocks.availabilityFindMany.mock.calls[0]?.[0]
+      ?.where as Record<string, unknown>;
+    expect(where).toMatchObject({
+      approval_status: { in: ["approved"] },
+      ends_at: { gte: dateFrom },
+    });
+    expect(where).not.toHaveProperty("OR");
+  });
+
+  it("keeps clerk_org_id and organisation_id in the where clause", async () => {
+    mocks.availabilityFindMany.mockResolvedValue([record]);
+
+    const result = await listForApprover({
+      ...input,
+      filters: { status: ["submitted"] },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(mocks.availabilityFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          clerk_org_id: input.clerkOrgId,
+          organisation_id: input.organisationId,
         }),
       })
     );

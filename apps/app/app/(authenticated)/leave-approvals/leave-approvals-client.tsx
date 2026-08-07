@@ -104,12 +104,14 @@ interface LeaveApprovalsClientProps {
     status?: string[];
   };
   items: ApprovalItem[];
+  nextCursor: string | null;
   organisationId: string;
   reconciliationEnabled: boolean;
   summary: ApprovalSummaryCounts;
 }
 
 const FilterSchema = z.object({
+  cursor: z.string().optional(),
   includeFailed: z.string().optional(),
   status: z.string().optional(),
 });
@@ -118,6 +120,7 @@ export function LeaveApprovalsClient({
   canDispatchReconciliation,
   filters,
   items,
+  nextCursor,
   organisationId,
   reconciliationEnabled,
   summary,
@@ -387,6 +390,17 @@ export function LeaveApprovalsClient({
               })}
             </TableBody>
           </Table>
+          {nextCursor ? (
+            <div className="flex justify-center border-t p-4">
+              <Button
+                onClick={() => setFilterParams({ cursor: nextCursor })}
+                type="button"
+                variant="secondary"
+              >
+                Load more
+              </Button>
+            </div>
+          ) : null}
         </div>
       )}
 
