@@ -24,9 +24,10 @@ interface MatchesClientProps {
       xero_person: Pick<Person, "email" | "id" | "first_name" | "last_name">;
     }
   >;
+  organisationId: string;
 }
 
-export function MatchesClient({ matches }: MatchesClientProps) {
+export function MatchesClient({ matches, organisationId }: MatchesClientProps) {
   const [isPending, startTransition] = useTransition();
   const [clerkUserIds, setClerkUserIds] = useState<Record<string, string>>({});
 
@@ -91,6 +92,7 @@ export function MatchesClient({ matches }: MatchesClientProps) {
                         match.candidate_person?.clerk_user_id ??
                         undefined,
                       matchId: match.id,
+                      organisationId,
                       resolution: "match",
                     });
                     toast[result.ok ? "success" : "error"](
@@ -107,6 +109,7 @@ export function MatchesClient({ matches }: MatchesClientProps) {
                   startTransition(async () => {
                     const result = await resolveXeroPersonMatchAction({
                       matchId: match.id,
+                      organisationId,
                       resolution: "ignore",
                     });
                     toast[result.ok ? "success" : "error"](
