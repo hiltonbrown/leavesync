@@ -67,6 +67,7 @@ export type AvailabilityRecordMinAggregateOutputType = {
   approved_by_person_id: string | null
   approved_at: Date | null
   xero_write_error: string | null
+  xero_write_claimed_at: Date | null
   submitted_at: Date | null
   withdrawn_at: Date | null
   created_at: Date | null
@@ -106,6 +107,7 @@ export type AvailabilityRecordMaxAggregateOutputType = {
   approved_by_person_id: string | null
   approved_at: Date | null
   xero_write_error: string | null
+  xero_write_claimed_at: Date | null
   submitted_at: Date | null
   withdrawn_at: Date | null
   created_at: Date | null
@@ -147,6 +149,7 @@ export type AvailabilityRecordCountAggregateOutputType = {
   approved_at: number
   xero_write_error: number
   xero_write_error_raw: number
+  xero_write_claimed_at: number
   submitted_at: number
   withdrawn_at: number
   created_at: number
@@ -196,6 +199,7 @@ export type AvailabilityRecordMinAggregateInputType = {
   approved_by_person_id?: true
   approved_at?: true
   xero_write_error?: true
+  xero_write_claimed_at?: true
   submitted_at?: true
   withdrawn_at?: true
   created_at?: true
@@ -235,6 +239,7 @@ export type AvailabilityRecordMaxAggregateInputType = {
   approved_by_person_id?: true
   approved_at?: true
   xero_write_error?: true
+  xero_write_claimed_at?: true
   submitted_at?: true
   withdrawn_at?: true
   created_at?: true
@@ -276,6 +281,7 @@ export type AvailabilityRecordCountAggregateInputType = {
   approved_at?: true
   xero_write_error?: true
   xero_write_error_raw?: true
+  xero_write_claimed_at?: true
   submitted_at?: true
   withdrawn_at?: true
   created_at?: true
@@ -404,6 +410,7 @@ export type AvailabilityRecordGroupByOutputType = {
   approved_at: Date | null
   xero_write_error: string | null
   xero_write_error_raw: runtime.JsonValue | null
+  xero_write_claimed_at: Date | null
   submitted_at: Date | null
   withdrawn_at: Date | null
   created_at: Date
@@ -468,6 +475,7 @@ export type AvailabilityRecordWhereInput = {
   approved_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
   xero_write_error?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
   xero_write_error_raw?: Prisma.JsonNullableFilter<"AvailabilityRecord">
+  xero_write_claimed_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
   submitted_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
   withdrawn_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"AvailabilityRecord"> | Date | string
@@ -513,6 +521,7 @@ export type AvailabilityRecordOrderByWithRelationInput = {
   approved_at?: Prisma.SortOrderInput | Prisma.SortOrder
   xero_write_error?: Prisma.SortOrderInput | Prisma.SortOrder
   xero_write_error_raw?: Prisma.SortOrderInput | Prisma.SortOrder
+  xero_write_claimed_at?: Prisma.SortOrderInput | Prisma.SortOrder
   submitted_at?: Prisma.SortOrderInput | Prisma.SortOrder
   withdrawn_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -562,6 +571,7 @@ export type AvailabilityRecordWhereUniqueInput = Prisma.AtLeast<{
   approved_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
   xero_write_error?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
   xero_write_error_raw?: Prisma.JsonNullableFilter<"AvailabilityRecord">
+  xero_write_claimed_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
   submitted_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
   withdrawn_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"AvailabilityRecord"> | Date | string
@@ -607,6 +617,7 @@ export type AvailabilityRecordOrderByWithAggregationInput = {
   approved_at?: Prisma.SortOrderInput | Prisma.SortOrder
   xero_write_error?: Prisma.SortOrderInput | Prisma.SortOrder
   xero_write_error_raw?: Prisma.SortOrderInput | Prisma.SortOrder
+  xero_write_claimed_at?: Prisma.SortOrderInput | Prisma.SortOrder
   submitted_at?: Prisma.SortOrderInput | Prisma.SortOrder
   withdrawn_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -656,6 +667,7 @@ export type AvailabilityRecordScalarWhereWithAggregatesInput = {
   approved_at?: Prisma.DateTimeNullableWithAggregatesFilter<"AvailabilityRecord"> | Date | string | null
   xero_write_error?: Prisma.StringNullableWithAggregatesFilter<"AvailabilityRecord"> | string | null
   xero_write_error_raw?: Prisma.JsonNullableWithAggregatesFilter<"AvailabilityRecord">
+  xero_write_claimed_at?: Prisma.DateTimeNullableWithAggregatesFilter<"AvailabilityRecord"> | Date | string | null
   submitted_at?: Prisma.DateTimeNullableWithAggregatesFilter<"AvailabilityRecord"> | Date | string | null
   withdrawn_at?: Prisma.DateTimeNullableWithAggregatesFilter<"AvailabilityRecord"> | Date | string | null
   created_at?: Prisma.DateTimeWithAggregatesFilter<"AvailabilityRecord"> | Date | string
@@ -694,6 +706,7 @@ export type AvailabilityRecordCreateInput = {
   approved_at?: Date | string | null
   xero_write_error?: string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Date | string | null
   submitted_at?: Date | string | null
   withdrawn_at?: Date | string | null
   created_at?: Date | string
@@ -739,6 +752,7 @@ export type AvailabilityRecordUncheckedCreateInput = {
   approved_at?: Date | string | null
   xero_write_error?: string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Date | string | null
   submitted_at?: Date | string | null
   withdrawn_at?: Date | string | null
   created_at?: Date | string
@@ -778,6 +792,7 @@ export type AvailabilityRecordUpdateInput = {
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -823,6 +838,7 @@ export type AvailabilityRecordUncheckedUpdateInput = {
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -865,6 +881,7 @@ export type AvailabilityRecordCreateManyInput = {
   approved_at?: Date | string | null
   xero_write_error?: string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Date | string | null
   submitted_at?: Date | string | null
   withdrawn_at?: Date | string | null
   created_at?: Date | string
@@ -903,6 +920,7 @@ export type AvailabilityRecordUpdateManyMutationInput = {
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -944,6 +962,7 @@ export type AvailabilityRecordUncheckedUpdateManyInput = {
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1001,6 +1020,7 @@ export type AvailabilityRecordCountOrderByAggregateInput = {
   approved_at?: Prisma.SortOrder
   xero_write_error?: Prisma.SortOrder
   xero_write_error_raw?: Prisma.SortOrder
+  xero_write_claimed_at?: Prisma.SortOrder
   submitted_at?: Prisma.SortOrder
   withdrawn_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -1044,6 +1064,7 @@ export type AvailabilityRecordMaxOrderByAggregateInput = {
   approved_by_person_id?: Prisma.SortOrder
   approved_at?: Prisma.SortOrder
   xero_write_error?: Prisma.SortOrder
+  xero_write_claimed_at?: Prisma.SortOrder
   submitted_at?: Prisma.SortOrder
   withdrawn_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -1083,6 +1104,7 @@ export type AvailabilityRecordMinOrderByAggregateInput = {
   approved_by_person_id?: Prisma.SortOrder
   approved_at?: Prisma.SortOrder
   xero_write_error?: Prisma.SortOrder
+  xero_write_claimed_at?: Prisma.SortOrder
   submitted_at?: Prisma.SortOrder
   withdrawn_at?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -1290,6 +1312,7 @@ export type AvailabilityRecordCreateWithoutOrganisationInput = {
   approved_at?: Date | string | null
   xero_write_error?: string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Date | string | null
   submitted_at?: Date | string | null
   withdrawn_at?: Date | string | null
   created_at?: Date | string
@@ -1333,6 +1356,7 @@ export type AvailabilityRecordUncheckedCreateWithoutOrganisationInput = {
   approved_at?: Date | string | null
   xero_write_error?: string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Date | string | null
   submitted_at?: Date | string | null
   withdrawn_at?: Date | string | null
   created_at?: Date | string
@@ -1404,6 +1428,7 @@ export type AvailabilityRecordScalarWhereInput = {
   approved_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
   xero_write_error?: Prisma.StringNullableFilter<"AvailabilityRecord"> | string | null
   xero_write_error_raw?: Prisma.JsonNullableFilter<"AvailabilityRecord">
+  xero_write_claimed_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
   submitted_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
   withdrawn_at?: Prisma.DateTimeNullableFilter<"AvailabilityRecord"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"AvailabilityRecord"> | Date | string
@@ -1442,6 +1467,7 @@ export type AvailabilityRecordCreateWithoutPersonInput = {
   approved_at?: Date | string | null
   xero_write_error?: string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Date | string | null
   submitted_at?: Date | string | null
   withdrawn_at?: Date | string | null
   created_at?: Date | string
@@ -1485,6 +1511,7 @@ export type AvailabilityRecordUncheckedCreateWithoutPersonInput = {
   approved_at?: Date | string | null
   xero_write_error?: string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Date | string | null
   submitted_at?: Date | string | null
   withdrawn_at?: Date | string | null
   created_at?: Date | string
@@ -1534,6 +1561,7 @@ export type AvailabilityRecordCreateWithoutApproved_byInput = {
   approved_at?: Date | string | null
   xero_write_error?: string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Date | string | null
   submitted_at?: Date | string | null
   withdrawn_at?: Date | string | null
   created_at?: Date | string
@@ -1577,6 +1605,7 @@ export type AvailabilityRecordUncheckedCreateWithoutApproved_byInput = {
   approved_at?: Date | string | null
   xero_write_error?: string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Date | string | null
   submitted_at?: Date | string | null
   withdrawn_at?: Date | string | null
   created_at?: Date | string
@@ -1658,6 +1687,7 @@ export type AvailabilityRecordCreateWithoutPublicationInput = {
   approved_at?: Date | string | null
   xero_write_error?: string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Date | string | null
   submitted_at?: Date | string | null
   withdrawn_at?: Date | string | null
   created_at?: Date | string
@@ -1702,6 +1732,7 @@ export type AvailabilityRecordUncheckedCreateWithoutPublicationInput = {
   approved_at?: Date | string | null
   xero_write_error?: string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Date | string | null
   submitted_at?: Date | string | null
   withdrawn_at?: Date | string | null
   created_at?: Date | string
@@ -1756,6 +1787,7 @@ export type AvailabilityRecordUpdateWithoutPublicationInput = {
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1800,6 +1832,7 @@ export type AvailabilityRecordUncheckedUpdateWithoutPublicationInput = {
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1840,6 +1873,7 @@ export type AvailabilityRecordCreateManyOrganisationInput = {
   approved_at?: Date | string | null
   xero_write_error?: string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Date | string | null
   submitted_at?: Date | string | null
   withdrawn_at?: Date | string | null
   created_at?: Date | string
@@ -1878,6 +1912,7 @@ export type AvailabilityRecordUpdateWithoutOrganisationInput = {
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1921,6 +1956,7 @@ export type AvailabilityRecordUncheckedUpdateWithoutOrganisationInput = {
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1962,6 +1998,7 @@ export type AvailabilityRecordUncheckedUpdateManyWithoutOrganisationInput = {
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2002,6 +2039,7 @@ export type AvailabilityRecordCreateManyPersonInput = {
   approved_at?: Date | string | null
   xero_write_error?: string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Date | string | null
   submitted_at?: Date | string | null
   withdrawn_at?: Date | string | null
   created_at?: Date | string
@@ -2042,6 +2080,7 @@ export type AvailabilityRecordCreateManyApproved_byInput = {
   approved_at?: Date | string | null
   xero_write_error?: string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Date | string | null
   submitted_at?: Date | string | null
   withdrawn_at?: Date | string | null
   created_at?: Date | string
@@ -2080,6 +2119,7 @@ export type AvailabilityRecordUpdateWithoutPersonInput = {
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2123,6 +2163,7 @@ export type AvailabilityRecordUncheckedUpdateWithoutPersonInput = {
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2164,6 +2205,7 @@ export type AvailabilityRecordUncheckedUpdateManyWithoutPersonInput = {
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2202,6 +2244,7 @@ export type AvailabilityRecordUpdateWithoutApproved_byInput = {
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2245,6 +2288,7 @@ export type AvailabilityRecordUncheckedUpdateWithoutApproved_byInput = {
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2286,6 +2330,7 @@ export type AvailabilityRecordUncheckedUpdateManyWithoutApproved_byInput = {
   approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xero_write_error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xero_write_error_raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  xero_write_claimed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   withdrawn_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2329,6 +2374,7 @@ export type AvailabilityRecordSelect<ExtArgs extends runtime.Types.Extensions.In
   approved_at?: boolean
   xero_write_error?: boolean
   xero_write_error_raw?: boolean
+  xero_write_claimed_at?: boolean
   submitted_at?: boolean
   withdrawn_at?: boolean
   created_at?: boolean
@@ -2374,6 +2420,7 @@ export type AvailabilityRecordSelectCreateManyAndReturn<ExtArgs extends runtime.
   approved_at?: boolean
   xero_write_error?: boolean
   xero_write_error_raw?: boolean
+  xero_write_claimed_at?: boolean
   submitted_at?: boolean
   withdrawn_at?: boolean
   created_at?: boolean
@@ -2418,6 +2465,7 @@ export type AvailabilityRecordSelectUpdateManyAndReturn<ExtArgs extends runtime.
   approved_at?: boolean
   xero_write_error?: boolean
   xero_write_error_raw?: boolean
+  xero_write_claimed_at?: boolean
   submitted_at?: boolean
   withdrawn_at?: boolean
   created_at?: boolean
@@ -2462,13 +2510,14 @@ export type AvailabilityRecordSelectScalar = {
   approved_at?: boolean
   xero_write_error?: boolean
   xero_write_error_raw?: boolean
+  xero_write_claimed_at?: boolean
   submitted_at?: boolean
   withdrawn_at?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type AvailabilityRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "person_id" | "record_type" | "source_type" | "source_remote_id" | "starts_at" | "ends_at" | "approval_status" | "failed_action" | "privacy_mode" | "contactability" | "include_in_feed" | "publish_status" | "source_payload_json" | "source_remote_hash" | "source_remote_version" | "source_last_modified_at" | "derived_uid_key" | "derived_sequence" | "title" | "all_day" | "notes_internal" | "working_location" | "preferred_contact_method" | "created_by_user_id" | "updated_by_user_id" | "archived_at" | "approval_note" | "approved_by_person_id" | "approved_at" | "xero_write_error" | "xero_write_error_raw" | "submitted_at" | "withdrawn_at" | "created_at" | "updated_at", ExtArgs["result"]["availabilityRecord"]>
+export type AvailabilityRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "clerk_org_id" | "organisation_id" | "person_id" | "record_type" | "source_type" | "source_remote_id" | "starts_at" | "ends_at" | "approval_status" | "failed_action" | "privacy_mode" | "contactability" | "include_in_feed" | "publish_status" | "source_payload_json" | "source_remote_hash" | "source_remote_version" | "source_last_modified_at" | "derived_uid_key" | "derived_sequence" | "title" | "all_day" | "notes_internal" | "working_location" | "preferred_contact_method" | "created_by_user_id" | "updated_by_user_id" | "archived_at" | "approval_note" | "approved_by_person_id" | "approved_at" | "xero_write_error" | "xero_write_error_raw" | "xero_write_claimed_at" | "submitted_at" | "withdrawn_at" | "created_at" | "updated_at", ExtArgs["result"]["availabilityRecord"]>
 export type AvailabilityRecordInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organisation?: boolean | Prisma.OrganisationDefaultArgs<ExtArgs>
   person?: boolean | Prisma.PersonDefaultArgs<ExtArgs>
@@ -2529,6 +2578,7 @@ export type $AvailabilityRecordPayload<ExtArgs extends runtime.Types.Extensions.
     approved_at: Date | null
     xero_write_error: string | null
     xero_write_error_raw: runtime.JsonValue | null
+    xero_write_claimed_at: Date | null
     submitted_at: Date | null
     withdrawn_at: Date | null
     created_at: Date
@@ -2994,6 +3044,7 @@ export interface AvailabilityRecordFieldRefs {
   readonly approved_at: Prisma.FieldRef<"AvailabilityRecord", 'DateTime'>
   readonly xero_write_error: Prisma.FieldRef<"AvailabilityRecord", 'String'>
   readonly xero_write_error_raw: Prisma.FieldRef<"AvailabilityRecord", 'Json'>
+  readonly xero_write_claimed_at: Prisma.FieldRef<"AvailabilityRecord", 'DateTime'>
   readonly submitted_at: Prisma.FieldRef<"AvailabilityRecord", 'DateTime'>
   readonly withdrawn_at: Prisma.FieldRef<"AvailabilityRecord", 'DateTime'>
   readonly created_at: Prisma.FieldRef<"AvailabilityRecord", 'DateTime'>
