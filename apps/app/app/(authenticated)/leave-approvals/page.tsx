@@ -27,6 +27,7 @@ interface LeaveApprovalsPageProps {
 }
 
 const FilterSchema = z.object({
+  cursor: firstString(z.string().uuid().nullable().optional()),
   dateFrom: firstString(z.coerce.date().optional()),
   dateTo: firstString(z.coerce.date().optional()),
   includeFailed: firstString(
@@ -121,7 +122,11 @@ const LeaveApprovalsPage = async ({
     role,
   };
   const [approvalsResult, summaryResult] = await Promise.all([
-    listForApprover({ ...serviceInput, filters }),
+    listForApprover({
+      ...serviceInput,
+      cursor: parsedFilters?.cursor ?? null,
+      filters,
+    }),
     getApprovalSummaryCounts(serviceInput),
   ]);
 
@@ -146,7 +151,8 @@ const LeaveApprovalsPage = async ({
             includeFailed: parsedFilters?.includeFailed ?? false,
             status: parsedFilters?.status,
           }}
-          items={approvalsResult.value}
+          items={approvalsResult.value.items}
+          nextCursor={approvalsResult.value.nextCursor}
           organisationId={organisationId}
           reconciliationEnabled={false}
           summary={summaryResult.value}
