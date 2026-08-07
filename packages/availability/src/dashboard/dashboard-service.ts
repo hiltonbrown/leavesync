@@ -458,6 +458,7 @@ export async function getManagerView(
         clerkOrgId: parsed.data.clerkOrgId,
         filters: { status: ["submitted", "xero_sync_failed"] },
         organisationId: parsed.data.organisationId,
+        pageSize: 200,
         role: managerRole,
       }),
       getCalendarRange({
@@ -510,7 +511,11 @@ export async function getManagerView(
       value: {
         ...employeeResult.value,
         approvalQueue: approvalItemsResult.ok
-          ? readySection(buildApprovalQueueCard(approvalItemsResult.value))
+          ? readySection(
+              buildApprovalQueueCard(
+                unwrapApprovalItems(approvalItemsResult.value)
+              )
+            )
           : errorSection(approvalItemsResult.error.message),
         header,
         teamThisWeek:
@@ -521,7 +526,11 @@ export async function getManagerView(
           ? readySection(buildTeamTodayCard(peopleResult.value.people))
           : errorSection(peopleResult.error.message),
         teamXeroSyncFailed: approvalItemsResult.ok
-          ? readySection(buildTeamXeroSyncFailedCard(approvalItemsResult.value))
+          ? readySection(
+              buildTeamXeroSyncFailedCard(
+                unwrapApprovalItems(approvalItemsResult.value)
+              )
+            )
           : errorSection(approvalItemsResult.error.message),
         upcomingPeaks: monthCalendarResult.ok
           ? readySection(buildUpcomingPeaksCard(monthCalendarResult.value))
@@ -587,6 +596,7 @@ export async function getAdminView(
         clerkOrgId: parsed.data.clerkOrgId,
         filters: { status: ["submitted", "xero_sync_failed"] },
         organisationId: parsed.data.organisationId,
+        pageSize: 200,
         role: approvalRole(adminRole),
       }),
       getFeedSummaryForDashboard({
@@ -633,10 +643,18 @@ export async function getAdminView(
           : errorSection(feedsResult.error.message),
         header,
         orgWidePendingApprovals: approvalsResult.ok
-          ? readySection(buildOrgPendingApprovalsCard(approvalsResult.value))
+          ? readySection(
+              buildOrgPendingApprovalsCard(
+                unwrapApprovalItems(approvalsResult.value)
+              )
+            )
           : errorSection(approvalsResult.error.message),
         orgWideXeroSyncFailed: approvalsResult.ok
-          ? readySection(buildOrgWideXeroSyncFailedCard(approvalsResult.value))
+          ? readySection(
+              buildOrgWideXeroSyncFailedCard(
+                unwrapApprovalItems(approvalsResult.value)
+              )
+            )
           : errorSection(approvalsResult.error.message),
         recentAuditEvents: auditResult.ok
           ? readySection({
@@ -1541,4 +1559,12 @@ function isAwayEvent(event: CalendarEvent) {
     event.recordType !== "alternative_contact" &&
     event.recordType !== "limited_availability"
   );
+}
+
+function unwrapApprovalItems(
+  value:
+    | ApprovalListItem[]
+    | { items: ApprovalListItem[]; nextCursor: string | null }
+): ApprovalListItem[] {
+  return Array.isArray(value) ? value : value.items;
 }
