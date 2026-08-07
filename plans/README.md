@@ -146,8 +146,8 @@ These are release blockers. `TODO` means the app remains a no-go.
 | [012](012-move-failure-notifications-out-of-the-state-transaction.md) | Notification failure cannot roll back durable Xero failure state | DONE |
 | [013](013-paginate-and-narrow-the-approvals-list-query.md) | Raw Xero and write-error audit payloads never cross the manager browser boundary; the list is bounded | TODO, finding re-verified |
 | [017](017-make-leave-submission-idempotent.md) | Retries and concurrent requests cannot create duplicate Xero leave applications | TODO, finding re-verified |
-| [018](018-clear-stale-xero-write-errors-on-status-change.md) | Reconciled records do not retain misleading stale write errors | TODO, excerpts refreshed after plans 006 and 007 |
-| [019](019-close-two-tenant-scoping-gaps-in-server-actions.md) | Feed and Xero-match actions enforce both tenant keys | TODO, finding re-verified |
+| [018](018-clear-stale-xero-write-errors-on-status-change.md) | Reconciled records do not retain misleading stale write errors | DONE, executed and reviewed 2026-08-07, worktree `agent-a456001f35e41133c` branch `fix/clear-stale-xero-write-errors-018` (`08ea636`), unmerged |
+| [019](019-close-two-tenant-scoping-gaps-in-server-actions.md) | Feed and Xero-match actions enforce both tenant keys | BLOCKED, partial: feed-lookup fix done and verified in worktree `agent-aedc7188b1fab86c5` (`af2c344`), unmerged; Xero-match fix hit a genuine STOP (no `organisationId` resolvable without a scope/design change) and needs a follow-up plan |
 | [027](027-validate-the-clerk-user-before-binding-it-to-a-person.md) | A Person can bind only to a valid Clerk member of the active organisation | TODO, no drift |
 | [038](038-bound-the-approval-reconciler-so-it-can-be-enabled.md) | Approval reconciliation is bounded, resumable and safe to schedule | TODO, scope narrowed after plan 007 landed batching |
 | [042](042-correct-all-day-ics-date-boundaries.md) | One-day and multi-day all-day leave emit correct exclusive ICS end dates | TODO, no drift |
@@ -170,7 +170,7 @@ pilot acceptance script and the customer support model.
 
 | Plan | Required outcome | Status |
 |---|---|---|
-| [015](015-enable-the-test-harness-in-six-untestable-workspaces.md) | Root and CI tests enter every owned workspace, including auth and web | TODO, finding re-verified |
+| [015](015-enable-the-test-harness-in-six-untestable-workspaces.md) | Root and CI tests enter every owned workspace, including auth and web | DONE |
 | [016](016-add-a-build-step-to-ci.md) | CI requires a production build for all deployable apps | TODO, **unblocked**: plan 049 is done and `bun run build` exits 0 |
 | [020](020-run-the-xero-disconnect-integration-test.md) | Destructive Xero disconnect isolation runs in the integration lane | TODO, finding re-verified |
 | [035](035-fix-the-turborepo-task-graph.md) | Test and typecheck tasks express their real dependencies and do not false-green | TODO, finding re-verified |
