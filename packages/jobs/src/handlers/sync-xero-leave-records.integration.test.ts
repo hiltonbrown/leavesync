@@ -268,10 +268,12 @@ describeWithDatabase("sync-xero-leave-records database flow", () => {
       },
     });
     expect(records).toHaveLength(1);
+    // Title is user-owned on a Team Calendar leave and must not be
+    // overwritten by the incoming Xero record. See sync-xero-leave-records.ts.
     expect(records[0]).toMatchObject({
       id: existing.id,
       source_type: "team_calendar_leave",
-      title: "Annual leave",
+      title: "Previous title",
     });
   });
 
