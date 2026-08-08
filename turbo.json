@@ -1,6 +1,6 @@
 {
   "$schema": "https://v2-10-0.turborepo.dev/schema.json",
-  "globalDependencies": ["**/.env.*local"],
+  "globalDependencies": ["**/.env.*local", "bun.lock", "package.json"],
   "ui": "tui",
   "envMode": "loose",
   "tasks": {
