@@ -1236,10 +1236,10 @@ describe("approval-service", () => {
 
     expect(result.ok).toBe(true);
     const where = mocks.availabilityFindMany.mock.calls[0]?.[0]?.where as {
-      OR?: Array<Record<string, unknown>>;
+      OR?: Record<string, unknown>[];
     };
-    expect(where?.OR).toBeDefined();
-    const terminalClause = where?.OR?.find(
+    expect(where.OR).toBeDefined();
+    const terminalClause = where.OR?.find(
       (clause) =>
         JSON.stringify(clause).includes("approved") &&
         JSON.stringify(clause).includes("ends_at")
