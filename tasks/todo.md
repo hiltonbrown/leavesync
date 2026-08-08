@@ -161,3 +161,37 @@
 - [x] Step 5: Write unit tests in `packages/feeds/src/publication/publication-service.test.ts` to test date-only change increments SEQUENCE, no-op doesn't, and create persists dates
 - [x] Verify Step 5: Run tests using `bunx vitest run packages/feeds/src/publication/publication-service.test.ts` (Done: 7 tests passed successfully)
 - [x] Final verification: Run `bun run check` (Done: ultracite check passed successfully)
+
+---
+
+# Plan: Fix Vercel build missing ignoreCommand script (`scripts/skip-ci.js`)
+
+## Tasks
+
+- [x] Create `scripts/skip-ci.js` to handle Vercel `ignoreCommand` checks (`[skip ci]`, `[ci skip]`, `[skip vercel]`, `[vercel skip]`).
+- [x] Verify `node scripts/skip-ci.js` runs cleanly without error and returns exit code 1 on normal commits and 0 on skip commits.
+- [x] Run `bun run check`, `bun run typecheck`, and `bun run test` to verify zero regressions.
+
+## Review
+
+- Created `scripts/skip-ci.js` to handle Vercel `ignoreCommand` execution referenced in `apps/*/vercel.json`.
+- `scripts/skip-ci.js` inspects `git log -1 --pretty=%B` for skip directives (`[skip ci]`, `[ci skip]`, `[skip vercel]`, `[vercel skip]`, `[no ci]`), exiting with status `0` to skip builds or status `1` to proceed with builds. Gracefully handles git execution errors.
+- Created unit test `scripts/skip-ci.test.ts` verifying Node execution.
+- [x] Verified `bun run typecheck`, `bun run check`, and `bun run test` all pass with 0 errors across the monorepo.
+
+---
+
+# Plan: Fix Vercel build `import-in-the-middle` ENOENT error
+
+## Tasks
+
+- [x] Add `"import-in-the-middle": "3.3.3"` and `"require-in-the-middle": "8.0.1"` to root `package.json` `overrides` section to force uniform resolution.
+- [x] Run `bun install` to update `bun.lock` and eliminate nested `.bun/import-in-the-middle@...` symlinks.
+- [x] Run `bun run fix`, `bun run check`, `bun run typecheck`, and `bun run test` to verify build and test safety.
+
+## Review
+
+- Added `"import-in-the-middle": "3.3.3"` and `"require-in-the-middle": "8.0.1"` to root `package.json` `overrides`.
+- Ran `bun install` to lock all transitive dependencies (e.g. Sentry / OpenTelemetry) to single top-level package instances, preventing broken nested `.bun/import-in-the-middle@3.3.1/...` symlink resolution in Vercel.
+- Verified `bun run typecheck` passes with 0 errors across 18 packages.
+
