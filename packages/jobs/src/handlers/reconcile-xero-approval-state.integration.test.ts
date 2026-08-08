@@ -396,7 +396,9 @@ describeWithDatabase("reconcile-xero-approval-state database flow", () => {
       });
     }
 
-    expect(mockFetchLeaveApplicationStatusForRegion).toHaveBeenCalledTimes(1);
+    // Records within a batch (BATCH_SIZE) reconcile concurrently, so both
+    // records here are fetched before the blanket error halts the run.
+    expect(mockFetchLeaveApplicationStatusForRegion).toHaveBeenCalledTimes(2);
     expect(await findRecord(first.id)).toMatchObject({
       approval_status: "submitted",
       derived_sequence: 0,
