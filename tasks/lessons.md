@@ -36,3 +36,25 @@
 - Treat `git fsck` dangling objects as normal unless it reports missing or corrupt
   objects. Do not present dangling commits/blobs from prior rebases or abandoned
   work as repository corruption.
+
+## CI debugging patterns (2026-08)
+
+- CI failures are layered: fixing the first blocking stage (e.g. Lint) can expose a
+  further failure at a later stage (e.g. integration tests) that was already broken
+  and simply never reached. Before treating a newly-visible failure as caused by your
+  fix, check `gh run list`/`gh run view` history for an earlier run, on a different
+  commit, that reached the same stage and failed the same way. If one exists, it's
+  pre-existing, not a regression you introduced.
+- Integration tests go stale when a production behaviour change updates the unit test
+  file but not the integration test file for the same handler. When an integration
+  test fails on an assertion that looks like it's testing old semantics, `git log
+  --oneline -- <handler>.ts` and check whether a recent commit deliberately changed
+  that behaviour (and updated `*.test.ts` but not `*.integration.test.ts` alongside
+  it) before assuming the production code is the bug.
+- This WSL2 dev box has no local Postgres and no working `docker` CLI (Docker Desktop
+  WSL integration isn't enabled). To run `bun run test:integration` or reproduce a
+  CI-only DB-dependent failure, use the Neon MCP tools: `create_branch` off the
+  project's existing migrated branch (schema is already applied, no need to
+  `migrate:deploy`), export `DATABASE_URL` to that branch's connection string, run the
+  tests, then `delete_branch` when done. Always confirm with the user before creating
+  Neon resources, since these tools carry a destructive-hint notice.
