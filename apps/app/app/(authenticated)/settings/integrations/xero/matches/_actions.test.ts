@@ -156,7 +156,7 @@ describe("resolveXeroPersonMatchAction", () => {
   });
 
   it("skips membership validation for database-sourced fallback", async () => {
-    const result = await resolveXeroPersonMatchAction({
+    await resolveXeroPersonMatchAction({
       matchId,
       organisationId,
       resolution: "match",

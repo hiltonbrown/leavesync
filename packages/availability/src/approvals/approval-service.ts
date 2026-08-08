@@ -145,6 +145,7 @@ const RecordTypeSchema = z.enum([
   "unpaid_leave",
 ]);
 const RoleSchema = z.enum(["admin", "manager", "owner"]);
+type ApprovalStatus = z.infer<typeof ApprovalStatusSchema>;
 
 const FiltersSchema = z.object({
   dateFrom: z.coerce.date().optional(),
@@ -189,6 +190,7 @@ const DispatchSchema = z.object({
 });
 
 type ListInput = z.input<typeof ListSchema>;
+type ListData = z.infer<typeof ListSchema>;
 type CommandInput = z.infer<typeof CommandSchema>;
 type DeclineInput = z.infer<typeof DeclineSchema>;
 type InfoInput = z.infer<typeof InfoSchema>;
@@ -243,121 +245,157 @@ export async function listForApprover(
   }
 
   try {
-    const settingsResult = await getSettings({
-      clerkOrgId: parsed.data.clerkOrgId,
-      organisationId: parsed.data.organisationId,
-    });
-
-    if (!settingsResult.ok) {
-      log.warn(
-        "Failed to load organisation settings for list approvals, using default view",
-        {
-          clerkOrgId: parsed.data.clerkOrgId,
-          error: settingsResult.error,
-          organisationId: parsed.data.organisationId,
-        }
-      );
-    }
-
-    // On a settings read failure, keep the narrower default rather than
-    // silently widening the queue. Logged so the outage is not invisible.
-    const showDeclined = settingsResult.ok
-      ? settingsResult.value.showDeclinedOnApprovals
-      : false;
-    const defaultStatus: z.infer<typeof ApprovalStatusSchema>[] = showDeclined
-      ? ["submitted", "approved", "xero_sync_failed", "withdrawn", "declined"]
-      : ["submitted", "approved", "xero_sync_failed", "withdrawn"];
-    const filters = {
-      ...parsed.data.filters,
-      status: parsed.data.filters?.status ?? defaultStatus,
-    };
-    const pageSize = parsed.data.pageSize ?? 50;
-    const cursor = parsed.data.cursor ?? null;
-    const hasExplicitDateFilter = Boolean(filters.dateFrom ?? filters.dateTo);
-    const managedPersonIds =
-      parsed.data.role === "manager" && parsed.data.actingPersonId
-        ? (
-            await managerScopePersonIds({
-              actingPersonId: parsed.data.actingPersonId,
-              clerkOrgId: parsed.data.clerkOrgId,
-              organisationId: parsed.data.organisationId,
-            })
-          ).filter((personId) => personId !== parsed.data.actingPersonId)
-        : [];
-
-    const actionableInFilter = filters.status.filter((status) =>
-      (ACTIONABLE_STATUSES as readonly string[]).includes(status)
-    );
-    const terminalInFilter = filters.status.filter((status) =>
-      (TERMINAL_STATUSES as readonly string[]).includes(status)
-    );
-    const terminalCutoff = new Date();
-    terminalCutoff.setUTCDate(
-      terminalCutoff.getUTCDate() - TERMINAL_STATUS_WINDOW_DAYS
-    );
-    const approvalStatusWhere: Prisma.AvailabilityRecordWhereInput =
-      !hasExplicitDateFilter &&
-      terminalInFilter.length > 0 &&
-      actionableInFilter.length > 0
-        ? {
-            OR: [
-              { approval_status: { in: actionableInFilter as never[] } },
-              {
-                approval_status: { in: terminalInFilter as never[] },
-                ends_at: { gte: terminalCutoff },
-              },
-            ],
-          }
-        : !hasExplicitDateFilter &&
-            terminalInFilter.length > 0 &&
-            actionableInFilter.length === 0
-          ? {
-              approval_status: { in: terminalInFilter as never[] },
-              ends_at: { gte: terminalCutoff },
-            }
-          : { approval_status: { in: filters.status as never[] } };
-
-    const records = await database.availabilityRecord.findMany({
-      cursor: cursor ? { id: cursor } : undefined,
-      orderBy: [{ submitted_at: "asc" }, { starts_at: "asc" }, { id: "asc" }],
-      select: approvalRecordSelect,
-      skip: cursor ? 1 : 0,
-      take: pageSize + 1,
-      where: {
-        ...scoped(parsed.data),
-        ...approvalStatusWhere,
-        archived_at: null,
-        source_type: { in: ["team_calendar_leave", "xero_leave"] },
-        ...(filters.personId?.length
-          ? { person_id: { in: filters.personId } }
-          : {}),
-        ...(filters.recordType?.length
-          ? { record_type: { in: filters.recordType } }
-          : {}),
-        ...(filters.dateFrom ? { ends_at: { gte: filters.dateFrom } } : {}),
-        ...(filters.dateTo ? { starts_at: { lte: filters.dateTo } } : {}),
-        ...(parsed.data.role === "manager"
-          ? { person_id: { in: managedPersonIds } }
-          : {}),
-      },
-    });
-
-    const hasNext = records.length > pageSize;
-    const pageRecords = hasNext ? records.slice(0, pageSize) : records;
-    const nextCursor = hasNext ? (pageRecords.at(-1)?.id ?? null) : null;
-
-    const listContext = await loadApprovalListContext(
-      pageRecords as unknown as LoadedApprovalRecord[]
-    );
-    const items = await Promise.all(
-      (pageRecords as unknown as LoadedApprovalRecord[]).map((record) =>
-        toApprovalListItem(record, listContext)
-      )
-    );
-    return { ok: true, value: { items, nextCursor } };
+    return await loadApproverPage(parsed.data);
   } catch {
     return unknownError("Failed to load leave approvals.");
   }
+}
+
+async function loadApproverPage(
+  data: ListData
+): Promise<
+  Result<
+    { items: ApprovalListItem[]; nextCursor: string | null },
+    ApprovalServiceError
+  >
+> {
+  const filters = await resolveListFilters(data);
+  const pageSize = data.pageSize ?? 50;
+  const cursor = data.cursor ?? null;
+  const hasExplicitDateFilter = Boolean(filters.dateFrom ?? filters.dateTo);
+  const managedPersonIds = await resolveManagedPersonIds(data);
+  const approvalStatusWhere = buildApprovalStatusWhere(
+    filters.status,
+    hasExplicitDateFilter
+  );
+
+  const records = await database.availabilityRecord.findMany({
+    cursor: cursor ? { id: cursor } : undefined,
+    orderBy: [{ submitted_at: "asc" }, { starts_at: "asc" }, { id: "asc" }],
+    select: approvalRecordSelect,
+    skip: cursor ? 1 : 0,
+    take: pageSize + 1,
+    where: {
+      ...scoped(data),
+      ...approvalStatusWhere,
+      archived_at: null,
+      source_type: { in: ["team_calendar_leave", "xero_leave"] },
+      ...(filters.personId?.length
+        ? { person_id: { in: filters.personId } }
+        : {}),
+      ...(filters.recordType?.length
+        ? { record_type: { in: filters.recordType } }
+        : {}),
+      ...(filters.dateFrom ? { ends_at: { gte: filters.dateFrom } } : {}),
+      ...(filters.dateTo ? { starts_at: { lte: filters.dateTo } } : {}),
+      ...(data.role === "manager"
+        ? { person_id: { in: managedPersonIds } }
+        : {}),
+    },
+  });
+
+  const hasNext = records.length > pageSize;
+  const pageRecords = hasNext ? records.slice(0, pageSize) : records;
+  const nextCursor = hasNext ? (pageRecords.at(-1)?.id ?? null) : null;
+
+  const listContext = await loadApprovalListContext(
+    pageRecords as unknown as LoadedApprovalRecord[]
+  );
+  const items = await Promise.all(
+    (pageRecords as unknown as LoadedApprovalRecord[]).map((record) =>
+      toApprovalListItem(record, listContext)
+    )
+  );
+  return { ok: true, value: { items, nextCursor } };
+}
+
+async function resolveListFilters(
+  data: ListData
+): Promise<z.infer<typeof FiltersSchema> & { status: ApprovalStatus[] }> {
+  const settingsResult = await getSettings({
+    clerkOrgId: data.clerkOrgId,
+    organisationId: data.organisationId,
+  });
+
+  if (!settingsResult.ok) {
+    log.warn(
+      "Failed to load organisation settings for list approvals, using default view",
+      {
+        clerkOrgId: data.clerkOrgId,
+        error: settingsResult.error,
+        organisationId: data.organisationId,
+      }
+    );
+  }
+
+  // On a settings read failure, keep the narrower default rather than
+  // silently widening the queue. Logged so the outage is not invisible.
+  const showDeclined = settingsResult.ok
+    ? settingsResult.value.showDeclinedOnApprovals
+    : false;
+  const defaultStatus: ApprovalStatus[] = showDeclined
+    ? ["submitted", "approved", "xero_sync_failed", "withdrawn", "declined"]
+    : ["submitted", "approved", "xero_sync_failed", "withdrawn"];
+
+  return {
+    ...data.filters,
+    status: data.filters?.status ?? defaultStatus,
+  };
+}
+
+async function resolveManagedPersonIds(data: {
+  actingPersonId: string | null;
+  clerkOrgId: string;
+  organisationId: string;
+  role: ApprovalRole;
+}): Promise<string[]> {
+  if (!(data.role === "manager" && data.actingPersonId)) {
+    return [];
+  }
+  const personIds = await managerScopePersonIds({
+    actingPersonId: data.actingPersonId,
+    clerkOrgId: data.clerkOrgId,
+    organisationId: data.organisationId,
+  });
+  return personIds.filter((personId) => personId !== data.actingPersonId);
+}
+
+function buildApprovalStatusWhere(
+  status: ApprovalStatus[],
+  hasExplicitDateFilter: boolean
+): Prisma.AvailabilityRecordWhereInput {
+  const actionableInFilter = status.filter((s) =>
+    (ACTIONABLE_STATUSES as readonly string[]).includes(s)
+  );
+  const terminalInFilter = status.filter((s) =>
+    (TERMINAL_STATUSES as readonly string[]).includes(s)
+  );
+
+  if (hasExplicitDateFilter || terminalInFilter.length === 0) {
+    return { approval_status: { in: status as never[] } };
+  }
+
+  const terminalCutoff = new Date();
+  terminalCutoff.setUTCDate(
+    terminalCutoff.getUTCDate() - TERMINAL_STATUS_WINDOW_DAYS
+  );
+
+  if (actionableInFilter.length === 0) {
+    return {
+      approval_status: { in: terminalInFilter as never[] },
+      ends_at: { gte: terminalCutoff },
+    };
+  }
+
+  return {
+    OR: [
+      { approval_status: { in: actionableInFilter as never[] } },
+      {
+        approval_status: { in: terminalInFilter as never[] },
+        ends_at: { gte: terminalCutoff },
+      },
+    ],
+  };
 }
 
 export async function getApprovalDetail(
@@ -422,16 +460,7 @@ export async function getApprovalSummaryCounts(input: {
   }
 
   try {
-    const managedPersonIds =
-      parsed.data.role === "manager" && parsed.data.actingPersonId
-        ? (
-            await managerScopePersonIds({
-              actingPersonId: parsed.data.actingPersonId,
-              clerkOrgId: parsed.data.clerkOrgId,
-              organisationId: parsed.data.organisationId,
-            })
-          ).filter((personId) => personId !== parsed.data.actingPersonId)
-        : [];
+    const managedPersonIds = await resolveManagedPersonIds(parsed.data);
     const startOfMonth = new Date();
     startOfMonth.setUTCDate(1);
     startOfMonth.setUTCHours(0, 0, 0, 0);
