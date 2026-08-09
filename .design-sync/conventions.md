@@ -17,7 +17,7 @@ Example: `className="bg-primary text-primary-foreground"`, `className="border-bo
 
 **Radius**: `rounded-sm` / `rounded-md` / `rounded-lg` / `rounded-xl` map to the theme's `--radius` scale (base radius is a soft `1rem` — this system reads rounded, not sharp).
 
-**Typography**: use Tailwind's default scale — `text-xs` / `text-sm` / `text-base` / `text-lg` — with `font-normal` / `font-medium` / `font-semibold` for weight. `font-sans` (Plus Jakarta Sans, the only body/heading family — Lora is a rare editorial serif accent, not for UI chrome) is the default; you don't need to set it explicitly. Note: `globals.css` also defines a Material-influenced scale (`--text-display-lg`, `--text-headline-md`, `--text-title-sm`, `--text-body-md`, `--text-label-sm`, etc.) but this synced bundle only compiles the utility classes actually referenced by the design system's own component source, and none of the base components use that scale directly — those tokens are available as CSS custom properties (e.g. `style={{ fontSize: "var(--text-headline-md)" }}` or Tailwind arbitrary-value syntax `text-[length:var(--text-headline-md)]`) but not as ready-made class names in this bundle.
+**Typography**: use Tailwind's default scale — `text-xs` / `text-sm` / `text-base` / `text-lg` — with `font-normal` / `font-medium` / `font-semibold` for weight. `font-sans` (Plus Jakarta Sans, the only body/heading family — Lora is a rare editorial serif accent, not for UI chrome) is the default; you don't need to set it explicitly. Note: `globals.css` also defines a Material-influenced scale (`--text-display-lg`, `--text-headline-md`, `--text-title-sm`, `--text-body-md`, `--text-label-sm`, etc.) inside a Tailwind v4 `@theme inline` block — Tailwind only emits `@theme inline` entries when a scanned component actually uses the corresponding utility class, and none of the base components do, so **this scale ships in neither form** in this bundle: not as a `text-display-lg`-style class, and not even as a bare `var(--text-display-lg)` custom property. Don't reference it. Stick to Tailwind's default scale above for every build.
 
 **Status colour convention** (seen across badges/tables in real usage): approved/success states use `bg-secondary text-secondary-foreground` (soft sage), declined/error/failed states use `bg-destructive text-white`, pending/neutral states are plain muted text with no background pill.
 
@@ -40,7 +40,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardAction, CardContent, 
     </CardAction>
   </CardHeader>
   <CardContent>
-    <p className="text-muted-foreground text-body-sm">
+    <p className="text-muted-foreground text-sm">
       Requested by Priya Nair. Awaiting approval from your manager.
     </p>
   </CardContent>

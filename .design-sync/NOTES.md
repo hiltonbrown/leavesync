@@ -223,6 +223,36 @@ authorable incrementally on any later re-sync.
   and content composed to at least show the intended structure, or accept a
   `needs-work` grade with a clear note if it can't be forced open.
 
+## Known render warns
+
+- **`[RENDER_THIN] components/general/Toaster/Toaster.html`: "DOM content
+  present but rendered height is 0px."** Confirmed benign by inspecting
+  `_screenshots/general__Toaster.png` (2026-08-09 re-sync): the toast renders
+  fully styled and complete (icon, title, description, `bg-primary`-class
+  success styling) — Sonner's portal/fixed-positioned container reports a 0px
+  measured height on its own root even though the visually rendered content
+  is correct. Re-syncs should expect this warn on `Toaster` and treat it as
+  known, not new, unless the screenshot itself changes to something broken.
+
+## Conventions-header drift found and fixed (2026-08-09 re-sync)
+
+`conventions.md`'s typography section claimed the Material-influenced scale
+(`--text-display-lg`, `--text-headline-md`, etc. — defined in `globals.css`'s
+`@theme inline` block, not used by any base component) was "available as CSS
+custom properties" for `var(--text-*)` use even though no ready-made utility
+class shipped for it. Validated against the fresh build and found **false**:
+Tailwind v4's `@theme inline` only emits an entry (custom property OR utility
+class) when a scanned component actually references the corresponding
+utility class name. Since nothing in `components/ui/*.tsx` uses
+`text-display-lg` etc., grep of `_ds_bundle.css`/`compiled.css` for any of
+those `--text-*` names returns zero matches in any form — the scale ships in
+neither shape. Fixed the paragraph to say don't reference it at all, and
+fixed the build snippet's `text-body-sm` class (also nonexistent in the
+compiled bundle, for the same reason) to `text-sm`. **Re-sync risk**: if a
+base `components/ui/*.tsx` file starts using one of the Material-scale
+classes directly, that specific token will start compiling in — re-verify
+before assuming the whole scale is still absent.
+
 ## Re-sync risks
 
 - `styles/compiled.css` must be regenerated before every rebuild if
