@@ -9,6 +9,7 @@
 
 ## Status
 
+- **Status**: DONE (executed 2026-08-10, commit `5670ff5`)
 - **Priority**: P1
 - **Effort**: S
 - **Risk**: LOW

@@ -152,7 +152,7 @@ These are release blockers. `TODO` means the app remains a no-go.
 | [027](027-validate-the-clerk-user-before-binding-it-to-a-person.md) | A Person can bind only to a valid Clerk member of the active organisation | **DONE** — verified 2026-08-07 at `f09386e` on `main` (`80434d3` landed worktree fix, `297ba7d` for 050; greps: `clerkClient` 2, membership precedes `$transaction`, `already linked` 1, `startsWith("user_")` present, `getOrganizationMembershipList({userId:[…]})` with fail-closed `log.error`, `person.findFirst` uniqueness check, co-located test 8 tests). Depends on 050 (`050 -> 027`), both now DONE. Global `check`/`typecheck` currently red from pre-existing `@repo/availability` diagnostics, not this plan. |
 | [038](038-bound-the-approval-reconciler-so-it-can-be-enabled.md) | Approval reconciliation is bounded, resumable and safe to schedule | DONE |
 | [042](042-correct-all-day-ics-date-boundaries.md) | One-day and multi-day all-day leave emit correct exclusive ICS end dates | DONE, merged to `main` as `f09386e` |
-| [043](043-preserve-retryable-feed-errors.md) | Transient feed failures return a retryable response instead of permanent 404 | TODO, no drift |
+| [043](043-preserve-retryable-feed-errors.md) | Transient feed failures return a retryable response instead of permanent 404 | **DONE**, executed and reviewed 2026-08-10, commit `5670ff5`, branch `fix-retryable-ics-render-errors` |
 
 Plan 013 is deliberately in this table, not the later performance table. Its
 pagination work is scale-related, but its explicit projection also prevents
