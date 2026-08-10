@@ -13,6 +13,7 @@
 
 ## Status
 
+- **State**: **DONE**, merged as `e38511f`
 - **Priority**: P2
 - **Effort**: S
 - **Risk**: LOW
