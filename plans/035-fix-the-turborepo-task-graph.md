@@ -11,8 +11,7 @@
 > If any changed since this plan was written, re-check the "Current state"
 > facts before proceeding.
 
-## Status
-
+- **Status**: DONE (2026-08-10)
 - **Priority**: P3
 - **Effort**: S
 - **Risk**: LOW
@@ -20,13 +19,7 @@
   benefits from this landing first; either order works.
 - **Category**: dx, ci
 - **Planned at**: commit `75202db`, 2026-07-25
-- **Reconciled**: 2026-08-05 against `2095b1f`. Finding confirmed still present.
-  `turbo.json` is unchanged: `test`, `typecheck` and `test:integration` still
-  declare only `dependsOn: ["^<same task>"]`, with no dependency on `build` or
-  on the Prisma client generation that `packages/database` performs, so a
-  workspace can report green against a stale generated client. Only dependency
-  versions moved in `package.json` and `packages/database/package.json`
-  (plan 047). `.github/workflows/ci.yml` is unchanged.
+- **Reconciled**: 2026-08-10. Initial execution hit STOP condition in Step 4 because `typecheck: { "dependsOn": ["^build"] }` only triggers `build` on *upstream workspace dependencies*. Since `@repo/database` has no workspace dependencies, `^build` resolves to empty for `@repo/database`, leaving `@repo/database#typecheck` running before `@repo/database#build` (`prisma generate`). Refined task graph configuration to add package-specific task override `"@repo/database#typecheck": { "dependsOn": ["build"] }` in `turbo.json`. Verified that with this override, `rm -rf packages/database/generated && bun run typecheck` succeeds from clean state.
 
 ## Why this matters
 
@@ -163,7 +156,7 @@ expressing that requirement.
 
 ## Design
 
-Three edits to `turbo.json`:
+Four edits to `turbo.json`:
 
 1. **`test`: remove `dependsOn` entirely.** Unit tests depend on nothing but
    their own package's source. Turbo will then run every package's tests in
@@ -172,8 +165,12 @@ Three edits to `turbo.json`:
    real requirement (generated artefacts from upstream packages) rather than a
    fictional one. Turbo skips packages with no `build` script, so this costs
    nothing for source-only packages and correctly runs `prisma generate` for
-   `packages/database`.
-3. **`test:integration`: remove `dependsOn`, keep `cache: false`.** Same
+   downstream consumers of `packages/database`.
+3. **`@repo/database#typecheck`: add package-specific override `["build"]`.**
+   Because `^build` only schedules builds for *upstream dependencies*, and
+   `@repo/database` has no workspace dependencies, `@repo/database#typecheck`
+   needs an explicit task override pointing to its own package `build` script (`prisma generate`).
+4. **`test:integration`: remove `dependsOn`, keep `cache: false`.** Same
    reasoning as `test`. Integration tests depend on a database, which Turbo
    does not model either way.
 
@@ -273,12 +270,15 @@ you will diff against it in Step 5.
 
 ### Step 3: Edit `turbo.json`
 
-Change the three task definitions:
+Change the task definitions:
 
 ```json
     "test": {},
     "typecheck": {
       "dependsOn": ["^build"]
+    },
+    "@repo/database#typecheck": {
+      "dependsOn": ["build"]
     },
     "test:integration": {
       "cache": false
@@ -441,8 +441,8 @@ All of the following, verbatim:
 2. `bun run typecheck` exits 0.
 3. `bun run test` exits 0 with the **same** test count as the Step 1 baseline.
 4. `bun run build` exits 0.
-5. `node -e "const t=require('./turbo.json').tasks; console.log(JSON.stringify(t.test), JSON.stringify(t.typecheck), JSON.stringify(t['test:integration']))"`
-   shows `test` with no `dependsOn`, `typecheck` with `["^build"]`, and
+5. `node -e "const t=require('./turbo.json').tasks; console.log(JSON.stringify(t.test), JSON.stringify(t.typecheck), JSON.stringify(t['@repo/database#typecheck']), JSON.stringify(t['test:integration']))"`
+   shows `test` with no `dependsOn`, `typecheck` with `["^build"]`, `@repo/database#typecheck` with `["build"]`, and
    `test:integration` with `cache: false` and no `dependsOn`.
 6. Step 4 was performed: the generated directory was removed, `bun run
    typecheck` regenerated it and succeeded.
