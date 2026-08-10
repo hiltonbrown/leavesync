@@ -13,6 +13,7 @@
 
 ## Status
 
+- **Status**: DONE (`96ef8df`)
 - **Priority**: P2
 - **Effort**: M
 - **Risk**: MED
