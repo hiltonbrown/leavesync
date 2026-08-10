@@ -172,7 +172,7 @@ pilot acceptance script and the customer support model.
 | Plan | Required outcome | Status |
 |---|---|---|
 | [015](015-enable-the-test-harness-in-six-untestable-workspaces.md) | Root and CI tests enter every owned workspace, including auth and web | DONE |
-| [016](016-add-a-build-step-to-ci.md) | CI requires a production build for all deployable apps | TODO, **unblocked**: plan 049 is done and `bun run build` exits 0 |
+| [016](016-add-a-build-step-to-ci.md) | CI requires a production build for all deployable apps | **DONE** (merged `e38511f`) |
 | [020](020-run-the-xero-disconnect-integration-test.md) | Destructive Xero disconnect isolation runs in the integration lane | TODO, finding re-verified |
 | [035](035-fix-the-turborepo-task-graph.md) | Test and typecheck tasks express their real dependencies and do not false-green | TODO, finding re-verified |
 
