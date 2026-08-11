@@ -482,17 +482,24 @@ describeWithDatabase("reconcile-xero-approval-state database flow", () => {
 type TestTenant = typeof tenantA | typeof tenantB;
 
 async function setupTenant(tenant: TestTenant) {
-  await database.organisation.create({
-    data: {
+  await database.organisation.upsert({
+    where: { id: tenant.organisationId },
+    create: {
       clerk_org_id: tenant.clerkOrgId,
       country_code: "AU",
       id: tenant.organisationId,
       name: `Test Org ${tenant.clerkOrgId}`,
     },
+    update: {
+      clerk_org_id: tenant.clerkOrgId,
+      country_code: "AU",
+      name: `Test Org ${tenant.clerkOrgId}`,
+    },
   });
 
-  await database.xeroConnection.create({
-    data: {
+  await database.xeroConnection.upsert({
+    where: { id: tenant.xeroConnectionId },
+    create: {
       access_token_encrypted: "encrypted-token",
       clerk_org_id: tenant.clerkOrgId,
       expires_at: new Date(Date.now() + 3_600_000),
@@ -500,12 +507,28 @@ async function setupTenant(tenant: TestTenant) {
       organisation_id: tenant.organisationId,
       status: "active",
     },
+    update: {
+      access_token_encrypted: "encrypted-token",
+      clerk_org_id: tenant.clerkOrgId,
+      expires_at: new Date(Date.now() + 3_600_000),
+      organisation_id: tenant.organisationId,
+      status: "active",
+    },
   });
 
-  await database.xeroTenant.create({
-    data: {
+  await database.xeroTenant.upsert({
+    where: { id: tenant.xeroTenantId },
+    create: {
       clerk_org_id: tenant.clerkOrgId,
       id: tenant.xeroTenantId,
+      organisation_id: tenant.organisationId,
+      payroll_region: "AU",
+      tenant_name: "Xero Tenant",
+      xero_connection_id: tenant.xeroConnectionId,
+      xero_tenant_id: `xero-${tenant.xeroTenantId}`,
+    },
+    update: {
+      clerk_org_id: tenant.clerkOrgId,
       organisation_id: tenant.organisationId,
       payroll_region: "AU",
       tenant_name: "Xero Tenant",
@@ -516,14 +539,27 @@ async function setupTenant(tenant: TestTenant) {
 }
 
 async function setupPerson(tenant: TestTenant) {
-  await database.person.create({
-    data: {
+  await database.person.upsert({
+    where: { id: tenant.personId },
+    create: {
       clerk_org_id: tenant.clerkOrgId,
       clerk_user_id: ownerUserId(tenant),
       email: `${tenant.personId}@example.com`,
       employment_type: "employee",
       first_name: "Pat",
       id: tenant.personId,
+      last_name: "Taylor",
+      organisation_id: tenant.organisationId,
+      source_person_key: tenant.xeroEmployeeId,
+      source_system: "XERO",
+      xero_employee_id: tenant.xeroEmployeeId,
+    },
+    update: {
+      clerk_org_id: tenant.clerkOrgId,
+      clerk_user_id: ownerUserId(tenant),
+      email: `${tenant.personId}@example.com`,
+      employment_type: "employee",
+      first_name: "Pat",
       last_name: "Taylor",
       organisation_id: tenant.organisationId,
       source_person_key: tenant.xeroEmployeeId,
