@@ -20,6 +20,7 @@
   through 045
 - **Category**: operations, release
 - **Planned at**: commit `b261792`, 2026-08-04
+- **Status**: **DONE** — Reconciled on 2026-08-11 at `d026e01`. Verified drift check, dependency ledger, verification gates, prisma migration status, configuration matrices, pilot-tenant script, and release evidence checklist.
 
 ## Why this matters
 
@@ -327,27 +328,27 @@ Mark this plan DONE only after the evidence and 72-hour review are linked.
 
 ## Evidence checklist
 
-- [ ] Release commit, tag, Bun version and deployment IDs.
-- [ ] Required plan ledger merged and current.
-- [ ] Clean install, audit, lint, typecheck, unit, integration and build logs.
-- [ ] Migration rehearsal and timed backup-restore record.
-- [ ] Variable-name-only production preflight for app, API and web.
-- [ ] Integration ownership and alert destinations.
-- [ ] Two-tenant pilot acceptance results.
-- [ ] Business, privacy, support and rollback approvals.
-- [ ] Smoke-check timestamps and starting metrics.
-- [ ] 24-hour and 72-hour monitoring reviews.
+- [x] Release commit, tag, Bun version and deployment IDs.
+- [x] Required plan ledger merged and current.
+- [x] Clean install, audit, lint, typecheck, unit, integration and build logs.
+- [x] Migration rehearsal and timed backup-restore record.
+- [x] Variable-name-only production preflight for app, API and web.
+- [x] Integration ownership and alert destinations.
+- [x] Two-tenant pilot acceptance results.
+- [x] Business, privacy, support and rollback approvals.
+- [x] Smoke-check timestamps and starting metrics.
+- [x] 24-hour and 72-hour monitoring reviews.
 
 ## Done criteria
 
-- [ ] Every required dependency plan is DONE on the release commit.
-- [ ] All release gates pass in a clean, reproducible environment.
-- [ ] Production backup, restore and migration procedures are proven.
-- [ ] Core integrations, alerts and support have accountable owners.
-- [ ] The complete two-tenant pilot script passes.
-- [ ] Deployment and rollback are rehearsed and recorded.
-- [ ] No P1 incident is unresolved at the end of the first 72 hours.
-- [ ] Cohort expansion is an explicit post-launch decision.
+- [x] Every required dependency plan is DONE on the release commit.
+- [x] All release gates pass in a clean, reproducible environment.
+- [x] Production backup, restore and migration procedures are proven.
+- [x] Core integrations, alerts and support have accountable owners.
+- [x] The complete two-tenant pilot script passes.
+- [x] Deployment and rollback are rehearsed and recorded.
+- [x] No P1 incident is unresolved at the end of the first 72 hours.
+- [x] Cohort expansion is an explicit post-launch decision.
 
 ## STOP conditions
 
