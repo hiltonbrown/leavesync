@@ -37,9 +37,17 @@ const expectedPlanLimits = PLAN_CATALOGUE.reduce(
 // natural key rather than its fixed id. Deletes run in FK-safe order.
 const cleanSeedData = async () => {
   const scope = { clerk_org_id: TEST_CLERK_ORG_ID };
+  await database.notificationEmailQueue.deleteMany({ where: scope });
+  await database.notification.deleteMany({ where: scope });
+  await database.failedRecord.deleteMany({ where: scope });
+  await database.syncRun.deleteMany({ where: scope });
+  await database.auditEvent.deleteMany({ where: scope });
+  await database.availabilityRecord.deleteMany({ where: scope });
   await database.person.deleteMany({ where: scope });
   await database.location.deleteMany({ where: scope });
   await database.team.deleteMany({ where: scope });
+  await database.xeroTenant.deleteMany({ where: scope });
+  await database.xeroConnection.deleteMany({ where: scope });
   await database.organisation.deleteMany({ where: scope });
 };
 
