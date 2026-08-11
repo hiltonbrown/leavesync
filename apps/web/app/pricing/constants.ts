@@ -1,3 +1,5 @@
+import { signUpHref } from "@/src/lib/auth-links";
+
 /**
  * NOTE: If plans, features, or limits change in the database seed catalogue
  * (packages/database/src/seed/plans.ts), update these constants accordingly.
@@ -15,7 +17,7 @@ export interface PlanCardDetails {
 
 export const MARKETING_PLANS: readonly PlanCardDetails[] = [
   {
-    ctaHref: "/sign-up",
+    ctaHref: signUpHref,
     ctaText: "Get started",
     description: "For small teams starting with calendar publishing",
     features: [
@@ -31,7 +33,7 @@ export const MARKETING_PLANS: readonly PlanCardDetails[] = [
     price: "$19",
   },
   {
-    ctaHref: "/sign-up",
+    ctaHref: signUpHref,
     ctaText: "Get started",
     description: "For growing teams needing advanced coverage",
     features: [
