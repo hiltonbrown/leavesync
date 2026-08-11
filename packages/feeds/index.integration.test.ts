@@ -307,7 +307,7 @@ describeWithDatabase("feed services", () => {
         tokenId: token.id,
       })
     ).resolves.toMatchObject({
-      error: { code: "feed_not_found" },
+      error: { code: "token_not_found" },
       ok: false,
     });
 
