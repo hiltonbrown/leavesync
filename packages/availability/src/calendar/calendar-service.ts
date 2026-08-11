@@ -1,3 +1,4 @@
+import { log } from "@repo/observability/log";
 import "server-only";
 
 import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
@@ -32,7 +33,6 @@ export type CalendarRecordType = availability_record_type | "private";
 export type RenderTreatment = "draft" | "dashed" | "failed" | "solid";
 
 export type CalendarServiceError =
-  | { code: "cross_org_leak"; message: string }
   | { code: "invalid_scope"; message: string }
   | { code: "not_authorised"; message: string }
   | { code: "unknown_error"; message: string }
@@ -368,7 +368,7 @@ export async function getEventDetail(
       },
     });
     if (!record) {
-      return await recordNotFoundOrLeak(parsed.data);
+      return await recordNotFound(parsed.data);
     }
     const includeIndirectReports =
       settingsResult.ok &&
@@ -1029,7 +1029,7 @@ function uniqueSorted(values: string[]): string[] {
   );
 }
 
-async function recordNotFoundOrLeak(
+async function recordNotFound(
   input: ParsedDetailInput
 ): Promise<Result<never, CalendarServiceError>> {
   const exists = await database.availabilityRecord.findFirst({
@@ -1041,13 +1041,12 @@ async function recordNotFoundOrLeak(
     (exists.clerk_org_id !== input.clerkOrgId ||
       exists.organisation_id !== input.organisationId)
   ) {
-    return {
-      error: {
-        code: "cross_org_leak",
-        message: "Record is outside this organisation.",
-      },
-      ok: false,
-    };
+    log.error("Cross-tenant resource access attempt", {
+      actingClerkOrgId: input.clerkOrgId,
+      actingOrganisationId: input.organisationId,
+      resourceId: input.recordId,
+      resourceType: "availability_record",
+    });
   }
   return {
     error: { code: "invalid_scope", message: "Record not found." },

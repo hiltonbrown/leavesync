@@ -15,7 +15,6 @@ import {
 } from "./shared";
 
 export type SettingsServiceError =
-  | { code: "cross_org_leak"; message: string }
   | { code: "not_authorised"; message: string }
   | { code: "unknown_error"; message: string }
   | { code: "validation_error"; message: string };

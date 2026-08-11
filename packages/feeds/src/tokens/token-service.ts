@@ -4,6 +4,7 @@ import { createHash, randomBytes } from "node:crypto";
 import type { Result } from "@repo/core";
 import { database } from "@repo/database";
 import type { Prisma } from "@repo/database/generated/client";
+import { log } from "@repo/observability/log";
 import { z } from "zod";
 import { invalidateFeedCache } from "../cache/feed-cache";
 import { scopedFeed } from "../scope/scoped-feed";
@@ -16,7 +17,6 @@ export type FeedActorRole =
   | `org:${string}`;
 
 export type TokenServiceError =
-  | { code: "cross_org_leak"; message: string }
   | { code: "feed_not_found"; message: string }
   | { code: "initial_token_exists"; message: string }
   | { code: "not_authorised"; message: string }
@@ -111,7 +111,7 @@ export async function createInitialTokenWithClient(
     where: scopedFeed(input),
   });
   if (!feed) {
-    return await feedNotFoundOrLeak(tx, input);
+    return await feedNotFound(tx, input);
   }
 
   const existing = await tx.feedToken.findFirst({
@@ -175,7 +175,7 @@ export async function rotateToken(
         where: scopedFeed(parsed.data),
       });
       if (!feed) {
-        return await feedNotFoundOrLeak(tx, parsed.data);
+        return await feedNotFound(tx, parsed.data);
       }
 
       const activeTokens = await tx.feedToken.findMany({
@@ -276,7 +276,7 @@ export async function revokeToken(
         },
       });
       if (!token) {
-        return await tokenNotFoundOrLeak(tx, parsed.data);
+        return await tokenNotFound(tx, parsed.data);
       }
 
       if (token.status !== "revoked") {
@@ -325,7 +325,7 @@ export async function listTokens(
       where: scopedFeed(parsed.data),
     });
     if (!feed) {
-      return await feedNotFoundOrLeak(database, parsed.data);
+      return await feedNotFound(database, parsed.data);
     }
 
     const tokens = await database.feedToken.findMany({
@@ -359,7 +359,7 @@ export async function getActiveTokenHint(
       where: scopedFeed(parsed.data),
     });
     if (!feed) {
-      return await feedNotFoundOrLeak(database, parsed.data);
+      return await feedNotFound(database, parsed.data);
     }
 
     const token = await database.feedToken.findFirst({
@@ -423,7 +423,7 @@ export async function revokeAllFeedTokens(input: {
   }
 }
 
-async function feedNotFoundOrLeak(
+async function feedNotFound(
   client: Prisma.TransactionClient | typeof database,
   input: { clerkOrgId: string; feedId: string; organisationId: string }
 ): Promise<Result<never, TokenServiceError>> {
@@ -436,13 +436,12 @@ async function feedNotFoundOrLeak(
     (exists.clerk_org_id !== input.clerkOrgId ||
       exists.organisation_id !== input.organisationId)
   ) {
-    return {
-      error: {
-        code: "cross_org_leak",
-        message: "Feed is outside this organisation.",
-      },
-      ok: false,
-    };
+    log.error("Cross-tenant resource access attempt", {
+      actingClerkOrgId: input.clerkOrgId,
+      actingOrganisationId: input.organisationId,
+      resourceId: input.feedId,
+      resourceType: "feed",
+    });
   }
   return {
     error: { code: "feed_not_found", message: "Feed not found." },
@@ -450,7 +449,7 @@ async function feedNotFoundOrLeak(
   };
 }
 
-async function tokenNotFoundOrLeak(
+async function tokenNotFound(
   tx: Prisma.TransactionClient,
   input: { clerkOrgId: string; organisationId: string; tokenId: string }
 ): Promise<Result<never, TokenServiceError>> {
@@ -463,13 +462,12 @@ async function tokenNotFoundOrLeak(
     (exists.clerk_org_id !== input.clerkOrgId ||
       exists.organisation_id !== input.organisationId)
   ) {
-    return {
-      error: {
-        code: "cross_org_leak",
-        message: "Token is outside this organisation.",
-      },
-      ok: false,
-    };
+    log.error("Cross-tenant resource access attempt", {
+      actingClerkOrgId: input.clerkOrgId,
+      actingOrganisationId: input.organisationId,
+      resourceId: input.tokenId,
+      resourceType: "feed_token",
+    });
   }
   return {
     error: { code: "token_not_found", message: "Token not found." },

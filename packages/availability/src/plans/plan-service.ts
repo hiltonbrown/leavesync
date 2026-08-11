@@ -37,7 +37,6 @@ export type EditableAction =
 
 export type PlanServiceError =
   | { code: "record_not_found"; message: string }
-  | { code: "cross_org_leak"; message: string }
   | { code: "not_authorised"; message: string }
   | { code: "not_editable_xero_synced"; message: string }
   | { code: "not_editable_after_submission"; message: string }

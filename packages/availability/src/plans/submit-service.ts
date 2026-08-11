@@ -24,7 +24,6 @@ import { isXeroLeaveType } from "../records/record-type-categories";
 import { hasActiveXeroConnection } from "../xero-connection-state";
 
 export type SubmitServiceError =
-  | { code: "cross_org_leak"; message: string }
   | { code: "invalid_state_for_retry"; message: string }
   | { code: "invalid_state_for_revert"; message: string }
   | { code: "invalid_state_for_submit"; message: string }

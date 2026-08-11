@@ -41,7 +41,6 @@ interface BillingSummaryCore {
 }
 
 export type BillingServiceError =
-  | { code: "cross_org_leak"; message: string }
   | { code: "not_authorised"; message: string }
   | { code: "subscription_not_found"; message: string }
   | { code: "unknown_error"; message: string };

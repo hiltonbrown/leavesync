@@ -53,7 +53,6 @@ export type ApprovalServiceError =
       message: string;
       resolutionError: ProviderResolutionError;
     }
-  | { code: "cross_org_leak"; message: string }
   | { code: "dispatch_failed"; message: string }
   | { code: "invalid_state_for_approve"; message: string }
   | { code: "invalid_state_for_decline"; message: string }
