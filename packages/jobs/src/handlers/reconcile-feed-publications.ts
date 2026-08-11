@@ -74,17 +74,18 @@ export async function reconcileFeedPublications(
     let pages = 0;
 
     while (pages < MAX_PAGES) {
-      const records: Array<{ id: string; person_id: string }> = await database.availabilityRecord.findMany({
-        cursor: cursor ? { id: cursor } : undefined,
-        orderBy: { id: "asc" },
-        select: { id: true, person_id: true },
-        skip: cursor ? 1 : 0,
-        take: PAGE_SIZE,
-        where: {
-          clerk_org_id: context.clerkOrgId,
-          organisation_id: context.organisationId,
-        },
-      });
+      const records: Array<{ id: string; person_id: string }> =
+        await database.availabilityRecord.findMany({
+          cursor: cursor ? { id: cursor } : undefined,
+          orderBy: { id: "asc" },
+          select: { id: true, person_id: true },
+          skip: cursor ? 1 : 0,
+          take: PAGE_SIZE,
+          where: {
+            clerk_org_id: context.clerkOrgId,
+            organisation_id: context.organisationId,
+          },
+        });
       if (records.length === 0) {
         break;
       }
@@ -115,8 +116,8 @@ export async function reconcileFeedPublications(
       log.error("Reached MAX_PAGES limit while reconciling feed publications", {
         clerkOrgId: context.clerkOrgId,
         organisationId: context.organisationId,
-        pages,
         pageSize: PAGE_SIZE,
+        pages,
       });
     }
 
