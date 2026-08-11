@@ -161,6 +161,45 @@ describe("reconcileFeedPublications", () => {
     expect(mocks.materialiseAvailabilityPublication).toHaveBeenCalledTimes(2);
   });
 
+  it("isolates record-level thrown errors during concurrent reconciliation", async () => {
+    mocks.materialiseAvailabilityPublication
+      .mockRejectedValueOnce(new Error("unexpected exception"))
+      .mockResolvedValueOnce(materialised(true));
+
+    const result = await reconcileFeedPublications(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        changed: 1,
+        failed: 1,
+        scanned: 2,
+      });
+    }
+    expect(mocks.materialiseAvailabilityPublication).toHaveBeenCalledTimes(2);
+  });
+
+  it("isolates record-level failed results during concurrent reconciliation", async () => {
+    mocks.materialiseAvailabilityPublication
+      .mockResolvedValueOnce({
+        error: { code: "internal", message: "failed to materialise" },
+        ok: false,
+      })
+      .mockResolvedValueOnce(materialised(true));
+
+    const result = await reconcileFeedPublications(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        changed: 1,
+        failed: 1,
+        scanned: 2,
+      });
+    }
+    expect(mocks.materialiseAvailabilityPublication).toHaveBeenCalledTimes(2);
+  });
+
   it("rejects payloads missing a scope key", async () => {
     const result = await reconcileFeedPublications({
       clerkOrgId: CLERK_ORG_ID,
