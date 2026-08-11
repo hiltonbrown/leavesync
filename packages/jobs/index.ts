@@ -30,6 +30,10 @@ export {
   recountUsageFunction,
 } from "./src/handlers/recount-usage";
 export {
+  scheduleXeroSyncsFunction,
+  scheduleXeroSyncsPage,
+} from "./src/handlers/schedule-xero-syncs";
+export {
   type SyncXeroLeaveBalancesInput,
   syncXeroLeaveBalances,
   syncXeroLeaveBalancesFunction,

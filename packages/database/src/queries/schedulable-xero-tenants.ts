@@ -1,0 +1,143 @@
+import type { Result } from "@repo/core";
+import { appError } from "@repo/core";
+import { database } from "../client";
+
+export interface SchedulableXeroTenant {
+  clerkOrgId: string;
+  connectionStatus: string;
+  disconnectedAt: Date | null;
+  id: string;
+  lastApprovalStateReconciledAt: Date | null;
+  lastLeaveBalancesSyncAt: Date | null;
+  lastLeaveRecordsSyncAt: Date | null;
+  lastPeopleSyncAt: Date | null;
+  organisationId: string;
+  payrollRegion: "AU" | "NZ" | "UK";
+  revokedAt: Date | null;
+  syncPausedAt: Date | null;
+  timezone: string | null;
+  xeroTenantId: string;
+}
+
+export interface ListSchedulableXeroTenantsOptions {
+  cursor?: string;
+  limit?: number;
+}
+
+export interface ListSchedulableXeroTenantsResult {
+  nextCursor?: string;
+  tenants: SchedulableXeroTenant[];
+}
+
+/**
+ * System-level cross-tenant enumeration query to discover active AU Xero tenants due for scheduled sync.
+ *
+ * ARCHITECTURAL EXCEPTION NOTICE:
+ * This query intentionally does NOT receive a session `clerk_org_id`.
+ * Its sole responsibility as a system coordinator boundary is to enumerate active Xero tenant IDs across organisations
+ * so that the scheduler can dispatch isolated, tenant-scoped events (carrying clerkOrgId and organisationId).
+ *
+ * Security boundary guarantees:
+ * - Selects ONLY tenant routing identifiers and sync timestamps needed for cadence decisions.
+ * - NEVER selects access/refresh token ciphertext, IVs, auth tags, raw JSON payloads, people data, or availability records.
+ * - Filters for active, non-archived organisations and active, non-revoked, non-disconnected Xero connections.
+ * - Excludes paused sync tenants.
+ * - Restricts to payroll_region === "AU".
+ */
+export async function listSchedulableXeroTenants(
+  options: ListSchedulableXeroTenantsOptions = {}
+): Promise<Result<ListSchedulableXeroTenantsResult>> {
+  try {
+    const limit = Math.min(Math.max(1, options.limit ?? 100), 100);
+    const { cursor } = options;
+
+    const items = await database.xeroTenant.findMany({
+      take: limit + 1,
+      ...(cursor
+        ? {
+            cursor: { id: cursor },
+            skip: 1,
+          }
+        : {}),
+      orderBy: { id: "asc" },
+      select: {
+        clerk_org_id: true,
+        id: true,
+        last_approval_state_reconciled_at: true,
+        last_leave_balances_sync_at: true,
+        last_leave_records_sync_at: true,
+        last_people_sync_at: true,
+        organisation: {
+          select: {
+            timezone: true,
+          },
+        },
+        organisation_id: true,
+        payroll_region: true,
+        sync_paused_at: true,
+        xero_connection: {
+          select: {
+            disconnected_at: true,
+            revoked_at: true,
+            status: true,
+          },
+        },
+        xero_tenant_id: true,
+      },
+      where: {
+        organisation: {
+          archived_at: null,
+          is_active: true,
+        },
+        payroll_region: "AU",
+        sync_paused_at: null,
+        xero_connection: {
+          disconnected_at: null,
+          revoked_at: null,
+          status: "active",
+        },
+      },
+    });
+
+    let nextCursor: string | undefined;
+    if (items.length > limit) {
+      items.pop();
+      if (items.length > 0) {
+        nextCursor = items.at(-1)?.id;
+      }
+    }
+
+    const tenants: SchedulableXeroTenant[] = items.map((item) => ({
+      clerkOrgId: item.clerk_org_id,
+      connectionStatus: item.xero_connection.status,
+      disconnectedAt: item.xero_connection.disconnected_at,
+      id: item.id,
+      lastApprovalStateReconciledAt: item.last_approval_state_reconciled_at,
+      lastLeaveBalancesSyncAt: item.last_leave_balances_sync_at,
+      lastLeaveRecordsSyncAt: item.last_leave_records_sync_at,
+      lastPeopleSyncAt: item.last_people_sync_at,
+      organisationId: item.organisation_id,
+      payrollRegion: item.payroll_region as "AU" | "NZ" | "UK",
+      revokedAt: item.xero_connection.revoked_at,
+      syncPausedAt: item.sync_paused_at,
+      timezone: item.organisation.timezone,
+      xeroTenantId: item.xero_tenant_id,
+    }));
+
+    return {
+      ok: true,
+      value: {
+        tenants,
+        ...(nextCursor ? { nextCursor } : {}),
+      },
+    };
+  } catch (error) {
+    return {
+      error: appError(
+        "internal",
+        `Failed to list schedulable Xero tenants: ${error instanceof Error ? error.message : "Unknown error"}`
+      ),
+      ok: false,
+    };
+  }
+}
