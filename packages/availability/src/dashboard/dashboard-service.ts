@@ -54,7 +54,6 @@ export type DashboardRole =
   | "viewer";
 
 export type DashboardServiceError =
-  | { code: "cross_org_leak"; message: string }
   | { code: "not_authorised"; message: string }
   | { code: "person_not_found"; message: string }
   | { code: "validation_error"; message: string }

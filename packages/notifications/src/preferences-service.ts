@@ -14,7 +14,6 @@ import {
 
 export type PreferencesServiceError =
   | { code: "at_least_one_channel_required"; message: string }
-  | { code: "cross_org_leak"; message: string }
   | { code: "invalid_type"; message: string }
   | { code: "unknown_error"; message: string }
   | { code: "validation_error"; message: string };

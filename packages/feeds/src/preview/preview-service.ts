@@ -1,3 +1,4 @@
+import { log } from "@repo/observability/log";
 import "server-only";
 
 import type { Result } from "@repo/core";
@@ -14,7 +15,6 @@ import {
 } from "../scope/feed-scope";
 
 export type PreviewServiceError =
-  | { code: "cross_org_leak"; message: string }
   | { code: "feed_not_found"; message: string }
   | { code: "invalid_scope"; message: string }
   | { code: "not_authorised"; message: string }
@@ -60,7 +60,7 @@ export async function previewFeed(
       },
     });
     if (!feed) {
-      return await feedNotFoundOrLeak(parsed.data);
+      return await feedNotFound(parsed.data);
     }
 
     const requestedPrivacy = parsed.data.privacyMode ?? feed.privacy_mode;
@@ -110,7 +110,7 @@ export async function previewFeed(
   }
 }
 
-async function feedNotFoundOrLeak(input: {
+async function feedNotFound(input: {
   clerkOrgId: string;
   feedId: string;
   organisationId: string;
@@ -124,13 +124,12 @@ async function feedNotFoundOrLeak(input: {
     (exists.clerk_org_id !== input.clerkOrgId ||
       exists.organisation_id !== input.organisationId)
   ) {
-    return {
-      error: {
-        code: "cross_org_leak",
-        message: "Feed is outside this organisation.",
-      },
-      ok: false,
-    };
+    log.error("Cross-tenant resource access attempt", {
+      actingClerkOrgId: input.clerkOrgId,
+      actingOrganisationId: input.organisationId,
+      resourceId: input.feedId,
+      resourceType: "feed",
+    });
   }
   return {
     error: { code: "feed_not_found", message: "Feed not found." },

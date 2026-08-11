@@ -294,7 +294,7 @@ describeWithDatabase("feed services", () => {
         organisationId: otherTenant.organisationId,
       })
     ).resolves.toMatchObject({
-      error: { code: "cross_org_leak" },
+      error: { code: "feed_not_found" },
       ok: false,
     });
 
@@ -307,7 +307,7 @@ describeWithDatabase("feed services", () => {
         tokenId: token.id,
       })
     ).resolves.toMatchObject({
-      error: { code: "cross_org_leak" },
+      error: { code: "feed_not_found" },
       ok: false,
     });
 
@@ -395,7 +395,7 @@ describeWithDatabase("feed services", () => {
         organisationId: otherTenant.organisationId,
       })
     ).resolves.toMatchObject({
-      error: { code: "cross_org_leak" },
+      error: { code: "feed_not_found" },
       ok: false,
     });
 

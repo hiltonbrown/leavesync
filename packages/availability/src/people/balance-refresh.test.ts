@@ -4,11 +4,15 @@ const mocks = vi.hoisted(() => ({
   auditCreate: vi.fn(),
   dispatchSyncEvent: vi.fn(),
   hasActiveXeroConnection: vi.fn(),
+  logError: vi.fn(),
   personFindFirst: vi.fn(),
   xeroTenantFindFirst: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
+vi.mock("@repo/observability/log", () => ({
+  log: { error: mocks.logError, info: vi.fn(), warn: vi.fn() },
+}));
 vi.mock("@repo/database", () => ({
   database: {
     auditEvent: { create: mocks.auditCreate },
@@ -72,7 +76,7 @@ describe("dispatchBalanceRefresh", () => {
     }
   );
 
-  it("distinguishes cross-org leaks from missing people", async () => {
+  it("returns person_not_found and logs when person belongs to another org", async () => {
     mocks.personFindFirst.mockResolvedValueOnce(null).mockResolvedValueOnce({
       clerk_org_id: "org_2",
       organisation_id: "00000000-0000-4000-8000-000000000002",
@@ -82,8 +86,32 @@ describe("dispatchBalanceRefresh", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error.code).toBe("cross_org_leak");
+      expect(result.error.code).toBe("person_not_found");
     }
+    expect(mocks.logError).toHaveBeenCalledWith(
+      "Cross-tenant resource access attempt",
+      {
+        actingClerkOrgId: input.clerkOrgId,
+        actingOrganisationId: input.organisationId,
+        resourceId: input.personId,
+        resourceType: "person",
+      }
+    );
+  });
+
+  it("returns identical error for cross-org person and non-existent person", async () => {
+    mocks.personFindFirst.mockResolvedValueOnce(null).mockResolvedValueOnce({
+      clerk_org_id: "org_2",
+      organisation_id: "00000000-0000-4000-8000-000000000002",
+    });
+    const crossOrgResult = await dispatchBalanceRefresh(input);
+
+    mocks.personFindFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null);
+    const nonExistentResult = await dispatchBalanceRefresh(input);
+
+    expect(crossOrgResult).toEqual(nonExistentResult);
   });
 
   it("returns person_not_found when the person does not exist anywhere", async () => {

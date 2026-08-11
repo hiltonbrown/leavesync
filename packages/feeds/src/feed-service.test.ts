@@ -2,28 +2,41 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   feedCount: vi.fn(),
+  feedFindFirst: vi.fn(),
   feedFindMany: vi.fn(),
+  logError: vi.fn(),
+  personFindFirst: vi.fn(),
   personFindMany: vi.fn(),
+  scopedTo: vi.fn((input: { clerkOrgId: string; organisationId: string }) => ({
+    clerk_org_id: input.clerkOrgId,
+    organisation_id: input.organisationId,
+  })),
   teamFindMany: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
+vi.mock("@repo/observability/log", () => ({
+  log: { error: mocks.logError, info: vi.fn(), warn: vi.fn() },
+}));
 vi.mock("@repo/database", () => ({
   database: {
     feed: {
       count: mocks.feedCount,
+      findFirst: mocks.feedFindFirst,
       findMany: mocks.feedFindMany,
     },
     person: {
+      findFirst: mocks.personFindFirst,
       findMany: mocks.personFindMany,
     },
     team: {
       findMany: mocks.teamFindMany,
     },
   },
+  scopedTo: mocks.scopedTo,
 }));
 
-const { getFeedSummaryForDashboard, listFeeds } = await import(
+const { getFeedDetail, getFeedSummaryForDashboard, listFeeds } = await import(
   "./feed-service"
 );
 
@@ -78,6 +91,60 @@ describe("feed-service dashboard summary", () => {
       error: { code: "not_authorised" },
       ok: false,
     });
+  });
+});
+
+describe("feed-service getFeedDetail cross-tenant behavior", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns feed_not_found and logs cross-tenant access attempt when feed is in another org", async () => {
+    mocks.feedFindFirst.mockResolvedValueOnce(null).mockResolvedValueOnce({
+      clerk_org_id: "org_other",
+      organisation_id: "00000000-0000-4000-8000-000000000009",
+    });
+
+    const result = await getFeedDetail({
+      ...baseInput,
+      actingPersonId,
+      feedId: "00000000-0000-4000-8000-000000000099",
+    });
+
+    expect(result).toMatchObject({
+      error: { code: "feed_not_found" },
+      ok: false,
+    });
+    expect(mocks.logError).toHaveBeenCalledWith(
+      "Cross-tenant resource access attempt",
+      {
+        actingClerkOrgId: baseInput.clerkOrgId,
+        actingOrganisationId: baseInput.organisationId,
+        resourceId: "00000000-0000-4000-8000-000000000099",
+        resourceType: "feed",
+      }
+    );
+  });
+
+  it("returns identical result for cross-tenant feed and non-existent feed", async () => {
+    mocks.feedFindFirst.mockResolvedValueOnce(null).mockResolvedValueOnce({
+      clerk_org_id: "org_other",
+      organisation_id: "00000000-0000-4000-8000-000000000009",
+    });
+    const crossTenantResult = await getFeedDetail({
+      ...baseInput,
+      actingPersonId,
+      feedId: "00000000-0000-4000-8000-000000000099",
+    });
+
+    mocks.feedFindFirst.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+    const nonExistentResult = await getFeedDetail({
+      ...baseInput,
+      actingPersonId,
+      feedId: "00000000-0000-4000-8000-000000000099",
+    });
+
+    expect(crossTenantResult).toEqual(nonExistentResult);
   });
 });
 
