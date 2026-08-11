@@ -45,8 +45,43 @@ export function getRegisteredSyncEventName(
   return registeredHandlers.has(runType) ? syncEventNames[runType] : null;
 }
 
+export function getUtcCadenceSlot(
+  runType: RegisteredSyncRunType,
+  date: Date = new Date()
+): string {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const hour = String(date.getUTCHours()).padStart(2, "0");
+
+  if (runType === "approval_state_reconciliation") {
+    return `${year}-${month}-${day}Z`;
+  }
+  if (runType === "leave_balances") {
+    return `${year}-${month}-${day}T${hour}:00Z`;
+  }
+  // 15-minute cadence for people & leave_records
+  const minutes = date.getUTCMinutes();
+  const slotMinutes = String(Math.floor(minutes / 15) * 15).padStart(2, "0");
+  return `${year}-${month}-${day}T${hour}:${slotMinutes}Z`;
+}
+
+export function getScheduledSyncEventId(
+  xeroTenantId: string,
+  runType: RegisteredSyncRunType,
+  date: Date = new Date()
+): string {
+  const slot = getUtcCadenceSlot(runType, date);
+  return `scheduled-sync:${xeroTenantId}:${runType}:${slot}`;
+}
+
+export interface DispatchSyncEventOptions {
+  eventId?: string;
+}
+
 export async function dispatchSyncEvent(
-  input: z.input<typeof SyncEventSchema>
+  input: z.input<typeof SyncEventSchema>,
+  options?: DispatchSyncEventOptions
 ): Promise<
   Result<
     { eventName: string; ids: string[]; queued: true },
@@ -78,7 +113,18 @@ export async function dispatchSyncEvent(
   }
 
   try {
-    const sent = await inngest.send({
+    const payload: {
+      name: string;
+      data: {
+        clerkOrgId: string;
+        organisationId: string;
+        personId?: string;
+        triggeredByUserId: string | null;
+        triggerType: "scheduled" | "manual" | "webhook";
+        xeroTenantId: string;
+      };
+      id?: string;
+    } = {
       data: {
         clerkOrgId: parsed.data.clerkOrgId,
         organisationId: parsed.data.organisationId,
@@ -88,7 +134,13 @@ export async function dispatchSyncEvent(
         xeroTenantId: parsed.data.xeroTenantId,
       },
       name: eventName,
-    });
+    };
+
+    if (options?.eventId) {
+      payload.id = options.eventId;
+    }
+
+    const sent = await inngest.send(payload);
     return { ok: true, value: { eventName, ids: sent.ids, queued: true } };
   } catch {
     return {

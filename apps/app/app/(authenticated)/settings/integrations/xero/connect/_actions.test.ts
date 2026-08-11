@@ -63,24 +63,26 @@ describe("completeTenantSelectionAction", () => {
     });
   });
 
-  it("enqueues an initial people sync after a successful connection", async () => {
+  it("enqueues complete initial sync (people, leave-records, leave-balances) after a successful connection", async () => {
     const result = await completeTenantSelectionAction(validInput);
 
     expect(result.ok).toBe(true);
-    expect(mocks.dispatchManualSync).toHaveBeenCalledTimes(1);
+    expect(mocks.dispatchManualSync).toHaveBeenCalledTimes(3);
     expect(mocks.completeXeroTenantSelection).toHaveBeenCalledWith(
       expect.objectContaining({ userId: "user_1" })
     );
-    expect(mocks.dispatchManualSync).toHaveBeenCalledWith(
-      expect.objectContaining({
-        actingRole: "admin",
-        actingUserId: "user_1",
-        clerkOrgId: "org_1",
-        organisationId: "33333333-3333-4333-8333-333333333333",
-        runType: "people",
-        xeroTenantId: "44444444-4444-4444-8444-444444444444",
-      })
-    );
+    for (const runType of ["people", "leave_records", "leave_balances"]) {
+      expect(mocks.dispatchManualSync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actingRole: "admin",
+          actingUserId: "user_1",
+          clerkOrgId: "org_1",
+          organisationId: "33333333-3333-4333-8333-333333333333",
+          runType,
+          xeroTenantId: "44444444-4444-4444-8444-444444444444",
+        })
+      );
+    }
   });
 
   it("maps the owner role when dispatching the initial sync", async () => {

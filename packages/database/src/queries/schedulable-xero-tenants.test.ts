@@ -1,0 +1,174 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const mocks = vi.hoisted(() => ({
+  findMany: vi.fn(),
+}));
+
+vi.mock("../client", () => ({
+  database: {
+    xeroTenant: {
+      findMany: mocks.findMany,
+    },
+  },
+}));
+
+const { listSchedulableXeroTenants } = await import(
+  "./schedulable-xero-tenants"
+);
+
+describe("listSchedulableXeroTenants", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("queries active, non-archived, non-paused AU Xero tenants across Clerk orgs with no token columns in select", async () => {
+    const fixtureDate = new Date("2026-08-01T00:00:00.000Z");
+
+    mocks.findMany.mockResolvedValue([
+      {
+        clerk_org_id: "org_clerk_1",
+        id: "tenant-uuid-1",
+        last_approval_state_reconciled_at: fixtureDate,
+        last_leave_balances_sync_at: fixtureDate,
+        last_leave_records_sync_at: fixtureDate,
+        last_people_sync_at: fixtureDate,
+        organisation: {
+          timezone: "Australia/Sydney",
+        },
+        organisation_id: "org-uuid-1",
+        payroll_region: "AU",
+        sync_paused_at: null,
+        xero_connection: {
+          disconnected_at: null,
+          revoked_at: null,
+          status: "active",
+        },
+        xero_tenant_id: "xero-tenant-1",
+      },
+      {
+        clerk_org_id: "org_clerk_2",
+        id: "tenant-uuid-2",
+        last_approval_state_reconciled_at: null,
+        last_leave_balances_sync_at: null,
+        last_leave_records_sync_at: null,
+        last_people_sync_at: null,
+        organisation: {
+          timezone: "Australia/Melbourne",
+        },
+        organisation_id: "org-uuid-2",
+        payroll_region: "AU",
+        sync_paused_at: null,
+        xero_connection: {
+          disconnected_at: null,
+          revoked_at: null,
+          status: "active",
+        },
+        xero_tenant_id: "xero-tenant-2",
+      },
+    ]);
+
+    const result = await listSchedulableXeroTenants();
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value.tenants).toHaveLength(2);
+    expect(result.value.tenants[0].clerkOrgId).toBe("org_clerk_1");
+    expect(result.value.tenants[1].clerkOrgId).toBe("org_clerk_2");
+
+    // Inspect the call to database.xeroTenant.findMany
+    expect(mocks.findMany).toHaveBeenCalledOnce();
+    const [firstCall] = mocks.findMany.mock.calls;
+    const callArgs = firstCall[0];
+
+    // Verify filter boundaries
+    expect(callArgs.where).toEqual({
+      organisation: {
+        archived_at: null,
+        is_active: true,
+      },
+      payroll_region: "AU",
+      sync_paused_at: null,
+      xero_connection: {
+        disconnected_at: null,
+        revoked_at: null,
+        status: "active",
+      },
+    });
+
+    // Verify token columns are NOT selected
+    const selectKeys = Object.keys(callArgs.select);
+    expect(selectKeys).not.toContain("access_token_encrypted");
+    expect(selectKeys).not.toContain("refresh_token_encrypted");
+    expect(selectKeys).not.toContain("access_token_iv");
+    expect(selectKeys).not.toContain("refresh_token_iv");
+    expect(selectKeys).not.toContain("access_token_auth_tag");
+    expect(selectKeys).not.toContain("refresh_token_auth_tag");
+    expect(selectKeys).not.toContain("source_payload_json");
+  });
+
+  it("handles cursor pagination properly", async () => {
+    mocks.findMany.mockResolvedValue([
+      {
+        clerk_org_id: "org_clerk_1",
+        id: "tenant-uuid-1",
+        last_approval_state_reconciled_at: null,
+        last_leave_balances_sync_at: null,
+        last_leave_records_sync_at: null,
+        last_people_sync_at: null,
+        organisation: { timezone: "Australia/Sydney" },
+        organisation_id: "org-uuid-1",
+        payroll_region: "AU",
+        sync_paused_at: null,
+        xero_connection: {
+          disconnected_at: null,
+          revoked_at: null,
+          status: "active",
+        },
+        xero_tenant_id: "xero-tenant-1",
+      },
+      {
+        clerk_org_id: "org_clerk_1",
+        id: "tenant-uuid-2",
+        last_approval_state_reconciled_at: null,
+        last_leave_balances_sync_at: null,
+        last_leave_records_sync_at: null,
+        last_people_sync_at: null,
+        organisation: { timezone: "Australia/Sydney" },
+        organisation_id: "org-uuid-1",
+        payroll_region: "AU",
+        sync_paused_at: null,
+        xero_connection: {
+          disconnected_at: null,
+          revoked_at: null,
+          status: "active",
+        },
+        xero_tenant_id: "xero-tenant-2",
+      },
+    ]);
+
+    const result = await listSchedulableXeroTenants({
+      cursor: "tenant-uuid-0",
+      limit: 1,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value.tenants).toHaveLength(1);
+    expect(result.value.nextCursor).toBe("tenant-uuid-1");
+
+    expect(mocks.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cursor: { id: "tenant-uuid-0" },
+        orderBy: { id: "asc" },
+        skip: 1,
+        take: 2,
+      })
+    );
+  });
+});
