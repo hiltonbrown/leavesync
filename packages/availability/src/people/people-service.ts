@@ -1,3 +1,4 @@
+import { log } from "@repo/observability/log";
 import "server-only";
 
 import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
@@ -29,7 +30,6 @@ import {
 export type PeopleRole = "admin" | "manager" | "owner" | "viewer";
 
 export type PeopleServiceError =
-  | { code: "cross_org_leak"; message: string }
   | { code: "not_authorised"; message: string }
   | { code: "person_not_found"; message: string }
   | { code: "unknown_error"; message: string }
@@ -432,7 +432,7 @@ export async function getPersonProfile(input: {
       },
     });
     if (!person) {
-      return await personNotFoundOrLeak(parsed.data);
+      return await personNotFound(parsed.data);
     }
 
     const [
@@ -583,7 +583,7 @@ export async function listHistoryPage(input: {
       where: { ...scoped, id: parsed.data.personId },
     });
     if (!person) {
-      return await personNotFoundOrLeak(parsed.data);
+      return await personNotFound(parsed.data);
     }
 
     const cursor = decodeDateCursor(parsed.data.cursor ?? null);
@@ -636,7 +636,7 @@ export async function listUpcomingRecords(input: {
       where: { ...scoped, id: parsed.data.personId },
     });
     if (!person) {
-      return await personNotFoundOrLeak(parsed.data);
+      return await personNotFound(parsed.data);
     }
 
     const now = new Date();
@@ -976,7 +976,7 @@ function maxDate(values: Array<Date | null>): Date | null {
   }, null);
 }
 
-async function personNotFoundOrLeak(input: {
+async function personNotFound(input: {
   clerkOrgId: string;
   organisationId: string;
   personId: string;
@@ -990,13 +990,12 @@ async function personNotFoundOrLeak(input: {
     (exists.clerk_org_id !== input.clerkOrgId ||
       exists.organisation_id !== input.organisationId)
   ) {
-    return {
-      error: {
-        code: "cross_org_leak",
-        message: "Person is outside this organisation.",
-      },
-      ok: false,
-    };
+    log.error("Cross-tenant resource access attempt", {
+      actingClerkOrgId: input.clerkOrgId,
+      actingOrganisationId: input.organisationId,
+      resourceId: input.personId,
+      resourceType: "person",
+    });
   }
   return {
     error: {

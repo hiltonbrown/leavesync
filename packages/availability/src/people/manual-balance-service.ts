@@ -1,3 +1,4 @@
+import { log } from "@repo/observability/log";
 import "server-only";
 
 import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
@@ -12,7 +13,6 @@ import { hasActiveXeroConnection } from "../xero-connection-state";
 import type { PeopleRole } from "./people-service";
 
 export type ManualBalanceServiceError =
-  | { code: "cross_org_leak"; message: string }
   | { code: "not_authorised"; message: string }
   | { code: "person_not_found"; message: string }
   | { code: "unknown_error"; message: string }
@@ -104,7 +104,7 @@ export async function setManualLeaveBalance(input: {
       where: { ...scoped, id: parsed.data.personId },
     });
     if (!person) {
-      return await personNotFoundOrLeak(parsed.data);
+      return await personNotFound(parsed.data);
     }
 
     return await createOrUpdateManualBalance(parsed.data, scoped);
@@ -215,7 +215,7 @@ async function auditManualBalance(
   });
 }
 
-async function personNotFoundOrLeak(input: {
+async function personNotFound(input: {
   clerkOrgId: string;
   organisationId: string;
   personId: string;
@@ -229,13 +229,12 @@ async function personNotFoundOrLeak(input: {
     (exists.clerk_org_id !== input.clerkOrgId ||
       exists.organisation_id !== input.organisationId)
   ) {
-    return {
-      error: {
-        code: "cross_org_leak",
-        message: "Person is outside this organisation.",
-      },
-      ok: false,
-    };
+    log.error("Cross-tenant resource access attempt", {
+      actingClerkOrgId: input.clerkOrgId,
+      actingOrganisationId: input.organisationId,
+      resourceId: input.personId,
+      resourceType: "person",
+    });
   }
   return {
     error: { code: "person_not_found", message: "Person not found." },

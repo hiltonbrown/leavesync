@@ -1,3 +1,4 @@
+import { log } from "@repo/observability/log";
 import "server-only";
 
 import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
@@ -7,7 +8,6 @@ import type { AlternativeContactSnapshot, PeopleRole } from "./people-service";
 
 export type AlternativeContactServiceError =
   | { code: "contact_not_found"; message: string }
-  | { code: "cross_org_leak"; message: string }
   | { code: "not_authorised"; message: string }
   | { code: "person_not_found"; message: string }
   | { code: "reorder_mismatch"; message: string }
@@ -99,7 +99,7 @@ export async function addAlternativeContact(input: {
       },
     });
     if (!person) {
-      return await personNotFoundOrLeak(parsed.data);
+      return await personNotFound(parsed.data);
     }
     if (
       !canMutate(person, parsed.data.actingPersonId, parsed.data.actingRole)
@@ -180,7 +180,7 @@ export async function updateAlternativeContact(input: {
     );
     const existing = await loadContact(scoped, parsed.data.contactId);
     if (!existing) {
-      return await contactNotFoundOrLeak(parsed.data);
+      return await contactNotFound(parsed.data);
     }
     if (
       !canMutate(
@@ -267,7 +267,7 @@ export async function deleteAlternativeContact(input: {
     );
     const existing = await loadContact(scoped, parsed.data.contactId);
     if (!existing) {
-      return await contactNotFoundOrLeak(parsed.data);
+      return await contactNotFound(parsed.data);
     }
     if (
       !canMutate(
@@ -342,7 +342,7 @@ export async function reorderAlternativeContacts(input: {
       },
     });
     if (!person) {
-      return await personNotFoundOrLeak(parsed.data);
+      return await personNotFound(parsed.data);
     }
     if (
       !canMutate(person, parsed.data.actingPersonId, parsed.data.actingRole)
@@ -494,7 +494,7 @@ function toAlternativeContactSnapshot(contact: {
   };
 }
 
-async function personNotFoundOrLeak(input: {
+async function personNotFound(input: {
   clerkOrgId: string;
   organisationId: string;
   personId: string;
@@ -508,7 +508,12 @@ async function personNotFoundOrLeak(input: {
     (exists.clerk_org_id !== input.clerkOrgId ||
       exists.organisation_id !== input.organisationId)
   ) {
-    return crossOrgLeak();
+    log.error("Cross-tenant resource access attempt", {
+      actingClerkOrgId: input.clerkOrgId,
+      actingOrganisationId: input.organisationId,
+      resourceId: input.personId,
+      resourceType: "person",
+    });
   }
   return {
     error: { code: "person_not_found", message: "Person not found." },
@@ -516,7 +521,7 @@ async function personNotFoundOrLeak(input: {
   };
 }
 
-async function contactNotFoundOrLeak(input: {
+async function contactNotFound(input: {
   clerkOrgId: string;
   contactId: string;
   organisationId: string;
@@ -530,7 +535,12 @@ async function contactNotFoundOrLeak(input: {
     (exists.clerk_org_id !== input.clerkOrgId ||
       exists.organisation_id !== input.organisationId)
   ) {
-    return crossOrgLeak();
+    log.error("Cross-tenant resource access attempt", {
+      actingClerkOrgId: input.clerkOrgId,
+      actingOrganisationId: input.organisationId,
+      resourceId: input.contactId,
+      resourceType: "alternative_contact",
+    });
   }
   return {
     error: { code: "contact_not_found", message: "Contact not found." },
@@ -571,16 +581,6 @@ function notAuthorised(): Result<never, AlternativeContactServiceError> {
     error: {
       code: "not_authorised",
       message: "You do not have permission to manage these contacts.",
-    },
-    ok: false,
-  };
-}
-
-function crossOrgLeak(): Result<never, AlternativeContactServiceError> {
-  return {
-    error: {
-      code: "cross_org_leak",
-      message: "Contact is outside this organisation.",
     },
     ok: false,
   };

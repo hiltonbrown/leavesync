@@ -25,7 +25,6 @@ export interface AuditEventDetail extends AuditEventListItem {
 }
 
 export type AuditLogServiceError =
-  | { code: "cross_org_leak"; message: string }
   | { code: "event_not_found"; message: string }
   | { code: "not_authorised"; message: string }
   | { code: "unknown_error"; message: string }

@@ -256,7 +256,7 @@ describe("calendar-service", () => {
     if (result.ok) {
       return;
     }
-    expect(result.error.code).toBe("cross_org_leak");
+    expect(result.error.code).toBe("invalid_scope");
   });
 
   it("denies indirect-report detail under direct-only manager visibility", async () => {

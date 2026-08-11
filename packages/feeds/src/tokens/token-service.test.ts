@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   feedTokenUpdate: vi.fn(),
   feedTokenUpdateMany: vi.fn(),
   invalidateFeedCache: vi.fn(),
+  logError: vi.fn(),
   scopedTo: vi.fn((input: { clerkOrgId: string; organisationId: string }) => ({
     clerk_org_id: input.clerkOrgId,
     organisation_id: input.organisationId,
@@ -18,6 +19,9 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("server-only", () => ({}));
+vi.mock("@repo/observability/log", () => ({
+  log: { error: mocks.logError, info: vi.fn(), warn: vi.fn() },
+}));
 vi.mock("@repo/database", () => ({
   database: {
     $transaction: mocks.transaction,
@@ -219,7 +223,7 @@ describe("feed token lifecycle with a mocked database", () => {
     });
   });
 
-  it("returns cross_org_leak when revoke finds a token outside the tenant", async () => {
+  it("returns token_not_found and logs when revoke finds a token outside the tenant", async () => {
     mocks.feedTokenFindFirst.mockResolvedValueOnce(null).mockResolvedValueOnce({
       clerk_org_id: "org_other",
       organisation_id: "72000000-0000-4000-8000-000000000002",
@@ -234,10 +238,64 @@ describe("feed token lifecycle with a mocked database", () => {
     });
 
     expect(result).toMatchObject({
-      error: { code: "cross_org_leak" },
+      error: { code: "token_not_found" },
       ok: false,
     });
+    expect(mocks.logError).toHaveBeenCalledWith(
+      "Cross-tenant resource access attempt",
+      {
+        actingClerkOrgId: baseInput.clerkOrgId,
+        actingOrganisationId: baseInput.organisationId,
+        resourceId: "71000000-0000-4000-8000-000000000020",
+        resourceType: "feed_token",
+      }
+    );
     expect(mocks.feedTokenUpdate).not.toHaveBeenCalled();
+  });
+
+  it("returns identical error for other-tenant token and non-existent token", async () => {
+    mocks.feedTokenFindFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        clerk_org_id: "org_other",
+        organisation_id: "72000000-0000-4000-8000-000000000002",
+      })
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null);
+
+    const otherTenant = await revokeToken({
+      actingRole: baseInput.actingRole,
+      actingUserId: baseInput.actingUserId,
+      clerkOrgId: baseInput.clerkOrgId,
+      organisationId: baseInput.organisationId,
+      tokenId: "71000000-0000-4000-8000-000000000020",
+    });
+    const nonExistent = await revokeToken({
+      actingRole: baseInput.actingRole,
+      actingUserId: baseInput.actingUserId,
+      clerkOrgId: baseInput.clerkOrgId,
+      organisationId: baseInput.organisationId,
+      tokenId: "71000000-0000-4000-8000-000000000099",
+    });
+
+    expect(otherTenant).toEqual(nonExistent);
+  });
+
+  it("does not log error when token is genuinely not found", async () => {
+    mocks.logError.mockClear();
+    mocks.feedTokenFindFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null);
+
+    await revokeToken({
+      actingRole: baseInput.actingRole,
+      actingUserId: baseInput.actingUserId,
+      clerkOrgId: baseInput.clerkOrgId,
+      organisationId: baseInput.organisationId,
+      tokenId: "71000000-0000-4000-8000-000000000099",
+    });
+
+    expect(mocks.logError).not.toHaveBeenCalled();
   });
 
   it("lists token history and scopes the feed and token queries", async () => {

@@ -33,7 +33,6 @@ export type AnalyticsRole = "admin" | "manager" | "owner" | "viewer";
 export type XeroLeaveRecordType = (typeof XERO_LEAVE_TYPES)[number];
 
 export type AnalyticsServiceError =
-  | { code: "cross_org_leak"; message: string }
   | { code: "date_range_too_wide"; message: string }
   | { code: "invalid_date_range"; message: string }
   | { code: "not_authorised"; message: string }
