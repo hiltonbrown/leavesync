@@ -338,10 +338,10 @@ at the trigger stated below.
 
 | Plan | Trigger and required outcome | Status |
 |---|---|---|
-| [028](028-fix-three-test-quality-gaps.md) | Before GA: pin role hierarchy, feed-preview privacy and tenant-query behaviour with meaningful tests | TODO |
-| [029](029-test-the-untested-server-actions.md) | Before GA: cover authenticated mutation boundaries after plans 019, 050 and 027 settle their final shape | TODO |
-| [034](034-bound-and-batch-the-feed-publication-reconciler.md) | Before enabling global feed reconciliation or materially increasing tenant count: bound and batch the job | TODO, finding re-verified: `reconcile-feed-publications.ts:63` still loads every record before its in-memory `BATCH_SIZE = 100` loop |
-| [036](036-stop-returning-a-cross-tenant-existence-oracle.md) | Before unrestricted GA: keep server-side detection but return indistinguishable not-found errors | TODO |
+| [028](028-fix-three-test-quality-gaps.md) | Before GA: pin role hierarchy, feed-preview privacy and tenant-query behaviour with meaningful tests | **DONE**, executed and reviewed 2026-08-11, worktree `subagent-Plan-Executor--Plan-028--self-c662bdac` branch `test/close-three-coverage-gaps` (`91be435`, `f5a12c7`) |
+| [029](029-test-the-untested-server-actions.md) | Before GA: cover authenticated mutation boundaries after plans 019, 050 and 027 settle their final shape | **DONE**, executed and reviewed 2026-08-11, worktree `subagent-Plan-Executor--Plan-029--self-8e928d4d` branch `test/server-action-coverage` (`878809d`, `49219ef`, `a06cf63`) |
+| [034](034-bound-and-batch-the-feed-publication-reconciler.md) | Before enabling global feed reconciliation or materially increasing tenant count: bound and batch the job | **DONE**, executed and reviewed 2026-08-11, worktree `subagent-Plan-Executor--Plan-034--self-995e9c92` branch `perf/bound-the-feed-publication-reconciler` (`350e425`, `ab49530`, `8b9134c`, `2f1baef`) |
+| [036](036-stop-returning-a-cross-tenant-existence-oracle.md) | Before unrestricted GA: keep server-side detection but return indistinguishable not-found errors | **DONE**, executed and reviewed 2026-08-11, worktree `subagent-Plan-Executor--Plan-036--self-d2df593a` branch `fix/no-cross-tenant-existence-oracle` (`c7f3396`) |
 
 Plan 034 should move into the go-live gate if global feed-publication
 reconciliation is enabled for the first cohort. Plan 028 should move into the
