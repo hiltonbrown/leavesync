@@ -13,14 +13,11 @@
         ".react-email/**"
       ]
     },
-    "test": {
-      "dependsOn": ["^test"]
-    },
+    "test": {},
     "typecheck": {
-      "dependsOn": ["^typecheck"]
+      "dependsOn": ["^build"]
     },
     "test:integration": {
-      "dependsOn": ["^test:integration"],
       "cache": false
     },
     "analyze": {
