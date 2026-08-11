@@ -221,7 +221,7 @@ describe("previewFeed", () => {
       });
     });
 
-    it("returns cross_org_leak when feed belongs to another org", async () => {
+    it("returns feed_not_found when feed belongs to another org", async () => {
       mocks.feedFindFirst
         .mockResolvedValueOnce(null) // initial lookup filtered by org
         .mockResolvedValueOnce({
@@ -233,8 +233,8 @@ describe("previewFeed", () => {
 
       expect(result).toEqual({
         error: {
-          code: "cross_org_leak",
-          message: "Feed is outside this organisation.",
+          code: "feed_not_found",
+          message: "Feed not found.",
         },
         ok: false,
       });
