@@ -27,8 +27,8 @@ const RootLayout = ({ children }: RootLayoutProperties) => (
         <DesignSystemProvider
           afterSignOutUrl={env.NEXT_PUBLIC_WEB_URL}
           helpUrl={webUrl("/help-centre")}
-          privacyUrl={webUrl("/legal/privacy")}
-          termsUrl={webUrl("/legal/terms")}
+          privacyUrl={webUrl("/privacy-policy")}
+          termsUrl={webUrl("/terms-of-service")}
         >
           {children}
         </DesignSystemProvider>

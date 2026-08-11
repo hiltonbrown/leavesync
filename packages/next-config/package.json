@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "test": "NODE_ENV=test vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
@@ -14,6 +15,7 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
-    "next": "16.3.0"
+    "next": "16.3.0",
+    "vitest": "^4.1.10"
   }
 }

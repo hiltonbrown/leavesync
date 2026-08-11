@@ -1,6 +1,7 @@
 import { primaryDomain } from "@repo/seo/branding";
 import { createMetadata } from "@repo/seo/metadata";
 import {
+  BookOpen,
   CalendarDays,
   CircleHelp,
   KeyRound,
@@ -17,6 +18,13 @@ export const metadata: Metadata = createMetadata({
 });
 
 const resources = [
+  {
+    copy: "Follow our 8-step guided onboarding path covering Clerk Organisation setup, Xero AU connection, leave approvals, feeds, and support.",
+    href: "/help-centre/onboarding",
+    icon: BookOpen,
+    link: "View onboarding guide",
+    title: "AU Early Access Onboarding",
+  },
   {
     copy: "Understand the Xero connection flow, supported payroll regions, and how Team Calendar keeps leave data current.",
     href: "/integrations",
