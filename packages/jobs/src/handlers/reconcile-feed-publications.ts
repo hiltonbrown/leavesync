@@ -121,17 +121,17 @@ export async function reconcileFeedPublications(
         organisationId: context.organisationId,
         personIds: [...changedPersonIds],
       });
-      for (const feedId of feedIds) {
-        await inngest.send({
+      await inngest.send(
+        feedIds.map((feedId) => ({
           data: {
             clerkOrgId: context.clerkOrgId,
             feedId,
             organisationId: context.organisationId,
             reason: "publication_reconciled",
           },
-          name: "rebuild-feed-cache",
-        });
-      }
+          name: "rebuild-feed-cache" as const,
+        }))
+      );
       counts.feedsQueued = feedIds.length;
     }
 
