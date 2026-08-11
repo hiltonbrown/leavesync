@@ -14,7 +14,6 @@ import {
 } from "./types/notification-type-registry";
 
 export type NotificationServiceError =
-  | { code: "cross_org_leak"; message: string }
   | { code: "not_recipient"; message: string }
   | { code: "notification_not_found"; message: string }
   | { code: "unknown_error"; message: string }

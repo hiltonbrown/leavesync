@@ -1,3 +1,4 @@
+import { log } from "@repo/observability/log";
 import "server-only";
 
 import type { Result } from "@repo/core";
@@ -13,7 +14,6 @@ import {
 
 export type SyncMonitorError =
   | { code: "connection_not_active"; message: string }
-  | { code: "cross_org_leak"; message: string }
   | { code: "dispatch_failed"; message: string }
   | { code: "invalid_run_type"; message: string }
   | { code: "not_authorised"; message: string }
@@ -407,7 +407,7 @@ export async function getRunDetail(
       },
     });
     if (!run) {
-      return await runNotFoundOrCrossOrg(parsed.data);
+      return await runNotFound(parsed.data);
     }
 
     const [people, failedRecords, timeline] = await Promise.all([
@@ -483,7 +483,7 @@ export async function dispatchManualSync(
       },
     });
     if (!tenant) {
-      return await tenantNotFoundOrCrossOrg(parsed.data);
+      return await tenantNotFound(parsed.data);
     }
 
     const eventName = syncEventNames[parsed.data.runType];
@@ -584,7 +584,7 @@ export async function exportFailedRecordsCsv(
       },
     });
     if (!run) {
-      return await runNotFoundOrCrossOrg(parsed.data);
+      return await runNotFound(parsed.data);
     }
 
     const failedRecords = await database.failedRecord.findMany({
@@ -677,7 +677,7 @@ export async function cancelRun(
       },
     });
     if (!run) {
-      return await runNotFoundOrCrossOrg(parsed.data);
+      return await runNotFound(parsed.data);
     }
 
     await database.syncRun.update({
@@ -943,7 +943,7 @@ function toRunListItem(
   };
 }
 
-async function runNotFoundOrCrossOrg(
+async function runNotFound(
   input: GetRunDetailInput | ExportFailedRecordsCsvInput | CancelRunInput
 ): Promise<Result<never, SyncMonitorError>> {
   const existing = await database.syncRun.findUnique({
@@ -953,14 +953,17 @@ async function runNotFoundOrCrossOrg(
     },
     where: { id: input.runId },
   });
-  if (existing) {
-    return {
-      error: {
-        code: "cross_org_leak",
-        message: "This sync run belongs to another organisation.",
-      },
-      ok: false,
-    };
+  if (
+    existing &&
+    (existing.clerk_org_id !== input.clerkOrgId ||
+      existing.organisation_id !== input.organisationId)
+  ) {
+    log.error("Cross-tenant resource access attempt", {
+      actingClerkOrgId: input.clerkOrgId,
+      actingOrganisationId: input.organisationId,
+      resourceId: input.runId,
+      resourceType: "sync_run",
+    });
   }
   return {
     error: { code: "run_not_found", message: "Sync run not found." },
@@ -968,7 +971,7 @@ async function runNotFoundOrCrossOrg(
   };
 }
 
-async function tenantNotFoundOrCrossOrg(
+async function tenantNotFound(
   input: DispatchManualSyncInput
 ): Promise<Result<never, SyncMonitorError>> {
   const existing = await database.xeroTenant.findUnique({
@@ -978,14 +981,17 @@ async function tenantNotFoundOrCrossOrg(
     },
     where: { id: input.xeroTenantId },
   });
-  if (existing) {
-    return {
-      error: {
-        code: "cross_org_leak",
-        message: "This Xero tenant belongs to another organisation.",
-      },
-      ok: false,
-    };
+  if (
+    existing &&
+    (existing.clerk_org_id !== input.clerkOrgId ||
+      existing.organisation_id !== input.organisationId)
+  ) {
+    log.error("Cross-tenant resource access attempt", {
+      actingClerkOrgId: input.clerkOrgId,
+      actingOrganisationId: input.organisationId,
+      resourceId: input.xeroTenantId,
+      resourceType: "xero_tenant",
+    });
   }
   return {
     error: { code: "tenant_not_found", message: "Xero tenant not found." },

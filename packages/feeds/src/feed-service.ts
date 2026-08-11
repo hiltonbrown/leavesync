@@ -1,3 +1,4 @@
+import { log } from "@repo/observability/log";
 import "server-only";
 
 import { withinLimit } from "@repo/auth/server";
@@ -32,7 +33,6 @@ import {
 } from "./tokens/token-service";
 
 export type FeedServiceError =
-  | { code: "cross_org_leak"; message: string }
   | { code: "feed_archived"; message: string }
   | { code: "feed_not_found"; message: string }
   | { code: "invalid_scope"; message: string }
@@ -553,7 +553,7 @@ export async function restoreFeed(
       where: scopedFeed(parsed.data),
     });
     if (!existing) {
-      return await feedNotFoundOrLeak(parsed.data);
+      return await feedNotFound(parsed.data);
     }
     if (existing.status !== "archived") {
       return invalidTransition();
@@ -697,7 +697,7 @@ export async function getFeedDetail(
       where: scopedFeed(parsed.data),
     });
     if (!feed) {
-      return await feedNotFoundOrLeak(parsed.data);
+      return await feedNotFound(parsed.data);
     }
 
     const scopes = feed.scopes.map((scope) => ({
@@ -818,7 +818,7 @@ async function transitionFeed(
       where: scopedFeed(parsed.data),
     });
     if (!existing) {
-      return await feedNotFoundOrLeak(parsed.data);
+      return await feedNotFound(parsed.data);
     }
     if (existing.status === "archived" || existing.archived_at) {
       return feedArchived();
@@ -852,7 +852,7 @@ async function loadFeedForUpdate(
     where: scopedFeed(input),
   });
   if (!feed) {
-    return await feedNotFoundOrLeak(input);
+    return await feedNotFound(input);
   }
   if (feed.status === "archived" || feed.archived_at) {
     return feedArchived();
@@ -935,7 +935,7 @@ function toTokenHistoryItem(token: TokenRow): TokenHistoryItem {
   };
 }
 
-async function feedNotFoundOrLeak(input: {
+async function feedNotFound(input: {
   clerkOrgId: string;
   feedId: string;
   organisationId: string;
@@ -949,13 +949,12 @@ async function feedNotFoundOrLeak(input: {
     (exists.clerk_org_id !== input.clerkOrgId ||
       exists.organisation_id !== input.organisationId)
   ) {
-    return {
-      error: {
-        code: "cross_org_leak",
-        message: "Feed is outside this organisation.",
-      },
-      ok: false,
-    };
+    log.error("Cross-tenant resource access attempt", {
+      actingClerkOrgId: input.clerkOrgId,
+      actingOrganisationId: input.organisationId,
+      resourceId: input.feedId,
+      resourceType: "feed",
+    });
   }
   return {
     error: { code: "feed_not_found", message: "Feed not found." },
@@ -995,9 +994,6 @@ function mapTokenError(error: {
   code: string;
   message: string;
 }): FeedServiceError {
-  if (error.code === "cross_org_leak") {
-    return { code: "cross_org_leak", message: error.message };
-  }
   if (error.code === "feed_not_found") {
     return { code: "feed_not_found", message: error.message };
   }
