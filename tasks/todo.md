@@ -195,3 +195,16 @@
 - Ran `bun install` to lock all transitive dependencies (e.g. Sentry / OpenTelemetry) to single top-level package instances, preventing broken nested `.bun/import-in-the-middle@3.3.1/...` symlink resolution in Vercel.
 - Verified `bun run typecheck` passes with 0 errors across 18 packages.
 
+---
+
+# Plan: Commit and merge all branches and worktrees to main
+
+## Tasks
+
+- [ ] Commit uncommitted changes in active worktrees (`main`, Plan-020, Plan-035, Plan-044, Plan-045, Plan-046).
+- [ ] Merge all feature and subagent branches into `main`.
+- [ ] Clean up merged worktrees and branches.
+- [ ] Run full verification (`bun run check`, `bun run typecheck`, `bun run test`).
+- [ ] Document final repository state.
+
+

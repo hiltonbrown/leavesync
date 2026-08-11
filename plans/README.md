@@ -173,7 +173,7 @@ pilot acceptance script and the customer support model.
 |---|---|---|
 | [015](015-enable-the-test-harness-in-six-untestable-workspaces.md) | Root and CI tests enter every owned workspace, including auth and web | DONE |
 | [016](016-add-a-build-step-to-ci.md) | CI requires a production build for all deployable apps | **DONE** (merged `e38511f`) |
-| [020](020-run-the-xero-disconnect-integration-test.md) | Destructive Xero disconnect isolation runs in the integration lane | TODO, finding re-verified |
+| [020](020-run-the-xero-disconnect-integration-test.md) | Destructive Xero disconnect isolation runs in the integration lane | **DONE** |
 | [035](035-fix-the-turborepo-task-graph.md) | Test and typecheck tasks express their real dependencies and do not false-green | **DONE** |
 
 Plan 016 was gated on plan 049 so that CI would not gain a build step that
@@ -184,8 +184,8 @@ to execute.
 
 | Plan | Required outcome | Status |
 |---|---|---|
-| [044](044-schedule-au-xero-syncs.md) | Active AU tenants receive bounded people, leave and balance syncs; nightly approval reconciliation is enabled only after 018 and 038 | TODO |
-| [045](045-make-closed-au-early-access-truthful-and-deployable.md) | Public journeys, billing controls, production preflight, help and telemetry match closed early access | TODO |
+| [044](044-schedule-au-xero-syncs.md) | Active AU tenants receive bounded people, leave and balance syncs; nightly approval reconciliation is enabled only after 018 and 038 | **DONE** |
+| [045](045-make-closed-au-early-access-truthful-and-deployable.md) | Public journeys, billing controls, production preflight, help and telemetry match closed early access | **DONE** |
 | [046](046-execute-closed-au-early-access-go-live.md) | Clean release gates, migration and restore rehearsal, production configuration, pilot acceptance, staged deployment, rollback and 72-hour review all pass | TODO |
 
 Plan 044's inbound-scheduling prerequisites (plans 003 and 006) are now **DONE**,
