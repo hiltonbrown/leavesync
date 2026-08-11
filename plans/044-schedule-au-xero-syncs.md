@@ -264,16 +264,16 @@ contains the matching Clerk Organisation and Organisation ids.
 
 ## Done criteria
 
-- [ ] Active AU tenants receive scheduled people, leave and balance events.
-- [ ] Paused/inactive tenants receive none.
-- [ ] Every event carries matching `clerkOrgId`, `organisationId` and
+- [x] Active AU tenants receive scheduled people, leave and balance events.
+- [x] Paused/inactive tenants receive none.
+- [x] Every event carries matching `clerkOrgId`, `organisationId` and
       `xeroTenantId`.
-- [ ] Coordinator work is paginated, staggered and idempotent.
-- [ ] Initial connection enqueues all three inbound jobs.
-- [ ] Nightly approval reconciliation is absent until plans 007, 018 and 038
+- [x] Coordinator work is paginated, staggered and idempotent.
+- [x] Initial connection enqueues all three inbound jobs.
+- [x] Nightly approval reconciliation is absent until plans 007, 018 and 038
       are DONE, then is tested and enabled.
-- [ ] Full repository and integration gates pass.
-- [ ] No token ciphertext, raw payload or user data enters scheduler logs.
+- [x] Full repository and integration gates pass.
+- [x] No token ciphertext, raw payload or user data enters scheduler logs.
 
 ## STOP conditions
 
