@@ -115,7 +115,7 @@ function isBalanceDue(lastSyncAt: Date | null, now: Date): boolean {
 
 function isReconciliationDue(
   lastReconciledAt: Date | null,
-  now: Date,
+  _now: Date,
   timezone: string,
   localHour: number,
   localDateStr: string

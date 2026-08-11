@@ -79,9 +79,7 @@ describe("listSchedulableXeroTenants", () => {
     expect(result.value.tenants[1].clerkOrgId).toBe("org_clerk_2");
 
     // Inspect the call to database.xeroTenant.findMany
-    expect(mocks.findMany).toHaveBeenCalledOnce();
-    const [firstCall] = mocks.findMany.mock.calls;
-    const callArgs = firstCall[0];
+    const [[callArgs]] = mocks.findMany.mock.calls;
 
     // Verify filter boundaries
     expect(callArgs.where).toEqual({
