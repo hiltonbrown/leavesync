@@ -166,7 +166,9 @@ describe("settings/leave-approval server actions", () => {
     });
 
     it("restoreLeaveApprovalDefaultsAction applies default patch and revalidates paths", async () => {
-      const result = await restoreLeaveApprovalDefaultsAction({ organisationId });
+      const result = await restoreLeaveApprovalDefaultsAction({
+        organisationId,
+      });
 
       expect(result).toEqual({ ok: true, value: { updated: true } });
       expect(mocks.defaultOrganisationSettingsPatch).toHaveBeenCalled();

@@ -31,9 +31,9 @@ vi.mock("@repo/availability", () => ({
 }));
 vi.mock("@repo/database", () => ({
   database: mocks.database,
-  scopedQuery: (clerkOrgId: string, organisationId: string) => ({
-    clerk_org_id: clerkOrgId,
-    organisation_id: organisationId,
+  scopedQuery: (cOrgId: string, orgId: string) => ({
+    clerk_org_id: cOrgId,
+    organisation_id: orgId,
   }),
 }));
 vi.mock("next/cache", () => ({
@@ -208,6 +208,23 @@ describe("people server actions", () => {
         },
       });
       expect(mocks.revalidatePath).toHaveBeenCalledWith(`/people/${personId}`);
+    });
+
+    it("reorderAlternativeContactsAction and refreshBalancesAction execute correctly", async () => {
+      const resReorder = await reorderAlternativeContactsAction({
+        orderedContactIds: [contactId],
+        organisationId,
+        personId,
+      });
+      expect(resReorder).toEqual({ ok: true, value: { personId } });
+      expect(mocks.reorderAlternativeContacts).toHaveBeenCalled();
+
+      const resRefresh = await refreshBalancesAction({
+        organisationId,
+        personId,
+      });
+      expect(resRefresh).toEqual({ ok: true, value: { queued: true } });
+      expect(mocks.dispatchBalanceRefresh).toHaveBeenCalled();
     });
 
     it("setManualBalanceAction validates balance and passes parameters to service", async () => {

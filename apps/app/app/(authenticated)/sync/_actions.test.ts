@@ -149,7 +149,10 @@ describe("sync server actions", () => {
     });
 
     it("exportFailedRecordsCsvAction returns CSV export data", async () => {
-      const result = await exportFailedRecordsCsvAction({ organisationId, runId });
+      const result = await exportFailedRecordsCsvAction({
+        organisationId,
+        runId,
+      });
 
       expect(result).toEqual({
         ok: true,
