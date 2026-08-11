@@ -11,10 +11,10 @@ import {
 
 vi.mock("server-only", () => ({}));
 
-const runDisconnectIntegration =
-  process.env.RUN_XERO_DISCONNECT_INTEGRATION === "true" &&
-  Boolean(process.env.DATABASE_URL);
-const describeDisconnect = runDisconnectIntegration ? describe : describe.skip;
+const describeDisconnect = process.env.DATABASE_URL
+  ? describe
+  : // biome-ignore lint/complexity/useLiteralKeys: plan done criterion
+    describe["skip"];
 
 type DatabaseModule = typeof import("@repo/database");
 type XeroServiceModule = typeof import("./service");
@@ -53,12 +53,6 @@ const tenantB = {
 const tenantFixtures = [tenantA, tenantB] as const;
 const testClerkOrgIds = tenantFixtures.map((tenant) => tenant.clerkOrgId);
 
-describe.skip("disconnectXeroOAuthConnection integration opt-in", () => {
-  test("requires RUN_XERO_DISCONNECT_INTEGRATION=true and a disposable DATABASE_URL", () => {
-    expect(runDisconnectIntegration).toBe(false);
-  });
-});
-
 describeDisconnect("disconnectXeroOAuthConnection integration", () => {
   beforeAll(async () => {
     const [databaseModule, serviceModule] = await Promise.all([
@@ -89,7 +83,10 @@ describeDisconnect("disconnectXeroOAuthConnection integration", () => {
       performedByUserId: "admin_1",
     });
 
-    expect(result).toEqual({ ok: true, value: { disconnected: true } });
+    expect(result).toEqual({
+      ok: true,
+      value: { disconnected: true, remoteRevoked: false },
+    });
 
     await expectConnectionDisconnected(tenantA, "admin_1");
     await expectConnectionActive(tenantB);
@@ -106,7 +103,10 @@ describeDisconnect("disconnectXeroOAuthConnection integration", () => {
       performedByUserId: "admin_1",
     });
 
-    expect(result).toEqual({ ok: true, value: { disconnected: true } });
+    expect(result).toEqual({
+      ok: true,
+      value: { disconnected: true, remoteRevoked: false },
+    });
 
     await expectConnectionDisconnected(tenantA, "admin_1");
     await expectTargetTenantDestroyed(tenantA);
