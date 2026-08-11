@@ -35,7 +35,10 @@ describe("settings audit-log server actions", () => {
     });
     mocks.exportAuditLogCsv.mockResolvedValue({
       ok: true,
-      value: { csvContent: "timestamp,action\n2026-01-01,user.login", filename: "audit-log.csv" },
+      value: {
+        csvContent: "timestamp,action\n2026-01-01,user.login",
+        filename: "audit-log.csv",
+      },
     });
   });
 

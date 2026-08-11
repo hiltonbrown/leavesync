@@ -136,7 +136,9 @@ describe("xero settings integration server actions", () => {
     });
 
     it("rejects malformed inputs for actions", async () => {
-      const resConnect = await connectXeroAction({ organisationId: "invalid-uuid" });
+      const resConnect = await connectXeroAction({
+        organisationId: "invalid-uuid",
+      });
       expect(resConnect.ok).toBe(false);
       if (!resConnect.ok) {
         expect(resConnect.error.code).toBe("validation_error");
@@ -242,7 +244,10 @@ describe("xero settings integration server actions", () => {
     });
 
     it("pauseTenantSyncAction and resumeTenantSyncAction update xeroTenant sync status", async () => {
-      const resPause = await pauseTenantSyncAction({ organisationId, xeroTenantId });
+      const resPause = await pauseTenantSyncAction({
+        organisationId,
+        xeroTenantId,
+      });
       expect(resPause.ok).toBe(true);
       expect(mocks.database.xeroTenant.updateMany).toHaveBeenCalledWith({
         data: { sync_paused_at: expect.any(Date) },
@@ -253,7 +258,10 @@ describe("xero settings integration server actions", () => {
         },
       });
 
-      const resResume = await resumeTenantSyncAction({ organisationId, xeroTenantId });
+      const resResume = await resumeTenantSyncAction({
+        organisationId,
+        xeroTenantId,
+      });
       expect(resResume.ok).toBe(true);
       expect(mocks.database.xeroTenant.updateMany).toHaveBeenCalledWith({
         data: { sync_paused_at: null },

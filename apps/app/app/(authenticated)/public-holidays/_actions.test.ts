@@ -159,13 +159,24 @@ describe("public-holidays server actions", () => {
       expect(mocks.revalidatePath).toHaveBeenCalledWith("/public-holidays");
     });
 
-    it("deleteCustomHolidayAction calls service and revalidates paths", async () => {
-      const result = await deleteCustomHolidayAction({
+    it("restoreHolidayAction and deleteCustomHolidayAction call service and revalidate paths", async () => {
+      const resRestore = await restoreHolidayAction({
         holidayId,
         organisationId,
       });
+      expect(resRestore).toEqual({ ok: true, value: { id: holidayId } });
+      expect(mocks.restoreHoliday).toHaveBeenCalledWith(
+        clerkOrgId,
+        organisationId,
+        holidayId,
+        userId
+      );
 
-      expect(result).toEqual({ ok: true, value: { id: holidayId } });
+      const resDelete = await deleteCustomHolidayAction({
+        holidayId,
+        organisationId,
+      });
+      expect(resDelete).toEqual({ ok: true, value: { id: holidayId } });
       expect(mocks.deleteCustomHoliday).toHaveBeenCalledWith(
         clerkOrgId,
         organisationId,
