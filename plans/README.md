@@ -174,7 +174,7 @@ pilot acceptance script and the customer support model.
 | [015](015-enable-the-test-harness-in-six-untestable-workspaces.md) | Root and CI tests enter every owned workspace, including auth and web | DONE |
 | [016](016-add-a-build-step-to-ci.md) | CI requires a production build for all deployable apps | **DONE** (merged `e38511f`) |
 | [020](020-run-the-xero-disconnect-integration-test.md) | Destructive Xero disconnect isolation runs in the integration lane | TODO, finding re-verified |
-| [035](035-fix-the-turborepo-task-graph.md) | Test and typecheck tasks express their real dependencies and do not false-green | TODO, finding re-verified |
+| [035](035-fix-the-turborepo-task-graph.md) | Test and typecheck tasks express their real dependencies and do not false-green | DONE |
 
 Plan 016 was gated on plan 049 so that CI would not gain a build step that
 failed on its first run. Plan 049 is now done and verified, so plan 016 is free
