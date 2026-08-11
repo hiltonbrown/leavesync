@@ -17,7 +17,8 @@ const { listPeopleForOrganisation } = await import("./people");
 
 describe("people queries", () => {
   const clerkOrgId = "org_test_people" as ClerkOrgId;
-  const organisationId = "44444444-4444-4444-8444-444444444444" as OrganisationId;
+  const organisationId =
+    "44444444-4444-4444-8444-444444444444" as OrganisationId;
 
   beforeEach(() => {
     vi.clearAllMocks();

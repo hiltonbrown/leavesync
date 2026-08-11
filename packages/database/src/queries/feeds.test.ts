@@ -2,15 +2,15 @@ import type { ClerkOrgId, FeedId, OrganisationId } from "@repo/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  findMany: vi.fn(),
   findFirst: vi.fn(),
+  findMany: vi.fn(),
 }));
 
 vi.mock("../client", () => ({
   database: {
     feed: {
-      findMany: mocks.findMany,
       findFirst: mocks.findFirst,
+      findMany: mocks.findMany,
     },
   },
 }));
@@ -19,7 +19,8 @@ const { listFeedsForOrganisation, getFeedDetail } = await import("./feeds");
 
 describe("feeds queries", () => {
   const clerkOrgId = "org_test_feeds" as ClerkOrgId;
-  const organisationId = "22222222-2222-4222-8222-222222222222" as OrganisationId;
+  const organisationId =
+    "22222222-2222-4222-8222-222222222222" as OrganisationId;
   const feedId = "33333333-3333-4333-8333-333333333333" as FeedId;
 
   beforeEach(() => {
