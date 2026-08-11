@@ -80,7 +80,6 @@ const faqs = [
 
 export const PricingExperience = () => {
   const [openFaq, setOpenFaq] = useState(0);
-  const [submitted, setSubmitted] = useState(false);
 
   return (
     <main className="fmkt-page fmkt-pricing-page">
@@ -198,52 +197,34 @@ export const PricingExperience = () => {
       <section className="fmkt-pricing-contact" id="contact">
         <div className="fmkt-container fmkt-pricing-contact__grid">
           <div>
-            <h2 className="fmkt-section-title">Need help choosing a plan?</h2>
+            <h2 className="fmkt-section-title">Early access support</h2>
             <p>
-              Send a few details and we will help you map the right plan,
-              rollout shape, and feed structure.
+              Team Calendar is currently in closed early access for Australian
+              organisations running Xero Payroll. Our team provides guided setup
+              and onboarding assistance.
             </p>
           </div>
-          <form
-            className="fmkt-pricing-form"
-            onSubmit={(event) => {
-              event.preventDefault();
-              setSubmitted(true);
-            }}
-          >
-            <label>
-              Work email
-              <input required suppressHydrationWarning type="email" />
-            </label>
-            <label>
-              Company
-              <input required suppressHydrationWarning type="text" />
-            </label>
-            <label>
-              Payroll size
-              <select defaultValue="25-100">
-                <option>Under 25</option>
-                <option>25-100</option>
-                <option>101-250</option>
-                <option>250+</option>
-              </select>
-            </label>
-            <label>
-              What do you need?
-              <textarea rows={4} suppressHydrationWarning />
-            </label>
-            <button
-              className="marketing-btn marketing-btn--primary"
-              type="submit"
-            >
-              Send enquiry
-            </button>
-            {submitted ? (
-              <p className="fmkt-pricing-form__success">
-                Thanks. Your enquiry is ready for follow-up.
-              </p>
-            ) : null}
-          </form>
+          <div className="fmkt-pricing-form">
+            <h3 className="mb-2 font-semibold text-lg">
+              Monitored Support Address
+            </h3>
+            <p className="marketing-simple__section-copy mb-3">
+              To join the early access cohort or ask questions about rollout and
+              configuration, email our team:
+            </p>
+            <p className="mb-3">
+              <a
+                className="marketing-simple__link font-semibold"
+                href="mailto:support@teamcalendar.online"
+              >
+                support@teamcalendar.online
+              </a>
+            </p>
+            <p className="marketing-simple__section-copy text-muted-foreground text-xs">
+              Support hours: Monday to Friday, 9:00 AM – 5:00 PM AEST. Pricing
+              will be confirmed before any future paid billing begins.
+            </p>
+          </div>
         </div>
       </section>
     </main>

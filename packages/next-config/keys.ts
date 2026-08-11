@@ -7,6 +7,7 @@ export const keys = () =>
       NEXT_PUBLIC_API_URL: z.string().url().optional(),
       NEXT_PUBLIC_APP_URL: z.string().url().optional(),
       NEXT_PUBLIC_DOCS_URL: z.string().url().optional(),
+      NEXT_PUBLIC_LAUNCH_MODE: z.enum(["early_access", "paid"]).optional(),
       NEXT_PUBLIC_VERCEL_ENV: z
         .enum(["development", "preview", "production"])
         .optional(),
@@ -20,6 +21,7 @@ export const keys = () =>
       NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
       NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
       NEXT_PUBLIC_DOCS_URL: process.env.NEXT_PUBLIC_DOCS_URL,
+      NEXT_PUBLIC_LAUNCH_MODE: process.env.NEXT_PUBLIC_LAUNCH_MODE,
       NEXT_PUBLIC_VERCEL_ENV:
         process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.VERCEL_ENV,
       NEXT_PUBLIC_WEB_URL: process.env.NEXT_PUBLIC_WEB_URL,

@@ -182,7 +182,42 @@ Team Calendar deploys as three Vercel projects, one per deployable app. This fit
 
 Set the Root Directory for each project to the relevant `apps/*` folder. Turborepo builds the dependent packages automatically.
 
-### Required environment per project
+### Required environment per project and launch mode
+
+Each project requires `NEXT_PUBLIC_LAUNCH_MODE` to be set explicitly to `early_access` or `paid` in production.
+
+#### Production environment matrix
+
+| Variable | Scope | `early_access` requirement | `paid` mode requirement |
+|---|---|---|---|
+| `NEXT_PUBLIC_LAUNCH_MODE` | All apps | Required (`early_access`) | Required (`paid`) |
+| `NEXT_PUBLIC_APP_URL` | All apps | Required (URL) | Required (URL) |
+| `NEXT_PUBLIC_WEB_URL` | All apps | Required (URL) | Required (URL) |
+| `NEXT_PUBLIC_API_URL` | All apps | Required (URL) | Required (URL) |
+| `NEXT_PUBLIC_SENTRY_DSN` | All apps | Required (URL) | Required (URL) |
+| `DATABASE_URL` | `app`, `api` | Required | Required |
+| `XERO_TOKEN_ENCRYPTION_KEY` | `app`, `api` | Required | Required |
+| `XERO_CLIENT_ID` / `XERO_CLIENT_SECRET` | `app`, `api` | Required | Required |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` | `app`, `api` | Required | Required |
+| `CLERK_WEBHOOK_SECRET` | `api` | Required | Required |
+| `KV_REST_API_URL` / `KV_REST_API_TOKEN` | `app`, `api` | Required pair | Required pair |
+| `INNGEST_EVENT_KEY` / `INNGEST_SIGNING_KEY` | `api` | Required pair | Required pair |
+| `RESEND_TOKEN` (or `RESEND_API_KEY`) | `api` | Required | Required |
+| `SUPPORT_EMAIL` | `web` | Required (email) | Required (email) |
+| `STRIPE_SECRET_KEY` | `app`, `api` | Optional (disabled) | Required |
+| `STRIPE_WEBHOOK_SECRET` | `api` | Optional (disabled) | Required |
+| `STRIPE_PRICE_BASIC` / `STRIPE_PRICE_PREMIUM` | `app`, `api` | Optional (disabled) | Required |
+| `STRIPE_PORTAL_RETURN_URL` | `app`, `api` | Optional (disabled) | Required |
+
+#### Operator preflight command
+
+Before deploying any application, run the production preflight check:
+
+```bash
+bun run preflight app early_access
+bun run preflight api early_access
+bun run preflight web early_access
+```
 
 Copy each app's `.env.example` for the full, annotated list. Optional variables that carry a format constraint (a URL, an email, or a required prefix) are commented out in the examples: an empty string fails validation, so leave them absent rather than set to `""`. The minimum each project needs in production:
 
