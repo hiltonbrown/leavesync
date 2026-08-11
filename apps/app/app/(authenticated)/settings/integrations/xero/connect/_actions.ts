@@ -89,17 +89,24 @@ export async function completeTenantSelectionAction(input: {
     },
   });
 
-  // Kick off an initial people sync so the directory populates without a manual click.
+  // Kick off a complete initial sync (people, leave-records, leave-balances).
   // Best effort: the connection is already persisted and scheduled syncs will catch up if
-  // this enqueue does not land, so a failure here must not fail the connect.
-  await dispatchManualSync({
-    actingRole: orgRole === "org:owner" ? "owner" : "admin",
-    actingUserId: user.id,
-    clerkOrgId: orgId,
-    organisationId: result.value.organisationId,
-    runType: "people",
-    xeroTenantId: result.value.xeroTenantId,
-  });
+  // any enqueue does not land, so a failure here must not fail the connect.
+  const initialRunTypes = [
+    "people",
+    "leave_records",
+    "leave_balances",
+  ] as const;
+  for (const runType of initialRunTypes) {
+    await dispatchManualSync({
+      actingRole: orgRole === "org:owner" ? "owner" : "admin",
+      actingUserId: user.id,
+      clerkOrgId: orgId,
+      organisationId: result.value.organisationId,
+      runType,
+      xeroTenantId: result.value.xeroTenantId,
+    });
+  }
 
   revalidatePath("/");
   revalidatePath("/settings/getting-started");

@@ -3,6 +3,7 @@ import { rebuildFeedCacheFunction } from "./handlers/rebuild-feed-cache";
 import { reconcileFeedPublicationsFunction } from "./handlers/reconcile-feed-publications";
 import { reconcileXeroApprovalStateFunction } from "./handlers/reconcile-xero-approval-state";
 import { recountUsageFunction } from "./handlers/recount-usage";
+import { scheduleXeroSyncsFunction } from "./handlers/schedule-xero-syncs";
 import { sendNotificationEmailsFunction } from "./handlers/send-notification-emails";
 import { syncXeroLeaveBalancesFunction } from "./handlers/sync-xero-leave-balances";
 import { syncXeroLeaveRecordsFunction } from "./handlers/sync-xero-leave-records";
@@ -17,4 +18,5 @@ export const functions: InngestFunction.Any[] = [
   syncXeroLeaveBalancesFunction,
   syncXeroLeaveRecordsFunction,
   syncXeroPeopleFunction,
+  scheduleXeroSyncsFunction,
 ];
