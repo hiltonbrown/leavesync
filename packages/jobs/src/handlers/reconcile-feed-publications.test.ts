@@ -251,7 +251,11 @@ describe("reconcileFeedPublications", () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value).toMatchObject({ changed: 0, feedsQueued: 0, scanned: 0 });
+      expect(result.value).toMatchObject({
+        changed: 0,
+        feedsQueued: 0,
+        scanned: 0,
+      });
     }
     expect(mocks.inngestSend).not.toHaveBeenCalled();
   });
