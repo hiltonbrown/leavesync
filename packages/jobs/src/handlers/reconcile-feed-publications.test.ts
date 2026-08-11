@@ -127,15 +127,17 @@ describe("reconcileFeedPublications", () => {
       organisationId: ORGANISATION_ID,
       personIds: [PERSON_ID],
     });
-    expect(mocks.inngestSend).toHaveBeenCalledWith({
-      data: {
-        clerkOrgId: CLERK_ORG_ID,
-        feedId: "feed-a",
-        organisationId: ORGANISATION_ID,
-        reason: "publication_reconciled",
+    expect(mocks.inngestSend).toHaveBeenCalledWith([
+      {
+        data: {
+          clerkOrgId: CLERK_ORG_ID,
+          feedId: "feed-a",
+          organisationId: ORGANISATION_ID,
+          reason: "publication_reconciled",
+        },
+        name: "rebuild-feed-cache",
       },
-      name: "rebuild-feed-cache",
-    });
+    ]);
   });
 
   it("isolates record-level failures and keeps reconciling", async () => {
