@@ -12,6 +12,8 @@ import { z } from "zod";
 import { inngest } from "../client";
 
 const BATCH_SIZE = 100;
+const PAGE_SIZE = 500;
+const MAX_PAGES = 1000;
 
 const ReconcileFeedPublicationsInputSchema = z.object({
   clerkOrgId: z.string().min(1),
@@ -60,59 +62,63 @@ export async function reconcileFeedPublications(
   const context = parsed.data;
 
   try {
-    const records = await database.availabilityRecord.findMany({
-      orderBy: { id: "asc" },
-      select: { id: true, person_id: true },
-      where: {
-        clerk_org_id: context.clerkOrgId,
-        organisation_id: context.organisationId,
-      },
-    });
-
     const counts: ReconcileCounts = {
       changed: 0,
       failed: 0,
       feedsQueued: 0,
-      scanned: records.length,
+      scanned: 0,
     };
     const changedPersonIds = new Set<string>();
 
-    for (let index = 0; index < records.length; index += BATCH_SIZE) {
-      const batch = records.slice(index, index + BATCH_SIZE);
-      for (const record of batch) {
-        // Record-level isolation: a single record's failure must not abort the run.
-        // Skip cache invalidation per record; we batch one rebuild per affected feed below.
-        try {
-          const result = await materialiseAvailabilityPublication({
-            availabilityRecordId: record.id,
-            clerkOrgId: context.clerkOrgId,
-            invalidateCache: false,
-            organisationId: context.organisationId,
-          });
-          if (!result.ok) {
-            counts.failed += 1;
-            log.error("Failed to reconcile availability publication", {
-              availabilityRecordId: record.id,
-              clerkOrgId: context.clerkOrgId,
-              error: result.error.message,
-              organisationId: context.organisationId,
-            });
-            continue;
-          }
-          if (result.value.changed) {
-            counts.changed += 1;
-            changedPersonIds.add(record.person_id);
-          }
-        } catch (error) {
-          counts.failed += 1;
-          log.error("Unhandled error reconciling availability publication", {
-            availabilityRecordId: record.id,
-            clerkOrgId: context.clerkOrgId,
-            error,
-            organisationId: context.organisationId,
-          });
-        }
+    let cursor: string | null = null;
+    let pages = 0;
+
+    while (pages < MAX_PAGES) {
+      const records: Array<{ id: string; person_id: string }> =
+        await database.availabilityRecord.findMany({
+          cursor: cursor ? { id: cursor } : undefined,
+          orderBy: { id: "asc" },
+          select: { id: true, person_id: true },
+          skip: cursor ? 1 : 0,
+          take: PAGE_SIZE,
+          where: {
+            clerk_org_id: context.clerkOrgId,
+            organisation_id: context.organisationId,
+          },
+        });
+      if (records.length === 0) {
+        break;
       }
+      counts.scanned += records.length;
+
+      for (let index = 0; index < records.length; index += BATCH_SIZE) {
+        const batch = records.slice(index, index + BATCH_SIZE);
+        // Promise.all over already-caught promises: a single record's failure is
+        // recorded and the run continues, matching the record-level isolation
+        // rule for sync jobs. BATCH_SIZE is now a real concurrency limit rather
+        // than a cosmetic slice, and it is bounded by the database connection
+        // pool, not by CPU.
+        await Promise.all(
+          batch.map((record) =>
+            reconcileOne(context, record, counts, changedPersonIds)
+          )
+        );
+      }
+
+      cursor = records.at(-1)?.id ?? null;
+      pages += 1;
+      if (records.length < PAGE_SIZE) {
+        break;
+      }
+    }
+
+    if (pages >= MAX_PAGES) {
+      log.error("Reached MAX_PAGES limit while reconciling feed publications", {
+        clerkOrgId: context.clerkOrgId,
+        organisationId: context.organisationId,
+        pageSize: PAGE_SIZE,
+        pages,
+      });
     }
 
     if (changedPersonIds.size > 0) {
@@ -121,17 +127,17 @@ export async function reconcileFeedPublications(
         organisationId: context.organisationId,
         personIds: [...changedPersonIds],
       });
-      for (const feedId of feedIds) {
-        await inngest.send({
+      await inngest.send(
+        feedIds.map((feedId) => ({
           data: {
             clerkOrgId: context.clerkOrgId,
             feedId,
             organisationId: context.organisationId,
             reason: "publication_reconciled",
           },
-          name: "rebuild-feed-cache",
-        });
-      }
+          name: "rebuild-feed-cache" as const,
+        }))
+      );
       counts.feedsQueued = feedIds.length;
     }
 
@@ -145,6 +151,49 @@ export async function reconcileFeedPublications(
       },
       ok: false,
     };
+  }
+}
+
+async function reconcileOne(
+  context: { clerkOrgId: string; organisationId: string },
+  record: { id: string; person_id: string },
+  counts: ReconcileCounts,
+  changedPersonIds: Set<string>
+): Promise<void> {
+  // Record-level isolation: a single record's failure must not abort the run.
+  // Skip cache invalidation per record; we batch one rebuild per affected feed below.
+  try {
+    const result = await materialiseAvailabilityPublication({
+      availabilityRecordId: record.id,
+      clerkOrgId: context.clerkOrgId,
+      invalidateCache: false,
+      organisationId: context.organisationId,
+    });
+    if (!result.ok) {
+      counts.failed += 1;
+      log.error("Failed to reconcile availability publication", {
+        availabilityRecordId: record.id,
+        clerkOrgId: context.clerkOrgId,
+        error: result.error.message,
+        organisationId: context.organisationId,
+      });
+      return;
+    }
+    if (result.value.changed) {
+      // In single-threaded JavaScript runtime, mutating counts and changedPersonIds
+      // synchronously (+= 1, Set.add) from concurrent async callbacks is safe because
+      // neither yields mid-operation.
+      counts.changed += 1;
+      changedPersonIds.add(record.person_id);
+    }
+  } catch (error) {
+    counts.failed += 1;
+    log.error("Unhandled error reconciling availability publication", {
+      availabilityRecordId: record.id,
+      clerkOrgId: context.clerkOrgId,
+      error,
+      organisationId: context.organisationId,
+    });
   }
 }
 
