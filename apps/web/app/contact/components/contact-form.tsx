@@ -1,18 +1,6 @@
 "use client";
 
-import { Button } from "@repo/design-system/components/ui/button";
-import { Calendar } from "@repo/design-system/components/ui/calendar";
-import { Input } from "@repo/design-system/components/ui/input";
-import { Label } from "@repo/design-system/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@repo/design-system/components/ui/popover";
-import { cn } from "@repo/design-system/lib/utils";
-import { format } from "date-fns";
-import { CalendarIcon, Check, MoveRight } from "lucide-react";
-import { useState } from "react";
+import { Check, Clock, Mail } from "lucide-react";
 
 const contactCopy = {
   benefits: [
@@ -33,102 +21,76 @@ const contactCopy = {
     },
   ],
   description:
-    "Talk to us about getting your small business onto Team Calendar, connected to your Xero Payroll file. Tell us your team size and we will help you set up.",
-  form: {
-    cta: "Book your setup call",
-    date: "Preferred date",
-    firstName: "First name",
-    lastName: "Last name",
-    resume: "Upload file",
-    title: "Book a call",
-  },
+    "Talk to us about getting your Australian small business onto Team Calendar, connected to your Xero Payroll file.",
   title: "Get in touch",
 };
 
-export const ContactForm = () => {
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const preferredDateId = "preferred-date";
-  const uploadId = "contact-upload";
+export const ContactForm = () => (
+  <div className="fmkt-page marketing-simple">
+    <section className="marketing-simple__hero">
+      <div className="fmkt-container">
+        <div className="marketing-simple__grid marketing-simple__grid--two">
+          <div className="marketing-simple__intro">
+            <p className="marketing-simple__kicker">Contact</p>
+            <h1 className="marketing-simple__title">{contactCopy.title}</h1>
+            <p className="marketing-simple__lead">{contactCopy.description}</p>
+            <div className="marketing-simple__section-copy">
+              <ul className="marketing-simple__list">
+                {contactCopy.benefits.map((benefit) => (
+                  <li key={benefit.title}>
+                    <Check size={16} strokeWidth={1.8} />
+                    <span>
+                      <strong>{benefit.title}</strong>
+                      <br />
+                      {benefit.description}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
 
-  return (
-    <div className="fmkt-page marketing-simple">
-      <section className="marketing-simple__hero">
-        <div className="fmkt-container">
-          <div className="marketing-simple__grid marketing-simple__grid--two">
-            <div className="marketing-simple__intro">
-              <p className="marketing-simple__kicker">Contact</p>
-              <h1 className="marketing-simple__title">{contactCopy.title}</h1>
-              <p className="marketing-simple__lead">
-                {contactCopy.description}
-              </p>
-              <div className="marketing-simple__section-copy">
-                <ul className="marketing-simple__list">
-                  {contactCopy.benefits.map((benefit) => (
-                    <li key={benefit.title}>
-                      <Check size={16} strokeWidth={1.8} />
-                      <span>
-                        <strong>{benefit.title}</strong>
-                        <br />
-                        {benefit.description}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+          <div className="marketing-simple__panel space-y-4">
+            <h2 className="font-semibold text-xl">
+              Early Access Contact & Support
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              Team Calendar is in closed early access for AU Payroll
+              organisations. Our team responds to all onboarding and technical
+              enquiries directly.
+            </p>
+
+            <div className="space-y-3 rounded-lg border bg-muted/50 p-4">
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-primary" />
+                <span className="font-medium text-sm">Support email:</span>
+                <a
+                  className="font-semibold text-primary text-sm underline"
+                  href="mailto:support@teamcalendar.online"
+                >
+                  support@teamcalendar.online
+                </a>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                <Clock className="h-4 w-4" />
+                <span>
+                  Response hours: Monday – Friday, 9:00 AM – 5:00 PM AEST
+                </span>
               </div>
             </div>
 
-            <div className="marketing-simple__panel">
-              <h2>{contactCopy.form.title}</h2>
-              <div className="grid w-full max-w-sm items-center gap-1">
-                <Label htmlFor={preferredDateId}>{contactCopy.form.date}</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      className={cn(
-                        "w-full max-w-sm justify-start text-left font-normal",
-                        !date && "text-muted-foreground"
-                      )}
-                      id={preferredDateId}
-                      variant="outline"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? (
-                        format(date, "PPP")
-                      ) : (
-                        <span>{contactCopy.form.date}</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      autoFocus
-                      mode="single"
-                      onSelect={setDate}
-                      selected={date}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="grid w-full max-w-sm items-center gap-1">
-                <Label htmlFor="firstname">{contactCopy.form.firstName}</Label>
-                <Input id="firstname" type="text" />
-              </div>
-              <div className="grid w-full max-w-sm items-center gap-1">
-                <Label htmlFor="lastname">{contactCopy.form.lastName}</Label>
-                <Input id="lastname" type="text" />
-              </div>
-              <div className="grid w-full max-w-sm items-center gap-1">
-                <Label htmlFor={uploadId}>{contactCopy.form.resume}</Label>
-                <Input id={uploadId} type="file" />
-              </div>
-
-              <Button className="w-full gap-4">
-                {contactCopy.form.cta} <MoveRight className="h-4 w-4" />
-              </Button>
+            <div className="space-y-1 text-muted-foreground text-xs">
+              <p>
+                <strong>Scope:</strong> Xero Payroll Australia only.
+              </p>
+              <p>
+                <strong>Pricing:</strong> Confirmed with your organisation prior
+                to any future paid billing.
+              </p>
             </div>
           </div>
         </div>
-      </section>
-    </div>
-  );
-};
+      </div>
+    </section>
+  </div>
+);

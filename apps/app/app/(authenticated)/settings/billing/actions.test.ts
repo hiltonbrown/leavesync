@@ -30,6 +30,7 @@ const redirectUrl = "https://stripe.example/session";
 describe("billing actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("NEXT_PUBLIC_LAUNCH_MODE", "paid");
     mocks.requirePageRole.mockResolvedValue(undefined);
     mocks.requireActiveOrgPageContext.mockResolvedValue({ clerkOrgId });
     mocks.createCheckoutSession.mockResolvedValue({
@@ -42,6 +43,24 @@ describe("billing actions", () => {
     });
     mocks.redirect.mockImplementation(() => {
       throw new Error("NEXT_REDIRECT");
+    });
+  });
+
+  describe("early access mode gating", () => {
+    it("rejects checkout in early access mode", async () => {
+      vi.stubEnv("NEXT_PUBLIC_LAUNCH_MODE", "early_access");
+      await expect(startCheckout("basic")).rejects.toThrow(
+        "Paid billing operations are disabled during early access."
+      );
+      expect(mocks.createCheckoutSession).not.toHaveBeenCalled();
+    });
+
+    it("rejects portal in early access mode", async () => {
+      vi.stubEnv("NEXT_PUBLIC_LAUNCH_MODE", "early_access");
+      await expect(startPortal()).rejects.toThrow(
+        "Paid billing operations are disabled during early access."
+      );
+      expect(mocks.createPortalSession).not.toHaveBeenCalled();
     });
   });
 

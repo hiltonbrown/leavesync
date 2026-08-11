@@ -169,6 +169,7 @@
         "@types/node": "26.1.2",
         "@types/react": "19.2.18",
         "@types/react-dom": "19.2.4",
+        "@vitejs/plugin-react": "^6.0.5",
         "tailwindcss": "^4.3.3",
         "typescript": "^7.0.2",
         "vitest": "^4.1.10",
@@ -417,6 +418,7 @@
       "devDependencies": {
         "@repo/typescript-config": "*",
         "next": "16.3.0",
+        "vitest": "^4.1.10",
       },
     },
     "packages/notifications": {
