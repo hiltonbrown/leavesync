@@ -483,7 +483,6 @@ type TestTenant = typeof tenantA | typeof tenantB;
 
 async function setupTenant(tenant: TestTenant) {
   await database.organisation.upsert({
-    where: { id: tenant.organisationId },
     create: {
       clerk_org_id: tenant.clerkOrgId,
       country_code: "AU",
@@ -495,10 +494,10 @@ async function setupTenant(tenant: TestTenant) {
       country_code: "AU",
       name: `Test Org ${tenant.clerkOrgId}`,
     },
+    where: { id: tenant.organisationId },
   });
 
   await database.xeroConnection.upsert({
-    where: { id: tenant.xeroConnectionId },
     create: {
       access_token_encrypted: "encrypted-token",
       clerk_org_id: tenant.clerkOrgId,
@@ -514,10 +513,10 @@ async function setupTenant(tenant: TestTenant) {
       organisation_id: tenant.organisationId,
       status: "active",
     },
+    where: { id: tenant.xeroConnectionId },
   });
 
   await database.xeroTenant.upsert({
-    where: { id: tenant.xeroTenantId },
     create: {
       clerk_org_id: tenant.clerkOrgId,
       id: tenant.xeroTenantId,
@@ -535,12 +534,12 @@ async function setupTenant(tenant: TestTenant) {
       xero_connection_id: tenant.xeroConnectionId,
       xero_tenant_id: `xero-${tenant.xeroTenantId}`,
     },
+    where: { id: tenant.xeroTenantId },
   });
 }
 
 async function setupPerson(tenant: TestTenant) {
   await database.person.upsert({
-    where: { id: tenant.personId },
     create: {
       clerk_org_id: tenant.clerkOrgId,
       clerk_user_id: ownerUserId(tenant),
@@ -566,6 +565,7 @@ async function setupPerson(tenant: TestTenant) {
       source_system: "XERO",
       xero_employee_id: tenant.xeroEmployeeId,
     },
+    where: { id: tenant.personId },
   });
 }
 
