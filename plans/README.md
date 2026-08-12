@@ -1,406 +1,301 @@
-# Team Calendar implementation and go-live plans
+# Team Calendar implementation plans
 
 This directory is the implementation backlog produced by the `improve` skill.
 Every plan is self-contained and must be drift-checked before execution.
 
-This index was reconciled on 2026-08-05 against local `main` at commit
-`f1884db`. It classifies all 49 plans by release stage and records the current
-go-live decision.
+**Reconciled and re-planned on 2026-08-12 against local `main` at commit
+`121da2a`.** The 45 completed plans were verified against current source and
+their files removed; their outcomes are in the ledger below. Plans 051 to 068 are
+new, and between them address all 35 findings from the 2026-08-12 audit.
 
-**Plans 047 and 048 re-reconciled on 2026-08-06 at commit `454ded7`.** Both
-remain DONE: every done criterion was re-run on current `HEAD` and passed. The
-reconciliation also corrected the local test command that plan 048 published and
-that later plans were inheriting; see "Verified state" below.
+Recover any removed plan with `git show HEAD:plans/<filename>`.
 
-## What changed in this reconciliation
+## Verified gate state
 
-Eight plans that the previous index recorded as BLOCKED are **DONE**. They were
-implemented, merged and verified; every one of them was blocked on the same two
-environmental problems rather than on anything wrong with the change itself.
-Those problems have been traced to root cause and given their own plans.
-
-**Three cross-cutting blockers owned what was previously mislabelled as eight
-separate plan failures. One is now resolved; two remain:**
-
-| Blocker | Evidence | Owner | State |
-|---|---|---|---|
-| The dependency refresh that fixes the test gate was **uncommitted** | 25 modified manifests plus `bun.lock`; CI installs `--frozen-lockfile` from the committed one | [047](047-land-the-uncommitted-dependency-refresh.md) | **RESOLVED**, committed as `f1884db` |
-| `bun run check` fails with **2,589 diagnostics across 381 files** | CI runs it at `.github/workflows/ci.yml:49`, before typecheck and tests, so CI never reaches the test step | [048](048-make-the-lint-gate-passable.md) | **RESOLVED**, merged as `b015511` |
-| `bun run build` **crashes** the Bun runtime on `apps/app` | `panic: Segmentation fault at address 0x13CB0`; the identical build under Node 24 exits 0 | [049](049-run-next-build-under-node.md) | **RESOLVED**, merged as `8adeaa5`, verified at `44c2eb6` |
-
-The first is why plans 002, 004, 006, 007 and 008 were each reported blocked on
-"installed `react` and `react-dom` patch versions differ": the manifests pinned
-`react@19.2.7` against `react-dom@19.2.8`, an unsatisfiable peer pair that broke
-test setup before any app test file loaded. Committing `f1884db` fixed that and
-also cleared the `sharp` advisory that blocked plan 005, so plans 002 to 008 are
-all now verifiably DONE.
-
-The second and third are pre-existing and repo-wide. Neither was caused by any
-plan. Both were being absorbed silently by executors, which is worse than
-failing loudly.
-
-**Verified state at `f1884db`, 2026-08-05:**
+Measured on this commit, not inherited from the previous reconciliation:
 
 | Gate | Result |
 |---|---|
-| `bun run test` | exit 0, `10 successful, 10 total`, app 53 files / 175 tests, api 13 files / 101 tests |
-| `bun run typecheck` | exit 0 |
-| `bun audit` | **2 vulnerabilities (1 moderate, 1 low)**, down from 43; no `next`, `hono`, `fast-uri` or `sharp` |
-| `bun run check` | **exit 0** on `main` since `b015511` (plan 048). Keep it that way: it is now a real gate |
-| `bun run test` | **Not a usable local gate.** Ten concurrent workspaces starve the vitest forks pool and the `app` suite dies with `Failed to start forks worker`, on clean `main` too. Turbo's `10 successful, 10 total` is a task count, not a test count. Use the per-package commands in the next table |
-| `bun run build` | **exit 0, `4 successful, 4 total`** on `main` since `8adeaa5` (plan 049), verified at `44c2eb6` on 2026-08-06. It is now a real gate |
-| `bun run test:integration` | **exit 1** in `@repo/database` against live Neon. Independent of plans 047 to 049; needs its own plan |
+| `bun run check` | **exit 0**, 757 files checked in 92s |
+| `bun run typecheck` | **exit 0** |
+| `bun run test` | **exit 0**, 17/17 tasks. `apps/app` 65 files / 254 tests, `@repo/feeds` 10 / 108, `@repo/core` 2 / 18, `web` 3 / 7 |
+| `bun run build` | exit 0 as of `8adeaa5` (plan 049); not re-run on this commit |
+| `bun run test:integration` | **not verified.** Needs a live `DATABASE_URL`; no local Postgres on the operator host |
 
-**How to run tests locally. Corrected 2026-08-06 at `454ded7`; supersedes the
-command previously published in plan 048.** Both of the old forms produce
-output that looks like a regression but is not, which is the exact failure mode
-that cost this backlog eight wrongly-blocked plans:
+This supersedes the previous index's claim that `bun run test` is "not a usable
+local gate". It is now a real gate and should be treated as one. The per-package
+commands recorded under plan 048 are no longer necessary, though they remain
+valid for narrowing a run.
 
-| Suite | Command | Expected |
-|---|---|---|
-| `app` | `cd apps/app && bunx vitest run --maxWorkers=1 --testTimeout=60000` | `Test Files 53 passed (53)`, `Tests 175 passed (175)` |
-| every other package | `cd <pkg> && NODE_ENV=test bunx vitest run --exclude '**/*.integration.test.ts' --maxWorkers=2 --testTimeout=30000` | the baseline table in plan 048 |
+The integration lane is the one gate still unproven. **Plan 051 is the likely
+cause and is first in the queue for that reason.**
 
-- `--maxWorkers=2` is **too high for the `app` suite** on a loaded workstation.
-  It returned `49 passed (49)` / `156 passed (156)` with a separate `Errors 4`
-  line: four files were never collected, yet every collected file passed.
-  **Read the `Errors` line, not just the pass counts.** At `--maxWorkers=1` the
-  same tree returns the full 53 / 175.
-- A bare `bunx vitest run` outside `apps/app` runs **more** than that package's
-  own `test` script, which sets `NODE_ENV=test` and
-  `--exclude '**/*.integration.test.ts'`. Without the exclusion, integration
-  tests needing a live `DATABASE_URL` are swept in and fail:
-  `4 failed | 4 passed` in `@repo/database`, `1 failed | 12 passed` in
-  `@repo/jobs`. With it, both match baseline exactly.
+## Execution order and status
 
-All ten packages were confirmed against the plan 048 baseline at `454ded7`:
-core 2/18, database 3/8, notifications 6/28, feeds 9/70, billing 1/4,
-availability 33/228, xero 16+1 skipped / 159+3 skipped, app 53/175, jobs 9/40,
-api 13/101.
+Plans are ordered by leverage, with dependencies respected. Each row is merged to
+`main` before the next begins unless the parallel note says otherwise.
 
-## Current go-live decision
+| # | Plan | Priority | Effort | Risk | Depends on | Status |
+|---|---|---|---|---|---|---|
+| 1 | [051](051-isolate-the-jobs-integration-test-fixtures.md) Isolate the jobs integration fixtures | P1 | S | LOW | — | TODO |
+| 2 | [052](052-correct-the-timezone-contract-for-working-day-units.md) Correct the timezone contract for working-day units | P1 | M | MED | — | TODO |
+| 3 | [053](053-guard-the-inbound-leave-upsert-against-stale-writes.md) Guard the inbound leave upsert | P1 | S | MED | — | TODO |
+| 4 | [054](054-keep-synced-leave-in-the-feed-for-its-whole-last-day.md) Keep synced leave in the feed for its last day | P1 | S | MED | — | TODO |
+| 5 | [055](055-make-launch-mode-safe-in-the-browser.md) Make launch mode safe in the browser | P1 | S | LOW | — | TODO |
+| 6 | [057](057-make-failures-visible-and-scrub-what-is-logged.md) Make failures visible, scrub what is logged | P1 | S | LOW | — | TODO |
+| 7 | [056](056-give-the-approval-reconciler-a-cursor.md) Give the approval reconciler a cursor | P2 | M | LOW | needs `DATABASE_URL` | TODO |
+| 8 | [058](058-bound-the-unbounded-sync-loops.md) Bound the unbounded sync loops | P2 | M | MED | 053 | TODO |
+| 9 | [059](059-make-the-notification-stream-reliable-and-affordable.md) Make the notification stream reliable | P2 | M | MED | — | TODO |
+| 10 | [060](060-project-explicit-columns-in-the-analytics-services.md) Project explicit columns in analytics | P2 | S | LOW | — | TODO |
+| 11 | [061](061-halve-the-work-on-the-ics-feed-read-path.md) Halve the work on the ICS read path | P2 | S | LOW | 054 | TODO |
+| 12 | [063](063-close-the-validation-and-authorisation-gaps.md) Close the validation and authorisation gaps | P2 | M | LOW | — | TODO |
+| 13 | [066](066-test-the-untested-money-and-tenancy-paths.md) Test the money and tenancy paths | P2 | M | LOW | 051 | TODO |
+| 14 | [062](062-enforce-a-content-security-policy.md) Enforce a Content Security Policy | P2 | M | MED | — | TODO |
+| 15 | [067](067-consolidation-and-hygiene.md) Consolidation and hygiene | P3 | S | LOW | — | TODO |
+| 16 | [064](064-harden-the-public-feed-and-support-surfaces.md) Harden the public feed and support surfaces | P3 | M | LOW | 061 | TODO |
+| 17 | [065](065-unify-the-public-holiday-predicate.md) Unify the public holiday predicate | P3 | M | **MED** | 060, 061 | TODO, **decision required** |
+| 18 | [068](068-merge-the-twin-analytics-services.md) Merge the twin analytics services | P3 | L | MED | 060, 065 | TODO |
 
-**NO-GO for production today.**
+**Plan 051 goes first.** Until the integration lane is trustworthy, every later
+plan's `bun run test:integration` gate is unverifiable, and two of them (056, 066)
+depend on it directly.
 
-The recommended first production release is a **closed AU early access**, not
-unrestricted general availability:
+Every numbered file in this directory is an executable implementation plan.
+`gtm-team-calendar-go-to-market-plan.md` is deliberately unnumbered: it is a
+business strategy document, not work for an executor, and is not part of this
+queue.
 
-- AU Xero Payroll only;
-- a small, named customer cohort with guided onboarding;
-- no paid self-service checkout;
-- monitored support and explicit incident ownership;
-- cohort expansion only after the later gates in this index are complete.
+**Plan 065 must not start without an operator decision.** It changes what
+customers see on three surfaces by design. Its "The decision this plan must make
+first" section has to be agreed before any code is written.
 
-Go-live becomes a **GO** only when every plan in the required go-live table is
-DONE on the release commit and plan 046 completes its deployment and 72-hour
-review. A small cohort is not permission to waive an authorisation, payroll,
-privacy, feed, test, migration, backup or support gate.
-
-## At a glance
-
-| Stage | Requirement | Current state |
-|---|---|---|
-| Unblock the verification baseline | Complete plans 048 and 049 | **Do these first.** Plan 047 is done; nothing else can be honestly verified until the other two land |
-| Closed AU early access | Complete plans 010-013, 015-020, 027, 035, 038, 050 and 042-046 | NO-GO, all TODO |
-| Broader cohort or public GA | Complete plans 028, 029, 034 and 036 after the early-access gate | Not started |
-| Scale-triggered work | Reassess and execute plan 030 when production data shows the named round trips matter | Deferred pending evidence |
-| Architecture maintenance | Complete plans 031 and 039 when launch stabilises or the affected area changes | Deferred |
-| NZ or UK launch | Complete plan 037 and create follow-on implementation plans from the spike | Outside AU scope |
-
-Completed plans remain part of the release baseline. Plan 024 is rejected and
-must not be executed because plan 041 supersedes it.
-
-## Execute these first: the verification baseline
-
-**All three P0 baseline plans are now DONE.** Plan 047 landed the dependency
-refresh, plan 048 restored `bun run check`, and plan 049 restored `bun run
-build`. The verification baseline is established: `check`, `typecheck` and
-`build` are all real, passing gates on `main`.
-
-One gap remains in that baseline. `bun run test` and `bun run test:integration`
-both exit 1, for reasons independent of plans 047 to 049: the vitest forks pool
-starves under ten concurrent workspaces, and the live-Neon integration suites
-fail and pollute shared database state. Use the per-package commands above.
-**This is the next thing to plan.**
-
-| Plan | Required outcome | Priority | Status |
-|---|---|---|---|
-| [047](047-land-the-uncommitted-dependency-refresh.md) | The react pins, `next 16.3.0` and the refreshed lockfile are committed, so CI and fresh worktrees install the same working dependency set | P0 | **DONE** (`f1884db`). **Re-verified 2026-08-06** at `454ded7` and `44c2eb6`: pins all `19.2.8`, one copy of each in `node_modules`, lockfile clean and frozen-install clean, typecheck 0, audit unchanged at 2 |
-| [048](048-make-the-lint-gate-passable.md) | `bun run check` exits 0, so the lint gate stops blocking every plan and CI reaches its test step | P0 | **DONE**, reviewed and merged to `main` as `b015511` (6 commits, 373 files). **Re-verified 2026-08-06** at `454ded7` and `44c2eb6`: `check` exit 0, `typecheck` exit 0, all ten packages match baseline. Its published test command was wrong and is corrected above |
-| [049](049-run-next-build-under-node.md) | `bun run build` exits 0 for all four tasks, unblocking plans 005, 016 and 046 | P0 | **DONE and VERIFIED**: implementation `71fa962`, merged as `8adeaa5`, verified on the operator host at `44c2eb6` on 2026-08-06. `bun run build` exit 0, `4 successful, 4 total`; `apps/app` prints `ƒ Proxy (Middleware)`. The earlier "review host blocks Turbopack" report was a misdiagnosis: a stale `apps/web/.next` carrying a `dev/lock`, which reproduced under the old `bun --bun` command too |
-
-Plan 047 is done and needs no execution; it is retained as the record of the
-misdiagnosis and for the Dependabot grouping recommendation in its maintenance
-notes. **048 and 049 are independent and may run in parallel.**
-
-## Required before closed AU early-access go-live
-
-These are release blockers. `TODO` means the app remains a no-go.
-
-### Product safety, privacy and payroll integrity
-
-| Plan | Required outcome | Status |
-|---|---|---|
-| [010](010-return-auth-error-instead-of-throwing-on-token-decrypt.md) | Token decryption failures remain typed, diagnosable Xero errors | DONE |
-| [011](011-fail-closed-on-decline-reason-policy.md) | A settings failure cannot disable the decline-reason policy | DONE |
-| [012](012-move-failure-notifications-out-of-the-state-transaction.md) | Notification failure cannot roll back durable Xero failure state | DONE |
-| [013](013-paginate-and-narrow-the-approvals-list-query.md) | Raw Xero and write-error audit payloads never cross the manager browser boundary; the list is bounded | DONE, merged (`96ef8df`) |
-| [017](017-make-leave-submission-idempotent.md) | Retries and concurrent requests cannot create duplicate Xero leave applications | DONE, executed and reviewed 2026-08-07, worktree `agent-a1fad24dc4709a3c0` branch `fix/idempotent-leave-submission-017` (`b8c2aa3`, `f3caaeb`, `e237d78`, `cf1210c`), unmerged |
-| [018](018-clear-stale-xero-write-errors-on-status-change.md) | Reconciled records do not retain misleading stale write errors | DONE, executed and reviewed 2026-08-07, worktree `agent-a456001f35e41133c` branch `fix/clear-stale-xero-write-errors-018` (`08ea636`), unmerged |
-| [019](019-close-two-tenant-scoping-gaps-in-server-actions.md) | Feed and Xero-match actions enforce both tenant keys | PARTIAL: feed-lookup half DONE, merged (`b56106b`, cherry-picked from `af2c344`); Xero-match half superseded by [050](050-scope-the-xero-match-surface-to-a-single-organisation.md), which hit a genuine STOP in 019 requiring widened scope |
-| [050](050-scope-the-xero-match-surface-to-a-single-organisation.md) | The Xero person-match surface (list, resolve) is scoped to one Organisation, not the whole Clerk Org | DONE, executed and reviewed 2026-08-07, worktree `fix-scope-xero-matches-to-organisation` branch `fix-scope-xero-matches-to-organisation` (`297ba7d`), unmerged — `bun run check` 0, `typecheck` 0, `apps/app` vitest 54/177 (53/175 + 2); done-criteria greps 4/5 use `-A8`/`-A6` windows too small for formatted file but `organisation_id` verified present in both `where` clauses; extra out-of-scope fix in `sync-xero-leave-records.ts` (duplicate `clearedWriteError`) required for `typecheck` |
-| [027](027-validate-the-clerk-user-before-binding-it-to-a-person.md) | A Person can bind only to a valid Clerk member of the active organisation | **DONE** — verified 2026-08-07 at `f09386e` on `main` (`80434d3` landed worktree fix, `297ba7d` for 050; greps: `clerkClient` 2, membership precedes `$transaction`, `already linked` 1, `startsWith("user_")` present, `getOrganizationMembershipList({userId:[…]})` with fail-closed `log.error`, `person.findFirst` uniqueness check, co-located test 8 tests). Depends on 050 (`050 -> 027`), both now DONE. Global `check`/`typecheck` currently red from pre-existing `@repo/availability` diagnostics, not this plan. |
-| [038](038-bound-the-approval-reconciler-so-it-can-be-enabled.md) | Approval reconciliation is bounded, resumable and safe to schedule | DONE |
-| [042](042-correct-all-day-ics-date-boundaries.md) | One-day and multi-day all-day leave emit correct exclusive ICS end dates | DONE, merged to `main` as `f09386e` |
-| [043](043-preserve-retryable-feed-errors.md) | Transient feed failures return a retryable response instead of permanent 404 | **DONE**, executed and reviewed 2026-08-10, commit `5670ff5`, branch `fix-retryable-ics-render-errors` |
-
-Plan 013 is deliberately in this table, not the later performance table. Its
-pagination work is scale-related, but its explicit projection also prevents
-`source_payload_json` and `xero_write_error_raw` from being serialised to a
-client component. That data-minimisation boundary is required before the first
-customer. Re-verified on 2026-08-05: the query at `approval-service.ts:258`
-still has no `take` and still uses `include`, which selects every scalar column.
-
-Plans 018 and 038 are also deliberate launch gates because the current release
-decision includes nightly approval reconciliation through plan 044. Moving that
-chain later requires an explicit product decision to launch with reconciliation
-disabled, followed by consistent changes to PRODUCT.md, plans 044 and 046, the
-pilot acceptance script and the customer support model.
-
-### Reproducible verification and dependency safety
-
-| Plan | Required outcome | Status |
-|---|---|---|
-| [015](015-enable-the-test-harness-in-six-untestable-workspaces.md) | Root and CI tests enter every owned workspace, including auth and web | DONE |
-| [016](016-add-a-build-step-to-ci.md) | CI requires a production build for all deployable apps | **DONE** (merged `e38511f`) |
-| [020](020-run-the-xero-disconnect-integration-test.md) | Destructive Xero disconnect isolation runs in the integration lane | **DONE** |
-| [035](035-fix-the-turborepo-task-graph.md) | Test and typecheck tasks express their real dependencies and do not false-green | **DONE** |
-
-Plan 016 was gated on plan 049 so that CI would not gain a build step that
-failed on its first run. Plan 049 is now done and verified, so plan 016 is free
-to execute.
-
-### Production behaviour and launch controls
-
-| Plan | Required outcome | Status |
-|---|---|---|
-| [044](044-schedule-au-xero-syncs.md) | Active AU tenants receive bounded people, leave and balance syncs; nightly approval reconciliation is enabled only after 018 and 038 | **DONE** |
-| [045](045-make-closed-au-early-access-truthful-and-deployable.md) | Public journeys, billing controls, production preflight, help and telemetry match closed early access | **DONE** |
-| [046](046-execute-closed-au-early-access-go-live.md) | Clean release gates, migration and restore rehearsal, production configuration, pilot acceptance, staged deployment, rollback and 72-hour review all pass | **DONE** |
-
-Plan 044's inbound-scheduling prerequisites (plans 003 and 006) are now **DONE**,
-so its inbound half is unblocked. Its nightly approval reconciliation still
-waits on plans 018 and 038; plan 007, the third member of that chain, is done.
-
-Plan 046 is the final release-control plan. It must not be used to discover or
-implement an unfinished dependency during the launch window.
-
-## Recommended execution order
-
-**Execution is serial. One plan at a time, merged to `main` before the next
-begins.**
-
-Fan-out across plans is not used. Four of the queued plans (011, 013, 018 and
-012) all modify `packages/availability/src/approvals/approval-service.ts`, so
-running them concurrently produces conflicts in a single file that carries the
-approval state machine. Parallel execution would also invalidate the drift
-excerpts of whichever plan lands second. The cost of serialising the whole queue
-is lower than the cost of resolving conflicts in that file, and the queue is
-short enough that the throughput loss does not matter.
-
-### Before the queue: run manually and merge
-
-**Both prerequisites are now DONE and merged. The queue is clear to start.**
-
-1. **049**, so `bun run build` stops crashing the Bun runtime on `apps/app`.
-   Merged as `8adeaa5`, verified at `44c2eb6`: `bun run build` exits 0,
-   `4 successful, 4 total`.
-2. **048**, so `bun run check` exits 0. Merged as `b015511`, re-verified at
-   `44c2eb6`.
-
-Queued plans can now be honestly evaluated against `bun run check`,
-`bun run typecheck` and `bun run build`. The one caveat: `bun run test` and
-`bun run test:integration` still exit 1 for unrelated reasons, so use the
-per-package test commands above rather than the turbo-wide ones.
-
-Both failures are confirmed live, not theoretical. CI run 31071757693 fails at
-its `bun run check` step with `Found 2589 errors` and never reaches typecheck or
-either test lane, and every Vercel deployment of `main` since `754a5aac` has
-failed the build, including production. Plan 049 is repairing a live deployment
-outage.
-
-**Production is confirmed green, 2026-08-07.** All three apps deployed `6ae7291`
-to production and reached `READY`, the first green production builds since
-`754a5aac`. The crash was platform-sensitive, appearing as a segfault on local
-`arm64` and as a module-loading `TypeError` on Vercel's x64 builders, so the
-deployment was the authoritative test and it passed.
-
-One lesson worth keeping: the fix sat committed but **unpushed** for a day while
-production stayed broken, because a passing local build was mistaken for a
-cleared outage. For a deployment-affecting fix, check `git rev-list origin/main..main`
-and the newest Vercel deployment commit before calling it done. Neither plan can
-deadlock the queue on a
-non-reproducing machine.
-
-### The queue
-
-Each row is merged to `main` before the next begins.
-
-| Position | Plan | Reason this position is fixed |
-|---|---|---|
-| 1 | [035](035-fix-the-turborepo-task-graph.md) | `035 -> 015`. Fixes the Turborepo task graph that false-greens `test` and `typecheck`, so every later gate is trustworthy |
-| 2 | [015](015-enable-the-test-harness-in-six-untestable-workspaces.md) | Test harness must exist in all six workspaces before a green `bun run test` means anything |
-| 3 | [016](016-add-a-build-step-to-ci.md) | Requires 049, which is merged before the queue starts |
-| 4 | [020](020-run-the-xero-disconnect-integration-test.md) | Grouped with the gates, but needs a live `DATABASE_URL`; may be deferred and run standalone without blocking the queue |
-| 5 | [010](010-return-auth-error-instead-of-throwing-on-token-decrypt.md) | Isolated in `packages/xero`, no dependencies either way; serves as the loop's smoke test |
-| 6 | [042](042-correct-all-day-ics-date-boundaries.md) | `packages/feeds`, independent |
-| 7 | [043](043-preserve-retryable-feed-errors.md) | `packages/feeds`, independent |
-| 8 | [017](017-make-leave-submission-idempotent.md) | Submission path, independent of the approvals cluster |
-| 9 | [019](019-close-two-tenant-scoping-gaps-in-server-actions.md) | Feed-lookup half DONE, merged (`b56106b`). The matches-file half is superseded by 050 |
-| 10 | [050](050-scope-the-xero-match-surface-to-a-single-organisation.md) | Closes 019's Gap 2 with widened scope (`page.tsx`, `matches-client.tsx`, `_actions.ts`). `050 -> 027`, same file as 027 |
-| 11 | [027](027-validate-the-clerk-user-before-binding-it-to-a-person.md) | Depends on 050 (same file, adjacent lines) rather than 019 directly |
-| 12 | [011](011-fail-closed-on-decline-reason-policy.md) | Approvals cluster. Smallest change, target sites are grep-findable rather than line-dependent |
-| 13 | [013](013-paginate-and-narrow-the-approvals-list-query.md) | Approvals cluster |
-| 14 | [018](018-clear-stale-xero-write-errors-on-status-change.md) | Approvals cluster. `018 -> 038` |
-| 15 | [012](012-move-failure-notifications-out-of-the-state-transaction.md) | Approvals cluster, last. Moving notifications out of the state transaction is the largest structural change and would otherwise shift the other three |
-| 16 | [038](038-bound-the-approval-reconciler-so-it-can-be-enabled.md) | Depends on 018 |
-| 17 | [044](044-schedule-au-xero-syncs.md) | Depends on 018 and 038 for nightly approval reconciliation |
-| 18 | [045](045-make-closed-au-early-access-truthful-and-deployable.md) | Must be complete before deployment |
-
-Positions 11 to 14 are the approvals cluster. They are ordered smallest change
-first and largest structural change last, so each one disturbs the next as
-little as possible. Every plan in that cluster carries a `## Drift warning`
-section: its excerpts must be re-reviewed against current `HEAD` immediately
-before that plan executes, because the pass that produced them expires as soon
-as the first cluster plan merges.
-
-### After the queue: run manually
-
-**046**, the release-control plan. It must not be used to discover or implement
-an unfinished dependency during the launch window.
-
-### Plan 020 may be deferred and run standalone
-
-Plan 020 turns on the Xero disconnect integration test, and its own STOP
-conditions require a disposable `DATABASE_URL` to prove the test actually
-executes. If no disposable database is available when position 4 comes up, skip
-it and continue to position 5. Run it standalone whenever a database becomes
-available.
-
-Deferring 020 blocks nothing. No other plan depends on it, and it depends on
-nothing beyond the pre-queue gates. It remains a required go-live row, so it
-must be DONE before 046 regardless of when it runs.
-
-Plan 017 at position 8 also needs a reachable `DATABASE_URL`, because it adds
-`xero_write_claimed_at` and generates a migration. Unlike 020, it is in the
-serial path. Its instructions now direct the executor to use the `DATABASE_URL`
-already present in the environment, with `packages/database/.env` as the
-documented fallback.
-
-### Excluded from the queue, deliberately
-
-- **046**, run by hand after the queue, as above.
-- The deferred plans classified below: 028, 029, 030, 031, 034, 036, 037 and
-  039. Their triggers are stated in "Required after early access" and are
-  unchanged.
-
-### Hard dependency graph
+### Dependency notes
 
 ```text
-047 (DONE) -> everything with a `bun run test` gate
-048 -> everything with a `bun run check` gate
-049 -> 016 -> 005 build verification
-049 -> everything with a `bun run build` gate
-
-035 -> 015
-050 -> 027
-018 -> 038
-
-044 inbound scheduling: unblocked (003 and 006 DONE)
-018 + 038 -> 044 nightly approval reconciliation
-
-048 + 049
-+ 010 + 011 + 012 + 013 + 015 + 016 + 017
-+ 018 + 019 + 020 + 027 + 035 + 038 + 050
-+ 042 + 043 + 044 + 045
--> 046
+051 -> 056, 066            (integration lane must be trustworthy; 066 claims a UUID prefix)
+053 -> 058                 (same handler file; 053 is the smaller diff)
+054 -> 061                 (same projection file)
+060 + 061 -> 065           (065 narrows what the predicate reads; both must land first)
+060 + 065 -> 068           (068 adopts the shared projection and shared predicate)
 ```
 
-019's feed-lookup gap is independent of 027; only its matches-file gap, now
-owned by 050, is same-file adjacent to 027.
+Everything not named above is independent and may run in any order.
 
-## Required after early access
+### May run in parallel
 
-These plans do not block a small, supervised AU cohort. They become mandatory
-at the trigger stated below.
+051, 052, 055, 057 and 059 touch disjoint files and can run concurrently if
+throughput matters. Do **not** parallelise 053 with 058, 054 with 061, or
+anything with 065 and 068.
 
-### Before broader self-service or unrestricted general availability
+## Deferred plans from the earlier backlog
 
-| Plan | Trigger and required outcome | Status |
+Still valid, still TODO, unchanged by this audit.
+
+| Plan | Required outcome | Trigger |
 |---|---|---|
-| [028](028-fix-three-test-quality-gaps.md) | Before GA: pin role hierarchy, feed-preview privacy and tenant-query behaviour with meaningful tests | **DONE**, executed and reviewed 2026-08-11, worktree `subagent-Plan-Executor--Plan-028--self-c662bdac` branch `test/close-three-coverage-gaps` (`91be435`, `f5a12c7`) |
-| [029](029-test-the-untested-server-actions.md) | Before GA: cover authenticated mutation boundaries after plans 019, 050 and 027 settle their final shape | **DONE**, executed and reviewed 2026-08-11, worktree `subagent-Plan-Executor--Plan-029--self-8e928d4d` branch `test/server-action-coverage` (`878809d`, `49219ef`, `a06cf63`) |
-| [034](034-bound-and-batch-the-feed-publication-reconciler.md) | Before enabling global feed reconciliation or materially increasing tenant count: bound and batch the job | **DONE**, executed and reviewed 2026-08-11, worktree `subagent-Plan-Executor--Plan-034--self-995e9c92` branch `perf/bound-the-feed-publication-reconciler` (`350e425`, `ab49530`, `8b9134c`, `2f1baef`) |
-| [036](036-stop-returning-a-cross-tenant-existence-oracle.md) | Before unrestricted GA: keep server-side detection but return indistinguishable not-found errors | **DONE**, executed and reviewed 2026-08-11, worktree `subagent-Plan-Executor--Plan-036--self-d2df593a` branch `fix/no-cross-tenant-existence-oracle` (`c7f3396`) |
-
-Plan 034 should move into the go-live gate if global feed-publication
-reconciliation is enabled for the first cohort. Plan 028 should move into the
-go-live gate if acceptance testing cannot independently prove its role,
-privacy-preview and tenant-isolation cases.
-
-### Scale-triggered performance work
-
-| Plan | Trigger and required outcome | Status |
-|---|---|---|
-| [030](030-remove-three-avoidable-round-trip-patterns.md) | Re-profile after real early-access traffic; execute the affected parts before organisation lookup, holiday import or people-directory costs breach agreed service targets | TODO |
+| [030](030-remove-three-avoidable-round-trip-patterns.md) | Remove avoidable round trips in organisation lookup, holiday import and the people directory | Re-profile after real early-access traffic; execute only the parts supported by measured cost |
+| [031](031-fix-the-database-package-boundary.md) | Correct the `packages/database` export and client boundary | Before the next material database export/client-boundary refactor |
+| [037](037-spike-nz-and-uk-payroll-write-back.md) | Spike NZ and UK payroll write-back and produce follow-on plans | Before committing to an NZ or UK launch |
+| [039](039-decide-what-to-do-with-the-html-feed-renderer.md) | Decide whether to expose, extend or delete the HTML feed renderer | Before relying on the renderer; otherwise choose deletion as maintenance |
 
 Do not execute plan 030 solely because it exists. Capture production timings
-first and retain only the changes supported by measured cost.
+first. The current release must continue to present AU as the only supported
+payroll write-back region until plan 037 is done and its follow-ons land.
 
-### Architecture and product decisions after launch stabilisation
+## Rejected
 
-| Plan | When it becomes required | Status |
+| Plan | Rationale |
+|---|---|
+| [024](024-harden-env-validation-in-the-app-and-web-apps.md) | An outer app `createEnv()` cannot repair values already validated by package-level `createEnv()` calls. Plan 041 was the implemented replacement and is done. **Do not execute.** Retained only as the record of why the approach fails; safe to delete |
+
+## Finding to plan map
+
+Every finding from the 2026-08-12 audit, and where it is addressed. Findings were
+verified by reading the cited code, not taken from a subagent report.
+
+| Finding | Summary | Plan |
 |---|---|---|
-| [031](031-fix-the-database-package-boundary.md) | Before the next material database export/client-boundary refactor; plan 032 is already complete | TODO |
-| [039](039-decide-what-to-do-with-the-html-feed-renderer.md) | Before exposing, extending or relying on the HTML renderer; otherwise choose deletion as maintenance | TODO, decision required |
+| C-01 | Working-day units written to Xero payroll are wrong for every AU/NZ org | 052 |
+| C-02 | Inbound leave sync overwrites newer local approval state | 053 |
+| C-03 | Xero-synced leave leaves the ICS feed part-way through its last day | 054 |
+| C-04 | `getLaunchMode()` throws inside client components when the env var is unset | 055 |
+| C-05 | Approval reconciler starves records past the first 500 (residual after plan 038) | 056 |
+| C-06 | Seven bare catches discard the post-Xero-write failure | 057 |
+| C-07 | Leave-balance sync is unbounded and outlives its Xero token | 058 |
+| C-08 | SSE poll errors swallowed; stream stays open and silent | 059 |
+| C-09 | Resolved not-found reconciliation also counted as a failure | 056 |
+| S-01 | The log scrubber is wired to no sink at all | 057 |
+| S-02 | CSP is report-only, unenforceable, and not reporting; no HSTS | 062 |
+| S-03 | Availability routes read the tenant key outside the Zod schema | 063 |
+| S-04 | `createInitialToken` mints a plaintext token with no role check, no callers | 063 |
+| S-05 | Stripe webhook trusts `metadata.clerk_org_id` as sole tenant key | 063 |
+| S-06 | `proxy.ts` protects nothing while `CLAUDE.md` says it does | 067 (doc half); see note |
+| S-07 | ICS endpoint distinguishes 404 from 410; no rate limit | 064 |
+| S-08 | Support form exports tenant PII and interpolates untrusted text | 064 |
+| P-01 | Analytics pulls raw Xero payloads into the RSC | 060 |
+| P-02 | Duplicate `NotificationsProvider` plus a 2s KV poll per connection | 059 |
+| P-03 | ICS cache miss does the token lookup and KV read twice | 061 |
+| P-04 | Stale-record archive is unbounded | 058 |
+| P-05 | Holidays fetched a whole year at a time with an unused join | 061 |
+| A-01 | Eight `labelForRecordType` copies; `Wfh` vs `WFH` reaches subscribers | 067 |
+| A-02 | Five divergent holiday predicates; four schema scopes ignored | 065 |
+| A-03 | Two hand-rolled KV clients; notifications has no `keys.ts` | 067 |
+| A-04 | The twin analytics services | 068 |
+| T-01 | Two integration test files claim the same six primary keys | 051 |
+| T-02 | Stripe ordering guard and idempotency SQL untested | 066 |
+| T-03 | XeroConnection/XeroTenant uniqueness invariants untested | 066 |
+| T-04 | Duplicate route tests in `apps/api/__tests__/` have drifted | 066 |
+| T-05 | `alternative-contact-service.ts`: 599 lines, no co-located test | 066 |
+| M-01 | Root `ws` override conflicts with the range `packages/database` declares | 067 |
+| D-01 | The documented single-test command fails on all 28 `.tsx` tests | 067 |
+| D-02 | `.env.example` omits all seven variables preflight requires | 055 |
+| DOC-01 | `CLAUDE.md` omits two real packages, warns against ten that don't exist | 067 |
 
-### Before expanding beyond AU Payroll
+**Note on S-06.** `apps/app/proxy.ts` is bare `clerkMiddleware()`, which protects
+nothing, while `CLAUDE.md:336` states route protection is composed there. The
+real gate is the `(authenticated)` layout, and `apps/app` contains zero route
+handlers, so the present exposure is bounded. Either the doc or the code is
+wrong. Plan 067 corrects the documentation; **if the operator wants the
+framework-level gate instead**, that is a separate plan and should be written
+before any new route group or route handler is added to `apps/app`.
 
-| Plan | When it becomes required | Status |
+Confidence was HIGH on every finding except S-05, S-07 and S-08, which are MED
+because they depend on facts outside the repository: whether a legitimate flow
+re-points a Clerk Org at a new Stripe customer, what Vercel Firewall rules exist,
+and whether the configured GitHub issue repo is private. Each of those is a STOP
+condition in its plan.
+
+## Direction options, not defects
+
+Recorded for the maintainer to weigh. No plans written; none of these is a
+defect.
+
+- **Recurrence is UI-only.** A full recurrence editor and a tested expansion
+  module exist (`apps/app/app/(authenticated)/recurrence.ts`,
+  `components/recurrence-fields.tsx`), but there are no recurrence columns in
+  `schema.prisma` and no `RRULE` anywhere in `packages/feeds`. Occurrences become
+  independent records, so there is no edit-series or cancel-series, one VEVENT
+  per occurrence reaches subscribers, and a series has no identity in the UID
+  strategy.
+- **The holiday assignment model is four-fifths unused.**
+  `public_holiday_assignment_scope_type` models organisation, location, team,
+  person and feed, and `include_in_feeds` is written on every assignment, but
+  only the dashboard honours non-location scopes and nothing reads
+  `include_in_feeds`. Plan 065 does most of the work; turning it into a feature
+  is the smaller remaining step.
+- **Paid-launch readiness is the real gate, not the launch-mode flag.** Stripe is
+  fully wired and gated off. Flipping to `paid` today lights up four unverified
+  paths at once: T-02, D-02, S-05 and C-04 — plans 066, 055 and 063.
+
+## Completed plans
+
+Verified against `main` at `121da2a`. Files removed in this reconciliation;
+recover any with `git show HEAD:plans/<filename>`. Their behaviour remains part
+of the release baseline.
+
+| Plan | Outcome | Landed as |
 |---|---|---|
-| [037](037-spike-nz-and-uk-payroll-write-back.md) | Before committing to an NZ or UK launch; use the spike to produce separate implementation plans | TODO |
+| 001 | Core calendar, contact and notification interactions made accessible and responsive | `2f8f12a` |
+| 002 | An unlinked Clerk user cannot pass the nullable manager check | `4b84e49` in `b14e7c0` |
+| 003 | A malformed Xero page cannot be treated as a complete sync or trigger mass archive | `5f5bdd7` in `3568795`, `2095b1f` |
+| 004 | Managers cannot approve or decline their own leave | `f880889` in `c151225` |
+| 005 | Manifests, overrides and lockfile agree; the `sharp` advisory is cleared | `daa3985` in `fbaace4`, completed by `f1884db` |
+| 006 | Inbound sync preserves user-owned privacy and feed choices | `f903a8f` in `0e0ea09` |
+| 007 | Approval reconciliation cannot overwrite a newer local transition | `ef0bdab` in `6f181ff` |
+| 008 | Xero OAuth state is time-bound, browser-bound and replay-resistant | `f183e2b` in `832c9ff` |
+| 009 | Feed token telemetry debounced; matching ETags short-circuit to 304 | `2e063fe` |
+| 010 | Token decryption failures remain typed, diagnosable Xero errors | merged |
+| 011 | A settings failure cannot disable the decline-reason policy | merged |
+| 012 | Notification failure cannot roll back durable Xero failure state | merged |
+| 013 | Approvals list bounded; raw Xero and write-error payloads never cross the manager browser boundary | `96ef8df` |
+| 014 | Feed invalidation batched and keyspace scans removed | `df05bf3` |
+| 015 | Root and CI tests enter every owned workspace | merged |
+| 016 | CI requires a production build for all deployable apps | `e38511f` |
+| 017 | Retries and concurrent requests cannot create duplicate Xero leave applications | verified: `xero_write_claimed_at` at `schema.prisma:602` |
+| 018 | Reconciled records do not retain misleading stale write errors | verified: `approval-service.ts:688,844,939` |
+| 019 | Feed-lookup action enforces both tenant keys; the Xero-match half superseded by 050 | `b56106b`; verified at `_actions.ts:162,164` |
+| 020 | Destructive Xero disconnect isolation runs in the integration lane | `431d5e1` |
+| 021 | Shared two-key tenant-scoping helper adopted | `6ab940c` |
+| 022 | Check and fix commands cover the same source scope | `65afb84` |
+| 023 | Environment examples corrected and dead Knock configuration removed | `84d0907`, `c4f5f3b` |
+| 025 | Product Help points to the real web help centre | `532ae91` |
+| 026 | Repository agent documentation corrected for Team Calendar | `abaded2` |
+| 027 | A Person can bind only to a valid Clerk member of the active organisation | `80434d3`, verified at `f09386e` |
+| 028 | Role hierarchy, feed-preview privacy and tenant-query behaviour pinned by tests | `91be435`, `f5a12c7` in `9352efd` |
+| 029 | Authenticated mutation boundaries covered | `878809d`, `49219ef`, `a06cf63` in `06a595e` |
+| 032 | Client Xero connection projection uses an explicit safe allowlist | `2a5b29b` |
+| 033 | Dead code and manifest hygiene completed | `fa140b9`, `462f5c9` |
+| 034 | Feed publication reconciler bounded and batched | `350e425`, `ab49530`, `8b9134c`, `2f1baef` in `ca6d186` |
+| 035 | Test and typecheck tasks express their real dependencies | `d026e01`, `5f9a8ec` |
+| 036 | Cross-tenant access is logged server-side, not reported to the caller | `c7f3396` in `52d7d86` |
+| 038 | Approval reconciliation bounded and safe to schedule (residual cursor gap is C-05, plan 056) | `cf0e77a` |
+| 040 | Web build environment guard corrected | `bad2224` |
+| 041 | Empty-string environment handling moved to package-owned schemas | `dc60b1b` |
+| 042 | One-day and multi-day all-day leave emit correct exclusive ICS end dates | `f09386e` |
+| 043 | Transient feed failures return a retryable response instead of a permanent 404 | `5670ff5` |
+| 044 | Active AU tenants receive bounded people, leave and balance syncs | `9928d65` |
+| 045 | Public journeys, billing controls, preflight, help and telemetry match closed early access | `2ced190` |
+| 046 | Closed AU early access go-live executed | `951e2e2` |
+| 047 | React pins aligned, `next 16.3.0` and the refreshed lockfile committed | `f1884db` |
+| 048 | `bun run check` exits 0; the lint gate is real | `b015511` |
+| 049 | `bun run build` exits 0 for all four tasks | `8adeaa5`, verified at `44c2eb6` |
+| 050 | The Xero person-match surface is scoped to a single Organisation | `297ba7d` |
 
-The current release must continue to present AU as the only supported payroll
-write-back region.
+## Findings considered and rejected
 
-## Completed and retired plans
+Recorded to prevent low-value re-audits:
 
-These rows were verified against local `main` at `f1884db`. They require no
-execution, but their behaviour remains part of the release baseline.
+- The recurring "react and react-dom patch versions differ" blocker was one
+  uncommitted lockfile, owned by plan 047. Do not re-diagnose it per plan.
+- The earlier report of roughly twelve unscoped writes reduced to the two genuine
+  action gaps in plan 019. Other id-only writes follow a tenant-scoped read in
+  the same transaction.
+- `lint/performance/noJsxPropsBind` (240 sites) and
+  `lint/performance/noAwaitInLoops` (47 sites) are disabled with recorded
+  reasons. React 19 with the React Compiler makes manual `useCallback` wrapping
+  unnecessary, and the flagged loops are deliberately sequential because Xero
+  allows only five concurrent requests per organisation.
+- Constant-time behaviour for a database-backed UUID existence check is not a
+  practical goal. Plan 036 kept internal detection and removed the caller
+  distinction. S-07 concerns the 404/410 distinction and rate limiting, which is
+  a different question.
+- A new Playwright lane is not required for the closed cohort.
+- Completing the Mintlify documentation application is deferred. `apps/docs`
+  declares a `lint` script with no matching `turbo.json` task, so it never runs
+  in CI; acceptable while the work is deferred.
+- Pinning or downgrading Bun to work around the old build crash is rejected;
+  plan 049 removed the `--bun` flag instead.
+- The two `bun audit` advisories (`esbuild` low, `uuid` moderate) are build-time
+  only and remain accepted. Re-verified 2026-08-12: unchanged, no critical or
+  high advisories.
+- `country_code: "CUSTOM"` on manual holidays is a deliberate sentinel, handled
+  at `feed-projection.ts:335`. Stringly-typed, but not a defect.
+- `turbo.json`'s `test` task has no `dependsOn: ["^build"]` while `typecheck`
+  does. Not a defect: `packages/database/generated/` is committed and CI
+  generates the Prisma client explicitly.
+- 34 `apps/app` server components hand-roll Prisma queries alongside the
+  `packages/availability` service layer. Real pattern inconsistency, but plan 031
+  already owns the boundary question.
+- `@types/node` and `@types/react` pinned exactly everywhere except
+  `packages/design-system`. Real drift, zero cost, and that package is out of
+  scope.
+- The outbound-write claim lock exists on submit but not on approve/decline/
+  withdraw. Not a defect: those paths are guarded by `approval_status` plus
+  `derived_sequence` on commit, and the Xero operations are idempotent state
+  transitions rather than creates.
+- The `XeroRateLimiter` timeout promise leaves an uncleared `setTimeout` per
+  queued waiter. Bounded by concurrency and self-clearing; noise, not a leak.
 
-| Plan | Outcome | Status |
-|---|---|---|
-| [001](001-accessible-responsive-product-interactions.md) | Core calendar, contact and notification interactions made accessible and responsive | DONE, merged (`2f8f12a`) |
-| [002](002-fix-null-actor-authorisation-bypass.md) | An unlinked Clerk user cannot pass the nullable manager check | DONE, merged (`4b84e49` in `b14e7c0`) |
-| [003](003-stop-mass-archive-on-unparseable-xero-page.md) | A malformed Xero page cannot be treated as a complete sync or trigger mass archive | DONE, merged (`5f5bdd7` in `3568795`); the missing `@repo/observability` dependency landed in `2095b1f` |
-| [004](004-prevent-manager-self-approval.md) | Managers cannot approve or decline their own leave | DONE, merged (`f880889` in `c151225`) |
-| [005](005-refresh-vulnerable-dependency-pins.md) | Manifests, overrides and lockfile agree; the `sharp` advisory is cleared | DONE, merged (`daa3985` in `fbaace4`, completed by `f1884db`); its `bun run build` criterion was deferred to plan 049, which is now done and verified, so that criterion is met |
-| [006](006-stop-sync-overwriting-user-owned-privacy-fields.md) | Inbound sync preserves user-owned privacy and feed choices | DONE, merged (`f903a8f` in `0e0ea09`) |
-| [007](007-guard-reconciler-transitions-with-optimistic-concurrency.md) | Approval reconciliation cannot overwrite a newer local transition | DONE, merged (`ef0bdab` in `6f181ff`) |
-| [008](008-bind-xero-oauth-state-to-nonce-expiry-and-session.md) | Xero OAuth state is time-bound, browser-bound and replay-resistant | DONE, merged (`f183e2b` in `832c9ff`) |
-| [009](009-stop-database-writes-on-every-ics-feed-poll.md) | Feed token telemetry debounced and matching ETags short-circuit to 304 | DONE, merged (`2e063fe`) |
-| [014](014-batch-feed-cache-invalidation.md) | Feed invalidation batched and keyspace scans removed | DONE, merged (`df05bf3`) |
-| [021](021-consolidate-the-tenant-scoping-helpers.md) | Shared two-key tenant-scoping helper adopted | DONE, merged (`6ab940c`) |
-| [022](022-align-the-lint-check-and-fix-commands.md) | Check and fix commands cover the same source scope | DONE, merged (`65afb84`) |
-| [023](023-regenerate-the-env-examples-and-remove-dead-knock-config.md) | Environment examples corrected and dead Knock configuration removed | DONE, merged (`84d0907`, `c4f5f3b`) |
-| [024](024-harden-env-validation-in-the-app-and-web-apps.md) | App-level approach was ineffective and replaced by plan 041 | REJECTED, do not execute |
-| [025](025-stop-pointing-in-product-help-at-the-mintlify-starter-kit.md) | Product Help now points to the real web help centre | DONE, merged (`532ae91`) |
-| [026](026-correct-the-agent-instruction-files.md) | Repository agent documentation corrected for Team Calendar | DONE, merged (`abaded2`) |
-| [032](032-stop-serialising-encrypted-xero-tokens-to-the-browser.md) | Client Xero connection projection uses an explicit safe allowlist | DONE, merged (`2a5b29b`) |
-| [033](033-dead-code-and-manifest-hygiene.md) | Dead code and manifest hygiene completed | DONE, merged (`fa140b9`, `462f5c9`) |
-| [040](040-fix-the-node-env-guard-that-breaks-every-local-and-ci-build.md) | Web build environment guard corrected | DONE, merged (`bad2224`) |
-| [041](041-move-emptystringasundefined-to-where-it-actually-works.md) | Empty-string environment handling moved to package-owned schemas | DONE, merged (`dc60b1b`) |
-| [047](047-land-the-uncommitted-dependency-refresh.md) | React pins aligned, `next 16.3.0` and the refreshed lockfile committed | DONE, merged (`f1884db`) |
+## What this reconciliation did not verify
+
+- The integration lane. `bun run test:integration` needs a live `DATABASE_URL`
+  and the operator host has no local Postgres.
+- Live Vercel, Clerk, Xero, Inngest, Neon, KV, Resend, Sentry, DNS, email-domain
+  or backup configuration.
+- Production data, load, browser performance or support volume.
+- `packages/design-system`, `apps/docs`, `apps/email` and `ds-bundle`.
+- Marketing-site quality outside the launch-critical pricing, contact, legal and
+  help paths.
 
 ## Status rules
 
@@ -408,8 +303,8 @@ execution, but their behaviour remains part of the release baseline.
 - `IN PROGRESS`: an executor is actively working on it.
 - `DONE`: implementation and done criteria are merged into the release branch.
 - `BLOCKED`: a STOP condition prevents execution; include a one-line reason.
-- `REJECTED`: the approach is superseded or no longer worth executing; include
-  a one-line rationale.
+- `REJECTED`: superseded or no longer worth executing; include a one-line
+  rationale.
 
 Executors must:
 
@@ -419,93 +314,10 @@ Executors must:
 4. run every required verification gate;
 5. update this index only after evidence exists on the target branch.
 
-**Before marking anything BLOCKED**, check it against plans 047, 048 and 049.
-Eight plans were previously blocked by those three problems while being
-individually correct. If a gate fails for a reason your change could not have
-caused, say so explicitly rather than blocking the plan.
+If a gate fails for a reason your change could not have caused, say so
+explicitly rather than marking the plan blocked. Eight plans were once wrongly
+blocked by three environmental problems while being individually correct.
 
-## Reconciliation notes
-
-- Every TODO finding in the tables above was rechecked against current source on
-  2026-08-05 and confirmed still present. Confirmations are recorded in each
-  plan's Status block under `**Reconciled**`.
-- Plans 018 and 038 had genuine drift and their "Current state" excerpts were
-  refreshed. Plan 018's sync-side upsert payload was restructured by plan 006;
-  plan 038's handler gained batching and optimistic concurrency from plan 007,
-  so its remaining work is narrower than the original text implies.
-- Plan 005's dependency audit is now current: `bun audit` reports 2
-  vulnerabilities, both build-time only (`esbuild` low, `uuid` moderate). The
-  justification is recorded in plan 005's "Advisories accepted at 2026-08-05"
-  section, which satisfies its last outstanding done criterion.
-- The lint backlog in plan 048 is **pre-existing**, not a regression. The 381
-  affected files span commits from April to August 2026, and
-  `assist/source/useSortedKeys` is `"on"` identically in Ultracite 7.9.4 and
-  7.10.1, so the recent bump did not cause it. The gate was scoped up and wired
-  into CI on 2026-06-13 (`12fe5e6`) without a clearing pass, and has been failing
-  since.
-- The build crash in plan 049 is a **Bun runtime bug**, not a code or Next.js
-  problem. `next build` under Node 24 exits 0 on the identical tree.
-- The checked-in Prisma migration history was compared with `schema.prisma` and
-  is structurally aligned. Plan 046 still requires the exact production
-  `_prisma_migrations` ledger, drift and restore checks. `db:push` is not
-  acceptable release evidence.
-- The dependency refresh described in plan 047 was committed as `f1884db`
-  ("version updates") during this reconciliation, so worktree-based execution is
-  safe again. Verify `git status --short` is clean of manifest changes before
-  dispatching an executor to a worktree.
-
-## Findings considered and rejected or deferred
-
-Recorded to prevent low-value re-audits:
-
-- The recurring "react and react-dom patch versions differ" blocker is not seven
-  separate problems. It is one uncommitted lockfile, owned by plan 047. Do not
-  re-diagnose it per plan.
-- The earlier report of roughly twelve unscoped writes was reduced to the two
-  genuine action gaps in plan 019. Other id-only writes follow a tenant-scoped
-  read in the same transaction.
-- A stale local `node_modules` link previously caused missing-module failures.
-  That was an installation artefact, not a repository defect.
-- `reconciliationEnabled={false}` is deliberate. Plans 018 and 038 remove the
-  remaining reasons it is unsafe; do not merely flip the flag.
-- Plan 024 is rejected because an outer app `createEnv()` cannot repair values
-  already validated by package-level `createEnv()` calls. Plan 041 is the
-  implemented replacement.
-- A new Playwright lane is not required for the closed cohort. The immediate
-  gaps are the concrete unit, integration and build lanes in plans 015, 016,
-  020, 028, 029 and 035.
-- Constant-time behaviour for a database-backed UUID existence check is not a
-  practical goal. Plan 036 keeps internal detection and removes the caller
-  distinction.
-- Unrestricted general availability and paid self-service are rejected for the
-  first release. Plan 045 encodes a closed, no-checkout early-access state.
-- Completing the Mintlify documentation application is deferred. The existing
-  web help centre must contain the guided early-access path before launch.
-- `lint/performance/noJsxPropsBind` (240 sites) and `lint/performance/noAwaitInLoops`
-  (47 sites) are rejected as fixes and disabled with recorded reasons in plan
-  048. React 19 with the React Compiler makes manual `useCallback` wrapping
-  unnecessary, and the flagged loops are deliberately sequential because Xero
-  allows only five concurrent requests per organisation.
-- Pinning or downgrading Bun to work around the build crash is rejected. Plan
-  049 removes the `--bun` flag instead, which is a one-line change per app with
-  no measurable build-time cost, because `next build` is compiler-bound.
-
-## What this review did not verify
-
-- Live Vercel, Clerk, Xero, Inngest, Neon, KV, Resend, Sentry, DNS, email-domain
-  or backup configuration. Plan 046 requires operator evidence for each.
-- Production data, load, browser performance or support volume.
-- ~~Whether the `apps/app` build crash also occurs on x64 CI and Vercel build
-  machines.~~ **Answered on 2026-08-06: it does.** Every Vercel deployment of
-  `main` since `754a5aac` has failed, including the production build of
-  `fb9f1cc`, and all three deployable apps are affected rather than `apps/app`
-  alone. Plan 049 is therefore fixing a live deployment outage, not removing a
-  theoretical exposure. Evidence is recorded under "Deployment context" in
-  plan 049.
-- Full marketing-site brand, SEO and accessibility quality outside the
-  go-live-critical pricing, contact, legal and help paths.
-- The Mintlify documentation content in depth.
-
-These unknowns are not implicit approvals. Plan 046 converts the launch-critical
-ones into explicit no-go checks; later expansion requires a fresh capacity,
-support, accessibility and legal review.
+Several plans deliberately require a **mutation check**: revert the fix, confirm
+the new test fails, restore. A test that passes both before and after a fix is
+not testing the defect. Do not skip that step.
