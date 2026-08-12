@@ -1,3 +1,32 @@
+# Plan: Create Team Calendar go-to-market plan
+
+## Tasks
+
+- [x] Review product truth, target users, positioning, pricing context, and launch constraints.
+- [x] Validate current Xero ecosystem channels, communities, and paid-channel assumptions.
+- [x] Define measurable objectives, segments, personas, channel tactics, content, and budget.
+- [x] Build the four-week pre-launch, launch-week, and four-week post-launch operating calendar.
+- [x] Review the plan for claim safety, ownership, decision gates, and measurement completeness.
+
+## Review
+
+- Recommended an Australia-first closed early-access expansion for 8 to 12
+  Xero Payroll organisations, with general availability gated on product proof,
+  funnel instrumentation, consistent public claims, and pricing validation.
+- Defined a nine-week operating plan from 17 August to 16 October 2026, with
+  explicit owners, funnel targets, channel tactics, content cadence, launch
+  gates, and post-launch stop/scale decisions.
+- Prioritised Xero advisers, reference customers, App Store readiness, and
+  high-intent Search. Broad paid social, generic communities, and conference
+  booths are intentionally deferred until acquisition economics are proven.
+- Proposed a gated A$15,000 cash budget and a six-person part-time operating
+  model. Revenue is treated as willingness-to-pay validation during closed
+  early access because self-service billing is currently disabled.
+- Published the complete execution plan in
+  `plans/051-team-calendar-go-to-market-plan.md`.
+
+---
+
 # Plan: Audit `apps/app` accessibility, responsiveness, and component states
 
 ## Tasks
@@ -214,6 +243,3 @@
 - Removed all secondary worktrees and deleted all merged non-main branches.
 - Ran `bun run typecheck` (19/19 tasks passed) and `bun run test` (17/17 tasks passed, 254 tests passed).
 - Confirmed `main` is clean with no uncommitted changes or active worktrees remaining.
-
-
-
