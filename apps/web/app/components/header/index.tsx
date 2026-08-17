@@ -1,5 +1,6 @@
 "use client";
 
+import { ModeToggle } from "@repo/design-system/components/mode-toggle";
 import { brandNameDisplay } from "@repo/seo/branding";
 import { Menu, X } from "lucide-react";
 import Image from "next/image";
@@ -83,16 +84,21 @@ export const Header = () => {
           </Link>
         </div>
 
-        <button
-          aria-controls={mobileNavigationId}
-          aria-expanded={isOpen}
-          aria-label="Toggle navigation"
-          className="marketing-site-header__toggle"
-          onClick={() => setOpen((current) => !current)}
-          type="button"
-        >
-          {isOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
-        </button>
+        <div className="marketing-site-header__controls">
+          <div className="marketing-site-header__theme">
+            <ModeToggle />
+          </div>
+          <button
+            aria-controls={mobileNavigationId}
+            aria-expanded={isOpen}
+            aria-label="Toggle navigation"
+            className="marketing-site-header__toggle"
+            onClick={() => setOpen((current) => !current)}
+            type="button"
+          >
+            {isOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
+          </button>
+        </div>
 
         <nav
           aria-label="Mobile"
@@ -119,6 +125,12 @@ export const Header = () => {
           >
             Sign up
           </Link>
+          <div className="marketing-site-header__mobile-theme">
+            <span className="marketing-site-header__mobile-theme-label">
+              Theme
+            </span>
+            <ModeToggle />
+          </div>
         </nav>
 
         <noscript>
