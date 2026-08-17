@@ -92,7 +92,7 @@ const NotificationsPage = async ({ searchParams }: NotificationsPageProps) => {
   return (
     <>
       <Header organisationId={organisationId} page="Notifications" />
-      <main className="flex flex-1 flex-col gap-6 p-6 pt-0">
+      <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
         {notificationsResult.ok && preferencesResult.ok ? (
           <NotificationsProvider streamUrl={streamUrl}>
             <NotificationsClient
@@ -124,7 +124,7 @@ const NotificationsPage = async ({ searchParams }: NotificationsPageProps) => {
         ) : (
           <FetchErrorState entityName="notifications" />
         )}
-      </main>
+      </div>
     </>
   );
 };

@@ -131,9 +131,9 @@ const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
     return (
       <>
         <Header page="Calendar" />
-        <main className="flex flex-1 flex-col p-6 pt-0">
+        <div className="flex flex-1 flex-col p-6 pt-0">
           <FetchErrorState entityName="calendar" />
-        </main>
+        </div>
       </>
     );
   }
@@ -144,7 +144,7 @@ const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
   return (
     <>
       <Header page="Calendar" />
-      <main className="flex flex-1 flex-col gap-8 p-6 pt-0">
+      <div className="flex flex-1 flex-col gap-8 p-6 pt-0">
         {!dataResult.value.hasActiveXeroConnection && (
           <DisconnectedXeroBanner
             canConnect={role === "admin" || role === "owner"}
@@ -186,7 +186,7 @@ const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
             />
           </div>
         )}
-      </main>
+      </div>
     </>
   );
 };

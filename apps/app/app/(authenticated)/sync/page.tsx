@@ -58,9 +58,10 @@ const SyncPage = async ({ searchParams }: SyncPageProps) => {
     );
   }
 
-  const { clerkOrgId, organisationId } = await requireActiveOrgPageContext(
-    typeof params.org === "string" ? params.org : undefined
-  );
+  const { clerkOrgId, organisationId, orgQueryValue } =
+    await requireActiveOrgPageContext(
+      typeof params.org === "string" ? params.org : undefined
+    );
   const parsedFilters = parseFilterParams(params, SyncRunFiltersSchema) ?? {};
   const filters = {
     dateFrom: parsedFilters.dateFrom
@@ -98,7 +99,7 @@ const SyncPage = async ({ searchParams }: SyncPageProps) => {
   return (
     <>
       <Header organisationId={organisationId} page="Sync health" />
-      <main className="flex flex-1 flex-col gap-6 p-6 pt-0">
+      <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
         <div>
           <p className="text-muted-foreground text-sm">
             Monitor Xero data flow and reconciliation
@@ -111,11 +112,12 @@ const SyncPage = async ({ searchParams }: SyncPageProps) => {
             filters={parsedFilters}
             nextCursor={runsResult.value.nextCursor}
             organisationId={organisationId}
+            orgQueryValue={orgQueryValue}
             runs={runsResult.value.runs}
             summaries={summariesResult.value}
           />
         )}
-      </main>
+      </div>
     </>
   );
 };

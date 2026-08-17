@@ -9,6 +9,7 @@ describe("XeroSyncFailedState", () => {
   it("renders correctly with message", () => {
     render(<XeroSyncFailedState message="The API key is invalid." />);
 
+    expect(screen.getByRole("alert")).toBeDefined();
     expect(screen.getByText("Xero sync failed")).toBeDefined();
     expect(screen.getByText("The API key is invalid.")).toBeDefined();
   });

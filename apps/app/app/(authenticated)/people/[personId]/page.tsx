@@ -45,11 +45,11 @@ const PersonProfilePage = async ({
   return (
     <>
       <Header page="People" />
-      <main className="flex flex-1 flex-col p-6 pt-0">
+      <div className="flex flex-1 flex-col p-6 pt-0">
         <div className="mx-auto w-full max-w-[720px] rounded-2xl bg-background p-6">
           <PersonProfileContent {...viewModel} />
         </div>
-      </main>
+      </div>
     </>
   );
 };

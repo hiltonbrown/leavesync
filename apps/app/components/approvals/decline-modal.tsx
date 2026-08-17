@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@repo/design-system/components/ui/button";
+import { toast } from "@repo/design-system/components/ui/sonner";
 import { Textarea } from "@repo/design-system/components/ui/textarea";
 import { Loader2Icon } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -56,6 +57,7 @@ export function DeclineModal({
         );
         return;
       }
+      toast.success("Leave declined in Xero");
       onSuccess();
     } finally {
       setIsPending(false);
@@ -84,6 +86,7 @@ export function DeclineModal({
         );
         return;
       }
+      toast.success("Leave declined in Xero");
       onSuccess();
     } finally {
       setIsPending(false);
@@ -101,6 +104,7 @@ export function DeclineModal({
         setMessage(result.error.message);
         return;
       }
+      toast.success("Leave returned to pending");
       onClose();
     } finally {
       setIsPending(false);
@@ -109,6 +113,7 @@ export function DeclineModal({
 
   return (
     <InterceptingModalShell
+      closeDisabled={isPending}
       onClose={onClose}
       size="narrow"
       title="Decline this leave?"

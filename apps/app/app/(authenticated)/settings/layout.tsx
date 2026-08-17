@@ -26,7 +26,7 @@ const SettingsLayout = async ({ children }: SettingsLayoutProps) => {
       <Header page="Settings" />
       <div className="flex flex-1 overflow-hidden">
         <SettingsNav />
-        <main className="flex-1 overflow-y-auto p-6 pt-0">{children}</main>
+        <div className="flex-1 overflow-y-auto p-6 pt-0">{children}</div>
       </div>
     </>
   );

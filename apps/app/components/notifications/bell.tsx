@@ -20,6 +20,7 @@ import {
   UserPlusIcon,
   XCircleIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import {
@@ -28,6 +29,7 @@ import {
   markAsReadAction,
   refreshUnreadCountAction,
 } from "@/app/(authenticated)/notifications/_actions";
+import { withOrg } from "@/lib/navigation/org-url";
 
 export interface BellNotificationItem {
   actionUrl: string | null;
@@ -50,11 +52,15 @@ export function NotificationsBell({
   organisationId,
 }: NotificationsBellProps) {
   const router = useRouter();
-  const { connectionVersion, subscribe } = useNotificationEvents();
+  const { connectionVersion, status, subscribe } = useNotificationEvents();
   const [isPending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
   const [recent, setRecent] = useState(initialRecent);
+  const [message, setMessage] = useState<{
+    text: string;
+    tone: "error" | "status";
+  } | null>(null);
 
   useEffect(
     () =>
@@ -113,6 +119,12 @@ export function NotificationsBell({
           }))
         );
       }
+      if (!(countResult.ok && recentResult.ok)) {
+        setMessage({
+          text: "Notifications could not be refreshed. Try again shortly.",
+          tone: "error",
+        });
+      }
     });
   }, [connectionVersion, organisationId]);
 
@@ -124,6 +136,12 @@ export function NotificationsBell({
       if (result.ok) {
         setUnreadCount(0);
         setRecent([]);
+        setMessage({
+          text: "All notifications marked as read.",
+          tone: "status",
+        });
+      } else {
+        setMessage({ text: result.error.message, tone: "error" });
       }
     });
   };
@@ -137,9 +155,11 @@ export function NotificationsBell({
       if (result.ok) {
         setUnreadCount(result.value.unreadCount);
         setRecent((items) => items.filter((current) => current.id !== item.id));
-      }
-      if (item.actionUrl) {
-        router.push(item.actionUrl);
+        if (item.actionUrl) {
+          router.push(withOrg(item.actionUrl, organisationId));
+        }
+      } else {
+        setMessage({ text: result.error.message, tone: "error" });
       }
     });
   };
@@ -147,18 +167,20 @@ export function NotificationsBell({
   return (
     <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
-        <button
+        <Button
           aria-label={`Notifications, ${unreadCount} unread`}
-          className="relative inline-flex size-11 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          className="relative size-11 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground"
+          size="icon"
           type="button"
+          variant="ghost"
         >
           <BellIcon className="size-4" />
           {badge && (
-            <span className="absolute top-0.5 right-0.5 min-w-5 rounded-full bg-red-600 px-1.5 py-0.5 text-center font-semibold text-[0.625rem] text-white">
+            <span className="absolute top-0.5 right-0.5 min-w-5 rounded-full bg-destructive px-1.5 py-0.5 text-center font-semibold text-destructive-foreground text-xs">
               {badge}
             </span>
           )}
-        </button>
+        </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 rounded-2xl p-0">
         <div className="border-border border-b p-4">
@@ -166,6 +188,25 @@ export function NotificationsBell({
           <p className="text-muted-foreground text-xs">
             {unreadCount > 0 ? `${unreadCount} unread` : "No new notifications"}
           </p>
+          {status === "connecting" ? (
+            <p className="mt-2 text-muted-foreground text-xs" role="status">
+              Connecting to live notifications…
+            </p>
+          ) : null}
+          {status === "closed" ? (
+            <p className="mt-2 text-muted-foreground text-xs" role="status">
+              Live notifications are unavailable. Updates may be delayed.
+            </p>
+          ) : null}
+          {message ? (
+            <p
+              aria-live={message.tone === "error" ? "assertive" : "polite"}
+              className="mt-2 text-xs"
+              role={message.tone === "error" ? "alert" : "status"}
+            >
+              {message.text}
+            </p>
+          ) : null}
         </div>
         {recent.length === 0 ? (
           <div className="p-4 text-muted-foreground text-sm">
@@ -208,7 +249,9 @@ export function NotificationsBell({
             Mark all as read
           </Button>
           <Button asChild size="sm" variant="ghost">
-            <a href="/notifications">View all</a>
+            <Link href={withOrg("/notifications", organisationId)}>
+              View all
+            </Link>
           </Button>
         </div>
       </PopoverContent>

@@ -9,11 +9,13 @@ import type {
 } from "@repo/availability";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
+import { useNotificationEvents } from "@repo/notifications/components/provider";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { statusToneClasses } from "@/components/availability/availability-status";
 import { EmptyState } from "@/components/states/empty-state";
+import { withOrg } from "@/lib/navigation/org-url";
 import {
   cancelRunAction,
   dispatchManualSyncAction,
@@ -25,37 +27,59 @@ const FIRST_LINE_PATTERN = /\r?\n/;
 interface SyncRunDetailClientProperties {
   detail: RunDetail;
   organisationId: string;
+  orgQueryValue: string | null;
   tenantSummary: TenantSummary | null;
 }
 
 export function SyncRunDetailClient({
   detail,
+  orgQueryValue,
   organisationId,
   tenantSummary,
 }: SyncRunDetailClientProperties) {
   const router = useRouter();
+  const { subscribe } = useNotificationEvents();
   const [expanded, setExpanded] = useState<string | null>(null);
   const [rawVisible, setRawVisible] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{
+    text: string;
+    tone: "error" | "status";
+  } | null>(null);
   const [confirmRerun, setConfirmRerun] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const { run } = detail;
-  const runningSameType =
-    tenantSummary?.currentRun?.runType === run.runType &&
-    tenantSummary.currentRun.id !== run.id;
+  const runningSameType = tenantSummary?.currentRun?.runType === run.runType;
   const connectionInactive = tenantSummary?.connectionStatus !== "active";
+
+  useEffect(
+    () =>
+      subscribe((event) => {
+        if (
+          event.type === "sync.run_status_changed" &&
+          event.payload.organisationId === organisationId &&
+          event.payload.runId === run.id
+        ) {
+          router.refresh();
+        }
+      }),
+    [organisationId, router, run.id, subscribe]
+  );
 
   const rerun = () => {
     if (!run.xeroTenantId) {
-      setMessage("This run is not linked to a Xero tenant.");
+      setMessage({
+        text: "This run is not linked to a Xero tenant.",
+        tone: "error",
+      });
       return;
     }
     if (!confirmRerun) {
       setConfirmRerun(true);
-      setMessage(
-        "Re-running starts a fresh sync. Previous failed records stay in the audit trail. Select Continue re-run to proceed."
-      );
+      setMessage({
+        text: "Re-running starts a fresh sync. Previous failed records stay in the audit trail. Select Continue re-run to proceed.",
+        tone: "status",
+      });
       return;
     }
     startTransition(async () => {
@@ -66,10 +90,15 @@ export function SyncRunDetailClient({
         xeroTenantId: run.xeroTenantId ?? "",
       });
       if (!result.ok) {
-        setMessage(result.error.message);
+        setMessage({ text: result.error.message, tone: "error" });
         return;
       }
-      setMessage(result.value.queued ? "Sync queued." : "Sync was not queued.");
+      setMessage({
+        text: result.value.queued
+          ? "Sync queued."
+          : reasonLabel(result.value.reason),
+        tone: result.value.queued ? "status" : "error",
+      });
       router.refresh();
     });
   };
@@ -78,10 +107,10 @@ export function SyncRunDetailClient({
     startTransition(async () => {
       const result = await cancelRunAction({ organisationId, runId: run.id });
       if (!result.ok) {
-        setMessage(result.error.message);
+        setMessage({ text: result.error.message, tone: "error" });
         return;
       }
-      setMessage("Cancellation requested.");
+      setMessage({ text: "Cancellation requested.", tone: "status" });
       router.refresh();
     });
   };
@@ -93,7 +122,7 @@ export function SyncRunDetailClient({
         runId: run.id,
       });
       if (!result.ok) {
-        setMessage(result.error.message);
+        setMessage({ text: result.error.message, tone: "error" });
         return;
       }
       const blob = new Blob([result.value.csvContent], {
@@ -105,6 +134,7 @@ export function SyncRunDetailClient({
       anchor.download = result.value.filename;
       anchor.click();
       URL.revokeObjectURL(url);
+      setMessage({ text: "CSV export ready.", tone: "status" });
     });
   };
 
@@ -112,7 +142,10 @@ export function SyncRunDetailClient({
     <div className="grid gap-6 xl:grid-cols-[1fr_280px]">
       <section className="space-y-6">
         <div className="space-y-2">
-          <Link className="text-muted-foreground text-sm" href="/sync">
+          <Link
+            className="text-muted-foreground text-sm"
+            href={withOrg("/sync", orgQueryValue)}
+          >
             Sync health / Run {run.id.slice(0, 8)}
           </Link>
           <div className="flex flex-wrap items-center gap-3">
@@ -242,22 +275,19 @@ export function SyncRunDetailClient({
       <aside className="space-y-3 rounded-2xl bg-muted p-4 xl:sticky xl:top-20 xl:self-start">
         <h2 className="font-semibold">Actions</h2>
         {message ? (
-          <p className="text-muted-foreground text-sm">{message}</p>
+          <p
+            aria-live={message.tone === "error" ? "assertive" : "polite"}
+            className="text-muted-foreground text-sm"
+            role={message.tone === "error" ? "alert" : "status"}
+          >
+            {message.text}
+          </p>
         ) : null}
         <Button
           className="w-full"
-          disabled={
-            isPending ||
-            connectionInactive ||
-            runningSameType ||
-            run.runType !== "approval_state_reconciliation"
-          }
+          disabled={isPending || connectionInactive || runningSameType}
           onClick={rerun}
-          title={actionDisabledTitle(
-            connectionInactive,
-            runningSameType,
-            run.runType
-          )}
+          title={actionDisabledTitle(connectionInactive, runningSameType)}
           type="button"
         >
           {confirmRerun ? "Continue re-run" : "Re-run this sync"}
@@ -343,8 +373,7 @@ function triggerTypeLabel(triggerType: SyncTriggerType): string {
 
 function actionDisabledTitle(
   connectionInactive: boolean,
-  runningSameType: boolean,
-  runType: SyncRunType
+  runningSameType: boolean
 ): string | undefined {
   if (connectionInactive) {
     return "Reconnect Xero before re-running this sync.";
@@ -352,9 +381,19 @@ function actionDisabledTitle(
   if (runningSameType) {
     return "Another run of this type is already running.";
   }
-  if (runType !== "approval_state_reconciliation") {
+}
+
+function reasonLabel(reason?: string): string {
+  if (reason === "connection_not_active") {
+    return "Reconnect Xero before running this sync.";
+  }
+  if (reason === "tenant_sync_paused") {
+    return "Resume Xero syncing before running this sync.";
+  }
+  if (reason === "dispatch_not_wired") {
     return "This sync job is not registered yet.";
   }
+  return "Sync was not queued.";
 }
 
 function firstLine(value: string): string {

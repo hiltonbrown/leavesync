@@ -10,7 +10,7 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <main className="flex flex-1 items-center justify-center p-8">
+    <div className="flex flex-1 items-center justify-center p-8">
       <Empty>
         <EmptyHeader>
           <EmptyTitle>Page not found</EmptyTitle>
@@ -25,6 +25,6 @@ export default function NotFound() {
           </Button>
         </EmptyContent>
       </Empty>
-    </main>
+    </div>
   );
 }

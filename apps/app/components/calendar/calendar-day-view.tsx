@@ -26,9 +26,18 @@ export function CalendarDayView({
   const timedEvents = day.events.filter((event) => !event.allDay);
   const createPersonId = selectedPersonId ?? actingPersonId;
   const dateOnly = day.date.toISOString().slice(0, 10);
+  const accessibleDate = new Intl.DateTimeFormat("en-AU", {
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+    year: "numeric",
+  }).format(day.date);
 
   return (
-    <section className="rounded-2xl bg-muted p-4">
+    <section
+      aria-label={`Calendar day view for ${accessibleDate}`}
+      className="rounded-2xl bg-muted p-4"
+    >
       {day.publicHolidays.length > 0 && (
         <div className="mb-4 space-y-2">
           {day.publicHolidays.map((holiday) => (
@@ -76,20 +85,23 @@ export function CalendarDayView({
 
           <div className="overflow-hidden rounded-2xl bg-background">
             {hours.map((hour) => {
+              const hourLabel = `${String(hour).padStart(2, "0")}:00`;
+              const startsAt = `${dateOnly}T${hourLabel}:00.000Z`;
               const hourEvents = timedEvents.filter(
                 (event) => new Date(event.startsAt).getUTCHours() === hour
               );
               return (
-                <CalendarCreateLauncher
-                  className="grid min-h-16 w-full grid-cols-[4rem_1fr] gap-3 px-3 py-2 text-left hover:bg-muted/60"
+                <div
+                  className="grid min-h-16 grid-cols-[4rem_1fr] gap-3 px-3 py-2"
                   key={hour}
-                  personId={createPersonId}
-                  startsAt={`${dateOnly}T${String(hour).padStart(2, "0")}:00:00.000Z`}
                 >
-                  <span className="pt-1 text-muted-foreground text-xs tabular-nums">
-                    {String(hour).padStart(2, "0")}:00
-                  </span>
-                  <span className="space-y-2">
+                  <time
+                    className="pt-1 text-muted-foreground text-xs tabular-nums"
+                    dateTime={startsAt}
+                  >
+                    {hourLabel}
+                  </time>
+                  <div className="space-y-2">
                     {hourEvents.map((event) => (
                       <CalendarEventChip
                         event={event}
@@ -97,8 +109,15 @@ export function CalendarDayView({
                         orgQueryValue={orgQueryValue}
                       />
                     ))}
-                  </span>
-                </CalendarCreateLauncher>
+                    <CalendarCreateLauncher
+                      className="w-fit"
+                      personId={createPersonId}
+                      startsAt={startsAt}
+                    >
+                      Add at {hourLabel}
+                    </CalendarCreateLauncher>
+                  </div>
+                </div>
               );
             })}
           </div>

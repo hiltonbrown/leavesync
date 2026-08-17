@@ -23,6 +23,7 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { statusToneClasses } from "@/components/availability/availability-status";
 import { EmptyState } from "@/components/states/empty-state";
 import { XeroSyncFailedState } from "@/components/states/xero-sync-failed-state";
+import { withOrg } from "@/lib/navigation/org-url";
 import { dispatchManualSyncAction } from "./_actions";
 import type { SyncRunFiltersInput } from "./_schemas";
 
@@ -30,6 +31,7 @@ interface SyncClientProps {
   filters: SyncRunFiltersInput;
   nextCursor: string | null;
   organisationId: string;
+  orgQueryValue: string | null;
   runs: RunListItem[];
   summaries: TenantSummary[];
 }
@@ -39,8 +41,8 @@ const runTypeOptions: Array<{
   value: SyncRunType;
   wired: boolean;
 }> = [
-  { label: "Sync people", value: "people", wired: false },
-  { label: "Sync leave records", value: "leave_records", wired: false },
+  { label: "Sync people", value: "people", wired: true },
+  { label: "Sync leave records", value: "leave_records", wired: true },
   { label: "Sync balances", value: "leave_balances", wired: true },
   {
     label: "Reconcile approvals",
@@ -52,13 +54,17 @@ const runTypeOptions: Array<{
 export function SyncClient({
   filters,
   nextCursor,
+  orgQueryValue,
   organisationId,
   runs,
   summaries,
 }: SyncClientProps) {
   const router = useRouter();
   const { subscribe } = useNotificationEvents();
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{
+    text: string;
+    tone: "error" | "status";
+  } | null>(null);
   const [isPending, startTransition] = useTransition();
 
   useEffect(
@@ -78,8 +84,11 @@ export function SyncClient({
     if (!nextCursor) {
       return null;
     }
-    return `/sync?${buildQuery({ ...filters, cursor: nextCursor })}`;
-  }, [filters, nextCursor]);
+    return withOrg(
+      `/sync?${buildQuery({ ...filters, cursor: nextCursor })}`,
+      orgQueryValue
+    );
+  }, [filters, nextCursor, orgQueryValue]);
 
   const dispatch = (xeroTenantId: string, runType: SyncRunType) => {
     startTransition(async () => {
@@ -89,14 +98,17 @@ export function SyncClient({
         xeroTenantId,
       });
       if (!result.ok) {
-        setMessage(result.error.message);
+        setMessage({ text: result.error.message, tone: "error" });
         return;
       }
       if (!result.value.queued) {
-        setMessage(reasonLabel(result.value.reason));
+        setMessage({
+          text: reasonLabel(result.value.reason),
+          tone: "error",
+        });
         return;
       }
-      setMessage("Sync queued.");
+      setMessage({ text: "Sync queued.", tone: "status" });
       router.refresh();
     });
   };
@@ -104,7 +116,13 @@ export function SyncClient({
   return (
     <div className="space-y-6">
       {message ? (
-        <div className="rounded-2xl bg-muted px-4 py-3 text-sm">{message}</div>
+        <div
+          aria-live={message.tone === "error" ? "assertive" : "polite"}
+          className="rounded-2xl bg-muted px-4 py-3 text-sm"
+          role={message.tone === "error" ? "alert" : "status"}
+        >
+          {message.text}
+        </div>
       ) : null}
 
       {summaries.length === 0 ? (
@@ -119,6 +137,7 @@ export function SyncClient({
               disabled={isPending}
               key={summary.xeroTenantId}
               onDispatch={dispatch}
+              orgQueryValue={orgQueryValue}
               summary={summary}
             />
           ))}
@@ -133,7 +152,11 @@ export function SyncClient({
               Runs are ordered from newest to oldest.
             </p>
           </div>
-          <FilterBar filters={filters} summaries={summaries} />
+          <FilterBar
+            filters={filters}
+            orgQueryValue={orgQueryValue}
+            summaries={summaries}
+          />
         </div>
 
         {runs.length === 0 ? (
@@ -143,7 +166,7 @@ export function SyncClient({
           />
         ) : (
           <div className="overflow-hidden rounded-2xl bg-muted">
-            <div className="overflow-x-auto">
+            <section aria-label="Sync run history" className="overflow-x-auto">
               <table className="w-full min-w-[920px] text-left text-sm">
                 <thead className="text-muted-foreground">
                   <tr>
@@ -180,14 +203,18 @@ export function SyncClient({
                       <td className="p-4">{run.triggeredByUserDisplay}</td>
                       <td className="p-4">
                         <Button asChild size="sm" variant="secondary">
-                          <Link href={`/sync/${run.id}`}>View</Link>
+                          <Link
+                            href={withOrg(`/sync/${run.id}`, orgQueryValue)}
+                          >
+                            View
+                          </Link>
                         </Button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
+            </section>
           </div>
         )}
 
@@ -204,10 +231,12 @@ export function SyncClient({
 function TenantCard({
   disabled,
   onDispatch,
+  orgQueryValue,
   summary,
 }: {
   disabled: boolean;
   onDispatch: (xeroTenantId: string, runType: SyncRunType) => void;
+  orgQueryValue: string | null;
   summary: TenantSummary;
 }) {
   const hasFailures =
@@ -226,10 +255,13 @@ function TenantCard({
         {summary.pendingFailedRecords > 0 && (
           <Button asChild size="sm" variant="secondary">
             <Link
-              href={`/sync?${buildQuery({
-                status: ["failed", "partial_success"],
-                xeroTenantId: [summary.xeroTenantId],
-              })}`}
+              href={withOrg(
+                `/sync?${buildQuery({
+                  status: ["failed", "partial_success"],
+                  xeroTenantId: [summary.xeroTenantId],
+                })}`,
+                orgQueryValue
+              )}
             >
               {summary.pendingFailedRecords} pending failures
             </Link>
@@ -262,7 +294,12 @@ function TenantCard({
           retrySlot={
             <Button asChild size="sm" variant="secondary">
               <Link
-                href={`/sync?${buildQuery({ xeroTenantId: [summary.xeroTenantId] })}`}
+                href={withOrg(
+                  `/sync?${buildQuery({
+                    xeroTenantId: [summary.xeroTenantId],
+                  })}`,
+                  orgQueryValue
+                )}
               >
                 View run history
               </Link>
@@ -305,9 +342,11 @@ function TenantCard({
 
 function FilterBar({
   filters,
+  orgQueryValue,
   summaries,
 }: {
   filters: SyncRunFiltersInput;
+  orgQueryValue: string | null;
   summaries: TenantSummary[];
 }) {
   const router = useRouter();
@@ -320,12 +359,15 @@ function FilterBar({
 
   const apply = () => {
     router.push(
-      `/sync?${buildQuery({
-        runType: runType === "all" ? undefined : [runType],
-        status: status === "all" ? undefined : [status],
-        triggerType: triggerType === "all" ? undefined : [triggerType],
-        xeroTenantId: tenant === "all" ? undefined : [tenant],
-      })}`
+      withOrg(
+        `/sync?${buildQuery({
+          runType: runType === "all" ? undefined : [runType],
+          status: status === "all" ? undefined : [status],
+          triggerType: triggerType === "all" ? undefined : [triggerType],
+          xeroTenantId: tenant === "all" ? undefined : [tenant],
+        })}`,
+        orgQueryValue
+      )
     );
   };
 
@@ -517,6 +559,9 @@ function reasonLabel(reason?: string): string {
   }
   if (reason === "dispatch_not_wired") {
     return "This sync job is not registered yet.";
+  }
+  if (reason === "tenant_sync_paused") {
+    return "Resume Xero syncing before running this sync.";
   }
   return "Sync was not queued.";
 }

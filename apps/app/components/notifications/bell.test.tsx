@@ -11,9 +11,15 @@ import { NotificationsBell } from "./bell";
 const LEAVE_SUBMITTED_REGEX = /Leave submitted/i;
 
 const mocks = vi.hoisted(() => ({
+  connection: {
+    status: "open" as "closed" | "connecting" | "open",
+    version: 0,
+  },
+  listRecentUnreadAction: vi.fn(),
   markAllAsReadAction: vi.fn(),
   markAsReadAction: vi.fn(),
   push: vi.fn(),
+  refreshUnreadCountAction: vi.fn(),
   subscribe: vi.fn(() => () => undefined),
 }));
 
@@ -22,22 +28,25 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@repo/notifications/components/provider", () => ({
   useNotificationEvents: () => ({
-    connectionVersion: 0,
-    status: "open",
+    connectionVersion: mocks.connection.version,
+    status: mocks.connection.status,
     subscribe: mocks.subscribe,
   }),
 }));
 vi.mock("@/app/(authenticated)/notifications/_actions", () => ({
-  listRecentUnreadAction: vi.fn(),
+  listRecentUnreadAction: (args: unknown) => mocks.listRecentUnreadAction(args),
   markAllAsReadAction: (args: unknown) => mocks.markAllAsReadAction(args),
   markAsReadAction: (args: unknown) => mocks.markAsReadAction(args),
-  refreshUnreadCountAction: vi.fn(),
+  refreshUnreadCountAction: (args: unknown) =>
+    mocks.refreshUnreadCountAction(args),
 }));
 
 describe("NotificationsBell", () => {
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
+    mocks.connection.status = "open";
+    mocks.connection.version = 0;
   });
 
   it("renders trigger with 44px touch target, opens list, and handles notification click", async () => {
@@ -84,8 +93,78 @@ describe("NotificationsBell", () => {
     });
 
     await waitFor(() => {
-      expect(mocks.push).toHaveBeenCalledWith("/plans/123");
+      expect(mocks.push).toHaveBeenCalledWith(
+        "/plans/123?org=00000000-0000-4000-8000-000000000001"
+      );
     });
+  });
+
+  it("preserves organisation context on the full notifications link", () => {
+    render(
+      <NotificationsBell
+        initialRecent={[]}
+        initialUnreadCount={0}
+        organisationId="00000000-0000-4000-8000-000000000001"
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText("Notifications, 0 unread"));
+
+    expect(
+      screen.getByRole("link", { name: "View all" }).getAttribute("href")
+    ).toBe("/notifications?org=00000000-0000-4000-8000-000000000001");
+  });
+
+  it("surfaces mark-as-read failures without navigating away", async () => {
+    mocks.markAsReadAction.mockResolvedValueOnce({
+      error: { code: "unknown_error", message: "Could not mark as read." },
+      ok: false,
+    });
+
+    render(
+      <NotificationsBell
+        initialRecent={[
+          {
+            actionUrl: "/plans/123",
+            body: "Ava submitted leave.",
+            createdAt: new Date().toISOString(),
+            iconKey: "inbox-in",
+            id: "n_1",
+            title: "Leave submitted",
+          },
+        ]}
+        initialUnreadCount={1}
+        organisationId="00000000-0000-4000-8000-000000000001"
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText("Notifications, 1 unread"));
+    fireEvent.click(
+      screen.getByRole("button", { name: LEAVE_SUBMITTED_REGEX })
+    );
+
+    expect((await screen.findByRole("alert")).textContent).toContain(
+      "Could not mark as read."
+    );
+    expect(mocks.push).not.toHaveBeenCalled();
+  });
+
+  it("announces when live notifications are reconnecting", () => {
+    mocks.connection.status = "connecting";
+
+    render(
+      <NotificationsBell
+        initialRecent={[]}
+        initialUnreadCount={0}
+        organisationId="00000000-0000-4000-8000-000000000001"
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText("Notifications, 0 unread"));
+
+    expect(screen.getByRole("status").textContent).toContain(
+      "Connecting to live notifications"
+    );
   });
 
   it("formats large badges as 99+", () => {

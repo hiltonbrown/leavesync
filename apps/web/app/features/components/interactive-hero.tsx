@@ -135,6 +135,21 @@ interface Particle {
   y: number;
 }
 
+type CopyStatus = "Copied!" | "Copy Link" | "Select and copy";
+
+const prefersReducedMotion = () =>
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const copyStatusAnnouncement = (status: CopyStatus) => {
+  if (status === "Copied!") {
+    return "Feed link copied";
+  }
+  if (status === "Select and copy") {
+    return "Clipboard unavailable. Select the link and copy it manually.";
+  }
+  return "";
+};
+
 interface CalculatedBlock {
   kind: "annual" | "wfh" | "client";
   label: string;
@@ -239,6 +254,16 @@ const useSyncParticles = (
 
   // Particle emission helper
   const emitParticles = (fromKey: string, leaveType: "sage" | "purple") => {
+    if (prefersReducedMotion()) {
+      const now = Date.now();
+      setLastSyncTime({
+        applecal: now,
+        gcal: now,
+        outlook: now,
+      });
+      return;
+    }
+
     const startCell = cellsRef.current[fromKey];
     const container = containerRef.current;
     if (!(startCell && container)) {
@@ -287,6 +312,13 @@ const useSyncParticles = (
     const canvas = canvasRef.current;
     // biome-ignore lint/suspicious/noUnnecessaryConditions: canvasRef.current is null until the <canvas> mounts; this guard is load-bearing at runtime even though Biome cannot see the ref assignment.
     if (!canvas) {
+      return;
+    }
+
+    if (prefersReducedMotion()) {
+      particlesRef.current = [];
+      animationFrameRef.current = null;
+      canvas.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
       return;
     }
 
@@ -360,6 +392,20 @@ const useSyncParticles = (
 
   // Set up resize handler for the canvas & update target element centers
   useEffect(() => {
+    const reducedMotionQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    );
+
+    const handleReducedMotionChange = () => {
+      if (reducedMotionQuery.matches) {
+        particlesRef.current = [];
+        cancelAnimationFrame(animationFrameRef.current ?? 0);
+        animationFrameRef.current = null;
+        const canvas = canvasRef.current;
+        canvas?.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    };
+
     const handleResize = () => {
       const canvas = canvasRef.current;
       const container = containerRef.current;
@@ -385,20 +431,28 @@ const useSyncParticles = (
       }
     };
 
+    handleReducedMotionChange();
     handleResize();
+    reducedMotionQuery.addEventListener("change", handleReducedMotionChange);
     window.addEventListener("resize", handleResize);
 
     return () => {
+      reducedMotionQuery.removeEventListener(
+        "change",
+        handleReducedMotionChange
+      );
       window.removeEventListener("resize", handleResize);
-      // biome-ignore lint/suspicious/noUnnecessaryConditions: animationFrameRef.current is mutated imperatively elsewhere in this closure (tick, startLoop); this guard is load-bearing at runtime even though Biome cannot see those assignments.
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      cancelAnimationFrame(animationFrameRef.current ?? 0);
+      animationFrameRef.current = null;
     };
   }, []);
 
   // Emit spark burst directly from legend buttons
   const emitLegendSpark = (leaveType: "sage" | "purple", targetId: string) => {
+    if (prefersReducedMotion()) {
+      return;
+    }
+
     const el = document.getElementById(targetId);
     const container = containerRef.current;
     if (!(el && container)) {
@@ -409,7 +463,7 @@ const useSyncParticles = (
     const containerRect = container.getBoundingClientRect();
 
     const startX = rect.left - containerRect.left + rect.width / 2;
-    const startY = rect.top - containerRect.top + containerRect.height / 2;
+    const startY = rect.top - containerRect.top + rect.height / 2;
 
     const color = leaveType === "sage" ? "#6DA671" : "#5E4F99";
     const targetKeys = ["outlook", "gcal", "applecal"];
@@ -562,7 +616,7 @@ const TeammateTrackRow = ({
                 <span className="tl-block__days">{block.span}d</span>
               )}
               {block.state === "pending" && (
-                <span className="ml-auto rounded bg-muted px-1 py-0.5 font-bold text-[9px] text-muted-foreground uppercase leading-none tracking-tight">
+                <span className="ml-auto rounded bg-muted px-1 py-0.5 font-bold text-label-sm text-muted-foreground uppercase leading-none tracking-tight">
                   Pending
                 </span>
               )}
@@ -619,7 +673,7 @@ const TimelineDetailStrip = ({
           {TEAMMATES.find((t) => t.id === selectedBlock.teammateId)?.name} ·{" "}
           {selectedBlock.label}{" "}
           <span
-            className={`ml-1.5 rounded px-1.5 py-0.5 font-semibold text-[10px] ${
+            className={`ml-1.5 rounded px-1.5 py-0.5 font-semibold text-label-sm ${
               selectedBlock.state === "pending"
                 ? "bg-muted text-muted-foreground"
                 : "bg-secondary text-secondary-foreground"
@@ -652,14 +706,14 @@ const TimelineDetailStrip = ({
         {selectedBlock.state === "pending" ? (
           <>
             <button
-              className="cursor-pointer rounded-lg bg-primary px-3.5 py-1.5 font-medium text-primary-foreground text-xs transition-colors hover:bg-primary/90"
+              className="min-h-11 cursor-pointer rounded-lg bg-primary px-3.5 py-1.5 font-medium text-primary-foreground text-xs transition-colors hover:bg-primary/90"
               onClick={handleApprove}
               type="button"
             >
               Approve Sync
             </button>
             <button
-              className="cursor-pointer rounded-lg border border-border/10 bg-transparent px-3.5 py-1.5 font-medium text-muted-foreground text-xs transition-colors hover:bg-muted"
+              className="min-h-11 cursor-pointer rounded-lg border border-border/10 bg-transparent px-3.5 py-1.5 font-medium text-muted-foreground text-xs transition-colors hover:bg-muted"
               onClick={handleDecline}
               type="button"
             >
@@ -668,7 +722,7 @@ const TimelineDetailStrip = ({
           </>
         ) : (
           <button
-            className="cursor-pointer border-none bg-transparent font-medium text-destructive text-xs hover:text-destructive/80"
+            className="min-h-11 cursor-pointer border-none bg-transparent px-2 font-medium text-destructive text-xs hover:text-destructive/80"
             onClick={handleDecline}
             type="button"
           >
@@ -704,7 +758,7 @@ export const InteractiveHeroSection = () => {
   });
 
   const [activeTab, setActiveTab] = useState<"visual" | "ics">("visual");
-  const [copyStatus, setCopyStatus] = useState("Copy Link");
+  const [copyStatus, setCopyStatus] = useState<CopyStatus>("Copy Link");
   const [mounted, setMounted] = useState(false);
   const [weekDays, setWeekDays] = useState<
     { date: Date; dow: string; num: number }[]
@@ -715,6 +769,29 @@ export const InteractiveHeroSection = () => {
 
   const mockFeedUrl =
     "https://api.teamcalendar.online/v1/ical/feed_5f2d7a9b.ics";
+
+  const handleTabKeyDown = (
+    event: React.KeyboardEvent<HTMLButtonElement>,
+    currentTab: "visual" | "ics"
+  ) => {
+    let nextTab: "visual" | "ics" | null = null;
+
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      nextTab = currentTab === "visual" ? "ics" : "visual";
+    } else if (event.key === "Home") {
+      nextTab = "visual";
+    } else if (event.key === "End") {
+      nextTab = "ics";
+    }
+
+    if (!nextTab) {
+      return;
+    }
+
+    event.preventDefault();
+    setActiveTab(nextTab);
+    document.getElementById(`feature-demo-tab-${nextTab}`)?.focus();
+  };
 
   // Hydration-safe dynamic dates
   useEffect(() => {
@@ -807,9 +884,13 @@ export const InteractiveHeroSection = () => {
   };
 
   // Copy mock url to clipboard helper
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(mockFeedUrl);
-    setCopyStatus("Copied!");
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(mockFeedUrl);
+      setCopyStatus("Copied!");
+    } catch {
+      setCopyStatus("Select and copy");
+    }
     setTimeout(() => {
       setCopyStatus("Copy Link");
     }, 2000);
@@ -847,10 +928,12 @@ export const InteractiveHeroSection = () => {
 
       <div className="ft-hero__right" ref={containerRef}>
         {/* Particle Canvas */}
-        <canvas
+        <div
+          aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-10"
-          ref={canvasRef}
-        />
+        >
+          <canvas className="size-full" ref={canvasRef} />
+        </div>
 
         {/* Decorative ambient background glows */}
         <div className="ft-sandbox-glow ft-sandbox-glow--green" />
@@ -866,17 +949,33 @@ export const InteractiveHeroSection = () => {
                 Availability Sandbox
               </span>
             </div>
-            <div className="ft-sandbox-tabs">
+            <div
+              aria-label="Availability sandbox view"
+              className="ft-sandbox-tabs"
+              role="tablist"
+            >
               <button
+                aria-controls="feature-demo-panel-visual"
+                aria-selected={activeTab === "visual"}
                 className={`ft-sandbox-tab ${activeTab === "visual" ? "active" : ""}`}
+                id="feature-demo-tab-visual"
                 onClick={() => setActiveTab("visual")}
+                onKeyDown={(event) => handleTabKeyDown(event, "visual")}
+                role="tab"
+                tabIndex={activeTab === "visual" ? 0 : -1}
                 type="button"
               >
                 Calendar Sandbox
               </button>
               <button
+                aria-controls="feature-demo-panel-ics"
+                aria-selected={activeTab === "ics"}
                 className={`ft-sandbox-tab ${activeTab === "ics" ? "active" : ""}`}
+                id="feature-demo-tab-ics"
                 onClick={() => setActiveTab("ics")}
+                onKeyDown={(event) => handleTabKeyDown(event, "ics")}
+                role="tab"
+                tabIndex={activeTab === "ics" ? 0 : -1}
                 type="button"
               >
                 Subscribe Feed
@@ -885,7 +984,12 @@ export const InteractiveHeroSection = () => {
           </div>
 
           {activeTab === "visual" ? (
-            <div className="ft-sandbox-content p-4">
+            <div
+              aria-labelledby="feature-demo-tab-visual"
+              className="ft-sandbox-content p-4"
+              id="feature-demo-panel-visual"
+              role="tabpanel"
+            >
               <p className="mb-4 text-muted-foreground text-xs">
                 Staff request leave: click empty slots to request days. Managers
                 approve: click any pending striped block and click{" "}
@@ -902,7 +1006,7 @@ export const InteractiveHeroSection = () => {
                     >
                       Manager Approval Panel
                     </div>
-                    <div className="tl-week-sub mt-0.5 text-[10px] text-muted-foreground">
+                    <div className="tl-week-sub mt-0.5 text-label-sm text-muted-foreground">
                       Review requests in timeline context before syncing.
                     </div>
                   </div>
@@ -1004,7 +1108,7 @@ export const InteractiveHeroSection = () => {
 
               {/* Feeds status */}
               <div className="ft-sandbox-feeds mt-5">
-                <span className="mb-2.5 block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+                <span className="mb-2.5 block font-semibold text-label-sm text-muted-foreground uppercase tracking-wider">
                   Subscribed Calendar Feeds (.ICS)
                 </span>
                 <div className="grid grid-cols-3 gap-2.5">
@@ -1015,7 +1119,7 @@ export const InteractiveHeroSection = () => {
                     <OutlookIcon />
                     <div>
                       <div className="font-medium text-xs">Outlook</div>
-                      <div className="mt-0.5 text-[9px] text-muted-foreground">
+                      <div className="mt-0.5 text-label-sm text-muted-foreground">
                         {getSyncStatusText(lastSyncTime.outlook)}
                       </div>
                     </div>
@@ -1028,7 +1132,7 @@ export const InteractiveHeroSection = () => {
                     <GCalIcon />
                     <div>
                       <div className="font-medium text-xs">Google Cal</div>
-                      <div className="mt-0.5 text-[9px] text-muted-foreground">
+                      <div className="mt-0.5 text-label-sm text-muted-foreground">
                         {getSyncStatusText(lastSyncTime.gcal)}
                       </div>
                     </div>
@@ -1041,7 +1145,7 @@ export const InteractiveHeroSection = () => {
                     <AppleCalIcon />
                     <div>
                       <div className="font-medium text-xs">Apple Cal</div>
-                      <div className="mt-0.5 text-[9px] text-muted-foreground">
+                      <div className="mt-0.5 text-label-sm text-muted-foreground">
                         {getSyncStatusText(lastSyncTime.applecal)}
                       </div>
                     </div>
@@ -1050,7 +1154,12 @@ export const InteractiveHeroSection = () => {
               </div>
             </div>
           ) : (
-            <div className="ft-sandbox-content flex h-[380px] flex-col justify-between p-4">
+            <div
+              aria-labelledby="feature-demo-tab-ics"
+              className="ft-sandbox-content flex h-[380px] flex-col justify-between p-4"
+              id="feature-demo-panel-ics"
+              role="tabpanel"
+            >
               <div>
                 <span className="mb-2 block font-semibold text-muted-foreground text-xs uppercase tracking-wider">
                   Subscribe to Calendar Feed
@@ -1063,13 +1172,13 @@ export const InteractiveHeroSection = () => {
                 {/* Feed link copy component */}
                 <div className="flex items-center gap-2 rounded-xl border border-border/10 bg-muted/40 p-1.5">
                   <input
-                    className="flex-1 select-all border-none bg-transparent px-2 font-mono text-[11px] text-muted-foreground focus:outline-none"
+                    className="flex-1 select-all border-none bg-transparent px-2 font-mono text-label-sm text-muted-foreground focus:outline-none"
                     readOnly
                     type="text"
                     value={mockFeedUrl}
                   />
                   <button
-                    className="flex min-w-[85px] cursor-pointer items-center justify-center rounded-lg bg-primary px-3.5 py-1.5 font-medium text-primary-foreground text-xs transition-colors hover:bg-primary/90"
+                    className="flex min-h-11 min-w-[85px] cursor-pointer items-center justify-center rounded-lg bg-primary px-3.5 py-1.5 font-medium text-primary-foreground text-xs transition-colors hover:bg-primary/90"
                     onClick={copyToClipboard}
                     type="button"
                   >
@@ -1082,12 +1191,15 @@ export const InteractiveHeroSection = () => {
                       "Copy Link"
                     )}
                   </button>
+                  <span aria-live="polite" className="sr-only">
+                    {copyStatusAnnouncement(copyStatus)}
+                  </span>
                 </div>
               </div>
 
               {/* Step-by-step guides for non-technical users */}
               <div className="mt-4 flex-1 border-border/10 border-t pt-4">
-                <span className="mb-2.5 block font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
+                <span className="mb-2.5 block font-semibold text-label-sm text-muted-foreground uppercase tracking-wider">
                   How to add to your calendar:
                 </span>
                 <div className="grid grid-cols-3 gap-3 text-left">
@@ -1096,7 +1208,7 @@ export const InteractiveHeroSection = () => {
                       <GCalIcon />
                       Google Calendar
                     </div>
-                    <ol className="list-decimal space-y-1 pl-4 text-[10.5px] text-muted-foreground leading-relaxed">
+                    <ol className="list-decimal space-y-1 pl-4 text-label-sm text-muted-foreground leading-relaxed">
                       <li>Copy the feed link above</li>
                       <li>
                         Click the <strong className="text-foreground">+</strong>{" "}
@@ -1112,7 +1224,7 @@ export const InteractiveHeroSection = () => {
                       <OutlookIcon />
                       Outlook / M365
                     </div>
-                    <ol className="list-decimal space-y-1 pl-4 text-[10.5px] text-muted-foreground leading-relaxed">
+                    <ol className="list-decimal space-y-1 pl-4 text-label-sm text-muted-foreground leading-relaxed">
                       <li>Copy the feed link above</li>
                       <li>Click &quot;Add Calendar&quot;</li>
                       <li>Select &quot;Subscribe from Web&quot;</li>
@@ -1125,7 +1237,7 @@ export const InteractiveHeroSection = () => {
                       <AppleCalIcon />
                       Apple Calendar
                     </div>
-                    <ol className="list-decimal space-y-1 pl-4 text-[10.5px] text-muted-foreground leading-relaxed">
+                    <ol className="list-decimal space-y-1 pl-4 text-label-sm text-muted-foreground leading-relaxed">
                       <li>Copy the feed link above</li>
                       <li>Go to &quot;File&quot; menu</li>
                       <li>Select &quot;New Calendar Subscription&quot;</li>

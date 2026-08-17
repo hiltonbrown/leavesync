@@ -88,9 +88,9 @@ const PeoplePage = async ({ searchParams }: PeoplePageProps) => {
     return (
       <>
         <Header page="People" />
-        <main className="flex flex-1 flex-col p-6 pt-0">
+        <div className="flex flex-1 flex-col p-6 pt-0">
           <FetchErrorState entityName="people" />
-        </main>
+        </div>
       </>
     );
   }
@@ -98,7 +98,7 @@ const PeoplePage = async ({ searchParams }: PeoplePageProps) => {
   return (
     <>
       <Header page="People" />
-      <main className="flex flex-1 flex-col gap-6 p-6 pt-0">
+      <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
         <PeopleClient
           canIncludeArchived={canIncludeArchived}
           filters={filters}
@@ -110,7 +110,7 @@ const PeoplePage = async ({ searchParams }: PeoplePageProps) => {
           teams={teams}
           totalCount={peopleResult.value.totalCount}
         />
-      </main>
+      </div>
     </>
   );
 };

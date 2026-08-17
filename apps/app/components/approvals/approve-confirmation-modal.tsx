@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@repo/design-system/components/ui/button";
+import { toast } from "@repo/design-system/components/ui/sonner";
 import { Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import {
@@ -56,6 +57,7 @@ export function ApproveConfirmationModal({
         );
         return;
       }
+      toast.success("Leave approved in Xero");
       onSuccess();
     } finally {
       setIsPending(false);
@@ -73,6 +75,7 @@ export function ApproveConfirmationModal({
         setMessage(result.error.message);
         return;
       }
+      toast.success("Leave returned to pending");
       onClose();
     } finally {
       setIsPending(false);
@@ -81,6 +84,7 @@ export function ApproveConfirmationModal({
 
   return (
     <InterceptingModalShell
+      closeDisabled={isPending}
       onClose={onClose}
       size="narrow"
       title="Approve this leave?"

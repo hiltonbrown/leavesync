@@ -35,7 +35,7 @@ export default async function DashboardPage({
   return (
     <>
       <Header organisationId={organisationId} page="Dashboard" />
-      <main className="flex flex-1 flex-col gap-6 p-6 pt-0">
+      <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
         <DashboardLiveUpdates organisationId={organisationId} />
         {userId && user ? (
           <Suspense fallback={<DashboardSkeleton />}>
@@ -50,7 +50,7 @@ export default async function DashboardPage({
         ) : (
           <PermissionDeniedState />
         )}
-      </main>
+      </div>
     </>
   );
 }

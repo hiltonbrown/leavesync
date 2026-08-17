@@ -60,7 +60,8 @@ const SyncRunDetailPage = async ({
     );
   }
 
-  const { clerkOrgId, organisationId } = await requireActiveOrgPageContext(org);
+  const { clerkOrgId, organisationId, orgQueryValue } =
+    await requireActiveOrgPageContext(org);
   const [detailResult, summariesResult] = await Promise.all([
     getRunDetail({
       actingRole: role,
@@ -78,11 +79,12 @@ const SyncRunDetailPage = async ({
   return (
     <>
       <Header organisationId={organisationId} page="Sync run detail" />
-      <main className="flex flex-1 flex-col gap-6 p-6 pt-0">
+      <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
         {detailResult.ok && summariesResult.ok ? (
           <SyncRunDetailClient
             detail={detailResult.value}
             organisationId={organisationId}
+            orgQueryValue={orgQueryValue}
             tenantSummary={
               summariesResult.value.find(
                 (summary) =>
@@ -93,7 +95,7 @@ const SyncRunDetailPage = async ({
         ) : (
           <FetchErrorState entityName="sync run detail" />
         )}
-      </main>
+      </div>
     </>
   );
 };

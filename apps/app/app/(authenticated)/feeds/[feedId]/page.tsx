@@ -69,15 +69,15 @@ const FeedDetailPage = async ({
 
   return (
     <>
-      <Header page="Feed details" />
-      <main className="flex flex-1 flex-col p-6 pt-0">
+      <Header organisationId={organisationId} page="Feed details" />
+      <div className="flex flex-1 flex-col p-6 pt-0">
         <FeedDetail
           canManage={canManage}
           detail={detail.value}
           organisationId={organisationId}
           previews={previews}
         />
-      </main>
+      </div>
     </>
   );
 };

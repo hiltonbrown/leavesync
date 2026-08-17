@@ -22,6 +22,8 @@
   --secondary: #cae8bc;
   --secondary-foreground: #2a3d24;
   --tertiary: #57624f;
+  --editorial-accent: #5e4f99;
+  --on-editorial-accent: #ffffff;
   --muted: #f1ebfd;
   --muted-foreground: #46454e;
   --accent: #ebe5f7;
@@ -38,6 +40,10 @@
   --error-container: #ffdad6;
   --on-error-container: #410002;
   --success: #6da671;
+  --warning: #7a5900;
+  --warning-foreground: #ffffff;
+  --warning-container: #ffdf91;
+  --on-warning-container: #271900;
   --surface-container-lowest: #ffffff;
   --surface-container-low: #f6f1ff;
   --surface-container: #f1ebfd;
@@ -63,6 +69,14 @@
   --sidebar-border: color-mix(in srgb, #c1c9bd 15%, transparent);
   --sidebar-ring: #336a3b;
 
+  --frost-default: rgba(252, 248, 255, 0.72);
+  --frost-strong: rgba(252, 248, 255, 0.86);
+  --elev-sticky: 0 1px 0 rgba(53, 51, 64, 0.04);
+  --elev-popover: 0 8px 24px rgba(53, 51, 64, 0.06);
+  --elev-toast: 0 12px 32px rgba(53, 51, 64, 0.06);
+  --elev-modal:
+    0 24px 48px rgba(53, 51, 64, 0.08), 0 4px 12px rgba(53, 51, 64, 0.04);
+
   --font-weight-bold: 700;
 }
 
@@ -82,6 +96,8 @@
   --secondary: #374e2e;
   --secondary-foreground: #c8e6bb;
   --tertiary: #b8c9ab;
+  --editorial-accent: #c8bfff;
+  --on-editorial-accent: #2d1f6e;
   --muted: #211f26;
   --muted-foreground: #c8c5d0;
   --accent: #2b2931;
@@ -98,6 +114,10 @@
   --error-container: #93000a;
   --on-error-container: #ffdad6;
   --success: #8fd496;
+  --warning: #e8c247;
+  --warning-foreground: #3f2e00;
+  --warning-container: #5c4300;
+  --on-warning-container: #ffdf91;
   --surface-container-lowest: #0e0d13;
   --surface-container-low: #1c1b22;
   --surface-container: #211f26;
@@ -121,6 +141,13 @@
   --sidebar-accent-foreground: #e6e1ec;
   --sidebar-border: color-mix(in srgb, #46454e 15%, transparent);
   --sidebar-ring: #8fd496;
+
+  --frost-default: rgba(19, 18, 24, 0.72);
+  --frost-strong: rgba(19, 18, 24, 0.88);
+  --elev-sticky: 0 1px 0 rgba(0, 0, 0, 0.2);
+  --elev-popover: 0 8px 24px rgba(0, 0, 0, 0.25);
+  --elev-toast: 0 12px 32px rgba(0, 0, 0, 0.25);
+  --elev-modal: 0 24px 48px rgba(0, 0, 0, 0.32), 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 @theme inline {
@@ -152,8 +179,14 @@
   --color-destructive: var(--destructive);
   --color-error-container: var(--error-container);
   --color-on-error-container: var(--on-error-container);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-container: var(--warning-container);
+  --color-on-warning-container: var(--on-warning-container);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
+  --color-editorial-accent: var(--editorial-accent);
+  --color-on-editorial-accent: var(--on-editorial-accent);
   --color-accent-container: var(--accent-container);
   --color-on-accent-container: var(--on-accent-container);
   --color-surface-container-lowest: var(--surface-container-lowest);
@@ -191,19 +224,40 @@
 
   /* Typography scale: Plus Jakarta Sans */
   --text-display-lg: 3.5rem;
+  --text-display-lg--line-height: 1.1;
   --text-display-md: 2.75rem;
+  --text-display-md--line-height: 1.15;
   --text-display-sm: 2.25rem;
+  --text-display-sm--line-height: 1.2;
   --text-headline-lg: 2rem;
+  --text-headline-lg--line-height: 1.25;
   --text-headline-md: 1.75rem;
+  --text-headline-md--line-height: 1.3;
   --text-title-lg: 1.375rem;
+  --text-title-lg--line-height: 1.35;
   --text-title-md: 1rem;
+  --text-title-md--line-height: 1.4;
   --text-title-sm: 0.875rem;
+  --text-title-sm--line-height: 1.4;
   --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.6;
   --text-body-md: 1rem;
+  --text-body-md--line-height: 1.6;
   --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.6;
   --text-label-lg: 0.875rem;
+  --text-label-lg--line-height: 1.4;
   --text-label-md: 0.75rem;
+  --text-label-md--line-height: 1.4;
   --text-label-sm: 0.6875rem;
+  --text-label-sm--line-height: 1.3;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --tracking-display: -0.02em;
+  --tracking-body: 0;
+  --tracking-label: 0.01em;
+  --tracking-label-wide: 0.05em;
 
   @keyframes accordion-down {
     from {
@@ -224,10 +278,106 @@
   }
 }
 
+@utility elevation-popover {
+  background: var(--frost-default);
+  border: 1px solid var(--border);
+  box-shadow: var(--elev-popover);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+}
+
+@utility elevation-modal {
+  background: var(--frost-strong);
+  border: 1px solid var(--border);
+  box-shadow: var(--elev-modal);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  backdrop-filter: blur(24px) saturate(1.4);
+}
+
+@utility elevation-tooltip {
+  color: var(--inverse-on-surface);
+  background: var(--inverse-surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--elev-popover);
+}
+
+@supports not (
+    (backdrop-filter: blur(1px)) or
+    (-webkit-backdrop-filter: blur(1px))
+  ) {
+  .elevation-popover,
+  .elevation-modal {
+    background: var(--surface-container-highest);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .elevation-popover,
+  .elevation-modal {
+    background: var(--surface-container-highest);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .elevation-popover,
+  .elevation-modal,
+  .elevation-tooltip {
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (pointer: coarse) {
+  :where(
+    [data-slot="button"],
+    [data-slot="input"],
+    [data-slot="select-trigger"],
+    [data-slot="tabs-trigger"],
+    [data-slot="dropdown-menu-item"],
+    [data-slot="dropdown-menu-checkbox-item"],
+    [data-slot="dropdown-menu-radio-item"],
+    [data-slot="context-menu-item"],
+    [data-slot="context-menu-checkbox-item"],
+    [data-slot="context-menu-radio-item"],
+    [data-slot="menubar-item"],
+    [data-slot="menubar-checkbox-item"],
+    [data-slot="menubar-radio-item"]
+  ) {
+    min-height: 44px;
+  }
+
+  :where(
+    [data-slot="checkbox"],
+    [data-slot="radio-group-item"],
+    [data-slot="switch"]
+  ) {
+    position: relative;
+  }
+
+  :where(
+    [data-slot="checkbox"],
+    [data-slot="radio-group-item"],
+    [data-slot="switch"]
+  )::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    content: "";
+    transform: translate(-50%, -50%);
+  }
+}
+
 /* This layer is added by shadcn/ui */
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring;
   }
   body {
     @apply bg-background text-foreground;

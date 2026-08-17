@@ -16,6 +16,7 @@ export const XeroSyncFailedState = ({
 }: XeroSyncFailedStateProps) => (
   <div
     className={`flex flex-col gap-3 rounded-2xl p-4 ${statusToneClasses.failed}`}
+    role="alert"
   >
     <div className="flex items-center gap-2">
       <Badge

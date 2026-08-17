@@ -20,17 +20,20 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { createFeedAction } from "@/app/(authenticated)/feeds/_actions";
 import { useFeedTokenSession } from "@/app/(authenticated)/feeds/feed-token-session";
+import { withOrg } from "@/lib/navigation/org-url";
 import { OneTimeTokenPanel } from "./one-time-token-panel";
 
 type ScopeChoice = "manager_team" | "org" | "person" | "self" | "team";
 
 export function FeedCreateForm({
   canCreateOrgScope,
+  orgQueryValue,
   organisationId,
   people,
   teams,
 }: {
   canCreateOrgScope: boolean;
+  orgQueryValue: string | null;
   organisationId: string;
   people: Array<{ id: string; name: string }>;
   teams: Array<{ id: string; name: string }>;
@@ -83,7 +86,7 @@ export function FeedCreateForm({
         feedId={created.feedId}
         onDone={() => {
           tokenSession.clearToken(created.feedId);
-          router.push(`/feeds/${created.feedId}`);
+          router.push(withOrg(`/feeds/${created.feedId}`, orgQueryValue));
         }}
         origin={tokenSession.origin}
         plaintext={created.plaintext}
@@ -94,7 +97,10 @@ export function FeedCreateForm({
   return (
     <form action={submit} className="space-y-5">
       {error ? (
-        <div className="rounded-2xl bg-error-container p-3 text-on-error-container text-sm">
+        <div
+          className="rounded-2xl bg-error-container p-3 text-on-error-container text-sm"
+          role="alert"
+        >
           {error}
         </div>
       ) : null}

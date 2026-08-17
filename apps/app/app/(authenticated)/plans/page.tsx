@@ -77,7 +77,7 @@ const PlansPage = async ({ searchParams }: PlansPageProps) => {
     return (
       <>
         <Header page="Plans" />
-        <main className="flex flex-1 flex-col p-6 pt-0">
+        <div className="flex flex-1 flex-col p-6 pt-0">
           <EmptyState
             actionSlot={
               <Button asChild variant="outline">
@@ -89,7 +89,7 @@ const PlansPage = async ({ searchParams }: PlansPageProps) => {
             description="Your Clerk account could not be linked to a single person profile. Review the people directory, then reload plans."
             title="Person profile needs review"
           />
-        </main>
+        </div>
       </>
     );
   }
@@ -133,12 +133,12 @@ const PlansPage = async ({ searchParams }: PlansPageProps) => {
     return (
       <>
         <Header page="Plans" />
-        <main className="flex flex-1 flex-col p-6 pt-0">
+        <div className="flex flex-1 flex-col p-6 pt-0">
           <FetchErrorState
             description="We could not load leave and availability records. Reload the page, then check the Xero connection if leave records still look out of date."
             entityName="plans"
           />
-        </main>
+        </div>
       </>
     );
   }
@@ -165,7 +165,7 @@ const PlansPage = async ({ searchParams }: PlansPageProps) => {
   return (
     <>
       <Header page="Plans" />
-      <main className="flex flex-1 flex-col gap-6 p-6 pt-0">
+      <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
         {!hasXero && (
           <div className="rounded-2xl bg-muted p-5 text-muted-foreground text-sm">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -212,7 +212,7 @@ const PlansPage = async ({ searchParams }: PlansPageProps) => {
             }
           />
         )}
-      </main>
+      </div>
     </>
   );
 };
