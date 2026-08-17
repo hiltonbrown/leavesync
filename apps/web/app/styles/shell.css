@@ -91,12 +91,45 @@
 .marketing-site-header__inner {
   position: relative;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr auto auto;
   gap: 24px;
   align-items: center;
   min-width: 0;
   padding: 8px 16px;
   border-radius: 16px;
+}
+
+.marketing-site-header__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: end;
+}
+
+.marketing-site-header__theme {
+  display: flex;
+  align-items: center;
+}
+
+.marketing-site-header__theme button {
+  color: var(--marketing-on-surface);
+}
+
+.marketing-site-header__mobile-theme {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 18px;
+  margin-top: 6px;
+  border-top: 1px solid
+    color-mix(in srgb, var(--marketing-outline-variant) 18%, transparent);
+}
+
+.marketing-site-header__mobile-theme-label {
+  font: 500 0.875rem / 1.4 var(--marketing-font);
+  color: var(--marketing-on-surface-variant);
+  letter-spacing: 0.01em;
 }
 
 .marketing-site-header__brand {
@@ -741,6 +774,10 @@
 @media (max-width: 1024px) {
   .marketing-site-header__inner {
     grid-template-columns: auto 1fr auto;
+  }
+
+  .marketing-site-header__controls {
+    grid-column: 3;
   }
 
   .marketing-site-header__nav,
