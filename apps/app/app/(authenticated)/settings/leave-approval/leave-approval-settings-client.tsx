@@ -117,7 +117,7 @@ export const LeaveApprovalSettingsClient = ({
         }
       />
 
-      <Card className="rounded-2xl">
+      <Card className="rounded-xl">
         <CardHeader>
           <CardTitle>Manager visibility scope</CardTitle>
           <CardDescription>
@@ -160,7 +160,7 @@ export const LeaveApprovalSettingsClient = ({
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl">
+      <Card className="rounded-xl">
         <CardHeader>
           <CardTitle>Leave request advance days</CardTitle>
           <CardDescription>
@@ -205,7 +205,7 @@ export const LeaveApprovalSettingsClient = ({
         }
       />
 
-      <Card className="rounded-2xl">
+      <Card className="rounded-xl">
         <CardHeader>
           <CardTitle>Default privacy mode</CardTitle>
           <CardDescription>
@@ -270,7 +270,7 @@ function SettingsToggleCard({
   onCheckedChange: (checked: boolean) => void;
 }) {
   return (
-    <Card className="rounded-2xl">
+    <Card className="rounded-xl">
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>

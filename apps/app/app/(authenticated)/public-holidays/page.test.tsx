@@ -27,6 +27,9 @@ vi.mock("@/lib/auth/require-page-role", () => ({
 vi.mock("@/lib/server/require-active-org-page-context", () => ({
   requireActiveOrgPageContext: mocks.requireActiveOrgPageContext,
 }));
+vi.mock("@repo/auth/server", () => ({
+  auth: vi.fn().mockResolvedValue({ orgRole: "org:admin" }),
+}));
 vi.mock("../components/header", () => ({
   Header: ({ page }: { page: string }) => <header>{page}</header>,
 }));

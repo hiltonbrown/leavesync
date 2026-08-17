@@ -7,13 +7,13 @@ import { auth } from "@clerk/nextjs/server";
  * Throws if user is not authenticated or has not selected an organisation.
  */
 export async function requireOrg(): Promise<string> {
-  const { orgId } = await auth();
+  const authObject = await auth();
 
-  if (!orgId) {
+  if (!authObject.isAuthenticated || !authObject.orgId) {
     throw new Error("Not authenticated or no organisation selected");
   }
 
-  return orgId;
+  return authObject.orgId;
 }
 
 /**
@@ -21,8 +21,8 @@ export async function requireOrg(): Promise<string> {
  * Returns null if user is not authenticated or has not selected an organisation.
  */
 export async function getOrgId(): Promise<string | null> {
-  const { orgId } = await auth();
-  return orgId ?? null;
+  const authObject = await auth();
+  return authObject.orgId ?? null;
 }
 
 /**
@@ -32,11 +32,11 @@ export async function getOrgId(): Promise<string | null> {
 export async function requireRole(role: string): Promise<boolean> {
   const authObject = await auth();
 
-  if (!authObject.sessionClaims) {
+  if (!authObject.isAuthenticated) {
     throw new Error("Not authenticated");
   }
 
-  return authObject.has({ role });
+  return await authObject.has({ role });
 }
 
 export type { User } from "@clerk/nextjs/server";

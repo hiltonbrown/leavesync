@@ -53,54 +53,46 @@ interface PublicHolidayFromDB {
 }
 
 interface PublicHolidaysListProps {
+  canManage: boolean;
   filters: PublicHolidayFilters;
   holidays: PublicHolidayFromDB[];
   locations: Array<{ id: string; name: string }>;
 }
 
-const TYPE_CONFIG: Record<string, { label: string; bg: string; text: string }> =
-  {
-    authorities: {
-      bg: "var(--accent)",
-      label: "Authorities",
-      text: "var(--muted-foreground)",
-    },
-    bank: {
-      bg: "color-mix(in srgb, var(--primary) 8%, transparent)",
-      label: "Bank holiday",
-      text: "var(--primary)",
-    },
-    custom: {
-      bg: "color-mix(in srgb, var(--primary) 12%, transparent)",
-      label: "Custom",
-      text: "var(--primary)",
-    },
-    observance: {
-      bg: "var(--muted)",
-      label: "Observance",
-      text: "var(--muted-foreground)",
-    },
-    optional: {
-      bg: "var(--accent)",
-      label: "Optional",
-      text: "var(--muted-foreground)",
-    },
-    public: {
-      bg: "color-mix(in srgb, var(--primary) 12%, transparent)",
-      label: "Public holiday",
-      text: "var(--primary)",
-    },
-    school: {
-      bg: "color-mix(in srgb, var(--tertiary, var(--primary)) 12%, transparent)",
-      label: "School",
-      text: "var(--tertiary, var(--primary))",
-    },
-  };
+const TYPE_CONFIG: Record<string, { className: string; label: string }> = {
+  authorities: {
+    className: "bg-muted text-muted-foreground",
+    label: "Authorities",
+  },
+  bank: {
+    className: "bg-primary/10 text-primary",
+    label: "Bank holiday",
+  },
+  custom: {
+    className: "bg-primary/10 text-primary",
+    label: "Custom",
+  },
+  observance: {
+    className: "bg-muted text-muted-foreground",
+    label: "Observance",
+  },
+  optional: {
+    className: "bg-muted text-muted-foreground",
+    label: "Optional",
+  },
+  public: {
+    className: "bg-primary/10 text-primary",
+    label: "Public holiday",
+  },
+  school: {
+    className: "bg-tertiary/10 text-tertiary",
+    label: "School",
+  },
+};
 
 const FALLBACK_TYPE_CONFIG = {
-  bg: "var(--muted)",
+  className: "bg-muted text-muted-foreground",
   label: "Holiday",
-  text: "var(--muted-foreground)",
 };
 
 function formatDate(date: Date): string {
@@ -116,6 +108,7 @@ function formatDayOfWeek(date: Date): string {
 }
 
 export function PublicHolidaysList({
+  canManage,
   filters,
   holidays,
   locations,
@@ -175,13 +168,15 @@ export function PublicHolidaysList({
         />
         <EmptyState
           actionSlot={
-            <div className="flex flex-wrap justify-center gap-3">
-              <Button asChild>
-                <Link href="/public-holidays/holidays/new">
-                  <PlusIcon className="mr-2 h-4 w-4" /> Add custom holiday
-                </Link>
-              </Button>
-            </div>
+            canManage ? (
+              <div className="flex flex-wrap justify-center gap-3">
+                <Button asChild>
+                  <Link href="/public-holidays/holidays/new">
+                    <PlusIcon className="mr-2 h-4 w-4" /> Add custom holiday
+                  </Link>
+                </Button>
+              </div>
+            ) : undefined
           }
           description="Team Calendar imports your organisation's country holidays automatically. Add a custom holiday for company-specific dates."
           title="No public holidays"
@@ -198,13 +193,15 @@ export function PublicHolidaysList({
         setFilterParams={setFilterParams}
       />
 
-      <div className="flex justify-end gap-4">
-        <Button asChild>
-          <Link href="/public-holidays/holidays/new">
-            <PlusIcon className="mr-2 h-4 w-4" /> Add custom holiday
-          </Link>
-        </Button>
-      </div>
+      {canManage ? (
+        <div className="flex justify-end gap-4">
+          <Button asChild>
+            <Link href="/public-holidays/holidays/new">
+              <PlusIcon className="mr-2 h-4 w-4" /> Add custom holiday
+            </Link>
+          </Button>
+        </div>
+      ) : null}
 
       <div className="overflow-x-auto rounded-xl border">
         <Table>
@@ -254,12 +251,9 @@ export function PublicHolidaysList({
                     <Badge
                       className={cn(
                         "whitespace-nowrap font-normal",
+                        typeConfig.className,
                         isSuppressed && "opacity-50"
                       )}
-                      style={{
-                        backgroundColor: typeConfig.bg,
-                        color: typeConfig.text,
-                      }}
                       variant="secondary"
                     >
                       {typeConfig.label}
@@ -269,49 +263,58 @@ export function PublicHolidaysList({
                     {sourceLabel}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      {isSuppressed ? (
-                        <Button
-                          aria-label={`Restore ${holiday.name}`}
-                          disabled={isPending}
-                          onClick={() =>
-                            handleRestore(holiday.id, holiday.organisation_id)
-                          }
-                          size="icon"
-                          title="Restore holiday"
-                          variant="ghost"
-                        >
-                          <RotateCcwIcon className="h-4 w-4" />
-                        </Button>
-                      ) : (
-                        <Button
-                          aria-label={`Suppress ${holiday.name}`}
-                          disabled={isPending}
-                          onClick={() =>
-                            handleSuppress(holiday.id, holiday.organisation_id)
-                          }
-                          size="icon"
-                          title="Suppress holiday"
-                          variant="ghost"
-                        >
-                          <XIcon className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {holiday.source === "manual" && (
-                        <Button
-                          aria-label={`Delete ${holiday.name}`}
-                          disabled={isPending}
-                          onClick={() =>
-                            handleDelete(holiday.id, holiday.organisation_id)
-                          }
-                          size="icon"
-                          title="Delete custom holiday"
-                          variant="ghost"
-                        >
-                          <TrashIcon className="h-4 w-4 text-destructive" />
-                        </Button>
-                      )}
-                    </div>
+                    {canManage ? (
+                      <div className="flex justify-end gap-2">
+                        {isSuppressed ? (
+                          <Button
+                            aria-label={`Restore ${holiday.name}`}
+                            disabled={isPending}
+                            onClick={() =>
+                              handleRestore(holiday.id, holiday.organisation_id)
+                            }
+                            size="icon"
+                            title="Restore holiday"
+                            variant="ghost"
+                          >
+                            <RotateCcwIcon className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button
+                            aria-label={`Suppress ${holiday.name}`}
+                            disabled={isPending}
+                            onClick={() =>
+                              handleSuppress(
+                                holiday.id,
+                                holiday.organisation_id
+                              )
+                            }
+                            size="icon"
+                            title="Suppress holiday"
+                            variant="ghost"
+                          >
+                            <XIcon className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {holiday.source === "manual" && (
+                          <Button
+                            aria-label={`Delete ${holiday.name}`}
+                            disabled={isPending}
+                            onClick={() =>
+                              handleDelete(holiday.id, holiday.organisation_id)
+                            }
+                            size="icon"
+                            title="Delete custom holiday"
+                            variant="ghost"
+                          >
+                            <TrashIcon className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">
+                        Read only
+                      </span>
+                    )}
                   </TableCell>
                 </TableRow>
               );

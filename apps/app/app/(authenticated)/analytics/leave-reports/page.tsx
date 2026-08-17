@@ -21,6 +21,7 @@ import {
 } from "@/lib/auth/require-page-role";
 import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
 import { Header } from "../../components/header";
+import { AnalyticsFilters } from "../analytics-filters";
 import { ExportCsvButton } from "./export-csv-button";
 import {
   LeaveDaysByTeamChart,
@@ -82,8 +83,28 @@ const LeaveReportsPage = async ({ searchParams }: LeaveReportsPageProps) => {
     redirect("/");
   }
 
+  const presetParam = Array.isArray(params.preset)
+    ? params.preset[0]
+    : params.preset;
+  const fromParam = Array.isArray(params.from) ? params.from[0] : params.from;
+  const toParam = Array.isArray(params.to) ? params.to[0] : params.to;
+  const validPresets = new Set([
+    "this_month",
+    "last_month",
+    "this_quarter",
+    "last_quarter",
+    "this_year",
+    "last_year",
+    "last_12_months",
+    "custom",
+  ]);
+  const preset =
+    presetParam && validPresets.has(presetParam) ? presetParam : "this_year";
+
   const rangeResult = resolveDateRange({
-    preset: "this_year",
+    customEnd: toParam,
+    customStart: fromParam,
+    preset: preset as Parameters<typeof resolveDateRange>[0]["preset"],
     timezone: organisation.timezone ?? "UTC",
   });
   if (!rangeResult.ok) {
@@ -136,6 +157,11 @@ const LeaveReportsPage = async ({ searchParams }: LeaveReportsPageProps) => {
         <ExportCsvButton organisationId={organisationId} />
       </Header>
       <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
+        <AnalyticsFilters
+          customEnd={toParam}
+          customStart={fromParam}
+          preset={preset}
+        />
         <section className="rounded-2xl bg-muted p-6">
           <div className="max-w-3xl space-y-2">
             <p className="font-medium text-muted-foreground text-sm">
@@ -172,7 +198,7 @@ const LeaveReportsPage = async ({ searchParams }: LeaveReportsPageProps) => {
           />
         </section>
 
-        <Card className="rounded-2xl">
+        <Card className="rounded-xl">
           <CardHeader>
             <CardTitle>Leave days by team</CardTitle>
             <p className="text-muted-foreground text-sm">
@@ -201,7 +227,7 @@ const LeaveReportsPage = async ({ searchParams }: LeaveReportsPageProps) => {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <Card className="rounded-2xl">
+    <Card className="rounded-xl">
       <CardContent className="p-5">
         <p className="text-muted-foreground text-sm">{label}</p>
         <p className="mt-2 font-semibold text-2xl tabular-nums">{value}</p>

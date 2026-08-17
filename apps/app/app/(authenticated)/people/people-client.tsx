@@ -20,7 +20,12 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/design-system/components/ui/table";
-import { AlertTriangleIcon, SearchIcon } from "lucide-react";
+import {
+  AlertTriangleIcon,
+  LeafIcon,
+  PencilIcon,
+  SearchIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -296,69 +301,89 @@ export function PeopleClient({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {people.map((person) => (
-                <TableRow className="bg-background/50" key={person.id}>
-                  <TableCell>
-                    <Link
-                      className="flex items-center gap-3"
-                      href={withOrg(`/people/${person.id}`, orgQueryValue)}
-                    >
-                      <Avatar person={person} />
-                      <span className="min-w-0">
-                        <span className="block truncate text-foreground">
-                          <span className="font-normal">
-                            {person.firstName}
-                          </span>{" "}
-                          <span className="font-semibold">
-                            {person.lastName}
+              {
+                // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: table row renders provenance chip, status, and sync count
+                people.map((person) => (
+                  <TableRow className="bg-background/50" key={person.id}>
+                    <TableCell>
+                      <Link
+                        className="flex items-center gap-3"
+                        href={withOrg(`/people/${person.id}`, orgQueryValue)}
+                      >
+                        <Avatar person={person} />
+                        <span className="min-w-0">
+                          <span className="block truncate text-foreground">
+                            <span className="font-normal">
+                              {person.firstName}
+                            </span>{" "}
+                            <span className="font-semibold">
+                              {person.lastName}
+                            </span>
+                          </span>
+                          <span className="block truncate text-muted-foreground text-xs">
+                            {person.email}
                           </span>
                         </span>
-                        <span className="block truncate text-muted-foreground text-xs">
-                          {person.email}
-                        </span>
-                      </span>
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {person.jobTitle ?? labelForPersonType(person.personType)}
-                    {person.archivedAt ? (
-                      <Badge className="ml-2" variant="outline">
-                        Archived
-                      </Badge>
-                    ) : null}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {person.team?.name ?? "Unassigned"}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {locationLabel(person)}
-                  </TableCell>
-                  <TableCell>
-                    <StatusChip
-                      label={person.currentStatus.label}
-                      statusKey={person.currentStatus.statusKey}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant={person.xeroLinked ? "secondary" : "outline"}
-                      >
-                        {person.xeroLinked ? "Linked" : "Manual"}
-                      </Badge>
-                      {person.xeroSyncFailedCount > 0 && (
-                        <span
-                          className="inline-flex items-center gap-1 rounded-xl bg-destructive/10 px-2 py-1 font-medium text-destructive text-xs"
-                          title={`${person.xeroSyncFailedCount} failed record${person.xeroSyncFailedCount === 1 ? "" : "s"}`}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {person.jobTitle ?? labelForPersonType(person.personType)}
+                      {person.archivedAt ? (
+                        <Badge className="ml-2" variant="outline">
+                          Archived
+                        </Badge>
+                      ) : null}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {person.team?.name ?? "Unassigned"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {locationLabel(person)}
+                    </TableCell>
+                    <TableCell>
+                      <StatusChip
+                        label={person.currentStatus.label}
+                        statusKey={person.currentStatus.statusKey}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          className={
+                            person.xeroLinked
+                              ? "border-transparent bg-secondary text-secondary-foreground ring-1 ring-secondary/60"
+                              : "border-transparent bg-accent-container text-on-accent-container ring-1 ring-accent-container/60"
+                          }
+                          variant="secondary"
                         >
-                          <AlertTriangleIcon className="size-3" />
-                          {person.xeroSyncFailedCount}
-                        </span>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                          {person.xeroLinked ? (
+                            <LeafIcon aria-hidden="true" className="size-3" />
+                          ) : (
+                            <PencilIcon aria-hidden="true" className="size-3" />
+                          )}
+                          {person.xeroLinked ? "Linked" : "Manual"}
+                          <span className="sr-only">
+                            Source:{" "}
+                            {person.xeroLinked
+                              ? "Synced from Xero"
+                              : "Manual entry"}
+                            .
+                          </span>
+                        </Badge>
+                        {person.xeroSyncFailedCount > 0 && (
+                          <span
+                            className="inline-flex items-center gap-1 rounded-xl bg-destructive/10 px-2 py-1 font-medium text-destructive text-xs"
+                            title={`${person.xeroSyncFailedCount} failed record${person.xeroSyncFailedCount === 1 ? "" : "s"}`}
+                          >
+                            <AlertTriangleIcon className="size-3" />
+                            {person.xeroSyncFailedCount}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              }
             </TableBody>
           </Table>
         </div>
@@ -423,7 +448,7 @@ function StatusChip({
   const tone = statusTone(statusKey);
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1 font-medium text-xs ${tone}`}
+      className={`inline-flex items-center gap-1.5 rounded-sm px-3 py-1 font-medium text-xs ring-1 ${tone}`}
     >
       <span className="size-1.5 rounded-full bg-current" />
       {label}

@@ -1,3 +1,4 @@
+import { auth } from "@repo/auth/server";
 import { listForOrganisation } from "@repo/availability";
 import { database, scopedQuery } from "@repo/database";
 import type { Metadata } from "next";
@@ -31,6 +32,8 @@ const PublicHolidaysPage = async ({
   const params = await searchParams;
   const { org, ...filterParams } = params;
   const orgParam = Array.isArray(org) ? org[0] : org;
+  const { orgRole } = await auth();
+  const canManage = orgRole === "org:admin" || orgRole === "org:owner";
   const { clerkOrgId, organisationId } =
     await requireActiveOrgPageContext(orgParam);
   const filters =
@@ -66,6 +69,7 @@ const PublicHolidaysPage = async ({
       <Header page="Public Holidays" />
       <div className="flex flex-1 flex-col p-6 pt-0">
         <PublicHolidaysList
+          canManage={canManage}
           filters={filters}
           holidays={holidaysResult.value}
           locations={locations}

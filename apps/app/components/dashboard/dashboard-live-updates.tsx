@@ -15,7 +15,9 @@ export function DashboardLiveUpdates({
   const router = useRouter();
   const { subscribe } = useNotificationEvents();
   const shownToast = useRef<string | null>(null);
+  const liveText = useRef<HTMLDivElement | null>(null);
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: two distinct SSE branches sharing toast logic
   useEffect(
     () =>
       subscribe((event) => {
@@ -34,6 +36,10 @@ export function DashboardLiveUpdates({
               onClick: () => router.refresh(),
             },
           });
+          if (liveText.current) {
+            liveText.current.textContent =
+              "New activity on the dashboard. Refresh available.";
+          }
         }
 
         if (
@@ -51,10 +57,16 @@ export function DashboardLiveUpdates({
               onClick: () => router.refresh(),
             },
           });
+          if (liveText.current) {
+            liveText.current.textContent =
+              "Sync activity updated. Refresh available.";
+          }
         }
       }),
     [organisationId, router, subscribe]
   );
 
-  return null;
+  return (
+    <div aria-live="polite" className="sr-only" ref={liveText} role="status" />
+  );
 }

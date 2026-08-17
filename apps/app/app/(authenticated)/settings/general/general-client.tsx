@@ -146,7 +146,7 @@ export const GeneralClient = ({
         title="General"
       />
 
-      <Card className="rounded-2xl">
+      <Card className="rounded-xl">
         <CardHeader>
           <CardTitle>Account</CardTitle>
           <CardDescription>
@@ -182,7 +182,7 @@ export const GeneralClient = ({
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl">
+      <Card className="rounded-xl">
         <CardHeader>
           <CardTitle>Payroll entity</CardTitle>
           <CardDescription>

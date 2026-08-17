@@ -78,6 +78,10 @@ export function FeedTable({
   const copy = async (feedId: string) => {
     const plaintext = tokenSession.tokenForFeed(feedId);
     if (!plaintext) {
+      setMessage({
+        text: "Rotate to get a new link — subscribe URLs are only shown right after creation or rotation.",
+        tone: "status",
+      });
       router.push(withOrg(`/feeds/${feedId}?panel=rotate`, orgQueryValue));
       return;
     }
@@ -372,9 +376,9 @@ function transitionSuccessMessage(
 function StatusDot({ status }: { status: FeedTableItem["status"] }) {
   let colour = statusToneClasses.private;
   if (status === "active") {
-    colour = statusToneClasses.leave;
+    colour = "bg-success text-success ring-success/30";
   } else if (status === "paused") {
-    colour = statusToneClasses.holiday;
+    colour = "bg-warning-container text-on-warning-container ring-warning/30";
   }
   return (
     <span className="flex items-center gap-2 text-sm capitalize">

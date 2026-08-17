@@ -34,7 +34,7 @@ export function DashboardCardShell({
   orgQueryValue,
 }: DashboardCardShellProps) {
   return (
-    <Card className="rounded-2xl border-0 shadow-sm">
+    <Card className="rounded-xl border-0 shadow-sm">
       <CardHeader>
         <div>
           <CardTitle>{title}</CardTitle>

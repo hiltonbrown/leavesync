@@ -40,6 +40,7 @@ const AuditLogPage = async ({ searchParams }: AuditLogPageProps) => {
     dateTo: dateValue(params.dateTo),
     searchEntityId: firstValue(params.entityId),
   };
+  const cursor = firstValue(params.cursor);
 
   const listResult = await listAuditLogEvents({
     actingRole: role,
@@ -47,7 +48,7 @@ const AuditLogPage = async ({ searchParams }: AuditLogPageProps) => {
     clerkOrgId,
     filters,
     organisationId,
-    pagination: { pageSize: 50 },
+    pagination: { cursor, pageSize: 50 },
   });
 
   if (!listResult.ok) {
