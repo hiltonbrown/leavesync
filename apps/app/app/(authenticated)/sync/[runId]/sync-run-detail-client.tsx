@@ -331,10 +331,21 @@ export function SyncRunDetailClient({
 }
 
 function StatCell({ label, value }: { label: string; value: number }) {
+  const isFailed = label === "Records failed" && value > 0;
   return (
-    <div className="rounded-2xl bg-muted p-4">
-      <p className="font-semibold text-3xl">{value}</p>
-      <p className="mt-1 text-muted-foreground text-sm">{label}</p>
+    <div
+      className={`rounded-2xl p-4 ${isFailed ? "bg-error-container" : "bg-muted"}`}
+    >
+      <p
+        className={`font-semibold text-3xl ${isFailed ? "text-destructive" : ""}`}
+      >
+        {value}
+      </p>
+      <p
+        className={`mt-1 text-sm ${isFailed ? "text-destructive" : "text-muted-foreground"}`}
+      >
+        {label}
+      </p>
     </div>
   );
 }

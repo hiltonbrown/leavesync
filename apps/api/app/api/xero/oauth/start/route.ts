@@ -15,10 +15,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
   }
 
-  const [isAdmin, isOwner] = await Promise.all([
-    requireRole("org:admin"),
-    requireRole("org:owner"),
-  ]);
+  let isAdmin = false;
+  let isOwner = false;
+  try {
+    [isAdmin, isOwner] = await Promise.all([
+      requireRole("org:admin"),
+      requireRole("org:owner"),
+    ]);
+  } catch {
+    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+  }
   if (!(isAdmin || isOwner)) {
     return NextResponse.json(
       { error: "Only admins and owners can connect Xero." },

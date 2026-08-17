@@ -31,6 +31,7 @@ export const AuditLogClient = ({
   details,
   events,
   filters,
+  nextCursor,
   organisationId,
 }: AuditLogClientProps) => {
   const [isPending, startTransition] = useTransition();
@@ -162,8 +163,24 @@ export const AuditLogClient = ({
               </div>
             </details>
           ))}
+          {nextCursor ? (
+            <div className="flex justify-center pt-2">
+              <Button asChild variant="secondary">
+                <a href={`?${buildCursorHref(nextCursor)}`}>Load more</a>
+              </Button>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
     </div>
   );
 };
+
+function buildCursorHref(cursor: string): string {
+  if (typeof window === "undefined") {
+    return `cursor=${encodeURIComponent(cursor)}`;
+  }
+  const params = new URLSearchParams(window.location.search);
+  params.set("cursor", cursor);
+  return params.toString();
+}

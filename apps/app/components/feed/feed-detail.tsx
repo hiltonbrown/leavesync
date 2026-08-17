@@ -67,6 +67,12 @@ export function FeedDetail({
     scopeSummary: string;
     scopes: Array<{ id: string; label: string; scopeType: string }>;
     status: "active" | "archived" | "paused";
+    tokenHistory?: Array<{
+      createdAt: Date;
+      id: string;
+      revokedAt: Date | null;
+      status: string;
+    }>;
   };
   organisationId: string;
   previews: Partial<Record<"masked" | "named" | "private", PreviewEvent[]>>;
@@ -241,6 +247,28 @@ export function FeedDetail({
             origin={tokenSession.origin}
             plaintext={plaintext}
           />
+        ) : null}
+
+        {detail.tokenHistory && detail.tokenHistory.length > 0 ? (
+          <div className="rounded-2xl bg-muted p-4 text-sm">
+            <div className="font-medium">Token history</div>
+            <ul className="mt-2 space-y-1">
+              {detail.tokenHistory.map((t) => (
+                <li
+                  className="flex items-center justify-between text-xs"
+                  key={t.id}
+                >
+                  <span className="font-mono">••••{t.id.slice(-4)}</span>
+                  <span className="flex items-center gap-2">
+                    <Badge variant="secondary">{t.status}</Badge>
+                    <span className="text-muted-foreground">
+                      {formatDate(t.createdAt)}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         ) : null}
 
         {canManage ? (

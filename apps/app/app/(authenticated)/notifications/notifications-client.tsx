@@ -126,7 +126,7 @@ export function NotificationsClient({
 }: NotificationsClientProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { subscribe } = useNotificationEvents();
+  const { status, subscribe } = useNotificationEvents();
   const [isPending, startTransition] = useTransition();
   const [notifications, setNotifications] = useState(initialNotifications);
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
@@ -312,6 +312,16 @@ export function NotificationsClient({
               : "Notification preferences"}
           </h1>
           <p className="mt-2 text-muted-foreground text-sm">{subtitle}</p>
+          {status === "connecting" ? (
+            <p className="mt-2 text-muted-foreground text-xs" role="status">
+              Connecting to live notifications…
+            </p>
+          ) : null}
+          {status === "closed" ? (
+            <p className="mt-2 text-muted-foreground text-xs" role="status">
+              Live notifications are unavailable. Updates may be delayed.
+            </p>
+          ) : null}
         </div>
         <div className="flex gap-2">
           <TabLink

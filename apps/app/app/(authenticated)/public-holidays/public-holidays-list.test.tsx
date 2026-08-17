@@ -24,6 +24,7 @@ describe("PublicHolidaysList", () => {
   it("uses the shared empty state when no holidays match", () => {
     render(
       <PublicHolidaysList
+        canManage={true}
         filters={{ includeSuppressed: false, year: 2026 }}
         holidays={[]}
         locations={[]}
@@ -41,6 +42,7 @@ describe("PublicHolidaysList", () => {
   it("labels icon-only row actions", () => {
     render(
       <PublicHolidaysList
+        canManage={true}
         filters={{ includeSuppressed: true, year: 2026 }}
         holidays={[
           {

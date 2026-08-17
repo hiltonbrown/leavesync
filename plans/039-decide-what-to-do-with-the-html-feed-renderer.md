@@ -261,11 +261,11 @@ Read the surrounding sections of any hit. The question is whether a
 human-readable web view of a feed is a stated product intention, a rejected
 one, or unmentioned.
 
-Also check `ScreenCatalogue-v4.1.md`, which is a screen inventory and would be
+Also check `ScreenCatalogue-v5.md`, which is a screen inventory and would be
 the natural place for a designed-but-unbuilt screen:
 
 ```
-grep -rn -i "html\|feed view\|share" ScreenCatalogue-v4.1.md | head -20
+grep -rn -i "html\|feed view\|share" ScreenCatalogue-v5.md | head -20
 ```
 
 ### Step 4: Assess what shipping it would require

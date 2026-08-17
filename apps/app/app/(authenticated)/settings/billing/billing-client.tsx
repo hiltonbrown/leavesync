@@ -28,7 +28,7 @@ const statusClassName = (status: string) => {
   if (
     ["past_due", "paused", "incomplete", "incomplete_expired"].includes(status)
   ) {
-    return "bg-amber-500/15 text-amber-700";
+    return "bg-warning-container text-on-warning-container";
   }
   return "bg-muted text-muted-foreground";
 };
@@ -38,7 +38,7 @@ const usageBarColour = (percentage: number) => {
     return "bg-destructive";
   }
   if (percentage >= 80) {
-    return "bg-amber-500";
+    return "bg-warning";
   }
   return "bg-primary";
 };
@@ -57,7 +57,7 @@ export const BillingClient = ({ summary }: BillingClientProps) => {
           This account is over one or more plan limits.
         </div>
       ) : null}
-      <Card className="rounded-2xl">
+      <Card className="rounded-xl">
         <CardHeader>
           <CardTitle>Current plan</CardTitle>
           <CardDescription>
@@ -81,7 +81,7 @@ export const BillingClient = ({ summary }: BillingClientProps) => {
           </Badge>
         </CardContent>
       </Card>
-      <Card className="rounded-2xl">
+      <Card className="rounded-xl">
         <CardHeader>
           <CardTitle>Usage</CardTitle>
           <CardDescription>Current usage against plan limits.</CardDescription>
@@ -117,7 +117,7 @@ export const BillingClient = ({ summary }: BillingClientProps) => {
         </CardContent>
       </Card>
       {earlyAccess ? (
-        <Card className="rounded-2xl border-amber-200 bg-amber-50/50">
+        <Card className="rounded-xl border-warning/20 bg-warning-container/50">
           <CardHeader>
             <CardTitle>Closed Early Access</CardTitle>
             <CardDescription>

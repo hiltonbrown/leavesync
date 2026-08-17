@@ -47,9 +47,10 @@ const planStatusStyles: Record<
   },
   pending: {
     badgeClassName:
-      "border-transparent bg-accent-container text-on-accent-container ring-1 ring-on-accent-container/15",
-    dotClassName: "bg-on-accent-container",
-    rowClassName: "bg-accent-container/35 hover:bg-accent-container/55",
+      "border border-dashed bg-secondary/15 text-secondary-foreground ring-1 ring-secondary/30",
+    dotClassName: "bg-secondary",
+    rowClassName:
+      "border border-dashed border-secondary/20 bg-secondary/10 hover:bg-secondary/20",
   },
   withdrawn: {
     badgeClassName:

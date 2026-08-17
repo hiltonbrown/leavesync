@@ -69,7 +69,7 @@ export const FeedsClient = ({
         title="Feeds"
       />
 
-      <Card className="rounded-2xl">
+      <Card className="rounded-xl">
         <CardHeader>
           <CardTitle>Default privacy mode for new feeds</CardTitle>
         </CardHeader>
@@ -102,7 +102,7 @@ export const FeedsClient = ({
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl">
+      <Card className="rounded-xl">
         <CardHeader>
           <CardTitle>Include public holidays in new feeds</CardTitle>
         </CardHeader>
@@ -120,7 +120,7 @@ export const FeedsClient = ({
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl">
+      <Card className="rounded-xl">
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
             <CardTitle>All feeds</CardTitle>

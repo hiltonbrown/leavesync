@@ -197,8 +197,16 @@ export function SyncClient({
                         {formatDuration(run.durationSeconds)}
                       </td>
                       <td className="p-4">
-                        {run.recordsUpserted} upserted, {run.recordsFailed}{" "}
-                        failed
+                        {run.recordsUpserted} upserted,{" "}
+                        <span
+                          className={
+                            run.recordsFailed > 0
+                              ? "font-medium text-destructive"
+                              : ""
+                          }
+                        >
+                          {run.recordsFailed} failed
+                        </span>
                       </td>
                       <td className="p-4">{run.triggeredByUserDisplay}</td>
                       <td className="p-4">
