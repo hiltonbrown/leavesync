@@ -13,7 +13,8 @@ const NewFeedModalPage = async ({ searchParams }: NewFeedModalPageProps) => {
   const { org } = await searchParams;
   const { orgRole } = await auth();
   const role = normaliseRole(orgRole);
-  const { clerkOrgId, organisationId } = await requireActiveOrgPageContext(org);
+  const { clerkOrgId, organisationId, orgQueryValue } =
+    await requireActiveOrgPageContext(org);
   const [teams, people] = await Promise.all([
     database.team.findMany({
       orderBy: { name: "asc" },
@@ -37,6 +38,7 @@ const NewFeedModalPage = async ({ searchParams }: NewFeedModalPageProps) => {
       <FeedCreateForm
         canCreateOrgScope={role === "org:admin" || role === "org:owner"}
         organisationId={organisationId}
+        orgQueryValue={orgQueryValue}
         people={people.map((person) => ({
           id: person.id,
           name: `${person.first_name} ${person.last_name}`,

@@ -29,11 +29,9 @@
   --marketing-error: var(--destructive);
   --marketing-error-container: var(--error-container);
   --marketing-success: var(--success);
-  --marketing-warning: color-mix(
-    in oklch,
-    var(--primary-container) 72%,
-    var(--error-container)
-  );
+  --marketing-warning: var(--warning);
+  --marketing-warning-container: var(--warning-container);
+  --marketing-on-warning-container: var(--on-warning-container);
   --marketing-danger-soft: color-mix(
     in oklch,
     var(--marketing-error-container) 72%,

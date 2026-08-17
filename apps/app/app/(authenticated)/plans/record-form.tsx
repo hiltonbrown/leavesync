@@ -20,7 +20,7 @@ import {
   ToggleGroupItem,
 } from "@repo/design-system/components/ui/toggle-group";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { SubmitConfirmationModal } from "@/components/plans/submit-confirmation-modal";
 import {
   createRecordAction,
@@ -100,6 +100,7 @@ export function RecordForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
   const [personId, setPersonId] = useState(
     record?.personId ?? people[0]?.id ?? ""
   );
@@ -135,6 +136,12 @@ export function RecordForm({
     () => dynamicPanelForIntent(intent, hasActiveXeroConnection),
     [hasActiveXeroConnection, intent]
   );
+
+  useEffect(() => {
+    if (error) {
+      errorRef.current?.focus();
+    }
+  }, [error]);
 
   const setPlanIntent = (value: string) => {
     if (value !== "leave" && value !== "availability") {
@@ -204,8 +211,20 @@ export function RecordForm({
 
   return (
     <form
-      action={(formData) => submit(formData, false)}
+      aria-busy={isPending}
+      aria-describedby={error ? "plan-form-error" : undefined}
       className="relative space-y-5"
+      onSubmit={(event) => {
+        event.preventDefault();
+        const submitter =
+          event.nativeEvent instanceof SubmitEvent
+            ? event.nativeEvent.submitter
+            : null;
+        submit(
+          new FormData(event.currentTarget),
+          submitter instanceof HTMLButtonElement && submitter.value === "submit"
+        );
+      }}
     >
       <div className="rounded-2xl bg-muted p-4 text-muted-foreground text-sm">
         <p>{dynamicPanel}</p>
@@ -219,14 +238,20 @@ export function RecordForm({
       </div>
 
       {error ? (
-        <div className="rounded-2xl bg-muted p-4 text-muted-foreground text-sm">
+        <div
+          className="rounded-2xl bg-error-container p-4 text-on-error-container text-sm"
+          id="plan-form-error"
+          ref={errorRef}
+          role="alert"
+          tabIndex={-1}
+        >
           We could not save this plan. {error}
         </div>
       ) : null}
 
-      <Field label="Intent">
+      <Field label="Intent" labelId="plan-intent-label">
         <ToggleGroup
-          aria-label="Plan intent"
+          aria-labelledby="plan-intent-label"
           className="grid w-full grid-cols-2"
           onValueChange={setPlanIntent}
           type="single"
@@ -259,10 +284,14 @@ export function RecordForm({
       </Field>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Person">
+        <Field
+          label="Person"
+          labelFor={canSelectPerson ? "plan-person" : undefined}
+          labelId={canSelectPerson ? undefined : "plan-person-label"}
+        >
           {canSelectPerson ? (
             <Select onValueChange={setPersonId} value={personId}>
-              <SelectTrigger>
+              <SelectTrigger id="plan-person">
                 <SelectValue placeholder="Select a person" />
               </SelectTrigger>
               <SelectContent>
@@ -280,14 +309,14 @@ export function RecordForm({
           )}
         </Field>
 
-        <Field label={recordTypeLabels.field}>
+        <Field label={recordTypeLabels.field} labelFor="plan-record-type">
           <Select
             onValueChange={(value) =>
               setRecordType(value as PlanRecordFormInput["recordType"])
             }
             value={recordType}
           >
-            <SelectTrigger>
+            <SelectTrigger id="plan-record-type">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -305,17 +334,19 @@ export function RecordForm({
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Starts">
+        <Field label="Starts" labelFor="plan-starts-at">
           <Input
             defaultValue={record?.startsAt}
+            id="plan-starts-at"
             name="startsAt"
             required
             type="date"
           />
         </Field>
-        <Field label="Ends">
+        <Field label="Ends" labelFor="plan-ends-at">
           <Input
             defaultValue={record?.endsAt}
+            id="plan-ends-at"
             name="endsAt"
             required
             type="date"
@@ -334,16 +365,18 @@ export function RecordForm({
 
       {!allDay && (
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Start time">
+          <Field label="Start time" labelFor="plan-start-time">
             <Input
               defaultValue={record?.startTime || "09:00"}
+              id="plan-start-time"
               name="startTime"
               type="time"
             />
           </Field>
-          <Field label="End time">
+          <Field label="End time" labelFor="plan-end-time">
             <Input
               defaultValue={record?.endTime || "17:00"}
+              id="plan-end-time"
               name="endTime"
               type="time"
             />
@@ -352,7 +385,7 @@ export function RecordForm({
       )}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Contactability">
+        <Field label="Contactability" labelFor="plan-contactability">
           <Select
             onValueChange={(value) =>
               setContactabilityStatus(
@@ -361,7 +394,7 @@ export function RecordForm({
             }
             value={contactabilityStatus}
           >
-            <SelectTrigger>
+            <SelectTrigger id="plan-contactability">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -375,14 +408,14 @@ export function RecordForm({
           </Select>
         </Field>
 
-        <Field label="Privacy">
+        <Field label="Privacy" labelFor="plan-privacy">
           <Select
             onValueChange={(value) =>
               setPrivacyMode(value as PlanRecordFormInput["privacyMode"])
             }
             value={privacyMode}
           >
-            <SelectTrigger>
+            <SelectTrigger id="plan-privacy">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -394,9 +427,10 @@ export function RecordForm({
         </Field>
       </div>
 
-      <Field label="Notes">
+      <Field label="Notes" labelFor="plan-notes">
         <Textarea
           defaultValue={record?.notesInternal}
+          id="plan-notes"
           name="notesInternal"
           placeholder="Visible inside Team Calendar only"
           rows={4}
@@ -411,10 +445,9 @@ export function RecordForm({
         ) : null}
         <Button
           disabled={isPending}
-          formAction={
-            showSubmitPath ? (formData) => submit(formData, true) : undefined
-          }
+          name="submissionMode"
           type="submit"
+          value={showSubmitPath ? "submit" : "save"}
         >
           {primaryLabel}
         </Button>
@@ -448,13 +481,25 @@ export function RecordForm({
 function Field({
   children,
   label,
+  labelFor,
+  labelId,
 }: {
   children: React.ReactNode;
   label: string;
+  labelFor?: string;
+  labelId?: string;
 }) {
   return (
     <div className="space-y-2">
-      <Label className="text-xs">{label}</Label>
+      {labelFor ? (
+        <Label className="text-xs" htmlFor={labelFor}>
+          {label}
+        </Label>
+      ) : (
+        <div className="font-medium text-xs" id={labelId}>
+          {label}
+        </div>
+      )}
       {children}
     </div>
   );

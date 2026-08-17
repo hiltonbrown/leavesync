@@ -12,6 +12,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { statusToneClasses } from "@/components/availability/availability-status";
 import { withOrg } from "@/lib/navigation/org-url";
+import { calendarEventSourceLabel } from "./calendar-event-provenance";
 
 interface CalendarEventPopoverProps {
   children: ReactNode;
@@ -45,6 +46,7 @@ export function CalendarEventPopover({
 
         <dl className="mt-4 grid gap-3 text-sm">
           <Detail label="Status" value={statusLabel(event.approvalStatus)} />
+          <Detail label="Source" value={calendarEventSourceLabel(event)} />
           <Detail label="When" value={formatEventDateRange(event)} />
           {event.contactabilityStatus ? (
             <Detail

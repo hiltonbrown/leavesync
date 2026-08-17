@@ -14,30 +14,39 @@ interface CalendarCreateLauncherProps {
   startsAt: string;
 }
 
-function formatAccessibleDate(startsAt: string, date?: Date): string {
-  if (date) {
-    return new Intl.DateTimeFormat("en-AU", {
-      day: "numeric",
-      month: "long",
-      timeZone: "UTC",
-      year: "numeric",
-    }).format(date);
-  }
-  const datePart = startsAt.split("T")[0] ?? "";
+const TIME_PART_PATTERN = /T(\d{2}):(\d{2})/;
+
+function formatAccessibleStart(startsAt: string, date?: Date): string {
+  const dateLabel = date
+    ? new Intl.DateTimeFormat("en-AU", {
+        day: "numeric",
+        month: "long",
+        timeZone: "UTC",
+        year: "numeric",
+      }).format(date)
+    : formatDatePart(startsAt);
+  const timeMatch = TIME_PART_PATTERN.exec(startsAt);
+  return timeMatch
+    ? `${dateLabel} at ${timeMatch[1]}:${timeMatch[2]}`
+    : dateLabel;
+}
+
+function formatDatePart(startsAt: string): string {
+  const [datePart = ""] = startsAt.split("T");
   const parts = datePart.split("-");
-  if (parts.length === 3) {
-    const year = Number.parseInt(parts[0] ?? "0", 10);
-    const month = Number.parseInt(parts[1] ?? "1", 10) - 1;
-    const day = Number.parseInt(parts[2] ?? "1", 10);
-    const d = new Date(Date.UTC(year, month, day));
-    return new Intl.DateTimeFormat("en-AU", {
-      day: "numeric",
-      month: "long",
-      timeZone: "UTC",
-      year: "numeric",
-    }).format(d);
+  if (parts.length !== 3) {
+    return startsAt;
   }
-  return startsAt;
+  const year = Number.parseInt(parts[0] ?? "0", 10);
+  const month = Number.parseInt(parts[1] ?? "1", 10) - 1;
+  const day = Number.parseInt(parts[2] ?? "1", 10);
+  const parsedDate = new Date(Date.UTC(year, month, day));
+  return new Intl.DateTimeFormat("en-AU", {
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+    year: "numeric",
+  }).format(parsedDate);
 }
 
 export function CalendarCreateLauncher({
@@ -59,14 +68,14 @@ export function CalendarCreateLauncher({
     router.push(withOrg(`/plans/new?${params.toString()}`, org));
   };
 
-  const formattedDate = formatAccessibleDate(startsAt, date);
-  const accessibleLabel = `Add availability for ${formattedDate}`;
+  const formattedStart = formatAccessibleStart(startsAt, date);
+  const accessibleLabel = `Add availability for ${formattedStart}`;
 
   return (
     <button
       aria-label={accessibleLabel}
       className={cn(
-        "inline-flex items-center justify-center gap-1 rounded-lg border border-border border-dashed px-2 py-1 font-medium text-muted-foreground text-xs outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
+        "inline-flex pointer-coarse:min-h-11 items-center justify-center gap-1 rounded-lg border border-border border-dashed px-2 py-1 font-medium text-muted-foreground text-xs outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring",
         className
       )}
       onClick={navigate}

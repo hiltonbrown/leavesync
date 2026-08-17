@@ -38,10 +38,20 @@ const AppLayout = async ({ children }: AppLayoutProperties) => {
 
   return (
     <NotificationsProvider organisationId={organisationId}>
+      <a
+        className="fixed top-3 left-3 z-50 -translate-y-24 rounded-xl bg-primary px-4 py-2 font-medium text-primary-foreground transition-transform focus:translate-y-0"
+        href="#main-content"
+      >
+        Skip to main content
+      </a>
       <CommandMenu />
       <SidebarProvider className="h-svh">
         <GlobalSidebar>
-          <SidebarInset className="overflow-y-auto">
+          <SidebarInset
+            className="overflow-y-auto"
+            id="main-content"
+            tabIndex={-1}
+          >
             {betaFeature && (
               <aside
                 aria-label="Beta feature notification"

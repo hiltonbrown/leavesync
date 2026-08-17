@@ -1,11 +1,15 @@
 import type { CalendarEvent } from "@repo/availability";
 import { cn } from "@repo/design-system/lib/utils";
-import { AlertTriangleIcon } from "lucide-react";
+import { AlertTriangleIcon, LeafIcon, PencilIcon } from "lucide-react";
 import {
   statusToneClasses,
   toneForCalendarEvent,
 } from "@/components/availability/availability-status";
 import { CalendarEventPopover } from "./calendar-event-popover";
+import {
+  calendarEventSourceLabel,
+  isManualCalendarEvent,
+} from "./calendar-event-provenance";
 
 interface CalendarEventChipProps {
   event: CalendarEvent;
@@ -18,12 +22,14 @@ export function CalendarEventChip({
 }: CalendarEventChipProps) {
   const style = statusToneClasses[toneForCalendarEvent(event)];
   const microLabel = treatmentLabel(event.renderTreatment);
+  const isManual = isManualCalendarEvent(event);
+  const ProvenanceIcon = isManual ? PencilIcon : LeafIcon;
 
   return (
     <CalendarEventPopover event={event} orgQueryValue={orgQueryValue}>
       <button
         className={cn(
-          "flex w-full min-w-0 items-center gap-1.5 rounded-xl px-2 py-1 text-left text-xs ring-1 transition hover:brightness-95",
+          "flex pointer-coarse:min-h-11 w-full min-w-0 items-center gap-1.5 rounded-xl px-2 py-1 text-left text-xs ring-1 transition hover:brightness-95",
           style,
           event.renderTreatment === "dashed" &&
             "border border-dashed opacity-85",
@@ -33,10 +39,14 @@ export function CalendarEventChip({
         type="button"
       >
         {event.renderTreatment === "failed" && (
-          <AlertTriangleIcon className="size-3 shrink-0" />
+          <AlertTriangleIcon aria-hidden="true" className="size-3 shrink-0" />
         )}
+        <ProvenanceIcon aria-hidden="true" className="size-3 shrink-0" />
         <span className="min-w-0 flex-1 truncate font-medium">
           {event.displayName}
+        </span>
+        <span className="sr-only">
+          Source: {calendarEventSourceLabel(event)}.
         </span>
         {microLabel && (
           <span className="shrink-0 rounded-lg bg-background/60 px-1.5 py-0.5 font-medium">

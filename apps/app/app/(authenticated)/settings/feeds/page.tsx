@@ -28,7 +28,8 @@ const FeedsPage = async ({ searchParams }: FeedsPageProps) => {
     currentUser(),
     searchParams,
   ]);
-  const { clerkOrgId, organisationId } = await requireActiveOrgPageContext(org);
+  const { clerkOrgId, organisationId, orgQueryValue } =
+    await requireActiveOrgPageContext(org);
 
   if (!user) {
     throw new Error("User not found.");
@@ -57,6 +58,7 @@ const FeedsPage = async ({ searchParams }: FeedsPageProps) => {
     <FeedsClient
       feeds={feedsResult.value}
       organisationId={organisationId}
+      orgQueryValue={orgQueryValue}
       settings={settingsResult.value}
     />
   );

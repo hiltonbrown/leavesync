@@ -54,4 +54,21 @@ describe("CalendarCreateLauncher", () => {
       "/plans/new?startsAt=2026-04-15&personId=00000000-0000-4000-8000-000000000011&org=org_1"
     );
   });
+
+  it("includes the selected time in its accessible name", () => {
+    render(
+      <CalendarCreateLauncher
+        personId="00000000-0000-4000-8000-000000000011"
+        startsAt="2026-04-15T09:00:00.000Z"
+      >
+        Add at 09:00
+      </CalendarCreateLauncher>
+    );
+
+    expect(
+      screen.getByRole("button", {
+        name: "Add availability for 15 April 2026 at 09:00",
+      })
+    ).toBeDefined();
+  });
 });

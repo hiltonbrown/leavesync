@@ -106,7 +106,6 @@ interface LeaveApprovalsClientProps {
   items: ApprovalItem[];
   nextCursor: string | null;
   organisationId: string;
-  reconciliationEnabled: boolean;
   summary: ApprovalSummaryCounts;
 }
 
@@ -122,7 +121,6 @@ export function LeaveApprovalsClient({
   items,
   nextCursor,
   organisationId,
-  reconciliationEnabled,
   summary,
 }: LeaveApprovalsClientProps) {
   const router = useRouter();
@@ -149,6 +147,9 @@ export function LeaveApprovalsClient({
     record: ApprovalItem,
     isExpanded: boolean
   ) => {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
     const key = event.key.toLowerCase();
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
@@ -188,6 +189,15 @@ export function LeaveApprovalsClient({
         toast.error(result.error.message);
         return;
       }
+      if (result.value.approvalStatus === "xero_sync_failed") {
+        toast.error(
+          result.value.xeroWriteError ??
+            "Xero could not complete this action. Try again."
+        );
+        router.refresh();
+        return;
+      }
+      toast.success(inlineActionSuccessMessage(action));
       router.refresh();
     });
   };
@@ -223,13 +233,9 @@ export function LeaveApprovalsClient({
         </div>
         {canDispatchReconciliation ? (
           <Button
-            disabled={isPending || !reconciliationEnabled}
+            disabled={isPending}
             onClick={syncApprovalState}
-            title={
-              reconciliationEnabled
-                ? "Sync approval state"
-                : "Reconciliation is not yet enabled"
-            }
+            title="Sync approval state"
             type="button"
             variant="secondary"
           >
@@ -327,9 +333,12 @@ export function LeaveApprovalsClient({
             <TableBody>
               {items.map((record) => {
                 const isExpanded = expandedId === record.id;
+                const detailId = `approval-details-${record.id}`;
+                const name = personName(record);
                 return (
                   <Fragment key={record.id}>
                     <TableRow
+                      aria-controls={detailId}
                       aria-expanded={isExpanded}
                       className="cursor-pointer focus-visible:bg-accent focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2"
                       onClick={() =>
@@ -369,14 +378,27 @@ export function LeaveApprovalsClient({
                             onOpen={setModal}
                             record={record}
                           />
-                          <Button size="sm" type="button" variant="ghost">
-                            <ChevronDownIcon className="size-4" />
+                          <Button
+                            aria-controls={detailId}
+                            aria-expanded={isExpanded}
+                            aria-label={`${isExpanded ? "Collapse" : "Expand"} details for ${name}`}
+                            onClick={() =>
+                              setExpandedId(isExpanded ? null : record.id)
+                            }
+                            size="sm"
+                            type="button"
+                            variant="ghost"
+                          >
+                            <ChevronDownIcon
+                              aria-hidden="true"
+                              className="size-4"
+                            />
                           </Button>
                         </div>
                       </TableCell>
                     </TableRow>
                     {isExpanded && (
-                      <TableRow key={`${record.id}-detail`}>
+                      <TableRow id={detailId} key={`${record.id}-detail`}>
                         <TableCell colSpan={7}>
                           <DetailPanel
                             onInlineAction={runInlineAction}
@@ -427,6 +449,18 @@ export function LeaveApprovalsClient({
       )}
     </div>
   );
+}
+
+function inlineActionSuccessMessage(
+  action: "retry_approval" | "retry_decline" | "revert_to_submitted"
+): string {
+  if (action === "revert_to_submitted") {
+    return "Leave returned to pending";
+  }
+  if (action === "retry_approval") {
+    return "Leave approved in Xero";
+  }
+  return "Leave declined in Xero";
 }
 
 function SummaryCell({ label, value }: { label: string; value: number }) {

@@ -17,6 +17,14 @@ export const ScrollReveal = ({
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    const reducedMotionQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    );
+    if (reducedMotionQuery.matches) {
+      setIsVisible(true);
+      return;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -52,7 +60,6 @@ export const ScrollReveal = ({
         opacity: isVisible ? 1 : 0,
         transform: isVisible ? "none" : "translateY(20px)",
         transition: `opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delayMs}ms, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delayMs}ms`,
-        willChange: "transform, opacity",
       }}
     >
       {children}

@@ -144,17 +144,18 @@
     var(--marketing-surface-high) 80%,
     transparent
   );
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .ft-sandbox-tab {
+  min-height: 32px;
   padding: 6px 12px;
   font: 500 11px / 1 var(--marketing-font);
   color: var(--marketing-on-surface-variant);
   cursor: pointer;
   background: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   transition:
     background 0.2s cubic-bezier(0.16, 1, 0.3, 1),
     color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
@@ -284,7 +285,7 @@
   padding: 12px;
   overflow: auto;
   font-family: monospace;
-  font-size: 10.5px;
+  font-size: var(--text-label-sm);
   color: var(--marketing-on-surface-variant);
   text-align: left;
   white-space: pre;
@@ -352,14 +353,14 @@
 
 .ft-persona__title {
   margin: 0;
-  font: 600 26px / 1.2 var(--marketing-font);
+  font: 600 var(--text-headline-lg) / 1.2 var(--marketing-font);
   color: var(--marketing-on-surface);
   letter-spacing: -0.015em;
 }
 
 .ft-persona__copy {
   margin: 0;
-  font: 400 15px / 1.55 var(--marketing-font);
+  font: 400 var(--text-body-lg) / 1.55 var(--marketing-font);
   color: var(--marketing-on-surface-variant);
 }
 
@@ -369,7 +370,7 @@
   align-items: center;
   padding: 10px 12px;
   margin-top: auto;
-  font: 500 13px / 1.3 var(--marketing-font);
+  font: 500 var(--text-body-sm) / 1.3 var(--marketing-font);
   color: var(--marketing-on-surface);
   background: var(--marketing-surface-lowest);
   border-radius: 12px;
@@ -521,7 +522,16 @@
   padding: 24px 22px;
   color: #fff;
   text-align: center;
-  background: linear-gradient(165deg, #336a3b 0%, #2a5a30 100%);
+  background: linear-gradient(
+    165deg,
+    var(--marketing-primary) 0%,
+    color-mix(
+        in oklch,
+        var(--marketing-primary) 82%,
+        var(--marketing-inverse-surface)
+      )
+      100%
+  );
   border-radius: 16px;
   box-shadow:
     0 16px 48px rgba(53, 51, 64, 0.16),
@@ -539,7 +549,7 @@
 .ft-flow__hub__body {
   max-width: 240px;
   margin: 0;
-  font: 400 13px / 1.5 var(--marketing-font);
+  font: 400 var(--text-body-sm) / 1.5 var(--marketing-font);
   color: rgba(255, 255, 255, 0.85);
 }
 
@@ -557,7 +567,7 @@
 }
 
 .ft-flow__icon--accent {
-  color: var(--accent, #5e4f99);
+  color: var(--editorial-accent);
 }
 
 /* ============ Coverage matrix ============ */
@@ -649,7 +659,7 @@
   height: 22px;
   color: var(--marketing-on-secondary-container);
   background: var(--marketing-secondary-container);
-  border-radius: 7px;
+  border-radius: 12px;
 }
 
 /* Mark modifiers: after base */
@@ -707,7 +717,7 @@
 
   .ft-hero__title {
     max-width: none;
-    font-size: 2.75rem;
+    font-size: var(--text-display-md);
   }
 
   .ft-personas,
@@ -781,7 +791,7 @@
   gap: 12px;
   align-items: center;
   margin: 0 0 8px;
-  font: italic 500 1.0625rem / 1.4 var(--marketing-serif);
+  font: italic 500 var(--text-title-sm) / 1.4 var(--marketing-serif);
   color: var(--marketing-primary);
   text-transform: none;
   letter-spacing: 0;
@@ -794,7 +804,7 @@
   height: 2px;
   content: "";
   background: var(--marketing-primary);
-  border-radius: 2px;
+  border-radius: 12px;
 }
 
 .fmkt-page {
@@ -849,11 +859,6 @@
   transform-origin: center;
 }
 
-.fmkt-hero__copy-inner,
-.fmkt-sync-node {
-  will-change: transform, opacity;
-}
-
 .fmkt-hero__title {
   margin: 18px 0 16px;
   font: 600 var(--text-display-lg) / 1.08 var(--marketing-font);
@@ -897,7 +902,11 @@
 
 .fmkt-pill--inverse {
   color: #fff;
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(
+    in srgb,
+    var(--marketing-inverse-surface) 20%,
+    transparent
+  );
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
 }
 
@@ -928,9 +937,8 @@
   background-size: 22px 22px;
   border: 1px solid
     color-mix(in srgb, var(--marketing-outline-variant) 15%, transparent);
-  border-radius: 24px;
+  border-radius: 20px;
   transform-origin: center;
-  will-change: transform, opacity;
 }
 
 .fmkt-hero .fmkt-container {
@@ -1177,11 +1185,6 @@
 }
 
 @media (max-width: 1024px) {
-  .fmkt-hero__copy-inner,
-  .fmkt-sync-node {
-    will-change: auto;
-  }
-
   /* The hero panel is the single stage at every size; let the diagram sit on
      it transparently rather than nesting a second tinted box. */
   .fmkt-sync-diagram {
@@ -1193,6 +1196,13 @@
     background: transparent;
     border-radius: 0;
     box-shadow: none;
+  }
+}
+
+@media (pointer: coarse) {
+  .ft-sandbox-tab,
+  .tl-legend-item {
+    min-height: 44px;
   }
 }
 
@@ -1251,14 +1261,14 @@
 
 .fmkt-card__title {
   margin: 0 0 10px;
-  font: 500 22px / 1.3 var(--marketing-font);
+  font: 500 var(--text-title-lg) / 1.3 var(--marketing-font);
   color: var(--marketing-inverse-surface);
   letter-spacing: -0.01em;
 }
 
 .fmkt-card__copy {
   margin: 0;
-  font: 400 0.9375rem / 1.6 var(--marketing-font);
+  font: 400 var(--text-body-md) / 1.6 var(--marketing-font);
   color: var(--marketing-on-surface-variant);
 }
 
@@ -1313,7 +1323,7 @@
   padding: 10px 12px;
   margin: 10px 12px 12px;
   background: var(--marketing-secondary-container);
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .fmkt-mock-form__saved-icon {
@@ -1337,7 +1347,7 @@
 .fmkt-mock-form__saved-sub {
   display: block;
   margin-top: 2px;
-  font: 400 0.625rem / 1 var(--marketing-font);
+  font: 400 var(--text-label-sm) / 1 var(--marketing-font);
   color: var(--marketing-on-surface-variant);
 }
 
@@ -1374,14 +1384,14 @@
 
 .fmkt-mock-receipt__title {
   display: block;
-  font: 600 0.8125rem / 1.2 var(--marketing-font);
+  font: 600 var(--text-label-md) / 1.2 var(--marketing-font);
   color: var(--marketing-on-secondary-container);
 }
 
 .fmkt-mock-receipt__sub {
   display: block;
   margin-top: 2px;
-  font: 400 0.625rem / 1.2 var(--marketing-font);
+  font: 400 var(--text-label-sm) / 1.2 var(--marketing-font);
   color: color-mix(
     in oklch,
     var(--marketing-on-secondary-container) 78%,
@@ -1418,7 +1428,7 @@
   gap: 8px;
   align-items: center;
   padding: 11px 16px;
-  font: 500 0.625rem / 1.2 var(--marketing-font);
+  font: 500 var(--text-label-sm) / 1.2 var(--marketing-font);
   color: var(--marketing-primary);
 }
 
@@ -1458,7 +1468,7 @@
   height: 26px;
   color: var(--marketing-on-surface);
   background: var(--marketing-surface-high);
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 .fmkt-mock-sub__name {
@@ -1495,7 +1505,7 @@
   align-items: center;
   padding: 7px 10px;
   font: 500 0.6875rem / 1.2 var(--marketing-font);
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .fmkt-mock-sub__event--sage {
@@ -1714,11 +1724,11 @@
   position: relative;
   height: 26px;
   overflow: hidden;
-  border-radius: 6px;
+  border-radius: 12px;
 }
 
 .fmkt-bigcal__cell--start {
-  border-radius: 6px 0 0 6px;
+  border-radius: 12px 0 0 12px;
 }
 
 .fmkt-bigcal__event-label {
@@ -2318,7 +2328,7 @@
 
 .fmkt-pricing-hero__summary p {
   margin: 0;
-  font-size: 0.9375rem;
+  font-size: var(--text-body-md);
 }
 
 .fmkt-pricing-plans,
@@ -2372,8 +2382,7 @@
 
 .fmkt-pricing-card--highlighted {
   background: var(--marketing-surface-low);
-  border: 2px solid #336a3b;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  border: 2px solid var(--marketing-primary);
   transform: scale(1.02);
 }
 
@@ -2581,7 +2590,7 @@
 }
 
 .fmkt-pricing-faq__item button span {
-  font-size: 1.25rem;
+  font-size: var(--text-title-lg);
   color: var(--marketing-primary);
 }
 
@@ -2644,14 +2653,24 @@
   position: relative;
   padding: clamp(80px, 11vw, 132px) 0;
   overflow: hidden;
-  color: #fff;
+  color: var(--marketing-on-primary);
   background:
     radial-gradient(
       130% 120% at 82% -10%,
-      rgba(141, 212, 150, 0.26),
+      color-mix(in srgb, var(--marketing-primary-container) 26%, transparent),
       transparent 56%
     ),
-    linear-gradient(158deg, #3a7542 0%, #336a3b 42%, #224a28 100%);
+    linear-gradient(
+      158deg,
+      var(--marketing-primary-container) 0%,
+      var(--marketing-primary) 42%,
+      color-mix(
+          in oklch,
+          var(--marketing-primary) 80%,
+          var(--marketing-inverse-surface)
+        )
+        100%
+    );
 }
 
 .fmkt-cta__panel {
@@ -3245,7 +3264,7 @@
   }
 
   .fmkt-pricing-hero h1 {
-    font-size: clamp(2.5rem, 12vw, 3.25rem);
+    font-size: clamp(var(--text-display-sm), 12vw, var(--text-display-md));
   }
 
   .fmkt-pricing-hero__summary {

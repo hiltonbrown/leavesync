@@ -1,5 +1,14 @@
 "use client";
 
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@repo/design-system/components/ui/alert-dialog";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
@@ -8,11 +17,19 @@ import {
   TabsList,
   TabsTrigger,
 } from "@repo/design-system/components/ui/tabs";
-import { ArchiveIcon, PauseIcon, PlayIcon, RotateCwIcon } from "lucide-react";
+import {
+  ArchiveIcon,
+  PauseIcon,
+  PlayIcon,
+  RotateCcwIcon,
+  RotateCwIcon,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import {
   archiveFeedAction,
   pauseFeedAction,
+  restoreFeedAction,
   resumeFeedAction,
   rotateTokenAction,
 } from "@/app/(authenticated)/feeds/_actions";
@@ -54,6 +71,7 @@ export function FeedDetail({
   organisationId: string;
   previews: Partial<Record<"masked" | "named" | "private", PreviewEvent[]>>;
 }) {
+  const router = useRouter();
   const [plaintext, setPlaintext] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<"archive" | "rotate" | null>(
     null
@@ -61,6 +79,10 @@ export function FeedDetail({
   const [showScope, setShowScope] = useState(false);
   const [showUrl, setShowUrl] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [message, setMessage] = useState<{
+    text: string;
+    tone: "error" | "status";
+  } | null>(null);
   const tokenSession = useFeedTokenSession();
 
   const rotate = () => {
@@ -69,35 +91,51 @@ export function FeedDetail({
         feedId: detail.id,
         organisationId,
       });
-      if (result.ok) {
-        tokenSession.setToken(detail.id, result.value.plaintext);
-        setPlaintext(result.value.plaintext);
+      if (!result.ok) {
+        setMessage({ text: result.error.message, tone: "error" });
+        return;
       }
+      tokenSession.setToken(detail.id, result.value.plaintext);
+      setPlaintext(result.value.plaintext);
+      setMessage({ text: "Feed token rotated.", tone: "status" });
       setConfirmation(null);
+      router.refresh();
     });
   };
 
-  const transition = (action: "archive" | "pause" | "resume") => {
+  const transition = (action: "archive" | "pause" | "restore" | "resume") => {
     if (action === "archive" && confirmation !== "archive") {
       setConfirmation("archive");
       return;
     }
     startTransition(async () => {
       const input = { feedId: detail.id, organisationId };
-      if (action === "archive") {
-        await archiveFeedAction(input);
-      } else if (action === "pause") {
-        await pauseFeedAction(input);
-      } else {
-        await resumeFeedAction(input);
+      const result = await runFeedTransition(action, input);
+      if (!result.ok) {
+        setMessage({ text: result.error.message, tone: "error" });
+        return;
       }
+      setMessage({
+        text: transitionSuccessMessage(action),
+        tone: "status",
+      });
       setConfirmation(null);
+      router.refresh();
     });
   };
 
   return (
     <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
       <section className="space-y-5">
+        {message && !confirmation ? (
+          <p
+            aria-live={message.tone === "error" ? "assertive" : "polite"}
+            className="rounded-2xl bg-muted p-3 text-sm"
+            role={message.tone === "error" ? "alert" : "status"}
+          >
+            {message.text}
+          </p>
+        ) : null}
         <div>
           <div className="flex items-center gap-2">
             <StatusDot status={detail.status} />
@@ -115,34 +153,15 @@ export function FeedDetail({
           ) : null}
         </div>
 
-        {confirmation ? (
-          <div className="rounded-2xl bg-error-container p-4 text-on-error-container text-sm">
-            <p>
-              {confirmation === "rotate"
-                ? "Rotating the token invalidates the current subscribe URL. Subscribers will need the new URL to continue syncing."
-                : `Archiving ${detail.name} stops it from publishing and revokes its tokens. Existing subscribers will see a stopped calendar. This can be reversed from the Archived filter, but tokens must be recreated.`}
-            </p>
-            <div className="mt-3 flex gap-2">
-              <Button
-                disabled={isPending}
-                onClick={() =>
-                  confirmation === "rotate" ? rotate() : transition("archive")
-                }
-                type="button"
-                variant="destructive"
-              >
-                {confirmation === "rotate" ? "Rotate" : "Archive feed"}
-              </Button>
-              <Button
-                onClick={() => setConfirmation(null)}
-                type="button"
-                variant="ghost"
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        ) : null}
+        <FeedConfirmationDialog
+          confirmation={confirmation}
+          errorMessage={message?.tone === "error" ? message.text : null}
+          feedName={detail.name}
+          isPending={isPending}
+          onArchive={() => transition("archive")}
+          onClose={() => setConfirmation(null)}
+          onRotate={rotate}
+        />
 
         <div className="rounded-2xl bg-muted p-4">
           <div className="font-medium text-sm">Scope</div>
@@ -225,38 +244,11 @@ export function FeedDetail({
         ) : null}
 
         {canManage ? (
-          <div className="flex flex-wrap gap-2">
-            {detail.status === "active" ? (
-              <Button
-                disabled={isPending}
-                onClick={() => transition("pause")}
-                type="button"
-                variant="secondary"
-              >
-                <PauseIcon className="mr-2 size-4" />
-                Pause
-              </Button>
-            ) : (
-              <Button
-                disabled={isPending || detail.status === "archived"}
-                onClick={() => transition("resume")}
-                type="button"
-                variant="secondary"
-              >
-                <PlayIcon className="mr-2 size-4" />
-                Resume
-              </Button>
-            )}
-            <Button
-              disabled={isPending || detail.status === "archived"}
-              onClick={() => transition("archive")}
-              type="button"
-              variant="destructive"
-            >
-              <ArchiveIcon className="mr-2 size-4" />
-              Archive
-            </Button>
-          </div>
+          <FeedLifecycleActions
+            isPending={isPending}
+            onTransition={transition}
+            status={detail.status}
+          />
         ) : null}
       </section>
 
@@ -266,6 +258,176 @@ export function FeedDetail({
       </section>
     </div>
   );
+}
+
+function FeedLifecycleActions({
+  isPending,
+  onTransition,
+  status,
+}: {
+  isPending: boolean;
+  onTransition: (action: "archive" | "pause" | "restore" | "resume") => void;
+  status: "active" | "archived" | "paused";
+}) {
+  const isArchived = status === "archived";
+  return (
+    <div className="flex flex-wrap gap-2">
+      <FeedLifecycleToggle
+        isPending={isPending}
+        onTransition={onTransition}
+        status={status}
+      />
+      <Button
+        disabled={isPending || isArchived}
+        onClick={() => onTransition("archive")}
+        type="button"
+        variant="destructive"
+      >
+        <ArchiveIcon className="mr-2 size-4" />
+        Archive
+      </Button>
+    </div>
+  );
+}
+
+function FeedConfirmationDialog({
+  confirmation,
+  errorMessage,
+  feedName,
+  isPending,
+  onArchive,
+  onClose,
+  onRotate,
+}: {
+  confirmation: "archive" | "rotate" | null;
+  errorMessage: string | null;
+  feedName: string;
+  isPending: boolean;
+  onArchive: () => void;
+  onClose: () => void;
+  onRotate: () => void;
+}) {
+  const isRotate = confirmation === "rotate";
+  return (
+    <AlertDialog
+      onOpenChange={(open) => {
+        if (!(open || isPending)) {
+          onClose();
+        }
+      }}
+      open={confirmation !== null}
+    >
+      {confirmation ? (
+        <AlertDialogContent aria-busy={isPending}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {isRotate ? "Rotate this feed token?" : `Archive ${feedName}?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {isRotate
+                ? "Rotating the token invalidates the current subscribe URL. Subscribers will need the new URL to continue syncing."
+                : "Archiving this feed stops it from publishing and revokes its tokens. Existing subscribers will see a stopped calendar. You can restore the feed from the Archived filter, but its tokens must be recreated."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {errorMessage ? (
+            <p className="text-destructive text-sm" role="alert">
+              {errorMessage}
+            </p>
+          ) : null}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+            <Button
+              disabled={isPending}
+              onClick={isRotate ? onRotate : onArchive}
+              type="button"
+              variant="destructive"
+            >
+              {isRotate ? "Rotate" : "Archive feed"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      ) : null}
+    </AlertDialog>
+  );
+}
+
+function FeedLifecycleToggle({
+  isPending,
+  onTransition,
+  status,
+}: {
+  isPending: boolean;
+  onTransition: (action: "archive" | "pause" | "restore" | "resume") => void;
+  status: "active" | "archived" | "paused";
+}) {
+  if (status === "active") {
+    return (
+      <Button
+        disabled={isPending}
+        onClick={() => onTransition("pause")}
+        type="button"
+        variant="secondary"
+      >
+        <PauseIcon className="mr-2 size-4" />
+        Pause
+      </Button>
+    );
+  }
+  if (status === "archived") {
+    return (
+      <Button
+        disabled={isPending}
+        onClick={() => onTransition("restore")}
+        type="button"
+        variant="secondary"
+      >
+        <RotateCcwIcon className="mr-2 size-4" />
+        Restore
+      </Button>
+    );
+  }
+  return (
+    <Button
+      disabled={isPending}
+      onClick={() => onTransition("resume")}
+      type="button"
+      variant="secondary"
+    >
+      <PlayIcon className="mr-2 size-4" />
+      Resume
+    </Button>
+  );
+}
+
+function runFeedTransition(
+  action: "archive" | "pause" | "restore" | "resume",
+  input: { feedId: string; organisationId: string }
+) {
+  if (action === "archive") {
+    return archiveFeedAction(input);
+  }
+  if (action === "pause") {
+    return pauseFeedAction(input);
+  }
+  if (action === "restore") {
+    return restoreFeedAction(input);
+  }
+  return resumeFeedAction(input);
+}
+
+function transitionSuccessMessage(
+  action: "archive" | "pause" | "restore" | "resume"
+): string {
+  if (action === "archive") {
+    return "Feed archived.";
+  }
+  if (action === "pause") {
+    return "Feed paused.";
+  }
+  if (action === "restore") {
+    return "Feed restored in a paused state. Create a new token before publishing.";
+  }
+  return "Feed resumed.";
 }
 
 function PreviewTabs({

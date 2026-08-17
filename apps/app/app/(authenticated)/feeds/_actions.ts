@@ -176,7 +176,7 @@ export async function rotateTokenAction(
 
   const actionUrl = withOrg(
     `/feeds/${parsed.data.feedId}`,
-    context.value.clerkOrgId
+    context.value.organisationId
   );
   const body = feedName
     ? `The token for calendar feed "${feedName}" has been rotated.`

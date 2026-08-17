@@ -41,9 +41,9 @@ const OutOfOfficePage = async ({ searchParams }: OutOfOfficePageProps) => {
       return (
         <>
           <Header page="Out of Office" />
-          <main className="flex flex-1 flex-col p-6 pt-0">
+          <div className="flex flex-1 flex-col p-6 pt-0">
             <PermissionDeniedState />
-          </main>
+          </div>
         </>
       );
     }
@@ -58,9 +58,9 @@ const OutOfOfficePage = async ({ searchParams }: OutOfOfficePageProps) => {
     return (
       <>
         <Header page="Out of Office" />
-        <main className="flex flex-1 flex-col p-6 pt-0">
+        <div className="flex flex-1 flex-col p-6 pt-0">
           <PermissionDeniedState />
-        </main>
+        </div>
       </>
     );
   }
@@ -87,9 +87,9 @@ const OutOfOfficePage = async ({ searchParams }: OutOfOfficePageProps) => {
     return (
       <>
         <Header organisationId={organisationId} page="Out of Office" />
-        <main className="flex flex-1 flex-col p-6 pt-0">
+        <div className="flex flex-1 flex-col p-6 pt-0">
           <FetchErrorState entityName="out-of-office records" />
-        </main>
+        </div>
       </>
     );
   }
@@ -110,9 +110,9 @@ const OutOfOfficePage = async ({ searchParams }: OutOfOfficePageProps) => {
     return (
       <>
         <Header organisationId={organisationId} page="Out of Office" />
-        <main className="flex flex-1 flex-col p-6 pt-0">
+        <div className="flex flex-1 flex-col p-6 pt-0">
           <FetchErrorState entityName="out-of-office records" />
-        </main>
+        </div>
       </>
     );
   }
@@ -146,7 +146,7 @@ const OutOfOfficePage = async ({ searchParams }: OutOfOfficePageProps) => {
   return (
     <>
       <Header organisationId={organisationId} page="Out of Office" />
-      <main className="flex flex-1 flex-col gap-6 p-6 pt-0">
+      <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
         <section className="rounded-2xl bg-muted p-6">
           <div className="max-w-3xl space-y-2">
             <p className="font-medium text-muted-foreground text-sm">
@@ -229,7 +229,7 @@ const OutOfOfficePage = async ({ searchParams }: OutOfOfficePageProps) => {
           Generated {formatDateTime(report.dataFreshness.generatedAt)} from{" "}
           {formatNumber(report.dataFreshness.recordCount)} records.
         </p>
-      </main>
+      </div>
     </>
   );
 };

@@ -17,13 +17,19 @@ export function OneTimeTokenPanel({
   origin: string;
   plaintext: string;
 }) {
-  const [copied, setCopied] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<"copied" | "error" | "idle">(
+    "idle"
+  );
   const url = buildSubscribeUrl(origin, plaintext);
 
   const copy = async () => {
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopyStatus("copied");
+      window.setTimeout(() => setCopyStatus("idle"), 2000);
+    } catch {
+      setCopyStatus("error");
+    }
   };
 
   return (
@@ -41,14 +47,24 @@ export function OneTimeTokenPanel({
           value={url}
         />
         <Button onClick={copy} type="button" variant="secondary">
-          {copied ? (
+          {copyStatus === "copied" ? (
             <CheckIcon className="mr-2 size-4" />
           ) : (
             <CopyIcon className="mr-2 size-4" />
           )}
-          {copied ? "Copied" : "Copy URL"}
+          {copyStatus === "copied" ? "Copied" : "Copy URL"}
         </Button>
       </div>
+      {copyStatus === "copied" ? (
+        <p className="mt-2 text-sm" role="status">
+          Subscribe URL copied.
+        </p>
+      ) : null}
+      {copyStatus === "error" ? (
+        <p className="mt-2 text-sm" role="alert">
+          Could not copy the URL. Select the URL and copy it manually.
+        </p>
+      ) : null}
       <div className="mt-3">
         <Button onClick={onDone} type="button" variant="ghost">
           Done

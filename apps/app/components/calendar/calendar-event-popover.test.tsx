@@ -19,6 +19,8 @@ describe("CalendarEventPopover", () => {
 
     expect(await screen.findByText("Ari Report")).toBeDefined();
     expect(screen.getByText("Annual Leave")).toBeDefined();
+    expect(screen.getByText("Source")).toBeDefined();
+    expect(screen.getByText("Team Calendar leave")).toBeDefined();
     expect(screen.getByText("Note")).toBeDefined();
     expect(screen.getByRole("link", { name: "View plan" })).toBeDefined();
   });

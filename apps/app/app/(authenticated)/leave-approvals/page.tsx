@@ -154,7 +154,6 @@ const LeaveApprovalsPage = async ({
           items={approvalsResult.value.items}
           nextCursor={approvalsResult.value.nextCursor}
           organisationId={organisationId}
-          reconciliationEnabled={false}
           summary={summaryResult.value}
         />
       </div>

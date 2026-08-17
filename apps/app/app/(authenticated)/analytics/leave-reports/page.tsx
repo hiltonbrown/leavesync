@@ -44,9 +44,9 @@ const LeaveReportsPage = async ({ searchParams }: LeaveReportsPageProps) => {
       return (
         <>
           <Header page="Leave Reports" />
-          <main className="flex flex-1 flex-col p-6 pt-0">
+          <div className="flex flex-1 flex-col p-6 pt-0">
             <PermissionDeniedState />
-          </main>
+          </div>
         </>
       );
     }
@@ -61,9 +61,9 @@ const LeaveReportsPage = async ({ searchParams }: LeaveReportsPageProps) => {
     return (
       <>
         <Header page="Leave Reports" />
-        <main className="flex flex-1 flex-col p-6 pt-0">
+        <div className="flex flex-1 flex-col p-6 pt-0">
           <PermissionDeniedState />
-        </main>
+        </div>
       </>
     );
   }
@@ -90,9 +90,9 @@ const LeaveReportsPage = async ({ searchParams }: LeaveReportsPageProps) => {
     return (
       <>
         <Header organisationId={organisationId} page="Leave Reports" />
-        <main className="flex flex-1 flex-col p-6 pt-0">
+        <div className="flex flex-1 flex-col p-6 pt-0">
           <FetchErrorState entityName="leave reports" />
-        </main>
+        </div>
       </>
     );
   }
@@ -114,9 +114,9 @@ const LeaveReportsPage = async ({ searchParams }: LeaveReportsPageProps) => {
     return (
       <>
         <Header organisationId={organisationId} page="Leave Reports" />
-        <main className="flex flex-1 flex-col p-6 pt-0">
+        <div className="flex flex-1 flex-col p-6 pt-0">
           <FetchErrorState entityName="leave reports" />
-        </main>
+        </div>
       </>
     );
   }
@@ -135,7 +135,7 @@ const LeaveReportsPage = async ({ searchParams }: LeaveReportsPageProps) => {
       <Header organisationId={organisationId} page="Leave Reports">
         <ExportCsvButton organisationId={organisationId} />
       </Header>
-      <main className="flex flex-1 flex-col gap-6 p-6 pt-0">
+      <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
         <section className="rounded-2xl bg-muted p-6">
           <div className="max-w-3xl space-y-2">
             <p className="font-medium text-muted-foreground text-sm">
@@ -194,7 +194,7 @@ const LeaveReportsPage = async ({ searchParams }: LeaveReportsPageProps) => {
           Generated {formatDateTime(report.dataFreshness.generatedAt)} from{" "}
           {formatNumber(report.dataFreshness.recordCount)} records.
         </p>
-      </main>
+      </div>
     </>
   );
 };

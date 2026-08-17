@@ -33,16 +33,16 @@ if (process.env.DATABASE_URL) {
 
 const tenantA = {
   clerkOrgId: "org_test_schedule_sync_a",
-  organisationId: "50000000-0000-4000-8000-000000000001",
-  xeroConnectionId: "50000000-0000-4000-8000-000000000002",
-  xeroTenantId: "50000000-0000-4000-8000-000000000003",
+  organisationId: "95000000-0000-4000-8000-000000000001",
+  xeroConnectionId: "95000000-0000-4000-8000-000000000002",
+  xeroTenantId: "95000000-0000-4000-8000-000000000003",
 } as const;
 
 const tenantB = {
   clerkOrgId: "org_test_schedule_sync_b",
-  organisationId: "60000000-0000-4000-8000-000000000001",
-  xeroConnectionId: "60000000-0000-4000-8000-000000000002",
-  xeroTenantId: "60000000-0000-4000-8000-000000000003",
+  organisationId: "96000000-0000-4000-8000-000000000001",
+  xeroConnectionId: "96000000-0000-4000-8000-000000000002",
+  xeroTenantId: "96000000-0000-4000-8000-000000000003",
 } as const;
 
 const testClerkOrgIds = [tenantA.clerkOrgId, tenantB.clerkOrgId] as const;

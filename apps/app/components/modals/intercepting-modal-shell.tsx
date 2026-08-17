@@ -12,6 +12,7 @@ import { type ReactNode, useEffect, useState } from "react";
 
 interface InterceptingModalShellProps {
   readonly children: ReactNode;
+  readonly closeDisabled?: boolean;
   readonly onClose?: () => void;
   readonly size?: "narrow" | "default" | "wide";
   readonly title?: string;
@@ -19,6 +20,7 @@ interface InterceptingModalShellProps {
 
 export const InterceptingModalShell = ({
   children,
+  closeDisabled = false,
   onClose,
   title,
   size = "default",
@@ -31,7 +33,7 @@ export const InterceptingModalShell = ({
   }, []);
 
   const handleOpenChange = (value: boolean) => {
-    if (!value) {
+    if (!(value || closeDisabled)) {
       if (onClose) {
         onClose();
         return;
@@ -43,14 +45,26 @@ export const InterceptingModalShell = ({
   return (
     <Dialog onOpenChange={handleOpenChange} open={open}>
       <DialogContent
+        aria-busy={closeDisabled}
         className={cn(
-          "max-h-[92dvh] w-full overflow-y-auto rounded-2xl bg-background p-10 duration-150",
+          "max-h-[92dvh] w-full overflow-y-auto rounded-2xl p-10 duration-150",
           {
             "sm:max-w-[400px]": size === "narrow",
             "sm:max-w-[560px]": size === "default",
             "sm:max-w-[720px]": size === "wide",
           }
         )}
+        onEscapeKeyDown={(event) => {
+          if (closeDisabled) {
+            event.preventDefault();
+          }
+        }}
+        onPointerDownOutside={(event) => {
+          if (closeDisabled) {
+            event.preventDefault();
+          }
+        }}
+        showCloseButton={!closeDisabled}
       >
         {title ? (
           <DialogHeader className="mb-4">

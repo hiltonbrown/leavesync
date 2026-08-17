@@ -8,6 +8,7 @@ import { SubscribeInstructions } from "@/components/feed/subscribe-instructions"
 import { EmptyState } from "@/components/states/empty-state";
 import { FetchErrorState } from "@/components/states/fetch-error-state";
 import { requirePageRole } from "@/lib/auth/require-page-role";
+import { withOrg } from "@/lib/navigation/org-url";
 import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
 import { parseFilterParams } from "@/lib/url-state/parse-filter-params";
 import { Header } from "../components/header";
@@ -36,7 +37,7 @@ const FeedPage = async ({ searchParams }: FeedPageProps) => {
   const user = await currentUser();
   const { org, ...filterParams } = params;
   const orgParam = Array.isArray(org) ? org[0] : org;
-  const { clerkOrgId, organisationId } =
+  const { clerkOrgId, organisationId, orgQueryValue } =
     await requireActiveOrgPageContext(orgParam);
   const filters = parseFilterParams(filterParams, FeedFilterSchema) ?? {
     status: ["active", "paused"],
@@ -71,7 +72,9 @@ const FeedPage = async ({ searchParams }: FeedPageProps) => {
         actionSlot={
           canManage ? (
             <Button asChild>
-              <Link href="/feeds/new">Create feed</Link>
+              <Link href={withOrg("/feeds/new", orgQueryValue)}>
+                Create feed
+              </Link>
             </Button>
           ) : null
         }
@@ -85,14 +88,15 @@ const FeedPage = async ({ searchParams }: FeedPageProps) => {
         canManage={canManage}
         feeds={feedsResult.value}
         organisationId={organisationId}
+        orgQueryValue={orgQueryValue}
       />
     );
   }
 
   return (
     <>
-      <Header page="Feeds" />
-      <main className="flex flex-1 flex-col gap-6 p-6 pt-0">
+      <Header organisationId={organisationId} page="Feeds" />
+      <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
         <section className="flex flex-col justify-between gap-4 rounded-2xl bg-muted p-6 lg:flex-row lg:items-end">
           <div>
             <p className="font-medium text-muted-foreground text-xs uppercase tracking-widest">
@@ -108,7 +112,7 @@ const FeedPage = async ({ searchParams }: FeedPageProps) => {
           </div>
           {canManage ? (
             <Button asChild>
-              <Link href="/feeds/new">New feed</Link>
+              <Link href={withOrg("/feeds/new", orgQueryValue)}>New feed</Link>
             </Button>
           ) : null}
         </section>
@@ -122,7 +126,7 @@ const FeedPage = async ({ searchParams }: FeedPageProps) => {
         />
 
         {content}
-      </main>
+      </div>
     </>
   );
 };

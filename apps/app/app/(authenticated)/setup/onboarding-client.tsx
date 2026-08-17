@@ -39,7 +39,7 @@ export const OnboardingClient = ({ prefillName }: OnboardingClientProps) => {
   };
 
   return (
-    <main className="flex flex-1 items-center justify-center p-8">
+    <div className="flex flex-1 items-center justify-center p-8">
       <Card className="w-full max-w-md rounded-2xl">
         <CardHeader>
           <CardTitle>Set up your organisation</CardTitle>
@@ -101,6 +101,6 @@ export const OnboardingClient = ({ prefillName }: OnboardingClientProps) => {
           </div>
         </CardContent>
       </Card>
-    </main>
+    </div>
   );
 };

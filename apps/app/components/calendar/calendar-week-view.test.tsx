@@ -1,8 +1,10 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CalendarWeekView } from "./calendar-week-view";
 
 const ADD_AVAILABILITY_REGEX = /Add availability for/i;
+const LEAVE_EVENT_NAME = /Ari Report.*Source: Team Calendar leave/i;
+const WEDNESDAY_NAME = /Wednesday.*15 April 2026/i;
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -24,6 +26,30 @@ describe("CalendarWeekView", () => {
 
     expect(screen.getByText("Ari Report")).toBeDefined();
     expect(screen.getByText("Queensland Day")).toBeDefined();
+  });
+
+  it("uses named day groups and lists without claiming an ARIA grid", () => {
+    render(
+      <CalendarWeekView
+        actingPersonId="00000000-0000-4000-8000-000000000011"
+        data={weekRange()}
+        orgQueryValue={null}
+        selectedPersonId={null}
+      />
+    );
+
+    const week = screen.getByRole("region", { name: "Calendar week view" });
+    const day = screen.getByRole("region", {
+      name: WEDNESDAY_NAME,
+    });
+
+    expect(within(week).queryByRole("grid")).toBeNull();
+    expect(within(day).getByRole("list", { name: "Events" })).toBeDefined();
+    expect(
+      within(day).getByRole("button", {
+        name: LEAVE_EVENT_NAME,
+      })
+    ).toBeDefined();
   });
 
   it("ensures calendar create control has no focusable interactive descendants", () => {

@@ -20,16 +20,16 @@ vi.mock("@repo/xero", async (importOriginal) => {
 
 const tenantA = {
   clerkOrgId: "org_test_people_sync_a",
-  organisationId: "30000000-0000-4000-8000-000000000001",
-  xeroConnectionId: "30000000-0000-4000-8000-000000000002",
-  xeroTenantId: "30000000-0000-4000-8000-000000000003",
+  organisationId: "93000000-0000-4000-8000-000000000001",
+  xeroConnectionId: "93000000-0000-4000-8000-000000000002",
+  xeroTenantId: "93000000-0000-4000-8000-000000000003",
 } as const;
 
 const tenantB = {
   clerkOrgId: "org_test_people_sync_b",
-  organisationId: "40000000-0000-4000-8000-000000000001",
-  xeroConnectionId: "40000000-0000-4000-8000-000000000002",
-  xeroTenantId: "40000000-0000-4000-8000-000000000003",
+  organisationId: "94000000-0000-4000-8000-000000000001",
+  xeroConnectionId: "94000000-0000-4000-8000-000000000002",
+  xeroTenantId: "94000000-0000-4000-8000-000000000003",
 } as const;
 
 const testClerkOrgIds = [tenantA.clerkOrgId, tenantB.clerkOrgId] as const;

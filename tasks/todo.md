@@ -1,3 +1,55 @@
+# Plan: Complete and align the Team Calendar design system
+
+## Confirmed brief
+
+- **Job and audience:** Preserve Team Calendar's calm, precise visual world while making the authenticated Operate experience explicit for employees, managers, and admins, and keeping the marketing site clearly scoped as Persuade.
+- **Outcome and proof:** A manager can scan the calendar quickly, high-stakes Xero and feed actions communicate progress and recovery, and every documented token or component rule has an implementation source of truth.
+- **Direction:** Keep the sage/lavender provenance language and tonal hierarchy. Add a product-specific operational grammar for calendar records, async states, density, keyboard use, responsive transformation, and completion receipts.
+- **Scope:** Update `DESIGN.md`, `.impeccable/design.json`, shared design-system tokens and primitives, and the app/marketing implementations needed to remove verified contradictions. Preserve factual product copy and existing domain behaviour.
+- **States and ranges:** Cover first-run, empty, loading, success, stale, partial failure, permission, auth expiry, rate limiting, long content, dense records, mobile layout, reduced motion, and reduced transparency.
+- **Constraints:** WCAG 2.2 AA, Australian English, no em dashes, Tailwind CSS v4, shared primitives in `packages/design-system`, no new dependencies unless existing code cannot support the requirement.
+
+## Tasks
+
+- [x] Audit current implementation and classify verified design, accessibility, responsive, performance, and state gaps.
+- [x] Rewrite `DESIGN.md` into the canonical format with unambiguous tokens, Operate/Persuade scope, operational patterns, and measurable acceptance rules.
+- [x] Regenerate `.impeccable/design.json` from the revised normative document and current reusable components.
+- [x] Align shared colours, typography, focus, elevation, motion, buttons, inputs, cards, dialogs, popovers, tooltips, and charts.
+- [x] Align calendar, approval, sync, feed, and responsive states where the audit finds concrete gaps.
+- [x] Distil repeated or competing UI treatments without removing required functionality.
+- [x] Run the bounded visual polish pass with source, hook, and responsive-state verification. Rendered browser verification was unavailable because `agent-browser` and Playwright are not installed.
+- [x] Run detector, focused tests, `bun run fix`, `bun run check`, `bun run typecheck`, `bun run test`, and `bun run test:integration` as applicable.
+
+## Review
+
+- Rebuilt `DESIGN.md` as the single normative design contract. It now separates
+  Operate, Persuade, and the scoped auth signature; resolves the neutral shadcn
+  accent versus editorial purple conflict; and specifies density, responsive
+  transformation, focus, motion, provenance, receipts, and failure recovery.
+- Regenerated `.impeccable/design.json` and aligned the shared token and
+  component implementations, including dark mode, warning semantics, frost,
+  elevation, typography metrics, full-opacity focus rings, coarse-pointer hit
+  areas, modal surfaces, charts, and system theme behaviour.
+- Hardened the authenticated shell, calendar, approvals, plans, sync, feeds,
+  notifications, and marketing demo. High-stakes mutations now retain failed
+  confirmations, announce receipts, preserve organisation context, and expose
+  keyboard and reduced-motion behaviour consistently.
+- Removed the four detector-backed sidebar layout-transition warnings and fixed
+  the integration suites' cross-package UUID collisions so the parallel CI
+  gate is repeatable.
+- Verified `bun run fix`, `bun run check`, `bun run typecheck`, `bun run test`,
+  and `bun run test:integration`; the final runs passed. The Xero integration
+  file skipped its two credential-dependent cases as configured. `git diff
+  --check`, JSON validation, the canonical section check, the single-main
+  landmark check, and focus-opacity scans also passed.
+- Automatic Impeccable scans reported no unsuppressed deterministic findings
+  on the surfaces they checked. Full-pill radii and four scoped auth artwork
+  colours remain documented exceptions in `.impeccable/config.json`. Rendered
+  screenshots remain unavailable in this workspace because no supported
+  browser executable is installed.
+
+---
+
 # Plan: Create Team Calendar go-to-market plan
 
 ## Tasks

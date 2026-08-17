@@ -17,17 +17,20 @@ import { Switch } from "@repo/design-system/components/ui/switch";
 import type { FeedListItem } from "@repo/feeds";
 import Link from "next/link";
 import { useState, useTransition } from "react";
+import { withOrg } from "@/lib/navigation/org-url";
 import { SettingsSectionHeader } from "../components/settings-section-header";
 import { updateFeedDefaultsAction } from "./_actions";
 
 interface FeedsClientProps {
   feeds: FeedListItem[];
   organisationId: string;
+  orgQueryValue: string | null;
   settings: OrganisationSettings;
 }
 
 export const FeedsClient = ({
   feeds,
+  orgQueryValue,
   organisationId,
   settings,
 }: FeedsClientProps) => {
@@ -122,7 +125,9 @@ export const FeedsClient = ({
           <div className="flex items-center justify-between gap-4">
             <CardTitle>All feeds</CardTitle>
             <Button asChild>
-              <Link href="/feeds/new">Create new feed</Link>
+              <Link href={withOrg("/feeds/new", orgQueryValue)}>
+                Create new feed
+              </Link>
             </Button>
           </div>
         </CardHeader>
@@ -139,7 +144,9 @@ export const FeedsClient = ({
                 </p>
               </div>
               <Button asChild variant="outline">
-                <Link href={`/feeds/${feed.id}`}>Open</Link>
+                <Link href={withOrg(`/feeds/${feed.id}`, orgQueryValue)}>
+                  Open
+                </Link>
               </Button>
             </div>
           ))}

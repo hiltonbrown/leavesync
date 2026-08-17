@@ -145,7 +145,7 @@ describe("feed actions", () => {
         },
       });
       expect(mocks.dispatchNotification).toHaveBeenCalledWith({
-        actionUrl: `/feeds/${feedId}?org=org_1`,
+        actionUrl: `/feeds/${feedId}?org=${organisationId}`,
         actorUserId: "user_1",
         body: 'The token for calendar feed "Internal Calendar" has been rotated.',
         clerkOrgId: "org_1",

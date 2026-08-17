@@ -2,6 +2,9 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { CalendarEventChip } from "./calendar-event-chip";
 
+const LEAVE_EVENT_NAME = /Ari Report.*Source: Team Calendar leave/i;
+const MANUAL_EVENT_NAME = /Kai Manual.*Source: Manual availability/i;
+
 describe("CalendarEventChip", () => {
   afterEach(() => cleanup());
 
@@ -48,6 +51,34 @@ describe("CalendarEventChip", () => {
 
     expect(screen.getByText("Team member")).toBeDefined();
     expect(screen.getByText("Unavailable")).toBeDefined();
+  });
+
+  it("pairs provenance icons with accessible source labels", () => {
+    render(
+      <>
+        <CalendarEventChip event={event()} orgQueryValue={null} />
+        <CalendarEventChip
+          event={event({
+            displayName: "Kai Manual",
+            id: "manual",
+            recordType: "training",
+            recordTypeCategory: "local_only",
+            sourceType: "manual",
+          })}
+          orgQueryValue={null}
+        />
+      </>
+    );
+
+    const leave = screen.getByRole("button", {
+      name: LEAVE_EVENT_NAME,
+    });
+    const manual = screen.getByRole("button", {
+      name: MANUAL_EVENT_NAME,
+    });
+
+    expect(leave.querySelector(".lucide-leaf")).not.toBeNull();
+    expect(manual.querySelector(".lucide-pencil")).not.toBeNull();
   });
 });
 

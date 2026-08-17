@@ -69,7 +69,7 @@ export const NewPersonClient = ({
   };
 
   return (
-    <main className="flex flex-1 items-center justify-center p-8">
+    <div className="flex flex-1 items-center justify-center p-8">
       <Card className="w-full max-w-lg rounded-2xl">
         <CardHeader>
           <CardTitle>Add a person</CardTitle>
@@ -153,6 +153,6 @@ export const NewPersonClient = ({
           </div>
         </CardContent>
       </Card>
-    </main>
+    </div>
   );
 };
