@@ -748,10 +748,10 @@ function connectionStatus(connection: {
   ) {
     return "not_configured";
   }
-  if (connection.expires_at <= new Date()) {
-    return "expired";
+  if (connection.status === "active") {
+    return "active";
   }
-  return "active";
+  return "not_configured";
 }
 
 function latestCompletedRunAt(

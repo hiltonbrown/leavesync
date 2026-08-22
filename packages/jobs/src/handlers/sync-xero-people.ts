@@ -211,6 +211,16 @@ export async function syncXeroPeople(input: unknown): Promise<
       }
     }
 
+    await database.xeroTenant.updateMany({
+      data: {
+        last_people_sync_at: new Date(),
+        last_sync_error_code: null,
+        last_sync_error_message: null,
+        people_stale_since: null,
+      },
+      where: { ...scoped(context), id: context.xeroTenantId },
+    });
+
     const finalStatus = counts.failed > 0 ? "partial_success" : "succeeded";
     await completeRun(context, run.id, {
       counts,
@@ -266,17 +276,21 @@ async function processBatch(
         employee.email ||
         `${employee.firstName}.${employee.lastName}@${noemailFallbackDomain}`;
       const email = raw.toLowerCase();
+      const employmentType = mapEmploymentType(employee.employmentType);
+      const personType =
+        employmentType === "contractor" ? "contractor" : "employee";
       await database.person.upsert({
         create: {
           clerk_org_id: context.clerkOrgId,
           display_name: `${employee.firstName} ${employee.lastName}`,
           email,
-          employment_type: mapEmploymentType(employee.employmentType),
+          employment_type: employmentType,
           first_name: employee.firstName,
           is_active: employee.status === "ACTIVE",
           job_title: employee.jobTitle ?? null,
           last_name: employee.lastName,
           organisation_id: context.organisationId,
+          person_type: personType,
           source_person_key: employee.employeeId,
           source_system: "XERO",
           start_date: employee.startDate ? new Date(employee.startDate) : null,
@@ -285,11 +299,12 @@ async function processBatch(
         update: {
           display_name: `${employee.firstName} ${employee.lastName}`,
           email,
-          employment_type: mapEmploymentType(employee.employmentType),
+          employment_type: employmentType,
           first_name: employee.firstName,
           is_active: employee.status === "ACTIVE",
           job_title: employee.jobTitle ?? null,
           last_name: employee.lastName,
+          person_type: personType,
           start_date: employee.startDate ? new Date(employee.startDate) : null,
           updated_at: new Date(),
           xero_employee_id: employee.employeeId,

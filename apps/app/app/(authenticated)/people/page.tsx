@@ -60,7 +60,7 @@ const PeoplePage = async ({ searchParams }: PeoplePageProps) => {
       })
     : null;
 
-  const [peopleResult, teams, locations] = await Promise.all([
+  const [peopleResult, teams, locations, xeroTenant] = await Promise.all([
     listPeople({
       actingPersonId: actingPerson?.id,
       clerkOrgId,
@@ -82,7 +82,20 @@ const PeoplePage = async ({ searchParams }: PeoplePageProps) => {
       select: { id: true, name: true },
       where: scopedQuery(clerkOrgId, organisationId),
     }),
+    database.xeroTenant.findFirst({
+      select: {
+        id: true,
+        xero_connection: { select: { status: true } },
+      },
+      where: {
+        clerk_org_id: clerkOrgId,
+        organisation_id: organisationId,
+      },
+    }),
   ]);
+  const hasActiveXeroConnection =
+    xeroTenant?.xero_connection?.status === "active";
+  const xeroTenantId = xeroTenant?.id ?? null;
 
   if (!peopleResult.ok) {
     return (
@@ -102,6 +115,7 @@ const PeoplePage = async ({ searchParams }: PeoplePageProps) => {
         <PeopleClient
           canIncludeArchived={canIncludeArchived}
           filters={filters}
+          hasActiveXeroConnection={hasActiveXeroConnection}
           locations={locations}
           nextCursor={peopleResult.value.nextCursor}
           organisationId={organisationId}
@@ -109,6 +123,7 @@ const PeoplePage = async ({ searchParams }: PeoplePageProps) => {
           people={peopleResult.value.people}
           teams={teams}
           totalCount={peopleResult.value.totalCount}
+          xeroTenantId={xeroTenantId}
         />
       </div>
     </>

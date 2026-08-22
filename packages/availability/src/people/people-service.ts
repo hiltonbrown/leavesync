@@ -372,22 +372,24 @@ function buildPeopleWhere({
     ...(filters.locationId?.length
       ? { location_id: { in: filters.locationId } }
       : {}),
-    ...(filters.personType === "all"
-      ? {}
-      : { person_type: filters.personType }),
-    ...(filters.xeroLinked === "true"
-      ? { xero_employee_id: { not: null } }
-      : {}),
-    ...(filters.xeroLinked === "false" ? { xero_employee_id: null } : {}),
-    ...(filters.xeroSyncFailedOnly
-      ? {
-          availability_records: {
-            some: { ...scoped, approval_status: "xero_sync_failed" },
-          },
-        }
-      : {}),
-    ...(filters.search
-      ? {
+    ...(() => {
+      const conditions: Prisma.PersonWhereInput[] = [];
+      if (filters.personType !== "all") {
+        conditions.push({
+          OR: [
+            { person_type: filters.personType },
+            {
+              employment_type:
+                filters.personType === "contractor"
+                  ? "contractor"
+                  : { not: "contractor" },
+              person_type: null,
+            },
+          ],
+        });
+      }
+      if (filters.search) {
+        conditions.push({
           OR: [
             {
               first_name: { contains: filters.search, mode: "insensitive" },
@@ -397,6 +399,25 @@ function buildPeopleWhere({
             },
             { email: { contains: filters.search, mode: "insensitive" } },
           ],
+        });
+      }
+      if (conditions.length === 0) {
+        return {};
+      }
+      if (conditions.length === 1) {
+        return conditions[0] as Prisma.PersonWhereInput;
+      }
+      return { AND: conditions };
+    })(),
+    ...(filters.xeroLinked === "true"
+      ? { xero_employee_id: { not: null } }
+      : {}),
+    ...(filters.xeroLinked === "false" ? { xero_employee_id: null } : {}),
+    ...(filters.xeroSyncFailedOnly
+      ? {
+          availability_records: {
+            some: { ...scoped, approval_status: "xero_sync_failed" },
+          },
         }
       : {}),
   };

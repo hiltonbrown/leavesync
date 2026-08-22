@@ -11,6 +11,7 @@ import {
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
 import { toast } from "@repo/design-system/components/ui/sonner";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { dispatchManualSyncAction } from "@/app/(authenticated)/sync/_actions";
 import { ProviderStatusBadge } from "../../components/provider-status-badge";
@@ -27,6 +28,7 @@ interface XeroClientProps {
 }
 
 export const XeroClient = ({ organisations }: XeroClientProps) => {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [confirmationTextByOrganisation, setConfirmationTextByOrganisation] =
     useState<Record<string, string>>({});
@@ -90,24 +92,33 @@ export const XeroClient = ({ organisations }: XeroClientProps) => {
     runType: string
   ) => {
     startTransition(async () => {
-      const result = await dispatchManualSyncAction({
-        organisationId,
-        runType,
-        xeroTenantId,
-      });
-      if (!result.ok) {
-        toast.error(result.error.message);
-        return;
-      }
-      if (!result.value.queued) {
+      try {
+        const result = await dispatchManualSyncAction({
+          organisationId,
+          runType,
+          xeroTenantId,
+        });
+        if (!result.ok) {
+          toast.error(result.error.message);
+          return;
+        }
+        if (!result.value.queued) {
+          toast.error(
+            result.value.reason === "connection_not_active"
+              ? "Reconnect Xero before running syncs."
+              : "This sync is not available yet."
+          );
+          return;
+        }
+        toast.success("Sync completed successfully.");
+        router.refresh();
+      } catch (error) {
         toast.error(
-          result.value.reason === "connection_not_active"
-            ? "Reconnect Xero before running syncs."
-            : "This sync is not available yet."
+          error instanceof Error
+            ? error.message
+            : "Failed to dispatch manual sync."
         );
-        return;
       }
-      toast.success("Sync dispatched.");
     });
   };
 
@@ -315,10 +326,10 @@ function statusForConnection(
   if (connection.status === "disconnected" || connection.disconnected_at) {
     return "disconnected";
   }
-  if (connection.expires_at.getTime() <= Date.now()) {
-    return "expired";
+  if (connection.status === "active") {
+    return "connected";
   }
-  return "connected";
+  return "disconnected";
 }
 
 function formatTimestamp(value: Date | null): string {

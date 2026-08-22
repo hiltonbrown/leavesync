@@ -180,21 +180,42 @@ describe("sync-monitor-service", () => {
     }
   });
 
-  it("refuses manual sync for paused tenants", async () => {
+  it("dispatches manual sync for active connection even if access token expires_at is past", async () => {
+    const validTenantId = "00000000-0000-4000-8000-000000000010";
+    mocks.xeroTenantFindFirst.mockResolvedValue({
+      id: validTenantId,
+      organisation_id: baseInput.organisationId,
+      sync_paused_at: null,
+      xero_connection: {
+        access_token_encrypted: "token",
+        expires_at: new Date("2020-01-01T00:00:00.000Z"),
+        refresh_token_encrypted: "refresh",
+        revoked_at: null,
+        status: "active",
+      },
+    });
+
     const result = await dispatchManualSync({
       ...baseInput,
-      runType: "approval_state_reconciliation",
-      xeroTenantId: "00000000-0000-4000-8000-000000000201",
+      runType: "people",
+      xeroTenantId: validTenantId,
     });
 
     expect(result).toEqual({
       ok: true,
       value: {
-        eventName: "availability.sync.approval_state_reconciliation",
-        queued: false,
-        reason: "tenant_sync_paused",
+        eventName: "availability.sync.people",
+        queued: true,
       },
     });
-    expect(mocks.dispatchSyncEvent).not.toHaveBeenCalled();
+    expect(mocks.dispatchSyncEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clerkOrgId: baseInput.clerkOrgId,
+        organisationId: baseInput.organisationId,
+        runType: "people",
+        triggerType: "manual",
+        xeroTenantId: validTenantId,
+      })
+    );
   });
 });

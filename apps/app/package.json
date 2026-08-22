@@ -21,6 +21,7 @@
     "@repo/design-system": "*",
     "@repo/email": "*",
     "@repo/feeds": "*",
+    "@repo/jobs": "*",
     "@repo/next-config": "*",
     "@repo/notifications": "*",
     "@repo/observability": "*",

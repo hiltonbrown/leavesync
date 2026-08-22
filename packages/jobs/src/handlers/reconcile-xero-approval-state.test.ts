@@ -20,6 +20,7 @@ const mocks = vi.hoisted(() => ({
   syncRunUpdateMany: vi.fn(),
   toPlainLanguageMessage: vi.fn(() => "Xero request failed"),
   xeroTenantFindFirst: vi.fn(),
+  xeroTenantUpdateMany: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -45,7 +46,10 @@ vi.mock("@repo/database", () => ({
       findFirst: mocks.syncRunFindFirst,
       updateMany: mocks.syncRunUpdateMany,
     },
-    xeroTenant: { findFirst: mocks.xeroTenantFindFirst },
+    xeroTenant: {
+      findFirst: mocks.xeroTenantFindFirst,
+      updateMany: mocks.xeroTenantUpdateMany,
+    },
   },
   scopedTo: mocks.scopedTo,
 }));

@@ -34,7 +34,20 @@ export {
   scheduleXeroSyncsPage,
 } from "./src/handlers/schedule-xero-syncs";
 export {
+  type SyncXeroLeaveBalancesError,
   type SyncXeroLeaveBalancesInput,
   syncXeroLeaveBalances,
   syncXeroLeaveBalancesFunction,
 } from "./src/handlers/sync-xero-leave-balances";
+export {
+  type SyncXeroLeaveRecordsError,
+  type SyncXeroLeaveRecordsInput,
+  syncXeroLeaveRecords,
+  syncXeroLeaveRecordsFunction,
+} from "./src/handlers/sync-xero-leave-records";
+export {
+  type SyncXeroPeopleError,
+  type SyncXeroPeopleInput,
+  syncXeroPeople,
+  syncXeroPeopleFunction,
+} from "./src/handlers/sync-xero-people";

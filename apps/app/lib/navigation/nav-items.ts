@@ -74,7 +74,12 @@ export const navGroups: NavGroup[] = [
         title: "Leave Approvals",
       },
       { href: "/public-holidays", icon: FlagIcon, title: "Public Holidays" },
-      { href: "/sync", icon: ActivityIcon, title: "Sync Health" },
+      {
+        href: "/sync",
+        icon: ActivityIcon,
+        roles: ADMIN_ROLES,
+        title: "Sync Health",
+      },
     ],
     label: "Admin",
   },

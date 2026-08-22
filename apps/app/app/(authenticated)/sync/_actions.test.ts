@@ -7,8 +7,11 @@ const mocks = vi.hoisted(() => ({
   dispatchManualSync: vi.fn(),
   exportFailedRecordsCsv: vi.fn(),
   getActiveOrgContext: vi.fn(),
-  requirePageRole: vi.fn(),
+  reconcileXeroApprovalState: vi.fn(),
   revalidatePath: vi.fn(),
+  syncXeroLeaveBalances: vi.fn(),
+  syncXeroLeaveRecords: vi.fn(),
+  syncXeroPeople: vi.fn(),
 }));
 
 vi.mock("@repo/auth/server", () => ({
@@ -20,11 +23,14 @@ vi.mock("@repo/availability", () => ({
   dispatchManualSync: mocks.dispatchManualSync,
   exportFailedRecordsCsv: mocks.exportFailedRecordsCsv,
 }));
+vi.mock("@repo/jobs", () => ({
+  reconcileXeroApprovalState: mocks.reconcileXeroApprovalState,
+  syncXeroLeaveBalances: mocks.syncXeroLeaveBalances,
+  syncXeroLeaveRecords: mocks.syncXeroLeaveRecords,
+  syncXeroPeople: mocks.syncXeroPeople,
+}));
 vi.mock("next/cache", () => ({
   revalidatePath: mocks.revalidatePath,
-}));
-vi.mock("@/lib/auth/require-page-role", () => ({
-  requirePageRole: mocks.requirePageRole,
 }));
 vi.mock("@/lib/server/get-active-org-context", () => ({
   getActiveOrgContext: mocks.getActiveOrgContext,
@@ -45,7 +51,6 @@ const userId = "user_456";
 describe("sync server actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.requirePageRole.mockResolvedValue(undefined);
     mocks.auth.mockResolvedValue({ orgRole: "org:admin" });
     mocks.currentUser.mockResolvedValue({ id: userId });
     mocks.getActiveOrgContext.mockResolvedValue({
@@ -145,7 +150,32 @@ describe("sync server actions", () => {
         runType: "leave_records",
         xeroTenantId,
       });
+      expect(mocks.syncXeroLeaveRecords).toHaveBeenCalledWith({
+        clerkOrgId,
+        organisationId,
+        triggeredByUserId: userId,
+        triggerType: "manual",
+        xeroTenantId,
+      });
       expect(mocks.revalidatePath).toHaveBeenCalledWith("/sync");
+      expect(mocks.revalidatePath).toHaveBeenCalledWith("/people");
+    });
+
+    it("dispatchManualSyncAction executes syncXeroPeople when runType is people", async () => {
+      const result = await dispatchManualSyncAction({
+        organisationId,
+        runType: "people",
+        xeroTenantId,
+      });
+
+      expect(result.ok).toBe(true);
+      expect(mocks.syncXeroPeople).toHaveBeenCalledWith({
+        clerkOrgId,
+        organisationId,
+        triggeredByUserId: userId,
+        triggerType: "manual",
+        xeroTenantId,
+      });
     });
 
     it("exportFailedRecordsCsvAction returns CSV export data", async () => {
