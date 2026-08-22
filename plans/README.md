@@ -62,6 +62,12 @@ Plans are ordered by leverage, with dependencies respected. Each row is merged t
 | 23 | [073](073-orphaned-xero-employee-lifecycle-reconciliation.md) Orphaned Xero employee lifecycle reconciliation | P2 | S | LOW | 069 | TODO |
 | 24 | [074](074-xero-tracking-category-team-and-manager-hierarchy-sync.md) Xero tracking category team & manager hierarchy sync | P2 | M | LOW | 069 | TODO |
 
+## Companion reference docs (not executable)
+
+Not part of the execution queue — same pattern as `gtm-team-calendar-go-to-market-plan.md` (business strategy doc). Kept for audit and implementation correctness.
+
+- [xero-people-sync architecture](../docs/architecture/xero-people-sync.md) — companion to **069** (`069-fix-xero-people-sync-and-directory-ui.md`), reconciled 2026-08-23 at `18a8bae`; moved from `plans/069-xero-people-sync-architecture-and-reconciliation.md` to resolve duplicate numbering. Updated to reflect `person_type` mapping and `syncResult` error surfacing.
+
 **Plan 051 goes first.** Until the integration lane is trustworthy, every later
 plan's `bun run test:integration` gate is unverifiable, and two of them (056, 066)
 depend on it directly.
