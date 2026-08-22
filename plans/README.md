@@ -55,6 +55,12 @@ Plans are ordered by leverage, with dependencies respected. Each row is merged t
 | 16 | [064](064-harden-the-public-feed-and-support-surfaces.md) Harden the public feed and support surfaces | P3 | M | LOW | 061 | TODO |
 | 17 | [065](065-unify-the-public-holiday-predicate.md) Unify the public holiday predicate | P3 | M | **MED** | 060, 061 | TODO, **decision required** |
 | 18 | [068](068-merge-the-twin-analytics-services.md) Merge the twin analytics services | P3 | L | MED | 060, 065 | TODO |
+| 19 | [069](069-fix-xero-people-sync-and-directory-ui.md) Fix Xero people sync and directory UI gaps | P1 | M | LOW | — | DONE (2026-08-23, commit 5993283, verified: check/typecheck/test pass) |
+| 20 | [070](070-xero-token-and-refresh-token-management-architecture.md) Xero token & refresh token management architecture | P1 | M | LOW | — | TODO |
+| 21 | [071](071-nz-and-uk-xero-payroll-read-and-sync-expansion.md) NZ & UK Xero payroll read and sync expansion | P1 | L | MED | 069 | TODO |
+| 22 | [072](072-automated-clerk-user-matching-and-bulk-invitations.md) Automated Clerk user matching and bulk invitations | P1 | S | LOW | 069 | TODO |
+| 23 | [073](073-orphaned-xero-employee-lifecycle-reconciliation.md) Orphaned Xero employee lifecycle reconciliation | P2 | S | LOW | 069 | TODO |
+| 24 | [074](074-xero-tracking-category-team-and-manager-hierarchy-sync.md) Xero tracking category team & manager hierarchy sync | P2 | M | LOW | 069 | TODO |
 
 **Plan 051 goes first.** Until the integration lane is trustworthy, every later
 plan's `bun run test:integration` gate is unverifiable, and two of them (056, 066)

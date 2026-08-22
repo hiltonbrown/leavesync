@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   database: {
     alternativeContact: { findFirst: vi.fn() },
     person: { findFirst: vi.fn() },
+    xeroTenant: { findFirst: vi.fn() },
   },
   deleteAlternativeContact: vi.fn(),
   dispatchBalanceRefresh: vi.fn(),
@@ -14,12 +15,16 @@ const mocks = vi.hoisted(() => ({
   reorderAlternativeContacts: vi.fn(),
   revalidatePath: vi.fn(),
   setManualLeaveBalance: vi.fn(),
+  syncXeroLeaveBalances: vi.fn(),
   updateAlternativeContact: vi.fn(),
 }));
 
 vi.mock("@repo/auth/server", () => ({
   auth: mocks.auth,
   currentUser: mocks.currentUser,
+}));
+vi.mock("@repo/jobs", () => ({
+  syncXeroLeaveBalances: mocks.syncXeroLeaveBalances,
 }));
 vi.mock("@repo/availability", () => ({
   addAlternativeContact: mocks.addAlternativeContact,
@@ -71,6 +76,7 @@ describe("people server actions", () => {
     mocks.database.alternativeContact.findFirst.mockResolvedValue({
       person_id: personId,
     });
+    mocks.database.xeroTenant.findFirst.mockResolvedValue({ id: "tenant_1" });
     mocks.addAlternativeContact.mockResolvedValue({
       ok: true,
       value: { id: contactId },
@@ -225,6 +231,14 @@ describe("people server actions", () => {
       });
       expect(resRefresh).toEqual({ ok: true, value: { queued: true } });
       expect(mocks.dispatchBalanceRefresh).toHaveBeenCalled();
+      expect(mocks.syncXeroLeaveBalances).toHaveBeenCalledWith({
+        clerkOrgId,
+        organisationId,
+        personId,
+        triggeredByUserId: userId,
+        triggerType: "manual",
+        xeroTenantId: "tenant_1",
+      });
     });
 
     it("setManualBalanceAction validates balance and passes parameters to service", async () => {

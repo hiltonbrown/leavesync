@@ -92,24 +92,34 @@ export function SyncClient({
 
   const dispatch = (xeroTenantId: string, runType: SyncRunType) => {
     startTransition(async () => {
-      const result = await dispatchManualSyncAction({
-        organisationId,
-        runType,
-        xeroTenantId,
-      });
-      if (!result.ok) {
-        setMessage({ text: result.error.message, tone: "error" });
-        return;
-      }
-      if (!result.value.queued) {
+      try {
+        const result = await dispatchManualSyncAction({
+          organisationId,
+          runType,
+          xeroTenantId,
+        });
+        if (!result.ok) {
+          setMessage({ text: result.error.message, tone: "error" });
+          return;
+        }
+        if (!result.value.queued) {
+          setMessage({
+            text: reasonLabel(result.value.reason),
+            tone: "error",
+          });
+          return;
+        }
+        setMessage({ text: "Sync queued.", tone: "status" });
+        router.refresh();
+      } catch (error) {
         setMessage({
-          text: reasonLabel(result.value.reason),
+          text:
+            error instanceof Error
+              ? error.message
+              : "Failed to dispatch manual sync.",
           tone: "error",
         });
-        return;
       }
-      setMessage({ text: "Sync queued.", tone: "status" });
-      router.refresh();
     });
   };
 

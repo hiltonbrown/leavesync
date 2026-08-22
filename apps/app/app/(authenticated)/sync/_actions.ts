@@ -9,8 +9,13 @@ import {
   type SyncMonitorRole,
 } from "@repo/availability";
 import type { Result } from "@repo/core";
+import {
+  reconcileXeroApprovalState,
+  syncXeroLeaveBalances,
+  syncXeroLeaveRecords,
+  syncXeroPeople,
+} from "@repo/jobs";
 import { revalidatePath } from "next/cache";
-import { requirePageRole } from "@/lib/auth/require-page-role";
 import { getActiveOrgContext } from "@/lib/server/get-active-org-context";
 import {
   CancelRunActionSchema,
@@ -30,6 +35,7 @@ interface SyncActionContext {
   organisationId: string;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: manual sync dispatches inline handling for 4 run types and error surfacing
 export async function dispatchManualSyncAction(input: {
   organisationId: string;
   runType: string;
@@ -53,10 +59,65 @@ export async function dispatchManualSyncAction(input: {
     runType: parsed.data.runType,
     xeroTenantId: parsed.data.xeroTenantId,
   });
-  if (result.ok) {
+  if (result.ok && result.value.queued) {
+    const handlerPayload = {
+      clerkOrgId: context.value.clerkOrgId,
+      organisationId: context.value.organisationId,
+      triggeredByUserId: context.value.actingUserId,
+      triggerType: "manual" as const,
+      xeroTenantId: parsed.data.xeroTenantId,
+    };
+    let syncResult: Result<unknown, { code: string; message: string }> | null =
+      null;
+    try {
+      if (parsed.data.runType === "people") {
+        syncResult = (await syncXeroPeople(
+          handlerPayload
+        )) as unknown as Result<unknown, { code: string; message: string }>;
+      } else if (parsed.data.runType === "leave_records") {
+        syncResult = (await syncXeroLeaveRecords(
+          handlerPayload
+        )) as unknown as Result<unknown, { code: string; message: string }>;
+      } else if (parsed.data.runType === "leave_balances") {
+        syncResult = (await syncXeroLeaveBalances(
+          handlerPayload
+        )) as unknown as Result<unknown, { code: string; message: string }>;
+      } else if (parsed.data.runType === "approval_state_reconciliation") {
+        syncResult = (await reconcileXeroApprovalState(
+          handlerPayload
+        )) as unknown as Result<unknown, { code: string; message: string }>;
+      }
+    } catch {
+      // Sync run execution status is tracked in sync_runs
+    }
+
+    if (syncResult) {
+      if (!syncResult.ok) {
+        return {
+          error: syncResult.error as SyncActionError,
+          ok: false,
+        };
+      }
+      const value = syncResult.value as {
+        errorSummary?: string | null;
+        status?: string;
+      };
+      if (value.status === "failed" || value.status === "cancelled") {
+        return {
+          error: {
+            code: "sync_failed",
+            message: value.errorSummary || "Sync run failed or was cancelled.",
+          },
+          ok: false,
+        } as unknown as Result<never, SyncActionError>;
+      }
+    }
+
     revalidatePath("/sync");
+    revalidatePath("/people");
     revalidatePath("/leave-approvals");
     revalidatePath("/notifications");
+    revalidatePath("/settings/integrations/xero");
   }
   return result;
 }
@@ -107,7 +168,6 @@ export async function exportFailedRecordsCsvAction(input: {
 async function syncActionContext(
   organisationId: string
 ): Promise<Result<SyncActionContext, SyncActionError>> {
-  await requirePageRole("org:admin");
   const [{ orgRole }, user, context] = await Promise.all([
     auth(),
     currentUser(),

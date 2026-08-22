@@ -9,7 +9,7 @@ import { auth } from "@clerk/nextjs/server";
 export async function requireOrg(): Promise<string> {
   const authObject = await auth();
 
-  if (!authObject.isAuthenticated || !authObject.orgId) {
+  if (!(authObject.isAuthenticated && authObject.orgId)) {
     throw new Error("Not authenticated or no organisation selected");
   }
 

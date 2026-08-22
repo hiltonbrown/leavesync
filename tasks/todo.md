@@ -1,3 +1,46 @@
+# Plan: Thorough Review and Hardening of Manual Sync Functionality
+
+## Tasks
+
+- [x] Audit all manual sync triggers across UI and server actions (Xero settings, Sync monitor, Person detail balance refresh)
+- [x] Review sync handlers (`syncXeroPeople`, `syncXeroLeaveRecords`, `syncXeroLeaveBalances`, `reconcileXeroApprovalState`) for error handling, lock contention, token refreshing, and result surfacing
+- [x] Review person balance refresh workflow (`requestLeaveBalanceRefresh` in `packages/availability/src/people/balance-refresh.ts`) to ensure single-person balance sync triggers directly
+- [x] Check if `dispatchManualSyncAction` surfaces execution results (e.g. failure reasons or success summaries) accurately to the caller and UI
+- [x] Check tenant connection and timestamp updating (`last_people_sync_at`, `last_leave_records_sync_at`, `last_leave_balances_sync_at`, `last_approval_state_reconciled_at`)
+- [x] Write/update unit and integration tests for all hardened manual sync paths
+- [x] Run full validation: `bun run check`, `bun run typecheck`, `bun run test`
+
+## Review
+
+- Audited all manual sync entry points across the product (`/settings/integrations/xero`, `/sync`, and person detail balance refresh in `/people/[personId]`).
+- Hardened `refreshBalancesAction` to directly invoke `syncXeroLeaveBalances` for single-person balance refreshes when requested by users.
+- Ensured all sync handlers update their respective tenant timestamps (`last_people_sync_at`, `last_leave_records_sync_at`, `last_leave_balances_sync_at`, and `last_approval_state_reconciled_at`), fixing sync timestamp indicators in the UI.
+- Verified idempotency, dual-tenant isolation, proactive token refresh, and error logging across all four sync handlers.
+- Monorepo validation passed: `bun run check` (767 files, 0 errors), `bun run typecheck` (19/19 packages), `bun run test` (17/17 tasks).
+
+---
+
+# Plan: Sync Xero employees on initial connection and manual sync
+
+## Tasks
+
+- [x] Export all sync handlers (`syncXeroPeople`, `syncXeroLeaveRecords`, `syncXeroLeaveBalances`, `reconcileXeroApprovalState`) from `packages/jobs/index.ts`
+- [x] Add `@repo/jobs` to `apps/app/package.json` dependencies
+- [x] Update `completeTenantSelectionAction` in `apps/app/app/(authenticated)/settings/integrations/xero/connect/_actions.ts` to execute initial sync (`syncXeroPeople`, `syncXeroLeaveRecords`, `syncXeroLeaveBalances`) directly upon connection
+- [x] Update `dispatchManualSyncAction` in `apps/app/app/(authenticated)/sync/_actions.ts` to execute sync handlers directly and revalidate all relevant paths (`/people`, `/sync`, etc.)
+- [x] Update and expand unit tests in `apps/app` and `packages/jobs`
+- [x] Run full validation: `bun run check`, `bun run typecheck`, `bun run test`
+
+## Review
+
+- Resolved initial employee sync issue when connecting Xero: `completeTenantSelectionAction` now directly runs `syncXeroPeople`, `syncXeroLeaveRecords`, and `syncXeroLeaveBalances` so employees and their leave/balances are immediately loaded into Team Calendar before redirecting to the product views.
+- Updated `dispatchManualSyncAction` to execute the corresponding sync handlers directly and revalidate `/people`, `/sync`, `/leave-approvals`, and `/settings/integrations/xero`.
+- Exported all sync handlers and error/input types from `packages/jobs/index.ts`.
+- Added `@repo/jobs` to `apps/app/package.json`.
+- Verified with `bun run check` (0 errors across 767 files), `bun run typecheck` (19/19 packages), and `bun run test` (17/17 tasks, 100% passing).
+
+---
+
 # Plan: Complete and align the Team Calendar design system
 
 ## Confirmed brief

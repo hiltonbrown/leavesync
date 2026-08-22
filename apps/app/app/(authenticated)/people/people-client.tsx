@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@repo/design-system/components/ui/table";
+import { useNotificationEvents } from "@repo/notifications/components/provider";
 import {
   AlertTriangleIcon,
   LeafIcon,
@@ -27,7 +28,9 @@ import {
   SearchIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { dispatchManualSyncAction } from "@/app/(authenticated)/sync/_actions";
 import {
   statusToneClasses,
   toneForStatusKey,
@@ -45,6 +48,7 @@ interface FilterOption {
 interface PeopleClientProps {
   canIncludeArchived: boolean;
   filters: PeopleFilterInput;
+  hasActiveXeroConnection: boolean;
   locations: FilterOption[];
   nextCursor: string | null;
   organisationId: string;
@@ -52,6 +56,7 @@ interface PeopleClientProps {
   people: PersonListItem[];
   teams: FilterOption[];
   totalCount: number;
+  xeroTenantId: string | null;
 }
 
 const statusLabels: Record<string, string> = {
@@ -72,24 +77,46 @@ const statusLabels: Record<string, string> = {
 
 function renderEmptyState({
   canIncludeArchived,
+  hasActiveXeroConnection,
+  onSync,
   orgQueryValue,
+  syncPending,
   totalCount,
+  xeroTenantId,
 }: {
   canIncludeArchived: boolean;
+  hasActiveXeroConnection: boolean;
+  onSync: () => void;
   orgQueryValue: string | null;
+  syncPending: boolean;
   totalCount: number;
+  xeroTenantId: string | null;
 }) {
   if (totalCount === 0) {
+    const canSync =
+      canIncludeArchived && hasActiveXeroConnection && Boolean(xeroTenantId);
     return (
       <EmptyState
         actionSlot={
-          canIncludeArchived ? (
-            <Button asChild variant="outline">
-              <Link href={withOrg("/people/new", orgQueryValue)}>
-                Add person manually
-              </Link>
-            </Button>
-          ) : undefined
+          <div className="flex flex-wrap gap-2">
+            {canSync ? (
+              <Button
+                disabled={syncPending}
+                onClick={onSync}
+                type="button"
+                variant="default"
+              >
+                Sync from Xero
+              </Button>
+            ) : null}
+            {canIncludeArchived ? (
+              <Button asChild variant="outline">
+                <Link href={withOrg("/people/new", orgQueryValue)}>
+                  Add person manually
+                </Link>
+              </Button>
+            ) : null}
+          </div>
         }
         description="No people have been added yet. Connect Xero to sync your employees, or add someone manually."
         title="No people yet"
@@ -107,15 +134,25 @@ function renderEmptyState({
 export function PeopleClient({
   canIncludeArchived,
   filters,
+  hasActiveXeroConnection,
   locations,
   nextCursor,
+  organisationId,
   orgQueryValue,
   people,
   teams,
   totalCount,
+  xeroTenantId,
 }: PeopleClientProps) {
+  const router = useRouter();
+  const { subscribe } = useNotificationEvents();
   const [, setFilterParams] = useFilterParams(PeopleFilterSchema);
   const [search, setSearch] = useState(filters.search ?? "");
+  const [isSyncPending, startSyncTransition] = useTransition();
+  const [syncMessage, setSyncMessage] = useState<{
+    text: string;
+    tone: "error" | "status";
+  } | null>(null);
   const nextHref = useMemo(
     () =>
       peopleHref(
@@ -134,8 +171,69 @@ export function PeopleClient({
     return () => window.clearTimeout(handle);
   }, [filters.search, search, setFilterParams]);
 
+  useEffect(
+    () =>
+      subscribe((event) => {
+        if (
+          event.type === "sync.run_status_changed" &&
+          event.payload.organisationId === organisationId
+        ) {
+          router.refresh();
+        }
+      }),
+    [organisationId, router, subscribe]
+  );
+
+  const handleSyncFromXero = () => {
+    if (!xeroTenantId) {
+      return;
+    }
+    startSyncTransition(async () => {
+      try {
+        const result = await dispatchManualSyncAction({
+          organisationId,
+          runType: "people",
+          xeroTenantId,
+        });
+        if (!result.ok) {
+          setSyncMessage({ text: result.error.message, tone: "error" });
+          return;
+        }
+        if (!result.value.queued) {
+          setSyncMessage({
+            text: "This sync is not available yet.",
+            tone: "error",
+          });
+          return;
+        }
+        setSyncMessage({
+          text: "Sync completed successfully.",
+          tone: "status",
+        });
+        router.refresh();
+      } catch (error) {
+        setSyncMessage({
+          text:
+            error instanceof Error
+              ? error.message
+              : "Failed to sync from Xero.",
+          tone: "error",
+        });
+      }
+    });
+  };
+
   return (
     <section className="flex flex-col gap-6">
+      {syncMessage ? (
+        <div
+          aria-live={syncMessage.tone === "error" ? "assertive" : "polite"}
+          className="rounded-2xl bg-muted px-4 py-3 text-sm"
+          role={syncMessage.tone === "error" ? "alert" : "status"}
+        >
+          {syncMessage.text}
+        </div>
+      ) : null}
       <div className="rounded-2xl bg-muted p-6">
         <p className="font-medium text-muted-foreground text-xs uppercase tracking-widest">
           Directory
@@ -149,10 +247,21 @@ export function PeopleClient({
               {totalCount} {totalCount === 1 ? "member" : "members"}
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <p className="text-muted-foreground text-sm">
               Profiles, balances and availability status for this organisation.
             </p>
+            {canIncludeArchived && hasActiveXeroConnection && xeroTenantId ? (
+              <Button
+                disabled={isSyncPending}
+                onClick={handleSyncFromXero}
+                size="sm"
+                type="button"
+                variant="default"
+              >
+                Sync from Xero
+              </Button>
+            ) : null}
             {canIncludeArchived ? (
               <Button asChild size="sm" variant="outline">
                 <Link href={withOrg("/people/new", orgQueryValue)}>
@@ -286,7 +395,15 @@ export function PeopleClient({
       </form>
 
       {people.length === 0 ? (
-        renderEmptyState({ canIncludeArchived, orgQueryValue, totalCount })
+        renderEmptyState({
+          canIncludeArchived,
+          hasActiveXeroConnection,
+          onSync: handleSyncFromXero,
+          orgQueryValue,
+          syncPending: isSyncPending,
+          totalCount,
+          xeroTenantId,
+        })
       ) : (
         <div className="overflow-hidden rounded-2xl bg-muted">
           <Table>

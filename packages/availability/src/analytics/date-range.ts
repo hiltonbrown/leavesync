@@ -1,8 +1,5 @@
 import type { Result } from "@repo/core";
-import {
-  DATE_RANGE_PRESET_OPTIONS,
-  type DateRangePreset,
-} from "./date-range-options";
+import type { DateRangePreset } from "./date-range-options";
 
 export type { DateRangePreset } from "./date-range-options";
 export { DATE_RANGE_PRESET_OPTIONS } from "./date-range-options";

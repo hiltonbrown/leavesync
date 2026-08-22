@@ -3,7 +3,7 @@
 import { toast } from "@repo/design-system/components/ui/sonner";
 import { useNotificationEvents } from "@repo/notifications/components/provider";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface DashboardLiveUpdatesProps {
   organisationId: string;
@@ -15,9 +15,8 @@ export function DashboardLiveUpdates({
   const router = useRouter();
   const { subscribe } = useNotificationEvents();
   const shownToast = useRef<string | null>(null);
-  const liveText = useRef<HTMLDivElement | null>(null);
+  const [liveText, setLiveText] = useState("");
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: two distinct SSE branches sharing toast logic
   useEffect(
     () =>
       subscribe((event) => {
@@ -36,10 +35,7 @@ export function DashboardLiveUpdates({
               onClick: () => router.refresh(),
             },
           });
-          if (liveText.current) {
-            liveText.current.textContent =
-              "New activity on the dashboard. Refresh available.";
-          }
+          setLiveText("New activity on the dashboard. Refresh available.");
         }
 
         if (
@@ -57,16 +53,15 @@ export function DashboardLiveUpdates({
               onClick: () => router.refresh(),
             },
           });
-          if (liveText.current) {
-            liveText.current.textContent =
-              "Sync activity updated. Refresh available.";
-          }
+          setLiveText("Sync activity updated. Refresh available.");
         }
       }),
     [organisationId, router, subscribe]
   );
 
   return (
-    <div aria-live="polite" className="sr-only" ref={liveText} role="status" />
+    <div aria-live="polite" className="sr-only" role="status">
+      {liveText}
+    </div>
   );
 }

@@ -181,6 +181,12 @@ describe("sync-xero-people handler", () => {
       where: { clerk_org_id: tenantA.clerkOrgId },
     });
     expect(people2.length).toBe(2); // no duplicates
+
+    const tenantRow = await database.xeroTenant.findFirst({
+      where: { id: tenantA.xeroTenantId },
+    });
+    expect(tenantRow?.last_people_sync_at).toBeDefined();
+    expect(tenantRow?.last_people_sync_at).not.toBeNull();
   });
 
   it("enforces dual-tenant isolation during upsert", async () => {

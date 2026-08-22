@@ -8,11 +8,9 @@ interface SetupRedirectProps {
 export default async function SetupPage({ searchParams }: SetupRedirectProps) {
   const ps = await searchParams;
   const org = (ps.org as string | undefined) ?? undefined;
-  const rest: Record<string, string | string[] | undefined> = { ...ps };
-  delete rest.org;
   const query = new URLSearchParams();
-  for (const [k, v] of Object.entries(rest)) {
-    if (v === undefined) {
+  for (const [k, v] of Object.entries(ps)) {
+    if (k === "org" || v === undefined) {
       continue;
     }
     const vs = Array.isArray(v) ? v : [v];

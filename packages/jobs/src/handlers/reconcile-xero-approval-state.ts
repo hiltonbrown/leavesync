@@ -318,6 +318,16 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
       }
     }
 
+    await database.xeroTenant.updateMany({
+      data: {
+        approval_state_stale_since: null,
+        last_approval_state_reconciled_at: new Date(),
+        last_sync_error_code: null,
+        last_sync_error_message: null,
+      },
+      where: { ...scoped(context), id: context.xeroTenantId },
+    });
+
     const finalStatus: "partial_success" | "succeeded" =
       partial || counts.failed > 0 ? "partial_success" : "succeeded";
     await completeRun(context, run.id, {

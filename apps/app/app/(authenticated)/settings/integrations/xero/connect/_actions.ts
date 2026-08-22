@@ -4,6 +4,11 @@ import { auth, currentUser } from "@repo/auth/server";
 import { dispatchManualSync } from "@repo/availability";
 import type { Result } from "@repo/core";
 import { database } from "@repo/database";
+import {
+  syncXeroLeaveBalances,
+  syncXeroLeaveRecords,
+  syncXeroPeople,
+} from "@repo/jobs";
 import { completeXeroTenantSelection } from "@repo/xero";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -89,9 +94,25 @@ export async function completeTenantSelectionAction(input: {
     },
   });
 
-  // Kick off a complete initial sync (people, leave-records, leave-balances).
+  // Perform immediate initial sync (people, leave-records, leave-balances).
   // Best effort: the connection is already persisted and scheduled syncs will catch up if
-  // any enqueue does not land, so a failure here must not fail the connect.
+  // any step fails, so a sync error must not fail the connection itself.
+  const syncContext = {
+    clerkOrgId: orgId,
+    organisationId: result.value.organisationId,
+    triggeredByUserId: user.id,
+    triggerType: "manual" as const,
+    xeroTenantId: result.value.xeroTenantId,
+  };
+
+  try {
+    await syncXeroPeople(syncContext);
+    await syncXeroLeaveRecords(syncContext);
+    await syncXeroLeaveBalances(syncContext);
+  } catch {
+    // Best-effort initial execution; scheduled runs or manual syncs will retry.
+  }
+
   const initialRunTypes = [
     "people",
     "leave_records",
@@ -109,9 +130,12 @@ export async function completeTenantSelectionAction(input: {
   }
 
   revalidatePath("/");
+  revalidatePath("/people");
+  revalidatePath("/leave-approvals");
   revalidatePath("/settings/getting-started");
   revalidatePath("/settings/integrations");
   revalidatePath("/settings/integrations/xero");
+  revalidatePath("/sync");
 
   return {
     ok: true,

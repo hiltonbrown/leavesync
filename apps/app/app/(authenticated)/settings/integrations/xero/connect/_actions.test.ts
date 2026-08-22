@@ -7,6 +7,9 @@ const mocks = vi.hoisted(() => ({
   currentUser: vi.fn(),
   dispatchManualSync: vi.fn(),
   revalidatePath: vi.fn(),
+  syncXeroLeaveBalances: vi.fn(),
+  syncXeroLeaveRecords: vi.fn(),
+  syncXeroPeople: vi.fn(),
   xeroConnectionFindFirst: vi.fn(),
 }));
 
@@ -16,6 +19,11 @@ vi.mock("@repo/auth/server", () => ({
 }));
 vi.mock("@repo/availability", () => ({
   dispatchManualSync: mocks.dispatchManualSync,
+}));
+vi.mock("@repo/jobs", () => ({
+  syncXeroLeaveBalances: mocks.syncXeroLeaveBalances,
+  syncXeroLeaveRecords: mocks.syncXeroLeaveRecords,
+  syncXeroPeople: mocks.syncXeroPeople,
 }));
 vi.mock("@repo/xero", () => ({
   completeXeroTenantSelection: mocks.completeXeroTenantSelection,
@@ -67,6 +75,29 @@ describe("completeTenantSelectionAction", () => {
     const result = await completeTenantSelectionAction(validInput);
 
     expect(result.ok).toBe(true);
+    expect(mocks.syncXeroPeople).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clerkOrgId: "org_1",
+        organisationId: "33333333-3333-4333-8333-333333333333",
+        triggeredByUserId: "user_1",
+        triggerType: "manual",
+        xeroTenantId: "44444444-4444-4444-8444-444444444444",
+      })
+    );
+    expect(mocks.syncXeroLeaveRecords).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clerkOrgId: "org_1",
+        organisationId: "33333333-3333-4333-8333-333333333333",
+        xeroTenantId: "44444444-4444-4444-8444-444444444444",
+      })
+    );
+    expect(mocks.syncXeroLeaveBalances).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clerkOrgId: "org_1",
+        organisationId: "33333333-3333-4333-8333-333333333333",
+        xeroTenantId: "44444444-4444-4444-8444-444444444444",
+      })
+    );
     expect(mocks.dispatchManualSync).toHaveBeenCalledTimes(3);
     expect(mocks.completeXeroTenantSelection).toHaveBeenCalledWith(
       expect.objectContaining({ userId: "user_1" })

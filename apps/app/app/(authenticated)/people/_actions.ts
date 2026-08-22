@@ -15,6 +15,7 @@ import {
 } from "@repo/availability";
 import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
 import { database, scopedQuery } from "@repo/database";
+import { syncXeroLeaveBalances } from "@repo/jobs";
 import { revalidatePath } from "next/cache";
 import { getActiveOrgContext } from "@/lib/server/get-active-org-context";
 import {
@@ -192,7 +193,33 @@ export async function refreshBalancesAction(
     return result;
   }
 
+  if (result.value.queued) {
+    const xeroTenant = await database.xeroTenant.findFirst({
+      select: { id: true },
+      where: {
+        clerk_org_id: context.value.clerkOrgId,
+        organisation_id: context.value.organisationId,
+      },
+    });
+    if (xeroTenant) {
+      try {
+        await syncXeroLeaveBalances({
+          clerkOrgId: context.value.clerkOrgId,
+          organisationId: context.value.organisationId,
+          personId: parsed.data.personId,
+          triggeredByUserId: context.value.actingUserId,
+          triggerType: "manual",
+          xeroTenantId: xeroTenant.id,
+        });
+      } catch {
+        // Sync run error will be recorded in sync_runs
+      }
+    }
+  }
+
   revalidatePath(`/people/${parsed.data.personId}`);
+  revalidatePath("/people");
+  revalidatePath("/leave-balances");
   return result;
 }
 
