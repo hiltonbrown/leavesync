@@ -1,5 +1,7 @@
 # 069: Xero People Synchronisation & Reconciliation Architecture
 
+> Reconciled 2026-08-23 at `18a8bae` — moved from `plans/069-xero-people-sync-architecture-and-reconciliation.md` to `docs/architecture/` to resolve duplicate numbering; updated to reflect committed code: `person_type` mapping (contractor vs employee) and `syncResult` error surfacing in `dispatchManualSyncAction`.
+
 ## Overview
 
 This document details how people records are synchronised between **Xero Payroll** and **Team Calendar** when an administrator requests a sync (or when automated scheduled sync runs trigger). It describes:
@@ -41,12 +43,13 @@ This document details how people records are synchronised between **Xero Payroll
        ├─ Key: (organisation_id, source_system='XERO', source_person_key=employeeId)
        ├─ Map email (fallback: ${firstName}.${lastName}@noemail.teamcalendar.online)
        ├─ Map employment_type (employee, contractor, director, offshore)
+       ├─ Map person_type (contractor → contractor, else employee; directors/offshore → employee)
        └─ Set is_active = (Status == 'ACTIVE')
              │
              ▼
 [Finalise Run & Timestamp]
   ├─ Update xero_tenants (last_people_sync_at = now())
-  ├─ Mark sync_runs (succeeded or partial_success)
+  ├─ Mark sync_runs (succeeded / partial_success / failed / cancelled; error surfacing via syncResult in dispatchManualSyncAction)
   └─ Emit SSE Notification (sync.run_status_changed)
 ```
 
@@ -72,7 +75,7 @@ This document details how people records are synchronised between **Xero Payroll
 | **Active Xero AU Employees** | ✅ Yes | `is_active: true` | Upserted/updated with full identity and job details. |
 | **Terminated / Inactive Xero AU Employees** | ✅ Yes | `is_active: false` | Preserved for historical reporting and audit integrity; marked inactive. |
 | **Employees without an Email in Xero** | ✅ Yes | `is_active: (status == 'ACTIVE')` | Assigned deterministic fallback email: `${firstName}.${lastName}@noemail.teamcalendar.online`. |
-| **Contractors / Directors / Offshore** | ✅ Yes | Mapped `employment_type` | Supported values: `employee`, `contractor`, `director`, `offshore` (default: `employee`). |
+| **Contractors / Directors / Offshore** | ✅ Yes | Mapped `employment_type` + `person_type` | `employment_type`: `employee`, `contractor`, `director`, `offshore` (default: `employee`); `person_type`: `contractor` if employment_type is contractor else `employee` (directors/offshore → `employee`). |
 | **Employees with Missing / Malformed UUID** | ❌ No | Logged to `failed_records` | Fails Zod UUID check (`validation_error`); does not block other employees. |
 | **Employees with Missing First or Last Name** | ❌ No | Logged to `failed_records` | Fails non-empty string check (`validation_error`). |
 | **NZ & UK Payroll Employees** | ⏳ Pending | N/A | Region employee read adapters are currently stubbed in the adapter layer. |
