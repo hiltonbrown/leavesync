@@ -39,12 +39,12 @@ Plans are ordered by leverage, with dependencies respected. Each row is merged t
 |---|---|---|---|---|---|---|
 | 1 | [051](051-isolate-the-jobs-integration-test-fixtures.md) Isolate the jobs integration fixtures | P1 | S | LOW | — | TODO |
 | 2 | [052](052-correct-the-timezone-contract-for-working-day-units.md) Correct the timezone contract for working-day units | P1 | M | MED | — | TODO |
-| 3 | [053](053-guard-the-inbound-leave-upsert-against-stale-writes.md) Guard the inbound leave upsert | P1 | S | MED | — | TODO |
+| 3 | [053](053-guard-the-inbound-leave-upsert-against-stale-writes.md) Guard the inbound leave upsert | P1 | M | MED | — | TODO (reconciled 2026-08-23 at `206af7b`: remote freshness plus database compare-and-swap) |
 | 4 | [054](054-keep-synced-leave-in-the-feed-for-its-whole-last-day.md) Keep synced leave in the feed for its last day | P1 | S | MED | — | TODO |
 | 5 | [055](055-make-launch-mode-safe-in-the-browser.md) Make launch mode safe in the browser | P1 | S | LOW | — | TODO |
 | 6 | [057](057-make-failures-visible-and-scrub-what-is-logged.md) Make failures visible, scrub what is logged | P1 | S | LOW | — | TODO |
 | 7 | [056](056-give-the-approval-reconciler-a-cursor.md) Give the approval reconciler a cursor | P2 | M | LOW | needs `DATABASE_URL` | TODO |
-| 8 | [058](058-bound-the-unbounded-sync-loops.md) Bound the unbounded sync loops | P2 | M | MED | 053 | TODO |
+| 8 | [058](058-bound-the-unbounded-sync-loops.md) Bound the unbounded sync loops | P2 | L | MED | 053 | TODO (reconciled 2026-08-23 at `206af7b`: one cursor page per run; bulk stale archive) |
 | 9 | [059](059-make-the-notification-stream-reliable-and-affordable.md) Make the notification stream reliable | P2 | M | MED | — | TODO |
 | 10 | [060](060-project-explicit-columns-in-the-analytics-services.md) Project explicit columns in analytics | P2 | S | LOW | — | TODO |
 | 11 | [061](061-halve-the-work-on-the-ics-feed-read-path.md) Halve the work on the ICS read path | P2 | S | LOW | 054 | TODO |
@@ -57,7 +57,7 @@ Plans are ordered by leverage, with dependencies respected. Each row is merged t
 | 18 | [068](068-merge-the-twin-analytics-services.md) Merge the twin analytics services | P3 | L | MED | 060, 065 | TODO |
 | 19 | [069](069-fix-xero-people-sync-and-directory-ui.md) Fix Xero people sync and directory UI gaps | P1 | M | LOW | — | DONE (2026-08-23, commit 5993283, verified: check/typecheck/test pass) |
 | 20 | [070](070-xero-token-and-refresh-token-management-architecture.md) Xero token & refresh token management architecture | P1 | M | LOW | — | DONE (2026-08-23, branch `advisor/070-xero-token-refresh-management`, commit `0514f71`, review approved; not merged) |
-| 21 | [071](071-nz-and-uk-xero-payroll-read-and-sync-expansion.md) NZ & UK Xero payroll read and sync expansion | P1 | L | MED | 069 | TODO |
+| 21 | [071](071-nz-and-uk-xero-payroll-read-and-sync-expansion.md) NZ & UK Xero payroll read and sync expansion | P1 | XL | HIGH | 058, 069 | TODO (reconciled 2026-08-23: monetary balances included as `currency` plus ISO 4217 code) |
 | 22 | [072](072-automated-clerk-user-matching-and-bulk-invitations.md) Import every missing Xero employee before reconciling Clerk access | P1 | M | MED | 069, 071 | TODO |
 | 23 | [073](073-orphaned-xero-employee-lifecycle-reconciliation.md) Soft-archive Xero employees missing from a complete payroll snapshot | P2 | M | MED | 072 | TODO |
 | 24 | [074](074-xero-tracking-category-team-and-manager-hierarchy-sync.md) Xero tracking category team & manager hierarchy sync | P2 | M | LOW | 073 | TODO |
@@ -89,6 +89,7 @@ first" section has to be agreed before any code is written.
 054 -> 061                 (same projection file)
 060 + 061 -> 065           (065 narrows what the predicate reads; both must land first)
 060 + 065 -> 068           (068 adopts the shared projection and shared predicate)
+058 + 069 -> 071           (bounded sync foundations and AU people fixes precede regional employee-scoped reads)
 069 + 071 -> 072           (071 establishes all regional readers; 072 then locks their shared import/reactivation contract)
 072 -> 073                 (same handler and tests; 072 owns returned-ID import/reactivation, then 073 adds guarded absence archival)
 073 -> 074                 (same mapper, handler and tests; 074 adds hierarchy only after the employee lifecycle is stable)
