@@ -21,8 +21,24 @@
 - **Category**: bug
 - **Planned at**: commit `206af7b`, 2026-08-23
 - **Covers finding**: C-02
-- **Review status**: TODO, reconciled. The finding still exists, but the old
-  timestamp-only fix was insufficient for the race described by the plan.
+- **Review status**: BLOCKED during execution on 2026-08-23. The implementation
+  and targeted tests are present in the isolated worktree described below, but
+  the mandatory repository-wide check cannot pass on the current base.
+
+## Execution blocker
+
+- **Worktree**: `/tmp/teamcalendar-plan-053-8T660L/worktree`
+- **Branch**: `advisor/053-guard-inbound-upsert`
+- **Commit**: none, execution stopped before the commit step
+- **Verified**: 20 targeted unit tests pass; all 8 database-backed integration
+  tests execute and pass; the three in-scope files pass Ultracite; typecheck
+  passes; `git diff --check` passes.
+- **Blocked by**: `bun run check` reports 68 pre-existing diagnostics in
+  out-of-scope `apps/app/app/(authenticated)/debug/**` files. The same command
+  failed twice for the executor and once for the reviewer. No diagnostic was
+  reported in an in-scope file.
+- **Resume condition**: make `bun run check` pass on the branch base, then resume
+  this worktree at Step 5 and run every remaining mandatory gate before commit.
 
 ## Why this matters
 
