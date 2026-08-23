@@ -39,7 +39,7 @@ Plans are ordered by leverage, with dependencies respected. Each row is merged t
 |---|---|---|---|---|---|---|
 | 1 | [051](051-isolate-the-jobs-integration-test-fixtures.md) Isolate the jobs integration fixtures | P1 | S | LOW | — | TODO |
 | 2 | [052](052-correct-the-timezone-contract-for-working-day-units.md) Correct the timezone contract for working-day units | P1 | M | MED | — | TODO |
-| 3 | [053](053-guard-the-inbound-leave-upsert-against-stale-writes.md) Guard the inbound leave upsert | P1 | M | MED | — | TODO (reconciled 2026-08-23 at `206af7b`: remote freshness plus database compare-and-swap) |
+| 3 | [053](053-guard-the-inbound-leave-upsert-against-stale-writes.md) Guard the inbound leave upsert | P1 | M | MED | — | BLOCKED (2026-08-23: implementation and targeted database proof pass in `advisor/053-guard-inbound-upsert`; `bun run check` has 68 pre-existing out-of-scope debug-route diagnostics) |
 | 4 | [054](054-keep-synced-leave-in-the-feed-for-its-whole-last-day.md) Keep synced leave in the feed for its last day | P1 | S | MED | — | TODO |
 | 5 | [055](055-make-launch-mode-safe-in-the-browser.md) Make launch mode safe in the browser | P1 | S | LOW | — | TODO |
 | 6 | [057](057-make-failures-visible-and-scrub-what-is-logged.md) Make failures visible, scrub what is logged | P1 | S | LOW | — | TODO |
