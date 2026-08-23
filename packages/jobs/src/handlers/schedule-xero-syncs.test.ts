@@ -6,11 +6,19 @@ vi.mock("server-only", () => ({}));
 
 const mocks = vi.hoisted(() => ({
   dispatchSyncEvent: vi.fn(),
+  ensureFreshXeroConnection: vi.fn(),
+  findConnectionsNeedingTokenRotation: vi.fn(),
   listSchedulableXeroTenants: vi.fn(),
 }));
 
 vi.mock("@repo/database", () => ({
+  findConnectionsNeedingTokenRotation:
+    mocks.findConnectionsNeedingTokenRotation,
   listSchedulableXeroTenants: mocks.listSchedulableXeroTenants,
+}));
+
+vi.mock("@repo/xero", () => ({
+  ensureFreshXeroConnection: mocks.ensureFreshXeroConnection,
 }));
 
 vi.mock("../events", async (importOriginal) => {
@@ -23,9 +31,8 @@ vi.mock("../events", async (importOriginal) => {
 
 import type { SchedulableXeroTenant } from "@repo/database";
 
-const { dueRunTypes, scheduleXeroSyncsPage } = await import(
-  "./schedule-xero-syncs"
-);
+const { dueRunTypes, rotateDormantXeroConnections, scheduleXeroSyncsPage } =
+  await import("./schedule-xero-syncs");
 
 describe("scheduleXeroSyncs Coordinator", () => {
   const baseTenant: SchedulableXeroTenant = {
@@ -47,6 +54,80 @@ describe("scheduleXeroSyncs Coordinator", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  describe("rotateDormantXeroConnections", () => {
+    it("refreshes active connections whose refresh tokens are older than 45 days", async () => {
+      const now = new Date("2026-08-23T00:00:00.000Z");
+      mocks.findConnectionsNeedingTokenRotation.mockResolvedValue({
+        ok: true,
+        value: [
+          {
+            clerkOrgId: "org_clerk_1",
+            connectionId: "connection-id-1",
+            lastRefreshedAt: new Date("2026-07-01T00:00:00.000Z"),
+            organisationId: baseTenant.organisationId,
+          },
+        ],
+      });
+      mocks.ensureFreshXeroConnection.mockResolvedValue({
+        ok: true,
+        value: {
+          expiresAt: new Date("2026-08-23T00:30:00.000Z"),
+          refreshed: true,
+        },
+      });
+
+      const result = await rotateDormantXeroConnections(now);
+
+      expect(result).toEqual({
+        ok: true,
+        value: { failed: 0, rotated: 1, scanned: 1 },
+      });
+      expect(mocks.ensureFreshXeroConnection).toHaveBeenCalledWith({
+        clerkOrgId: "org_clerk_1",
+        connectionId: "connection-id-1",
+        now,
+        organisationId: baseTenant.organisationId,
+      });
+    });
+
+    it("isolates a failed rotation so remaining connections are still refreshed", async () => {
+      mocks.findConnectionsNeedingTokenRotation.mockResolvedValue({
+        ok: true,
+        value: [
+          {
+            clerkOrgId: "org_clerk_1",
+            connectionId: "connection-id-1",
+            lastRefreshedAt: new Date("2026-07-01T00:00:00.000Z"),
+            organisationId: baseTenant.organisationId,
+          },
+          {
+            clerkOrgId: "org_clerk_2",
+            connectionId: "connection-id-2",
+            lastRefreshedAt: new Date("2026-07-02T00:00:00.000Z"),
+            organisationId: "00000000-0000-4000-8000-000000000002",
+          },
+        ],
+      });
+      mocks.ensureFreshXeroConnection
+        .mockResolvedValueOnce({
+          error: { code: "network_error", message: "Xero unavailable." },
+          ok: false,
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          value: { expiresAt: new Date(), refreshed: true },
+        });
+
+      const result = await rotateDormantXeroConnections();
+
+      expect(result).toEqual({
+        ok: true,
+        value: { failed: 1, rotated: 1, scanned: 2 },
+      });
+      expect(mocks.ensureFreshXeroConnection).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe("dueRunTypes decision function", () => {

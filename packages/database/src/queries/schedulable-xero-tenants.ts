@@ -29,6 +29,80 @@ export interface ListSchedulableXeroTenantsResult {
   tenants: SchedulableXeroTenant[];
 }
 
+export interface XeroConnectionNeedingTokenRotation {
+  clerkOrgId: string;
+  connectionId: string;
+  lastRefreshedAt: Date;
+  organisationId: string;
+}
+
+export interface FindConnectionsNeedingTokenRotationOptions {
+  now?: Date;
+}
+
+const REFRESH_TOKEN_ROTATION_AGE_MS = 45 * 24 * 60 * 60 * 1000;
+
+/**
+ * System-level maintenance query for active connections whose single-use
+ * refresh token has not been rotated in 45 days.
+ *
+ * This intentionally crosses Clerk Organisation boundaries and returns only
+ * the routing identifiers needed to run a tenant-scoped refresh.
+ */
+export async function findConnectionsNeedingTokenRotation(
+  options: FindConnectionsNeedingTokenRotationOptions = {}
+): Promise<Result<XeroConnectionNeedingTokenRotation[]>> {
+  try {
+    const now = options.now ?? new Date();
+    const refreshBefore = new Date(
+      now.getTime() - REFRESH_TOKEN_ROTATION_AGE_MS
+    );
+    const connections = await database.xeroConnection.findMany({
+      orderBy: [{ last_refreshed_at: "asc" }, { id: "asc" }],
+      select: {
+        clerk_org_id: true,
+        id: true,
+        last_refreshed_at: true,
+        organisation_id: true,
+      },
+      where: {
+        disconnected_at: null,
+        last_refreshed_at: { lt: refreshBefore },
+        organisation: {
+          archived_at: null,
+          is_active: true,
+        },
+        revoked_at: null,
+        status: "active",
+      },
+    });
+
+    return {
+      ok: true,
+      value: connections.flatMap((connection) =>
+        connection.last_refreshed_at
+          ? [
+              {
+                clerkOrgId: connection.clerk_org_id,
+                connectionId: connection.id,
+                lastRefreshedAt: connection.last_refreshed_at,
+                organisationId: connection.organisation_id,
+              },
+            ]
+          : []
+      ),
+    };
+  } catch (error) {
+    return {
+      error: appError(
+        "internal",
+        `Failed to find Xero connections needing token rotation: ${error instanceof Error ? error.message : "Unknown error"}`
+      ),
+      ok: false,
+    };
+  }
+}
+
 /**
  * System-level cross-tenant enumeration query to discover active AU Xero tenants due for scheduled sync.
  *
