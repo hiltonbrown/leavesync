@@ -25,7 +25,7 @@
 
 ## Why this matters
 
-When an organisation connects Xero and syncs 50+ employees, those employees exist in Team Calendar as calendar entities with no login credentials. Currently, admins must manually create matches or send individual invitations one by one.
+When an organisation connects Xero and syncs employees, those employees exist in Team Calendar as calendar entities with no login credentials. Currently, admins must manually create matches or send individual invitations one by one.
 
 This plan adds automated matching by verified business email address and a bulk-invitation wizard that allows admins to invite all unlinked employees into the Clerk Organisation with one click.
 

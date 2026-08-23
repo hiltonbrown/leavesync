@@ -66,6 +66,7 @@ export function SyncClient({
     tone: "error" | "status";
   } | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [activeRunType, setActiveRunType] = useState<SyncRunType | null>(null);
 
   useEffect(
     () =>
@@ -91,6 +92,8 @@ export function SyncClient({
   }, [filters, nextCursor, orgQueryValue]);
 
   const dispatch = (xeroTenantId: string, runType: SyncRunType) => {
+    setActiveRunType(runType);
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: sync dispatch handles queued/failed/succeeded branching with counts
     startTransition(async () => {
       try {
         const result = await dispatchManualSyncAction({
@@ -109,7 +112,39 @@ export function SyncClient({
           });
           return;
         }
-        setMessage({ text: "Sync queued.", tone: "status" });
+        const v = result.value as {
+          errorSummary?: string | null;
+          failed?: number;
+          fetched?: number;
+          runId?: string;
+          status?: string;
+          upserted?: number;
+        };
+        // Surface NZ/UK guard and other succeeded-with-notice cases
+        if (v.errorSummary) {
+          setMessage({ text: v.errorSummary, tone: "status" });
+        } else if (
+          typeof v.fetched === "number" ||
+          typeof v.upserted === "number"
+        ) {
+          const parts: string[] = [];
+          if (typeof v.fetched === "number") {
+            parts.push(`${v.fetched} fetched`);
+          }
+          if (typeof v.upserted === "number") {
+            parts.push(`${v.upserted} upserted`);
+          }
+          if (typeof v.failed === "number" && v.failed > 0) {
+            parts.push(`${v.failed} failed`);
+          }
+          const detail = parts.length ? ` — ${parts.join(", ")}` : "";
+          setMessage({
+            text: `Sync ${v.status ?? "completed"}${detail}.`,
+            tone: v.failed && v.failed > 0 ? "error" : "status",
+          });
+        } else {
+          setMessage({ text: "Sync queued.", tone: "status" });
+        }
         router.refresh();
       } catch (error) {
         setMessage({
@@ -119,6 +154,8 @@ export function SyncClient({
               : "Failed to dispatch manual sync.",
           tone: "error",
         });
+      } finally {
+        setActiveRunType(null);
       }
     });
   };
@@ -144,6 +181,7 @@ export function SyncClient({
         <section className="grid gap-4 xl:grid-cols-2">
           {summaries.map((summary) => (
             <TenantCard
+              activeRunType={activeRunType}
               disabled={isPending}
               key={summary.xeroTenantId}
               onDispatch={dispatch}
@@ -247,11 +285,13 @@ export function SyncClient({
 }
 
 function TenantCard({
+  activeRunType,
   disabled,
   onDispatch,
   orgQueryValue,
   summary,
 }: {
+  activeRunType: SyncRunType | null;
   disabled: boolean;
   onDispatch: (xeroTenantId: string, runType: SyncRunType) => void;
   orgQueryValue: string | null;
@@ -329,17 +369,21 @@ function TenantCard({
       <div className="flex flex-wrap gap-2">
         {runTypeOptions.map((option) => {
           const running = summary.currentRun?.runType === option.value;
+          const pendingThis = activeRunType === option.value && disabled;
           const connectionInactive = summary.connectionStatus !== "active";
           const buttonDisabled =
             disabled || running || connectionInactive || !option.wired;
-          return running ? (
-            <span
-              className="inline-flex h-9 items-center rounded-xl bg-primary/10 px-3 font-medium text-primary text-sm motion-safe:animate-pulse"
-              key={option.value}
-            >
-              Running
-            </span>
-          ) : (
+          if (running || pendingThis) {
+            return (
+              <span
+                className="inline-flex h-9 items-center rounded-xl bg-primary/10 px-3 font-medium text-primary text-sm motion-safe:animate-pulse"
+                key={option.value}
+              >
+                Running
+              </span>
+            );
+          }
+          return (
             <Button
               disabled={buttonDisabled}
               key={option.value}

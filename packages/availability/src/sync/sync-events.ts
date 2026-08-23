@@ -2,7 +2,27 @@ import type { Result } from "@repo/core";
 import { Inngest } from "inngest";
 import { z } from "zod";
 
-const inngest = new Inngest({ id: "team-calendar" });
+function getInngestClient(): Inngest {
+  const eventKey = process.env.INNGEST_EVENT_KEY;
+  const signingKey = process.env.INNGEST_SIGNING_KEY;
+  const devUrl = process.env.INNGEST_DEV;
+
+  // In local dev without keys, Inngest SDK will try to hit production and fail.
+  // If INNGEST_DEV is a URL (e.g. http://localhost:8288) use it as baseUrl so
+  // `inngest.send` hits the local dev server. If no dev server is configured
+  // and no keys are present, the call will still fail — callers handle
+  // `dispatch_failed` by falling back to inline execution in development.
+  const baseUrl = devUrl?.startsWith("http") ? devUrl : undefined;
+
+  return new Inngest({
+    baseUrl,
+    eventKey: eventKey || undefined,
+    id: "team-calendar",
+    signingKey: signingKey || undefined,
+  });
+}
+
+const inngest = getInngestClient();
 
 export const syncEventNames = {
   approval_state_reconciliation: "reconcile-xero-approval-state",

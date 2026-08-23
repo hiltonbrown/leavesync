@@ -188,6 +188,7 @@ export function PeopleClient({
     if (!xeroTenantId) {
       return;
     }
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: people sync handles queued/failed/succeeded branching
     startSyncTransition(async () => {
       try {
         const result = await dispatchManualSyncAction({
@@ -200,16 +201,49 @@ export function PeopleClient({
           return;
         }
         if (!result.value.queued) {
-          setSyncMessage({
-            text: "This sync is not available yet.",
-            tone: "error",
-          });
+          const { reason } = result.value as { reason?: string };
+          let text = "This sync is not available yet.";
+          if (reason === "connection_not_active") {
+            text = "Reconnect Xero before running this sync.";
+          } else if (reason === "dispatch_not_wired") {
+            text = "This sync job is not registered yet.";
+          } else if (reason === "tenant_sync_paused") {
+            text = "Resume Xero syncing before running this sync.";
+          }
+          setSyncMessage({ text, tone: "error" });
           return;
         }
-        setSyncMessage({
-          text: "Sync completed successfully.",
-          tone: "status",
-        });
+        const v = result.value as {
+          errorSummary?: string | null;
+          failed?: number;
+          fetched?: number;
+          status?: string;
+          upserted?: number;
+        };
+        if (v.errorSummary) {
+          setSyncMessage({ text: v.errorSummary, tone: "status" });
+        } else if (
+          typeof v.fetched === "number" ||
+          typeof v.upserted === "number"
+        ) {
+          const parts: string[] = [];
+          if (typeof v.fetched === "number") {
+            parts.push(`${v.fetched} fetched`);
+          }
+          if (typeof v.upserted === "number") {
+            parts.push(`${v.upserted} upserted`);
+          }
+          if (typeof v.failed === "number" && v.failed > 0) {
+            parts.push(`${v.failed} failed`);
+          }
+          const detail = parts.length ? ` — ${parts.join(", ")}` : "";
+          setSyncMessage({
+            text: `Sync ${v.status ?? "completed"}${detail}.`,
+            tone: v.failed && v.failed > 0 ? "error" : "status",
+          });
+        } else {
+          setSyncMessage({ text: "Sync queued.", tone: "status" });
+        }
         router.refresh();
       } catch (error) {
         setSyncMessage({

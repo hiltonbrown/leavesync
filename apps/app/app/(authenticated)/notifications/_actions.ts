@@ -1,6 +1,6 @@
 "use server";
 
-import { currentUser } from "@repo/auth/server";
+import { auth, currentUser } from "@repo/auth/server";
 import type { Result } from "@repo/core";
 import {
   getUnreadCount,
@@ -16,7 +16,7 @@ import {
 } from "@repo/notifications";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requirePageRole } from "@/lib/auth/require-page-role";
+import { hasPageRole } from "@/lib/auth/require-page-role";
 import { getActiveOrgContext } from "@/lib/server/get-active-org-context";
 
 type ActionError =
@@ -175,9 +175,14 @@ async function actionContext(
     ActionError
   >
 > {
-  await requirePageRole("org:viewer");
-  const user = await currentUser();
-  if (!user) {
+  // Never throw inside a server action. Map unauthenticated / insufficient role to Result.
+  const [authObject, user, context] = await Promise.all([
+    auth(),
+    currentUser(),
+    getActiveOrgContext(organisationId),
+  ]);
+
+  if (!(authObject.isAuthenticated && user)) {
     return {
       error: {
         code: "not_authorised",
@@ -186,7 +191,19 @@ async function actionContext(
       ok: false,
     };
   }
-  const context = await getActiveOrgContext(organisationId);
+
+  // hasPageRole is safe (returns false, never throws). Reuse hierarchy check via has() directly for viewer.
+  const hasRole = await hasPageRole("org:viewer");
+  if (!hasRole) {
+    return {
+      error: {
+        code: "not_authorised",
+        message: "You do not have permission to access notifications.",
+      },
+      ok: false,
+    };
+  }
+
   if (!context.ok) {
     return {
       error: {
