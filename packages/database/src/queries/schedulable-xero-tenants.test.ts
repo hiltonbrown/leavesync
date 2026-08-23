@@ -1,20 +1,88 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  findMany: vi.fn(),
+  connectionFindMany: vi.fn(),
+  tenantFindMany: vi.fn(),
 }));
 
 vi.mock("../client", () => ({
   database: {
+    xeroConnection: {
+      findMany: mocks.connectionFindMany,
+    },
     xeroTenant: {
-      findMany: mocks.findMany,
+      findMany: mocks.tenantFindMany,
     },
   },
 }));
 
-const { listSchedulableXeroTenants } = await import(
-  "./schedulable-xero-tenants"
-);
+const { findConnectionsNeedingTokenRotation, listSchedulableXeroTenants } =
+  await import("./schedulable-xero-tenants");
+
+describe("findConnectionsNeedingTokenRotation", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("finds active connections last refreshed more than 45 days ago", async () => {
+    const now = new Date("2026-08-23T00:00:00.000Z");
+    const lastRefreshedAt = new Date("2026-07-01T00:00:00.000Z");
+    mocks.connectionFindMany.mockResolvedValue([
+      {
+        clerk_org_id: "org_clerk_1",
+        id: "connection-uuid-1",
+        last_refreshed_at: lastRefreshedAt,
+        organisation_id: "organisation-uuid-1",
+      },
+    ]);
+
+    const result = await findConnectionsNeedingTokenRotation({ now });
+
+    expect(result).toEqual({
+      ok: true,
+      value: [
+        {
+          clerkOrgId: "org_clerk_1",
+          connectionId: "connection-uuid-1",
+          lastRefreshedAt,
+          organisationId: "organisation-uuid-1",
+        },
+      ],
+    });
+    expect(mocks.connectionFindMany).toHaveBeenCalledWith({
+      orderBy: [{ last_refreshed_at: "asc" }, { id: "asc" }],
+      select: {
+        clerk_org_id: true,
+        id: true,
+        last_refreshed_at: true,
+        organisation_id: true,
+      },
+      where: {
+        disconnected_at: null,
+        last_refreshed_at: {
+          lt: new Date("2026-07-09T00:00:00.000Z"),
+        },
+        organisation: {
+          archived_at: null,
+          is_active: true,
+        },
+        revoked_at: null,
+        status: "active",
+      },
+    });
+  });
+
+  it("returns an internal error when the maintenance query fails", async () => {
+    mocks.connectionFindMany.mockRejectedValue(new Error("database offline"));
+
+    const result = await findConnectionsNeedingTokenRotation();
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toContain("database offline");
+    }
+  });
+});
 
 describe("listSchedulableXeroTenants", () => {
   beforeEach(() => {
@@ -24,7 +92,7 @@ describe("listSchedulableXeroTenants", () => {
   it("queries active, non-archived, non-paused AU Xero tenants across Clerk orgs with no token columns in select", async () => {
     const fixtureDate = new Date("2026-08-01T00:00:00.000Z");
 
-    mocks.findMany.mockResolvedValue([
+    mocks.tenantFindMany.mockResolvedValue([
       {
         clerk_org_id: "org_clerk_1",
         id: "tenant-uuid-1",
@@ -79,7 +147,7 @@ describe("listSchedulableXeroTenants", () => {
     expect(result.value.tenants[1].clerkOrgId).toBe("org_clerk_2");
 
     // Inspect the call to database.xeroTenant.findMany
-    const [[callArgs]] = mocks.findMany.mock.calls;
+    const [[callArgs]] = mocks.tenantFindMany.mock.calls;
 
     // Verify filter boundaries
     expect(callArgs.where).toEqual({
@@ -108,7 +176,7 @@ describe("listSchedulableXeroTenants", () => {
   });
 
   it("handles cursor pagination properly", async () => {
-    mocks.findMany.mockResolvedValue([
+    mocks.tenantFindMany.mockResolvedValue([
       {
         clerk_org_id: "org_clerk_1",
         id: "tenant-uuid-1",
@@ -160,7 +228,7 @@ describe("listSchedulableXeroTenants", () => {
     expect(result.value.tenants).toHaveLength(1);
     expect(result.value.nextCursor).toBe("tenant-uuid-1");
 
-    expect(mocks.findMany).toHaveBeenCalledWith(
+    expect(mocks.tenantFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         cursor: { id: "tenant-uuid-0" },
         orderBy: { id: "asc" },
