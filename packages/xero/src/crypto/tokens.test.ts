@@ -67,6 +67,17 @@ describe("encryptXeroToken and decryptXeroToken", () => {
     expect(decrypted).toBe(originalText);
   });
 
+  it("uses distinct IVs and auth tags for repeated encryption", () => {
+    process.env.XERO_TOKEN_ENCRYPTION_KEY =
+      "dGhpcyBpcyBhIDMyLWJ5dGUga2V5IGZvciB4ZXJvITE=";
+
+    const first = encryptXeroToken("same-token");
+    const second = encryptXeroToken("same-token");
+
+    expect(first.iv).not.toBe(second.iv);
+    expect(first.authTag).not.toBe(second.authTag);
+  });
+
   it("throws an error when encrypting with a missing key", () => {
     delete process.env.XERO_TOKEN_ENCRYPTION_KEY;
     expect(() => encryptXeroToken("secret")).toThrowError(
@@ -130,6 +141,25 @@ describe("encryptXeroToken and decryptXeroToken", () => {
       decryptXeroToken({
         ...encrypted,
         authTag: tamperedAuthTag.toString("base64"),
+      })
+    ).toThrow();
+  });
+
+  it("throws an error when the IV has been tampered with", () => {
+    process.env.XERO_TOKEN_ENCRYPTION_KEY =
+      "dGhpcyBpcyBhIDMyLWJ5dGUga2V5IGZvciB4ZXJvITE=";
+    const encrypted = encryptXeroToken("my-secret-xero-oauth-token");
+    const tamperedIv = Buffer.from(encrypted.iv, "base64");
+    const firstByte = tamperedIv.at(0);
+    expect(firstByte).toBeDefined();
+    if (firstByte !== undefined) {
+      tamperedIv[0] = firstByte === 0 ? 1 : firstByte - 1;
+    }
+
+    expect(() =>
+      decryptXeroToken({
+        ...encrypted,
+        iv: tamperedIv.toString("base64"),
       })
     ).toThrow();
   });

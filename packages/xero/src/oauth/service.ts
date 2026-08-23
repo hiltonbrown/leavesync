@@ -75,10 +75,12 @@ export interface PendingXeroSessionTenant {
 export type XeroOAuthError =
   | { code: "already_refreshed"; message: string }
   | { code: "connect_disabled"; message: string }
+  | { code: "client_credentials_invalid"; message: string }
   | { code: "connection_inactive"; message: string }
   | { code: "invalid_country"; message: string }
   | { code: "invalid_organisation_selection"; message: string }
   | { code: "invalid_state"; message: string }
+  | { code: "network_error"; message: string }
   | { code: "oauth_not_configured"; message: string }
   | { code: "organisation_not_found"; message: string }
   | { code: "refresh_token_invalid"; message: string }
@@ -518,6 +520,7 @@ async function refreshXeroOAuthConnectionWithClient(
       refresh_token_auth_tag: true,
       refresh_token_encrypted: true,
       refresh_token_iv: true,
+      token_key_version: true,
     },
     where: {
       clerk_org_id: input.clerkOrgId,
@@ -548,15 +551,22 @@ async function refreshXeroOAuthConnectionWithClient(
     }),
   });
   if (!token.ok) {
-    if (token.error.code === "refresh_token_invalid") {
+    if (
+      token.error.code === "refresh_token_invalid" ||
+      token.error.code === "client_credentials_invalid"
+    ) {
       await client.xeroConnection.update({
         data: {
-          last_error_code: "refresh_token_invalid",
+          last_error_code: token.error.code,
           last_error_message: token.error.message,
           stale_since: new Date(),
           status: "stale",
         },
-        where: { id: input.connectionId },
+        where: {
+          clerk_org_id: input.clerkOrgId,
+          id: input.connectionId,
+          organisation_id: input.organisationId,
+        },
       });
     }
     return token;
@@ -728,6 +738,7 @@ export async function ensureFreshXeroConnection(input: {
             refresh_token_iv: true,
             revoked_at: true,
             status: true,
+            token_key_version: true,
           },
           where: {
             clerk_org_id: input.clerkOrgId,
@@ -1284,37 +1295,32 @@ async function exchangeToken(input: {
     body.set("refresh_token", input.refreshToken ?? "");
   }
 
-  const response = await xeroFetch({
-    init: {
-      body,
-      headers: {
-        Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
-        "Content-Type": "application/x-www-form-urlencoded",
+  let response: Response;
+  try {
+    response = await xeroFetch({
+      init: {
+        body,
+        headers: {
+          Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        method: "POST",
       },
-      method: "POST",
-    },
-    orgKey: input.orgKey,
-    url: XERO_TOKEN_URL,
-  });
-  if (!response.ok) {
-    if (input.grantType === "refresh_token") {
-      const errorCode = await readOAuthErrorCode(response);
-      if (errorCode === "invalid_grant") {
-        return {
-          error: {
-            code: "refresh_token_invalid",
-            message:
-              "The Xero refresh token is no longer valid. Reconnect Xero.",
-          },
-          ok: false,
-        };
-      }
-    }
+      orgKey: input.orgKey,
+      url: XERO_TOKEN_URL,
+    });
+  } catch {
     return {
       error: {
-        code: "unknown_error",
-        message: "Xero token exchange failed.",
+        code: "network_error",
+        message: "Xero token exchange could not reach Xero. Try again.",
       },
+      ok: false,
+    };
+  }
+  if (!response.ok) {
+    return {
+      error: await classifyTokenExchangeFailure(response, input.grantType),
       ok: false,
     };
   }
@@ -1340,6 +1346,43 @@ async function exchangeToken(input: {
       expires_in: payload.expires_in,
       refresh_token: payload.refresh_token,
     },
+  };
+}
+
+async function classifyTokenExchangeFailure(
+  response: Response,
+  grantType: "authorization_code" | "refresh_token"
+): Promise<XeroOAuthError> {
+  if (response.status >= 500 && response.status < 600) {
+    return {
+      code: "network_error",
+      message: "Xero token exchange is temporarily unavailable. Try again.",
+    };
+  }
+  if (grantType !== "refresh_token") {
+    return {
+      code: "unknown_error",
+      message: "Xero token exchange failed.",
+    };
+  }
+
+  const errorCode = await readOAuthErrorCode(response);
+  if (errorCode === "invalid_grant" || errorCode === "refresh_token_invalid") {
+    return {
+      code: "refresh_token_invalid",
+      message: "The Xero refresh token is no longer valid. Reconnect Xero.",
+    };
+  }
+  if (errorCode === "unauthorized_client" || errorCode === "invalid_client") {
+    return {
+      code: "client_credentials_invalid",
+      message:
+        "The Xero client credentials are no longer valid. Contact support.",
+    };
+  }
+  return {
+    code: "unknown_error",
+    message: "Xero token exchange failed.",
   };
 }
 
