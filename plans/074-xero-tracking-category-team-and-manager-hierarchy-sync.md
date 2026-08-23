@@ -7,17 +7,18 @@
 > in `plans/README.md` — unless a reviewer dispatched you and told you they
 > maintain the index.
 >
-> **Drift check (run first)**: `git diff --stat 5993283..HEAD -- packages/jobs/src/handlers/sync-xero-people.ts packages/database/prisma/schema.prisma packages/xero/src/au/read.ts`
-> If any in-scope file changed since this plan was written, compare the
-> "Current state" excerpts against the live code before proceeding; on a
-> mismatch, treat it as a STOP condition.
+> **Dependency-aware drift check (run first)**: `git diff --stat 5993283..HEAD -- packages/jobs/src/handlers/sync-xero-people.ts packages/database/prisma/schema.prisma packages/xero/src/au/read.ts packages/xero/src/read/employees.ts packages/jobs/src/handlers/sync-xero-people.integration.test.ts`
+> Plans 071, 072 and 073 must be `DONE` before this plan starts, so their
+> changes to the employee mapper, people-sync handler and integration tests are
+> expected drift. Confirm their import, reactivation and guarded-archival tests
+> remain intact. Treat any other in-scope drift as a STOP condition.
 
 ## Status
 
 - **Priority**: P2
 - **Effort**: M
 - **Risk**: LOW
-- **Depends on**: 069
+- **Depends on**: 073, which transitively depends on 071 and 072
 - **Category**: direction
 - **Planned at**: commit `5993283`, 2026-08-22
 
@@ -58,6 +59,10 @@ In Xero Payroll, organisations group employees by Tracking Categories (e.g. "Dep
 
 **Out of scope**:
 - Overwriting manual team assignments if an admin explicitly detached a person from a Xero tracking category.
+- Changing the lifecycle contract established by Plans 072 and 073. A returned
+  EmployeeID must still reactivate the same person; only a missing EmployeeID
+  from a complete snapshot may be soft-archived.
+- Clerk matching or bulk invitations from Plan 072.
 
 ---
 
@@ -112,4 +117,6 @@ In Xero Payroll, organisations group employees by Tracking Categories (e.g. "Dep
 ## STOP conditions
 
 Stop and report back if:
+- Plan 073 is not `DONE`, or this change would remove or bypass the shared
+  returned-ID import, reactivation or guarded-absence tests.
 - Xero organisation uses multiple tracking categories with identical option names across different dimensions.
