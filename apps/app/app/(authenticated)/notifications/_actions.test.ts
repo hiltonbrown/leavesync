@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  auth: vi.fn(),
   currentUser: vi.fn(),
   getActiveOrgContext: vi.fn(),
   getUnreadCount: vi.fn(),
+  hasPageRole: vi.fn(),
   listRecentUnread: vi.fn(),
   markAllAsRead: vi.fn(),
   markAsRead: vi.fn(),
@@ -13,6 +15,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@repo/auth/server", () => ({
+  auth: mocks.auth,
   currentUser: mocks.currentUser,
 }));
 vi.mock("@repo/notifications", () => ({
@@ -27,6 +30,7 @@ vi.mock("next/cache", () => ({
   revalidatePath: mocks.revalidatePath,
 }));
 vi.mock("@/lib/auth/require-page-role", () => ({
+  hasPageRole: mocks.hasPageRole,
   requirePageRole: mocks.requirePageRole,
 }));
 vi.mock("@/lib/server/get-active-org-context", () => ({
@@ -41,6 +45,10 @@ const organisationId = "00000000-0000-4000-8000-000000000001";
 describe("notification actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.auth.mockResolvedValue({
+      has: async () => true,
+      isAuthenticated: true,
+    });
     mocks.currentUser.mockResolvedValue({ id: "user_1" });
     mocks.getActiveOrgContext.mockResolvedValue({
       ok: true,
@@ -54,6 +62,7 @@ describe("notification actions", () => {
       ok: true,
       value: { markedCount: 2, unreadCount: 0 },
     });
+    mocks.hasPageRole.mockResolvedValue(true);
     mocks.upsertPreference.mockResolvedValue({
       ok: true,
       value: { type: "leave_submitted" },

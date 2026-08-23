@@ -156,7 +156,6 @@ export async function syncXeroPeople(input: unknown): Promise<
         value: { ...counts, runId: run.id, status: "succeeded" },
       };
     }
-
     const employeesResult = await fetchEmployeesForRegion(
       xeroTenant.payroll_region,
       { xeroTenant }
@@ -455,10 +454,7 @@ async function prepareTenant(
       result: { ok: true, value: emptyResult(runId, "cancelled") },
     };
   }
-  const notActive = async (): Promise<{
-    ready: false;
-    result: { ok: true; value: ReturnType<typeof emptyResult> };
-  }> => {
+  if (!loadedTenant) {
     await completeRun(context, runId, {
       counts: emptyCounts(),
       errorSummary: "Xero connection not active",
@@ -468,9 +464,6 @@ async function prepareTenant(
       ready: false,
       result: { ok: true, value: emptyResult(runId, "failed") },
     };
-  };
-  if (!loadedTenant) {
-    return await notActive();
   }
   const freshness = await ensureFreshXeroConnection({
     clerkOrgId: context.clerkOrgId,
@@ -478,14 +471,30 @@ async function prepareTenant(
     organisationId: context.organisationId,
   });
   if (!freshness.ok) {
-    return await notActive();
+    await completeRun(context, runId, {
+      counts: emptyCounts(),
+      errorSummary: "Xero connection not active",
+      status: "failed",
+    });
+    return {
+      ready: false,
+      result: { ok: true, value: emptyResult(runId, "failed") },
+    };
   }
   // Reload so the run uses the freshly persisted access token, not the stale one.
   const xeroTenant = freshness.value.refreshed
     ? await loadXeroTenant(context)
     : loadedTenant;
   if (!xeroTenant) {
-    return await notActive();
+    await completeRun(context, runId, {
+      counts: emptyCounts(),
+      errorSummary: "Xero connection not active",
+      status: "failed",
+    });
+    return {
+      ready: false,
+      result: { ok: true, value: emptyResult(runId, "failed") },
+    };
   }
   return { ready: true, xeroTenant };
 }

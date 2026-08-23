@@ -1,7 +1,6 @@
 import { authMiddleware } from "@repo/auth/proxy";
-import type { NextProxy } from "next/server";
 
-export default authMiddleware() as unknown as NextProxy;
+export default authMiddleware();
 
 export const config = {
   matcher: [

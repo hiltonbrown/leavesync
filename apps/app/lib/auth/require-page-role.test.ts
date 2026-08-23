@@ -1,25 +1,42 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PermissionDeniedError, requirePageRole } from "./require-page-role";
 
-const mockRequireRole = vi.fn();
+vi.mock("server-only", () => ({}));
 
-vi.mock("@repo/auth/helpers", () => ({
-  requireRole: (role: string) => mockRequireRole(role),
+const mockHas = vi.fn();
+
+vi.mock("@repo/auth/server", () => ({
+  auth: vi.fn(),
 }));
+
+const { auth } = await import("@repo/auth/server");
+const mockedAuth = vi.mocked(auth);
 
 // Model a signed-in user holding exactly one role. requirePageRole asks about
 // every role at or above the one it needs, so a role-aware mock is what makes
 // the hierarchy observable. A mock that returns the same answer for every role
 // cannot distinguish "walks up the hierarchy" from "walks down it".
 function signedInAs(role: string) {
-  mockRequireRole.mockImplementation((asked: string) =>
-    Promise.resolve(asked === role)
+  mockHas.mockImplementation((asked: { role: string }) =>
+    Promise.resolve(asked.role === role)
   );
+  mockedAuth.mockResolvedValue({
+    has: mockHas,
+    isAuthenticated: true,
+    orgId: "org_1",
+  } as unknown as Awaited<ReturnType<typeof auth>>);
 }
 
 describe("requirePageRole", () => {
   beforeEach(() => {
-    mockRequireRole.mockReset();
+    mockHas.mockReset();
+    mockedAuth.mockReset();
+    // Default to unauthenticated until signedInAs is called
+    mockedAuth.mockResolvedValue({
+      has: mockHas,
+      isAuthenticated: false,
+      orgId: null,
+    } as unknown as Awaited<ReturnType<typeof auth>>);
   });
 
   it("allows a user whose role is exactly the required role", async () => {
@@ -49,7 +66,9 @@ describe("requirePageRole", () => {
   it("asks only about roles at or above the required one", async () => {
     signedInAs("org:owner");
     await requirePageRole("org:admin");
-    const asked = mockRequireRole.mock.calls.map(([role]) => role);
+    const asked = mockHas.mock.calls.map(
+      ([arg]) => (arg as { role: string }).role
+    );
     expect(asked).toEqual(["org:admin", "org:owner"]);
   });
 
