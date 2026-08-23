@@ -56,11 +56,11 @@ Plans are ordered by leverage, with dependencies respected. Each row is merged t
 | 17 | [065](065-unify-the-public-holiday-predicate.md) Unify the public holiday predicate | P3 | M | **MED** | 060, 061 | TODO, **decision required** |
 | 18 | [068](068-merge-the-twin-analytics-services.md) Merge the twin analytics services | P3 | L | MED | 060, 065 | TODO |
 | 19 | [069](069-fix-xero-people-sync-and-directory-ui.md) Fix Xero people sync and directory UI gaps | P1 | M | LOW | — | DONE (2026-08-23, commit 5993283, verified: check/typecheck/test pass) |
-| 20 | [070](070-xero-token-and-refresh-token-management-architecture.md) Xero token & refresh token management architecture | P1 | M | LOW | — | TODO |
+| 20 | [070](070-xero-token-and-refresh-token-management-architecture.md) Xero token & refresh token management architecture | P1 | M | LOW | — | DONE (2026-08-23, branch `advisor/070-xero-token-refresh-management`, commit `0514f71`, review approved; not merged) |
 | 21 | [071](071-nz-and-uk-xero-payroll-read-and-sync-expansion.md) NZ & UK Xero payroll read and sync expansion | P1 | L | MED | 069 | TODO |
-| 22 | [072](072-automated-clerk-user-matching-and-bulk-invitations.md) Automated Clerk user matching and bulk invitations | P1 | S | LOW | 069 | TODO |
-| 23 | [073](073-orphaned-xero-employee-lifecycle-reconciliation.md) Orphaned Xero employee lifecycle reconciliation | P2 | S | LOW | 069 | TODO |
-| 24 | [074](074-xero-tracking-category-team-and-manager-hierarchy-sync.md) Xero tracking category team & manager hierarchy sync | P2 | M | LOW | 069 | TODO |
+| 22 | [072](072-automated-clerk-user-matching-and-bulk-invitations.md) Import every missing Xero employee before reconciling Clerk access | P1 | M | MED | 069, 071 | TODO |
+| 23 | [073](073-orphaned-xero-employee-lifecycle-reconciliation.md) Soft-archive Xero employees missing from a complete payroll snapshot | P2 | M | MED | 072 | TODO |
+| 24 | [074](074-xero-tracking-category-team-and-manager-hierarchy-sync.md) Xero tracking category team & manager hierarchy sync | P2 | M | LOW | 073 | TODO |
 
 ## Companion reference docs (not executable)
 
@@ -89,6 +89,9 @@ first" section has to be agreed before any code is written.
 054 -> 061                 (same projection file)
 060 + 061 -> 065           (065 narrows what the predicate reads; both must land first)
 060 + 065 -> 068           (068 adopts the shared projection and shared predicate)
+069 + 071 -> 072           (071 establishes all regional readers; 072 then locks their shared import/reactivation contract)
+072 -> 073                 (same handler and tests; 072 owns returned-ID import/reactivation, then 073 adds guarded absence archival)
+073 -> 074                 (same mapper, handler and tests; 074 adds hierarchy only after the employee lifecycle is stable)
 ```
 
 Everything not named above is independent and may run in any order.
@@ -96,8 +99,8 @@ Everything not named above is independent and may run in any order.
 ### May run in parallel
 
 051, 052, 055, 057 and 059 touch disjoint files and can run concurrently if
-throughput matters. Do **not** parallelise 053 with 058, 054 with 061, or
-anything with 065 and 068.
+throughput matters. Do **not** parallelise 053 with 058, 054 with 061, any pair
+of 071, 072, 073 and 074, or anything with 065 and 068.
 
 ## Deferred plans from the earlier backlog
 
