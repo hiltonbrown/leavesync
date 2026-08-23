@@ -2,10 +2,12 @@ import "server-only";
 
 import type { Result } from "@repo/core";
 import {
+  findConnectionsNeedingTokenRotation,
   listSchedulableXeroTenants,
   type SchedulableXeroTenant,
 } from "@repo/database";
 import { log } from "@repo/observability/log";
+import { ensureFreshXeroConnection } from "@repo/xero";
 import type { InngestFunction } from "inngest";
 import { inngest } from "../client";
 import {
@@ -198,6 +200,57 @@ export interface ScheduleXeroSyncsPageResult {
   skipped: number;
 }
 
+export interface RotateDormantXeroConnectionsResult {
+  failed: number;
+  rotated: number;
+  scanned: number;
+}
+
+export async function rotateDormantXeroConnections(
+  now: Date = new Date()
+): Promise<Result<RotateDormantXeroConnectionsResult>> {
+  const connectionsResult = await findConnectionsNeedingTokenRotation({
+    now,
+  });
+  if (!connectionsResult.ok) {
+    return connectionsResult;
+  }
+
+  let failed = 0;
+  let rotated = 0;
+  for (const connection of connectionsResult.value) {
+    const refreshResult = await ensureFreshXeroConnection({
+      clerkOrgId: connection.clerkOrgId,
+      connectionId: connection.connectionId,
+      now,
+      organisationId: connection.organisationId,
+    });
+    if (refreshResult.ok) {
+      if (refreshResult.value.refreshed) {
+        rotated += 1;
+      }
+      continue;
+    }
+
+    failed += 1;
+    log.error("Failed to rotate dormant Xero refresh token", {
+      clerkOrgId: connection.clerkOrgId,
+      connectionId: connection.connectionId,
+      error: refreshResult.error,
+      organisationId: connection.organisationId,
+    });
+  }
+
+  return {
+    ok: true,
+    value: {
+      failed,
+      rotated,
+      scanned: connectionsResult.value.length,
+    },
+  };
+}
+
 export async function scheduleXeroSyncsPage(
   options: ScheduleXeroSyncsPageOptions = {}
 ): Promise<Result<ScheduleXeroSyncsPageResult>> {
@@ -297,6 +350,25 @@ export const scheduleXeroSyncsFunction: InngestFunction.Any =
       let totalSkipped = 0;
       let totalInvalidTimezone = 0;
       let hasMorePages = true;
+
+      const rotationResult = await step.run(
+        "rotate-dormant-connections",
+        async () => rotateDormantXeroConnections()
+      );
+      if (rotationResult.ok) {
+        log.info("Completed dormant Xero token rotation pass", {
+          failed: rotationResult.value.failed,
+          rotated: rotationResult.value.rotated,
+          scanned: rotationResult.value.scanned,
+        });
+      } else {
+        log.error(
+          "Failed to find dormant Xero connections for token rotation",
+          {
+            error: rotationResult.error,
+          }
+        );
+      }
 
       while (hasMorePages) {
         const pageResult = await step.run(
