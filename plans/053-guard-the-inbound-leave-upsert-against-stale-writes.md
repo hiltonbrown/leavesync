@@ -1,68 +1,96 @@
-# Plan 053: Stop inbound sync overwriting a newer local approval state
+# Plan 053: Prevent stale inbound leave snapshots overwriting newer state
 
 > **Executor instructions**: Follow this plan step by step. Run every
-> verification command and confirm the expected result before moving to the next
-> step. If anything in "STOP conditions" occurs, stop and report — do not
-> improvise. When done, update this plan's row in `plans/README.md`.
+> verification command and confirm the expected result before moving to the
+> next step. If anything in the "STOP conditions" section occurs, stop and
+> report. Do not improvise. When done, update this plan's row in
+> `plans/README.md`, unless a reviewer has said they maintain the index.
 >
 > **Drift check (run first)**:
-> `git diff --stat 121da2a..HEAD -- packages/jobs/src/handlers/sync-xero-leave-records.ts`
-> If the file changed, compare the "Current state" excerpt against the live code
-> before proceeding; on a mismatch, treat it as a STOP condition.
+> `git diff --stat 206af7b..HEAD -- packages/jobs/src/handlers/sync-xero-leave-records.ts packages/jobs/src/handlers/sync-xero-leave-records.test.ts packages/jobs/src/handlers/sync-xero-leave-records.integration.test.ts`
+> If an in-scope file changed, compare the "Current state" excerpts with the
+> live code. Stop if the record snapshot, normalisation, update, or count
+> contracts no longer match this plan.
 
 ## Status
 
 - **Priority**: P1
-- **Effort**: S
+- **Effort**: M
 - **Risk**: MED
 - **Depends on**: none
 - **Category**: bug
-- **Planned at**: commit `121da2a`, 2026-08-12
+- **Planned at**: commit `206af7b`, 2026-08-23
+- **Covers finding**: C-02
+- **Review status**: TODO, reconciled. The finding still exists, but the old
+  timestamp-only fix was insufficient for the race described by the plan.
 
 ## Why this matters
 
-This is the **only** path in the codebase that mutates `availability_records`
-without an optimistic-concurrency guard. Every other transition — the approval
-state machine and the approval reconciler — commits with a `where` clause that
-pins both `approval_status` and `derived_sequence`.
+The inbound leave handler fetches a remote snapshot, loads the matching local
+records, and then updates each row without pinning the state it read. A manager
+can approve, decline, withdraw, or otherwise update a record while that work is
+in flight. The stale inbound write can then restore an older Xero status while
+leaving local approval metadata populated, producing a state the approval
+machine never creates and removing an approved event from feeds.
 
-A leave-records sync run holds a page of results fetched from Xero before a
-manager approves a request. When the run reaches its upsert, it writes the stale
-Xero status straight over the freshly approved local record. The result is a
-record with `approval_status: "submitted"` alongside a populated `approved_at`
-and `approved_by_person_id` — a state the state machine cannot produce and does
-not know how to interpret. It also silently drops the event from every published
-feed, because the projection requires `approval_status: "approved"`.
+There are two separate race windows to close:
 
-The column needed to prevent this is already persisted on every write and is
-simply never read back.
+1. a local change can happen after the sync run starts but before the handler
+   loads its database snapshot;
+2. a local change can happen after that snapshot is loaded but before
+   `updateMany` executes.
+
+Remote freshness checks address the first window. A database compare-and-swap
+against the loaded row addresses the second. Either mechanism on its own is
+incomplete.
 
 ## Current state
 
-`packages/jobs/src/handlers/sync-xero-leave-records.ts:607-623` builds the
-Xero-owned payload, which already includes the timestamp this plan needs:
+`packages/jobs/src/handlers/sync-xero-leave-records.ts:132-166` records a
+`startedAt` value before the remote read, then fetches all AU leave pages before
+loading matching local records:
+
+```ts
+const context = parsed.data;
+const startedAt = new Date();
+// ...
+const leaveRecordsResult = await fetchLeaveRecordsForRegion(
+  xeroTenant.payroll_region,
+  { xeroTenant }
+);
+```
+
+For every batch, `:209-217` loads existing records only after the remote
+snapshot has been fetched.
+
+`loadExistingRecordsBySourceRemoteId` at `:473-499` does not select the fields
+needed for freshness or optimistic concurrency:
+
+```ts
+select: {
+  approval_status: true,
+  failed_action: true,
+  id: true,
+  source_remote_hash: true,
+  source_remote_id: true,
+  source_type: true,
+},
+```
+
+The normaliser already provides both remote freshness signals at `:617-632`:
 
 ```ts
 const xeroOwned = {
-  all_day: normalised.allDay,
   approval_status: approvalStatusToPersist,
-  ...clearedWriteError,
-  archived_at: normalised.publishStatus === "archived" ? new Date() : null,
-  contactability: normalised.contactability,
-  derived_uid_key: normalised.derivedUidKey,
-  ends_at: normalised.endsAt,
-  person_id: normalised.personId,
-  publish_status: normalised.publishStatus,
-  record_type: normalised.recordType,
+  // ...
   source_last_modified_at: normalised.sourceLastModifiedAt,
   source_payload_json: toPrismaJsonValue(normalised.rawPayload),
   source_remote_hash: normalised.sourceRemoteHash,
-  starts_at: normalised.startsAt,
   updated_at: new Date(),
 };
 ```
 
-`sync-xero-leave-records.ts:642-645` is the unguarded write:
+The write at `:646-655` is unconditional once the row ID is known:
 
 ```ts
 await database.availabilityRecord.updateMany({
@@ -71,156 +99,282 @@ await database.availabilityRecord.updateMany({
 });
 ```
 
-Nothing else is in that `where`: no status precondition, no `derived_sequence`,
-no comparison against `source_last_modified_at`.
+The return value is ignored. The handler updates its in-memory snapshot,
+materialises a publication, and increments `counts.upserted` even if a future
+guard makes `updateMany` return `{ count: 0 }`.
 
-**The pattern to match.** `packages/availability/src/approvals/approval-service.ts:1734-1741`
-(`transitionWhere`) and `packages/jobs/src/handlers/reconcile-xero-approval-state.ts:470-478`
-both guard on `approval_status` **and** `derived_sequence`. Read `transitionWhere`
-before writing this change; the guard style should be recognisably the same.
+The compare-and-swap pattern to match is
+`packages/availability/src/approvals/approval-service.ts:1734-1740`:
 
-**Existing partial awareness.** `sync-xero-leave-records.ts:583-589` already
-carves out one specific race (a failed `withdraw`), which shows the author was
-reasoning about this class of problem but covered only one case of it. Do not
-remove that carve-out.
+```ts
+return {
+  ...scoped(input),
+  approval_status: record.approval_status,
+  derived_sequence: record.derived_sequence,
+  id: record.id,
+};
+```
+
+The approval reconciler uses the same guard and treats a zero-row update as a
+normal stale-snapshot skip at
+`packages/jobs/src/handlers/reconcile-xero-approval-state.ts:480-498`.
+
+The existing failed-withdraw carve-out at
+`sync-xero-leave-records.ts:592-599` is load-bearing and must remain intact.
+
+## Required update contract
+
+For an existing record, classify the remote snapshot before writing:
+
+- if the local row's `updated_at` is later than the sync run's `startedAt`, skip
+  the inbound write because the local row changed after this run began;
+- if both remote timestamps exist and the incoming
+  `source_last_modified_at` is earlier than the stored value, skip it;
+- if the remote timestamps are equal and the remote hashes are equal, skip the
+  duplicate snapshot;
+- if the incoming timestamp is null and the hashes are equal, skip the
+  duplicate snapshot;
+- if the incoming timestamp is null but the hash changed, allow the guarded
+  update but retain the existing non-null `source_last_modified_at` rather than
+  erasing the only ordering marker;
+- otherwise attempt the update through a compare-and-swap that pins the loaded
+  `approval_status`, `derived_sequence`, `updated_at`,
+  `source_last_modified_at`, and `source_remote_hash` as well as both tenant
+   scopes and the record ID.
+
+An update count of zero is a normal stale-snapshot skip. It is not a database
+failure. A skipped write must not mutate the in-memory snapshot, materialise a
+publication, enqueue a feed rebuild, or increment `upserted`.
+
+Creates remain unchanged. Do not add a `derived_sequence` increment to inbound
+sync.
 
 ## Commands you will need
 
 | Purpose | Command | Expected on success |
 |---|---|---|
-| Lint | `bun run check` | exit 0 |
+| Targeted unit tests | `cd packages/jobs && bunx vitest run src/handlers/sync-xero-leave-records.test.ts` | all tests pass |
+| Targeted integration | `cd packages/jobs && bunx vitest run src/handlers/sync-xero-leave-records.integration.test.ts` | database cases run and pass, not skipped |
+| Check | `bun run check` | exit 0 |
 | Typecheck | `bun run typecheck` | exit 0 |
-| Unit tests | `bun run test` | exit 0, 17/17 tasks |
-| This handler | `cd packages/jobs && bunx vitest run src/handlers/sync-xero-leave-records.test.ts` | all pass |
+| Unit suite | `bun run test` | exit 0 |
+| Integration suite | `bun run test:integration` | exit 0 with database tests executed |
+| Build | `bun run build` | exit 0 |
+
+The targeted unit baseline was 17 passing tests across this handler and the
+balance handler when the plan was reconciled. Do not encode a repository-wide
+test-count total in assertions or done criteria because workspace counts change.
 
 ## Scope
 
 **In scope**:
+
 - `packages/jobs/src/handlers/sync-xero-leave-records.ts`
 - `packages/jobs/src/handlers/sync-xero-leave-records.test.ts`
+- `packages/jobs/src/handlers/sync-xero-leave-records.integration.test.ts`
+- `plans/README.md` for the final status update only
 
 **Out of scope**:
-- `packages/availability/src/approvals/approval-service.ts` — read it for the
-  pattern, do not modify it.
-- `packages/jobs/src/handlers/reconcile-xero-approval-state.ts` — plan 056 owns
-  that file. Touching it here will conflict.
-- The `parseXeroDate` end-of-day convention — plan 054 owns it.
-- Adding a `derived_sequence` bump to the inbound path. Inbound sync is not a
-  user-visible transition; do not start incrementing sequences here without an
-  explicit decision, since it would churn feed SEQUENCE values.
+
+- `packages/availability/src/approvals/approval-service.ts`, read it for the
+  compare-and-swap pattern but do not modify it
+- `packages/jobs/src/handlers/reconcile-xero-approval-state.ts`, its stale guard
+  is already correct
+- `packages/availability/src/sync/inbound-leave-normaliser.ts`, its stable hash
+  and remote timestamp contract already provide the required inputs
+- stale-record archival and balance paging, owned by plan 058
+- date-only end semantics, owned by plan 054
+- changes to feed UID or `derived_sequence`
+- any schema or migration change
 
 ## Git workflow
 
-- Branch: `advisor/053-guard-inbound-upsert`
-- Conventional commits, e.g. `fix(jobs): skip inbound writes older than local state`
-- Do NOT push or open a PR unless the operator instructed it.
+- Suggested branch: `advisor/053-guard-inbound-upsert`
+- Use a conventional commit such as
+  `fix(jobs): reject stale inbound leave snapshots`.
+- Do not push or open a pull request unless explicitly instructed.
 
 ## Steps
 
-### Step 1: Add a failing test for the race
+### Step 1: Add explicit outcomes and the missing snapshot fields
 
-In `sync-xero-leave-records.test.ts`, add a case where the existing local record
-has a `source_last_modified_at` **newer** than the incoming normalised payload,
-and the local `approval_status` is `approved` while the incoming status is
-`submitted`. Assert the local record is left unchanged.
+1. Replace the current `ProcessedLeaveRecord | null` ambiguity with an explicit
+   internal outcome that distinguishes `applied`, `skipped`, and `failed`.
+   Carry `changed`, `personId`, and `sourceRemoteId` only where downstream work
+   needs them.
+2. Extend the existing-record selection with:
+   `derived_sequence`, `source_last_modified_at`, and `updated_at`.
+3. Pass the run's existing `startedAt` value into `processLeaveRecord`. Do not
+   create a separate time after the Xero fetch, because that would miss local
+   writes that occurred while remote pages were being read.
+4. Update the outer loop so:
+   - `applied` increments `upserted` and can contribute a changed person;
+   - `skipped` increments `skipped` only;
+   - `failed` increments `failed` only.
 
-Run it and confirm it **fails** today (the local record is overwritten).
+**Verify**:
 
-**Verify**: `cd packages/jobs && bunx vitest run src/handlers/sync-xero-leave-records.test.ts`
-→ the new case fails, showing `submitted` where `approved` was expected.
+- `bun run typecheck` exits 0
+- targeted unit tests still pass before new race assertions are added
 
-### Step 2: Make the update conditional on the incoming payload being newer
+### Step 2: Add a pure remote-freshness decision
 
-Extend the `where` at `:642-645` so the write only lands when the incoming
-`source_last_modified_at` is strictly newer than the stored one, with an explicit
-branch for the case where the stored value is null:
+1. Add a small private helper in the handler that compares the loaded row,
+   normalised remote record, and run start time according to "Required update
+   contract" above.
+2. Return a reason code for skips, such as `local_changed_after_run_started`,
+   `older_remote_snapshot`, or `duplicate_remote_snapshot`. Use it only in a
+   structured `log.info` entry with record and tenant identifiers. Do not log
+   the raw payload.
+3. When the incoming timestamp is null and the changed hash is allowed through,
+   set `source_last_modified_at` in `updateData` to the stored timestamp. Never
+   replace a known timestamp with null.
+4. Keep the failed-withdraw status carve-out before constructing the final
+   Xero-owned data, as it is today.
 
-```ts
-where: {
-  ...scoped(context),
-  id: recordId,
-  OR: [
-    { source_last_modified_at: null },
-    { source_last_modified_at: { lt: normalised.sourceLastModifiedAt } },
-  ],
-},
-```
+**Verify**: targeted unit tests cover each decision branch and pass.
 
-Handle the case where **the incoming** `sourceLastModifiedAt` is null explicitly
-— Xero does not always populate `UpdatedDateUTC`. When it is null, fall back to
-comparing `source_remote_hash`: if the hash is unchanged, skip; if it differs,
-write. Do not silently stop updating records whose payload omits the timestamp.
+### Step 3: Add the database compare-and-swap
 
-**Verify**: `bun run typecheck` → exit 0, and the Step 1 test now passes.
+1. Extend the existing `updateMany.where` with the loaded snapshot's:
+   `approval_status`, `derived_sequence`, `updated_at`,
+   `source_last_modified_at`, and `source_remote_hash`.
+2. Keep `...scoped(context)` and `id` in the predicate. Every snapshot and scope
+   predicate is part of the guard, not optional diagnostics.
+3. Inspect `updateMany.count`:
+   - `1` means the update applied;
+   - `0` means another write won, so return `skipped`;
+   - any thrown database error follows the existing failed-record path.
+4. Only after count `1`, update `existingRecordsBySourceRemoteId`, materialise
+   the publication, and return `applied`.
+5. Do not reload and retry a zero-row update in this run. Retrying with a fresh
+   snapshot would risk reapplying the stale remote state that the guard rejected.
 
-### Step 3: Count skipped writes separately from failures
+**Verify**: the unit race test makes the mock return `{ count: 0 }`, then proves
+`skipped: 1`, `upserted: 0`, no failed record, no publication materialisation,
+and no feed rebuild.
 
-`updateMany` returns `{ count }`. A `count` of 0 now means "a newer local state
-won", which is a normal outcome, not an error. Track it as its own counter and
-surface it in the sync run summary so the divergence is visible to an operator
-rather than invisible.
+### Step 4: Add database-level race coverage
 
-Do not increment the failure counter for a skip.
+In `sync-xero-leave-records.integration.test.ts`:
 
-**Verify**: `cd packages/jobs && bunx vitest run src/handlers/sync-xero-leave-records.test.ts`
-→ all pass, including an assertion that a skipped write reports as skipped and
-not as failed.
+1. Add a stale-source case with an existing record whose
+   `source_last_modified_at` is newer than the incoming Xero fixture. Assert the
+   local status, timestamp, hash, and approval metadata remain unchanged, and
+   the result counts one skip.
+2. Add a real compare-and-swap race. Spy on the first
+   `database.availabilityRecord.findMany` used to load existing records, call
+   the original query, update the same row's `approval_status`,
+   `derived_sequence`, and `updated_at` before returning the stale rows to the
+   handler, then let the handler continue. Assert its guarded `updateMany`
+   affects zero rows and the concurrent state survives.
+3. Restore the spy in `finally` or test cleanup so later integration cases use
+   the real client.
+4. Keep the fixture IDs and cleanup scoped to this file. Do not introduce a new
+   UUID prefix.
 
-### Step 4: Confirm the existing carve-out still holds
+**Verify**:
 
-Re-run the whole handler suite and confirm the failed-`withdraw` carve-out at
-`:583-589` still behaves as before. The new guard must not shadow it.
+`cd packages/jobs && bunx vitest run src/handlers/sync-xero-leave-records.integration.test.ts`
+exits 0 and the database-backed suite is not skipped.
 
-**Verify**: `bun run test` → exit 0, 17/17 tasks.
+### Step 5: Preserve existing behaviour and run all gates
+
+Add or retain unit coverage for:
+
+- a current, changed remote snapshot updates normally;
+- a create still succeeds and materialises once;
+- an equal timestamp with a different hash may update through the guard;
+- a null incoming timestamp with an unchanged hash skips;
+- a null incoming timestamp with a changed hash applies without erasing a known
+  stored timestamp;
+- a Team Calendar sourced record still preserves its local title/privacy/feed
+  fields when a current Xero snapshot applies;
+- the failed-withdraw carve-out still retains `xero_sync_failed` and its error
+  fields;
+- every query and update includes both Clerk Organisation and Organisation
+  scope.
+
+Then run, in order:
+
+1. `bun run check`
+2. `bun run typecheck`
+3. `bun run test`
+4. `bun run test:integration`
+5. `bun run build`
+6. `git diff --check`
+
+Every command must exit 0. Review the final diff before updating the plan index.
 
 ## Test plan
 
-New cases in `packages/jobs/src/handlers/sync-xero-leave-records.test.ts`,
-following the structure of the existing tests in that file:
+Use `sync-xero-leave-records.test.ts` for branch and count behaviour. Use the
+existing real-database structure in
+`sync-xero-leave-records.integration.test.ts:68-309` for persistence and
+compare-and-swap proof.
 
-- newer local state wins: incoming older `source_last_modified_at`, local record
-  unchanged, skip counted
-- incoming newer payload wins: record updated as today
-- incoming `source_last_modified_at` is null and the hash is unchanged → skip
-- incoming `source_last_modified_at` is null and the hash differs → write
-- stored `source_last_modified_at` is null → write (first sync of an existing row)
-- the failed-`withdraw` carve-out is unaffected
+Required assertions:
 
-Verification: `bun run test` → exit 0, with at least 5 new tests.
+| Case | Expected result |
+|---|---|
+| Local row changed after run start | skip, no inbound write |
+| Incoming remote timestamp is older | skip, no inbound write |
+| Equal timestamp and equal hash | duplicate skip |
+| Null incoming timestamp, equal hash | duplicate skip |
+| Null incoming timestamp, changed hash | guarded update, stored timestamp retained |
+| Snapshot changes after `findMany` | CAS count zero, concurrent state survives |
+| Current changed remote snapshot | one upsert and one materialisation |
+| CAS throws | failed record and `failed` count, not `skipped` |
+| Failed withdrawal | existing carve-out unchanged |
+| Cross-tenant record with same remote ID | never selected or updated |
 
 ## Done criteria
 
-ALL must hold:
-
-- [ ] `bun run check` exits 0
-- [ ] `bun run typecheck` exits 0
-- [ ] `bun run test` exits 0, 17/17 tasks, with at least 5 new tests
-- [ ] `grep -A8 'availabilityRecord.updateMany' packages/jobs/src/handlers/sync-xero-leave-records.ts`
-      shows `source_last_modified_at` inside the `where`
-- [ ] Reverting only the Step 2 guard makes the Step 1 test fail (mutation check;
-      restore afterwards)
-- [ ] The sync run summary reports skipped writes distinctly from failures
-- [ ] `git status --short` lists only the two in-scope files
-- [ ] `plans/README.md` row updated
+- [ ] `loadExistingRecordsBySourceRemoteId` selects `derived_sequence`,
+      `source_last_modified_at`, and `updated_at`.
+- [ ] The update predicate pins both tenant scopes, ID, approval status,
+      sequence, local update time, remote timestamp, and remote hash.
+- [ ] A zero-row update increments `skipped`, not `failed` or `upserted`.
+- [ ] A skipped update does not mutate the in-memory snapshot, materialise a
+      publication, or enqueue a feed rebuild.
+- [ ] Known remote timestamps are never overwritten with null.
+- [ ] Unit and database-backed tests prove both race windows.
+- [ ] Existing create, current-update, tenant-isolation, local-field, and
+      failed-withdraw cases pass.
+- [ ] `bun run check`, `bun run typecheck`, `bun run test`,
+      `bun run test:integration`, `bun run build`, and `git diff --check` exit 0.
+- [ ] Before the plan-index update, only the three in-scope source/test files
+      are modified; afterwards only `plans/README.md` is additionally modified.
+- [ ] `plans/README.md` is updated to `DONE` with date, commit, and verification
+      evidence.
 
 ## STOP conditions
 
 Stop and report if:
 
-- The live Xero payloads in `source_payload_json` show `UpdatedDateUTC` is
-  routinely absent or non-monotonic. The timestamp guard is then unsafe as the
-  primary mechanism and the hash comparison must lead instead; report before
-  choosing.
-- The fix appears to require touching `approval-service.ts` or the reconciler.
-- The Step 1 test passes before the fix — that means the race is already guarded
-  somewhere you have not found, and this plan's premise is wrong.
+- `UpdatedDateUTC` proves routinely non-monotonic in available fixtures or live
+  evidence. Keep the local compare-and-swap, but do not invent a new remote
+  ordering rule without review.
+- product or test evidence requires an unchanged remote snapshot to rewrite
+  Xero-sourced person defaults on every poll. That behaviour conflicts with a
+  clean duplicate skip and needs an explicit local-only update contract.
+- the ORM cannot express nullable snapshot equality for
+  `source_last_modified_at` or `source_remote_hash` in the guarded
+  `updateMany`.
+- the database-backed race cannot be injected without changing production
+  exports or adding a test-only production hook.
+- the fix requires a schema migration, approval-service change, or reconciler
+  change.
+- a mandatory integration test is skipped because `DATABASE_URL` is absent.
+- any mandatory gate fails twice after a reasonable correction.
 
 ## Maintenance notes
 
-- Anyone adding a new field to `xeroOwned` should ask whether Xero really owns
-  it. The `locallyOwned` split at `:628-632` exists because plan 006 found the
-  same class of problem with privacy fields.
-- A reviewer should check that the skip path cannot mask a genuine sync failure:
-  skipped and failed must remain distinguishable in the run summary.
-- Plan 056 changes the neighbouring reconciler. If both are in flight, land this
-  one first — it is the smaller diff and the reconciler already has its guard.
+- Any future field added to `xeroOwned` must participate in the same freshness
+  decision. Do not add a second unguarded update path around this helper.
+- `derived_sequence` remains a local publication/transition sequence. Inbound
+  sync observes it in the compare-and-swap but does not increment it.
+- Plan 058 changes the archive half of this handler. Land plan 053 first, then
+  re-run plan 058's drift check and preserve this update guard verbatim.
+- Plan 071 later adds regional readers and depends on these stale-write and
+  bounded-loop contracts remaining region-agnostic.
