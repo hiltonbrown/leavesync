@@ -6,7 +6,7 @@
 > improvise. When done, update this plan's row in `plans/README.md`.
 >
 > **Drift check (run first)**:
-> `git diff --stat 121da2a..HEAD -- packages/next-config apps/web/app/pricing "apps/app/app/(authenticated)/settings/billing"`
+> `git diff --stat 7cef97c..HEAD -- packages/next-config apps/web/app/pricing "apps/app/app/(authenticated)/settings/billing"`
 > If any in-scope file changed, compare the "Current state" excerpts against the
 > live code before proceeding; on a mismatch, treat it as a STOP condition.
 
@@ -17,8 +17,34 @@
 - **Risk**: LOW
 - **Depends on**: none
 - **Category**: bug
-- **Planned at**: commit `121da2a`, 2026-08-12
+- **Planned at**: commit `7cef97c`, 2026-08-24 (reconciled from
+  `121da2a` after the pricing page safeguard and unrelated billing styles
+  landed)
 - **Covers findings**: C-04, D-02
+- **Review status**: DONE on 2026-08-24. Implementation commit `e4c5997` on
+  `advisor/055-launch-mode-browser-safe` was independently reviewed and
+  approved; not merged.
+
+## Execution outcome
+
+- **Worktree**: `/tmp/teamcalendar-plan-055`
+- **Branch**: `advisor/055-launch-mode-browser-safe`
+- **Commit**: `e4c5997` (`fix(next-config): make launch mode browser safe`)
+- **Scope**: exactly four in-scope files. The existing web launch-mode example
+  was already complete, so it remained untouched; the worktree is clean.
+- **Independent verification**: focused launch-mode suite 10/10; `bun run
+  check` checked 767 files; typecheck 19/19 tasks; unit suite 17/17 tasks;
+  build 4/4 tasks; full integration 5/5 tasks and 60 database-backed tests.
+  Two credential-gated external Xero tests remained skipped and were unrelated
+  to this plan. `git diff --check`, scope, throw-path, environment-count and
+  pricing-page checks all passed.
+- **Integration retry**: the first concurrent run timed out in one unchanged
+  jobs test at its five-second limit. That exact test passed alone, then the
+  complete integration lane passed on retry, confirming a load-related flake
+  rather than a regression in this four-file change.
+- **Verdict**: APPROVE. Missing production launch mode now renders the safest
+  `early_access` experience and emits a warning; invalid configured values
+  still throw, and deploy preflight remains strict.
 
 ## Why this matters
 
@@ -30,10 +56,10 @@ both deployed apps. In a browser bundle Next.js inlines
 time, the production bundle contains a component that throws during hydration —
 taking out the public pricing page and the authenticated billing settings page.
 
-There is an uncommitted change in the working tree adding
-`export const dynamic = "force-dynamic"` to the pricing page. That addresses the
-build-time prerender failure, but it cannot address hydration, because the client
-inlining already happened at build. The fix has to be in the accessor.
+The pricing page now has a committed `export const dynamic = "force-dynamic"`
+safeguard. That addresses the build-time prerender failure, but it cannot address
+hydration, because the client inlining already happened at build. The fix still
+has to be in the accessor.
 
 The same variable, plus five Stripe variables, are hard-required by
 `runProductionPreflight` for `app` and `api`, yet appear in **neither** app's
@@ -92,8 +118,18 @@ Preflight requires the variable for all three apps
 `STRIPE_WEBHOOK_SECRET` for `api` (`preflight.ts:151-161`).
 
 Verified absent: `grep -c "STRIPE" apps/app/.env.example apps/api/.env.example`
-prints `0` and `0`. `NEXT_PUBLIC_LAUNCH_MODE` appears only in
-`apps/web/.env.example`, and only in the uncommitted working-tree change.
+prints `0` and `0`. `NEXT_PUBLIC_LAUNCH_MODE` appears only in the committed
+`apps/web/.env.example` launch-mode section.
+
+Drift reviewed during reconciliation:
+
+- `apps/web/app/pricing/page.tsx` gained only the committed `force-dynamic`
+  safeguard described above.
+- `apps/app/app/(authenticated)/settings/billing/billing-client.tsx` received
+  design-token and radius changes only. It remains a client component and still
+  calls `isEarlyAccess()` in the same place.
+- No additional client-side caller of `getLaunchMode`, `isEarlyAccess`, or
+  `isPaidLaunch` exists.
 
 ## Commands you will need
 
@@ -117,9 +153,12 @@ prints `0` and `0`. `NEXT_PUBLIC_LAUNCH_MODE` appears only in
 **Out of scope**:
 - `packages/next-config/preflight.ts` — the server-side hard requirement is
   correct and must stay. Preflight is where a missing variable *should* fail.
-- `apps/web/app/pricing/page.tsx` — it carries an uncommitted `force-dynamic`
-  change. Leave it exactly as it is; do not revert it and do not build on it.
-  See STOP conditions.
+- `apps/web/app/pricing/page.tsx` — its committed `force-dynamic` safeguard is
+  complementary. Leave it exactly as it is; do not revert it and do not build
+  on it.
+- `packages/next-config/package.json` and `packages/observability/**` — do not
+  add a new package dependency for this fallback. Both deployed clients already
+  configure Sentry to capture `console.warn` calls.
 - The Stripe wiring itself. This plan documents the variables; it does not change
   billing behaviour.
 - Deciding the production value of `NEXT_PUBLIC_LAUNCH_MODE`. That is an
@@ -130,8 +169,8 @@ prints `0` and `0`. `NEXT_PUBLIC_LAUNCH_MODE` appears only in
 - Branch: `advisor/055-launch-mode-browser-safe`
 - Conventional commits, e.g. `fix(next-config): fail safe when launch mode is unset in the browser`
 - Do NOT push or open a PR unless the operator instructed it.
-- The working tree already has unrelated uncommitted changes in `apps/web`. Do
-  not commit them.
+- The source worktree is clean at the reconciled snapshot. Do not touch files
+  outside the explicit in-scope list.
 
 ## Steps
 
@@ -155,11 +194,17 @@ rather than throwing. `early_access` is the safe default: it hides checkout and
 paid CTAs. A page that renders the restricted experience is a far better failure
 mode than a page that does not render.
 
-Keep throwing for an **invalid** value — a typo like `"paid "` or `"Paid"` should
-still be loud, since it indicates misconfiguration rather than absence.
+Keep throwing for an **invalid** value such as `"Paid"` or another non-enum
+string, since it indicates misconfiguration rather than absence. Preserve the
+current trimming behaviour for surrounding whitespace.
 
-Log the fallback through the observability logger rather than silently
-swallowing it, so a production deployment missing the variable is visible.
+Emit a concise `console.warn` only when the missing-value fallback occurs in a
+production environment, so a misconfigured client bundle remains visible. This
+is an intentional exception to the normal package logger pattern: importing
+`@repo/observability/log` would require a new dependency in
+`packages/next-config/package.json`, while both deployed apps already initialise
+Sentry's console logging integration for warnings. Do not include any other
+environment values in the message.
 
 The hard requirement does not disappear: it moves entirely to
 `runProductionPreflight`, which already enforces it at deploy time and is the
@@ -197,15 +242,18 @@ any kind belong in an example file.
 
 ## Test plan
 
-New cases in `packages/next-config/launch-mode.test.ts`, following the structure
-of the existing cases at `:17-49`:
+Cases in `packages/next-config/launch-mode.test.ts`, following the structure of
+the existing cases at `:17-49`:
 
-- absent variable + `NODE_ENV=production` → returns `early_access`, does not throw
-- absent variable + `VERCEL_ENV=production` → returns `early_access`, does not throw
-- absent variable + development → returns `early_access` (unchanged)
-- invalid value + production → still throws
-- valid `paid` → returns `paid` (unchanged)
-- the fallback path logs
+- change the existing absent variable + `NODE_ENV=production` case to return
+  `early_access` without throwing
+- add absent variable + `NEXT_PUBLIC_VERCEL_ENV=production` → returns
+  `early_access`
+- add absent variable + `VERCEL_ENV=production` → returns `early_access`
+- add production fallback → calls `console.warn` with the missing-variable
+  warning
+- add absent variable + development → does not call `console.warn`
+- keep the existing absent-development, invalid-value, and valid-`paid` cases
 
 Verification: `bun run test` → exit 0, with at least 4 new tests.
 
@@ -213,20 +261,21 @@ Verification: `bun run test` → exit 0, with at least 4 new tests.
 
 ALL must hold:
 
-- [ ] `bun run check` exits 0
-- [ ] `bun run typecheck` exits 0
-- [ ] `bun run test` exits 0, 17/17 tasks, with at least 4 new tests
-- [ ] `bun run build` exits 0, 4/4 tasks
-- [ ] `grep -c "STRIPE" apps/app/.env.example` and `apps/api/.env.example` both
+- [x] `bun run check` exits 0
+- [x] `bun run typecheck` exits 0
+- [x] `bun run test` exits 0, 17/17 tasks, with 4 new tests and the existing
+      production-missing test updated to assert the safe fallback
+- [x] `bun run build` exits 0, 4/4 tasks
+- [x] `grep -c "STRIPE" apps/app/.env.example` and `apps/api/.env.example` both
       print 5 or more
-- [ ] `grep -c "NEXT_PUBLIC_LAUNCH_MODE" apps/app/.env.example apps/api/.env.example`
+- [x] `grep -c "NEXT_PUBLIC_LAUNCH_MODE" apps/app/.env.example apps/api/.env.example`
       both print 1
-- [ ] `grep -n "throw" packages/next-config/launch-mode.ts` shows a throw only on
+- [x] `grep -n "throw" packages/next-config/launch-mode.ts` shows a throw only on
       the invalid-value path, not the absent-value path
-- [ ] `git diff apps/web/app/pricing/page.tsx` is unchanged from the pre-existing
-      working-tree state
-- [ ] No credential values of any kind appear in the diff
-- [ ] `plans/README.md` row updated
+- [x] `git diff -- apps/web/app/pricing/page.tsx` is empty
+- [x] No real credential values of any kind appear in the diff; documented
+      example values are recognisable placeholders only
+- [x] `plans/README.md` row updated
 
 ## STOP conditions
 
@@ -236,9 +285,8 @@ Stop and report if:
   fail in the browser. That is a defensible position, but then the fix is to
   guarantee the variable at build time and the client components should not call
   this accessor at all — a different change to the one written here.
-- The uncommitted `force-dynamic` change in `apps/web/app/pricing/page.tsx` has
-  been committed or reverted by someone else while you work. Re-read before
-  continuing.
+- `apps/web/app/pricing/page.tsx` changes from its committed `7cef97c` state
+  while you work.
 - You find a third client-side caller of `isEarlyAccess`/`isPaidLaunch` not
   listed in "Current state".
 
