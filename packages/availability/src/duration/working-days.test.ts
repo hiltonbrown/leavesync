@@ -30,6 +30,14 @@ const location = {
   timezone: "UTC",
 };
 
+const timezones = [
+  "UTC",
+  "Australia/Sydney",
+  "Australia/Brisbane",
+  "Pacific/Auckland",
+  "Europe/London",
+] as const;
+
 const holiday = (date: string, archived = false) => ({
   archived_at: archived ? new Date("2026-01-01T00:00:00.000Z") : null,
   assignments: [],
@@ -46,6 +54,100 @@ describe("computeWorkingDays", () => {
     mocks.findOrganisation.mockResolvedValue(location);
     mocks.listForOrganisation.mockResolvedValue({ ok: true, value: [] });
   });
+
+  it.each(timezones)(
+    "counts an all-day Monday to Wednesday range as three days in %s",
+    async (timezone) => {
+      mocks.findLocation.mockResolvedValue({ ...location, timezone });
+
+      const result = await computeWorkingDays({
+        allDay: true,
+        clerkOrgId: "org_1",
+        endsAt: new Date("2026-01-07T23:59:59.999Z"),
+        locationId: "loc_1",
+        organisationId: "00000000-0000-4000-8000-000000000001",
+        startsAt: new Date("2026-01-05T00:00:00.000Z"),
+      });
+
+      expect(result).toEqual({ ok: true, value: 3 });
+    }
+  );
+
+  it.each(timezones)(
+    "counts an all-day Monday to Friday range as five days in %s",
+    async (timezone) => {
+      mocks.findLocation.mockResolvedValue({ ...location, timezone });
+
+      const result = await computeWorkingDays({
+        allDay: true,
+        clerkOrgId: "org_1",
+        endsAt: new Date("2026-01-09T23:59:59.999Z"),
+        locationId: "loc_1",
+        organisationId: "00000000-0000-4000-8000-000000000001",
+        startsAt: new Date("2026-01-05T00:00:00.000Z"),
+      });
+
+      expect(result).toEqual({ ok: true, value: 5 });
+    }
+  );
+
+  it.each(timezones)(
+    "counts a timed 09:00 to 17:00 range as one day in %s",
+    async (timezone) => {
+      mocks.findLocation.mockResolvedValue({ ...location, timezone });
+
+      const result = await computeWorkingDays({
+        allDay: false,
+        clerkOrgId: "org_1",
+        endsAt: new Date("2026-01-05T17:00:00.000Z"),
+        locationId: "loc_1",
+        organisationId: "00000000-0000-4000-8000-000000000001",
+        startsAt: new Date("2026-01-05T09:00:00.000Z"),
+      });
+
+      expect(result).toEqual({ ok: true, value: 1 });
+    }
+  );
+
+  it.each(timezones)(
+    "counts a timed 09:00 to 13:00 range as half a day in %s",
+    async (timezone) => {
+      mocks.findLocation.mockResolvedValue({ ...location, timezone });
+
+      const result = await computeWorkingDays({
+        allDay: false,
+        clerkOrgId: "org_1",
+        endsAt: new Date("2026-01-05T13:00:00.000Z"),
+        locationId: "loc_1",
+        organisationId: "00000000-0000-4000-8000-000000000001",
+        startsAt: new Date("2026-01-05T09:00:00.000Z"),
+      });
+
+      expect(result).toEqual({ ok: true, value: 0.5 });
+    }
+  );
+
+  it.each(timezones)(
+    "excludes the stored public holiday date in %s",
+    async (timezone) => {
+      mocks.findLocation.mockResolvedValue({ ...location, timezone });
+      mocks.listForOrganisation.mockResolvedValue({
+        ok: true,
+        value: [holiday("2026-01-06")],
+      });
+
+      const result = await computeWorkingDays({
+        allDay: true,
+        clerkOrgId: "org_1",
+        endsAt: new Date("2026-01-07T23:59:59.999Z"),
+        locationId: "loc_1",
+        organisationId: "00000000-0000-4000-8000-000000000001",
+        startsAt: new Date("2026-01-05T00:00:00.000Z"),
+      });
+
+      expect(result).toEqual({ ok: true, value: 2 });
+    }
+  );
 
   it("counts Monday to Friday all-day as five working days", async () => {
     const result = await computeWorkingDays({
