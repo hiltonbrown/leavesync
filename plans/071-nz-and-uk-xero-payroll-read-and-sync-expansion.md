@@ -8,7 +8,10 @@
 >
 > **Dispatch gate**: Plan 069 must remain `DONE` and plan 058 must be `DONE`.
 > Plan 058 changes the balance handler named below, so re-read its completed
-> implementation before starting this plan.
+> implementation before starting this plan. Its 40-person cap is provisional as
+> of the 2026-08-24 reconciliation; if the operator approves another cap or
+> continuation architecture, replace every 40-person assumption in this plan
+> before dispatch.
 >
 > **Drift check (run first)**:
 > `git diff --stat 206af7b..HEAD -- PRODUCT.md README.md docs/architecture/xero-people-sync.md packages/database/prisma/schema.prisma packages/database/src/queries/leave-balances.ts packages/database/src/queries/schedulable-xero-tenants.ts packages/xero/src/read packages/xero/src/nz packages/xero/src/uk packages/xero/src/oauth/service.ts packages/jobs/src/handlers/sync-xero-people.ts packages/jobs/src/handlers/sync-xero-leave-records.ts packages/jobs/src/handlers/sync-xero-leave-balances.ts packages/jobs/src/handlers/reconcile-xero-approval-state.ts packages/jobs/src/handlers/schedule-xero-syncs.ts packages/availability/src/people/people-service.ts packages/availability/src/approvals/approval-service.ts apps/app/components/dashboard/balances-card.tsx apps/app/components/people/person-profile-content.tsx apps/app/app/'(authenticated)'/leave-approvals/leave-approvals-client.tsx`
@@ -185,10 +188,15 @@ storage and presentation, and status reconciliation.
 NZ and UK leave and balance reads cost one request per employee. Do not fetch
 every employee on every scheduled run.
 
-- Regional leave runs process at most 20 employees every 15 minutes, a maximum
-  of 1,920 employee leave requests per day before retries.
-- Regional balance runs process at most 40 employees hourly, a maximum of 960
-  employee balance requests per day before retries.
+- Regional leave runs process at most 20 employees every 15 minutes. Ninety-six
+  successful scheduled pages form a 1,920-request daily baseline before
+  retries.
+- Regional balance runs inherit Plan 058's operator-approved cap. Under the
+  provisional 40-person hourly draft, 24 successful scheduled pages form a
+  960-request daily baseline before retries. Retries, manual or targeted runs,
+  initial-connection work, and other Xero traffic are additional, so 960 is not
+  a hard maximum. This is not executable until Plan 058 records operator
+  approval of its rolling-best-effort contract.
 - Keep the existing daily approval reconciliation cap at no more than 500
   status requests.
 - Together with employee-page reads, this leaves material headroom below the
@@ -327,7 +335,7 @@ would weaken plan 058's bounded execution, token-refresh, or resume guarantees.
 4. Advance the cursor only after persistence and scoped archival succeed. Reset
    it after the final page so a later schedule starts a new full cycle.
 5. Integrate NZ/UK balances with plan 058's completed paging contract, capped at
-   40 employees per hourly run. Persist `balance`, `balance_unit`,
+   its operator-approved employees per hourly run. Persist `balance`, `balance_unit`,
    `currency_code`, `as_at`, `last_fetched_at`, and `source_payload_json`.
 6. Mark a run `partial_success` for employee-specific validation/not-found
    failures and retain the scoped failed-record details. Fail the run for auth,
@@ -338,7 +346,8 @@ would weaken plan 058's bounded execution, token-refresh, or resume guarantees.
    but the next due run must pick it up deterministically.
 8. Add integration coverage for tenant and Organisation isolation, idempotent
    reruns, multi-page resume/reset, token refresh, partial employee failures,
-   scoped stale archival, monetary persistence, and the 20/40 request caps.
+   scoped stale archival, monetary persistence, and the regional-leave plus
+   operator-approved balance request caps.
 
 **Verify**:
 
@@ -428,7 +437,7 @@ precondition. Fixture-only success is not a substitute for a required CI gate.
 | UK mapping | Lower-camel employees, employee leave, statuses, balances, partner denial |
 | Validation | Malformed envelopes, dates, identifiers, amounts, units, and currency pairs fail explicitly |
 | Tenancy | Every query and write is isolated by Clerk Organisation and Organisation |
-| Paging | Regional 20/40 caps, resume, reset, retry, and no duplicate writes |
+| Paging | Regional leave and operator-approved balance caps, resume, reset, retry, and no duplicate writes |
 | Stale data | Only successfully fetched people can have stale leave archived |
 | Partial failure | One bad employee does not erase or fail successful employee records |
 | Monetary storage | Decimal value, `currency`, `NZD`, dates, and raw source round-trip |
