@@ -21,6 +21,8 @@
 - **Category**: security, dx
 - **Planned at**: commit `b590de2`, 2026-08-24
 - **Unblocks**: plan 053; restores the full quality gate for merged plan 052
+- **Execution**: DONE on branch `advisor/075-remove-xero-debug-harness` at
+  commit `8b3efbe`; reviewer verdict APPROVE; not merged
 
 ## Why this matters
 
@@ -281,17 +283,17 @@ belongs in this plan.
 
 ## Done criteria
 
-- [ ] All seven debug files are deleted and both debug directories are absent.
-- [ ] Repository search finds no remaining debug harness route or page name.
-- [ ] `sync/_actions.ts` contains no `console.log` or `console.error`.
-- [ ] Manual sync behaviour is unchanged and its targeted tests pass.
-- [ ] `bun run check` exits 0, removing the 62-error baseline blocker.
-- [ ] `bun run typecheck`, `bun run test`, `bun run test:integration` and
+- [x] All seven debug files are deleted and both debug directories are absent.
+- [x] Repository search finds no remaining debug harness route or page name.
+- [x] `sync/_actions.ts` contains no `console.log` or `console.error`.
+- [x] Manual sync behaviour is unchanged and its targeted tests pass.
+- [x] `bun run check` exits 0, removing the 62-error baseline blocker.
+- [x] `bun run typecheck`, `bun run test`, `bun run test:integration` and
       `bun run build` exit 0.
-- [ ] `git diff --check` exits 0.
-- [ ] Before the plan-index update, `git status --short` lists only seven
+- [x] `git diff --check` exits 0.
+- [x] Before the plan-index update, `git status --short` lists only seven
       deleted debug files and the one in-scope sync action modification.
-- [ ] The executor commits the work and updates the plan index only if the
+- [x] The executor commits the work and updates the plan index only if the
       reviewer has not reserved that responsibility.
 
 ## STOP conditions
@@ -319,3 +321,18 @@ Stop and report if:
   or an explicitly designed admin diagnostic surface.
 - After this plan lands, re-run all plan 052 gates on `main`. Resume plan 053 at
   its Step 5 on a base that includes this plan.
+
+## Execution review
+
+- **Verdict**: APPROVE
+- **Branch**: `advisor/075-remove-xero-debug-harness`
+- **Commit**: `8b3efbe fix(app): remove unsafe Xero debug routes`
+- **Worktree**: `/tmp/teamcalendar-plan-075`
+- **Scope**: exactly seven debug-file deletions and the in-scope sync action
+  modification; 287 lines removed and one punctuation line added
+- **Verification**: targeted sync tests 10/10; check 0; typecheck 19/19 tasks;
+  unit tests 17/17 tasks; database-backed integration tests 58/58 across 5/5
+  tasks; build 4/4 tasks; `git diff --check` 0
+- **External test note**: two Xero OAuth external integration tests remain
+  credential-gated and skipped; every database-backed suite required by this
+  plan executed
