@@ -21,8 +21,8 @@
 - **Category**: security, dx
 - **Planned at**: commit `b590de2`, 2026-08-24
 - **Unblocks**: plan 053; restores the full quality gate for merged plan 052
-- **Execution**: DONE on branch `advisor/075-remove-xero-debug-harness` at
-  commit `8b3efbe`; reviewer verdict APPROVE; not merged
+- **Execution**: MERGED into `main` at commit `3040948`; implementation commit
+  `8b3efbe`; reviewer verdict APPROVE
 
 ## Why this matters
 
@@ -327,6 +327,7 @@ Stop and report if:
 - **Verdict**: APPROVE
 - **Branch**: `advisor/075-remove-xero-debug-harness`
 - **Commit**: `8b3efbe fix(app): remove unsafe Xero debug routes`
+- **Merged as**: `3040948 merge: advisor/075-remove-xero-debug-harness into main`
 - **Worktree**: `/tmp/teamcalendar-plan-075`
 - **Scope**: exactly seven debug-file deletions and the in-scope sync action
   modification; 287 lines removed and one punctuation line added
