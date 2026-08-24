@@ -86,9 +86,8 @@ export async function computeWorkingDays(
       };
     }
 
-    const timezone = location.timezone ?? "UTC";
-    const startParts = getLocalDateParts(input.startsAt, timezone);
-    const endParts = getLocalDateParts(input.endsAt, timezone);
+    const startParts = getStoredWallClockParts(input.startsAt);
+    const endParts = getStoredWallClockParts(input.endsAt);
     const holidayDates = loadHolidayDatesFromResults({
       holidayResults: await Promise.all(
         yearsBetween(startParts.year, endParts.year).map((year) =>
@@ -101,7 +100,6 @@ export async function computeWorkingDays(
       ),
       location,
       locationId: input.locationId,
-      timezone,
     });
 
     if (!holidayDates.ok) {
@@ -159,9 +157,8 @@ export function workingDayYearsForInput(
     };
   }
 
-  const timezone = location.timezone ?? "UTC";
-  const startParts = getLocalDateParts(input.startsAt, timezone);
-  const endParts = getLocalDateParts(input.endsAt, timezone);
+  const startParts = getStoredWallClockParts(input.startsAt);
+  const endParts = getStoredWallClockParts(input.endsAt);
   return { ok: true, value: yearsBetween(startParts.year, endParts.year) };
 }
 
@@ -191,9 +188,8 @@ export function computeWorkingDaysFromReferenceData(
       };
     }
 
-    const timezone = location.timezone ?? "UTC";
-    const startParts = getLocalDateParts(input.startsAt, timezone);
-    const endParts = getLocalDateParts(input.endsAt, timezone);
+    const startParts = getStoredWallClockParts(input.startsAt);
+    const endParts = getStoredWallClockParts(input.endsAt);
     const holidayResults = yearsBetween(startParts.year, endParts.year).map(
       (year) =>
         referenceData.holidaysByYear.get(year) ?? {
@@ -205,7 +201,6 @@ export function computeWorkingDaysFromReferenceData(
       holidayResults,
       location,
       locationId: input.locationId,
-      timezone,
     });
 
     if (!holidayDates.ok) {
@@ -290,12 +285,10 @@ function loadHolidayDatesFromResults({
   holidayResults,
   location,
   locationId,
-  timezone,
 }: {
   holidayResults: Result<HolidayForDuration[], HolidayLoadError>[];
   location: DurationLocation | null;
   locationId: string | null;
-  timezone: string;
 }): Result<Set<string>, DurationError> {
   const holidayDates = new Set<string>();
   for (const result of holidayResults) {
@@ -315,7 +308,6 @@ function loadHolidayDatesFromResults({
         holidayDates,
         location,
         locationId,
-        timezone,
       });
     }
   }
@@ -328,13 +320,11 @@ function addExcludedHolidayDate({
   holidayDates,
   location,
   locationId,
-  timezone,
 }: {
   holiday: HolidayForDuration;
   holidayDates: Set<string>;
   location: DurationLocation;
   locationId: string | null;
-  timezone: string;
 }) {
   if (
     shouldExcludeHoliday({
@@ -342,10 +332,9 @@ function addExcludedHolidayDate({
       holiday,
       locationId,
       regionCode: location.region_code,
-      timezone,
     })
   ) {
-    holidayDates.add(dateOnlyInTimezone(holiday.holiday_date, timezone));
+    holidayDates.add(getStoredWallClockParts(holiday.holiday_date).dateOnly);
   }
 }
 
@@ -354,13 +343,11 @@ function shouldExcludeHoliday({
   holiday,
   locationId,
   regionCode,
-  timezone,
 }: {
   countryCode: string | null;
   holiday: HolidayForDuration;
   locationId: string | null;
   regionCode: string | null;
-  timezone: string;
 }): boolean {
   if (holiday.archived_at) {
     return false;
@@ -397,7 +384,7 @@ function shouldExcludeHoliday({
     return false;
   }
 
-  return Boolean(dateOnlyInTimezone(holiday.holiday_date, timezone));
+  return true;
 }
 
 function fractionalWorkingDay(
@@ -419,24 +406,12 @@ function fractionalWorkingDay(
   return minutes / WORKING_DAY_MINUTES;
 }
 
-function getLocalDateParts(date: Date, timezone: string): LocalDateParts {
-  const parts = new Intl.DateTimeFormat("en-AU", {
-    day: "2-digit",
-    hour: "2-digit",
-    hour12: false,
-    minute: "2-digit",
-    month: "2-digit",
-    timeZone: timezone,
-    year: "numeric",
-  }).formatToParts(date);
-
-  const valueFor = (type: Intl.DateTimeFormatPartTypes): number =>
-    Number(parts.find((part) => part.type === type)?.value ?? "0");
-  const year = valueFor("year");
-  const month = valueFor("month");
-  const day = valueFor("day");
-  const hour = valueFor("hour") % 24;
-  const minute = valueFor("minute");
+function getStoredWallClockParts(date: Date): LocalDateParts {
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth() + 1;
+  const day = date.getUTCDate();
+  const hour = date.getUTCHours();
+  const minute = date.getUTCMinutes();
 
   return {
     dateOnly: `${year}-${pad(month)}-${pad(day)}`,
@@ -446,10 +421,6 @@ function getLocalDateParts(date: Date, timezone: string): LocalDateParts {
     month,
     year,
   };
-}
-
-function dateOnlyInTimezone(date: Date, timezone: string): string {
-  return getLocalDateParts(date, timezone).dateOnly;
 }
 
 function yearsBetween(startYear: number, endYear: number): number[] {
