@@ -17,7 +17,7 @@
 - **Priority**: P1
 - **Effort**: M
 - **Risk**: MED
-- **Depends on**: none
+- **Depends on**: plan 075 (`075-remove-the-committed-xero-debug-harness.md`)
 - **Category**: bug
 - **Planned at**: commit `206af7b`, 2026-08-23
 - **Covers finding**: C-02
@@ -37,8 +37,9 @@
   out-of-scope `apps/app/app/(authenticated)/debug/**` files. The same command
   failed twice for the executor and once for the reviewer. No diagnostic was
   reported in an in-scope file.
-- **Resume condition**: make `bun run check` pass on the branch base, then resume
-  this worktree at Step 5 and run every remaining mandatory gate before commit.
+- **Resume condition**: execute plan 075 so `bun run check` passes on the branch
+  base, then resume this worktree at Step 5 and run every remaining mandatory
+  gate before commit.
 
 ## Why this matters
 

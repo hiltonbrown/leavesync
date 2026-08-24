@@ -4,9 +4,10 @@ This directory is the implementation backlog produced by the `improve` skill.
 Every plan is self-contained and must be drift-checked before execution.
 
 **Reconciled and re-planned on 2026-08-12 against local `main` at commit
-`121da2a`.** The 45 completed plans were verified against current source and
-their files removed; their outcomes are in the ledger below. Plans 051 to 068 are
-new, and between them address all 35 findings from the 2026-08-12 audit.
+`121da2a`, with targeted reconciliations through 2026-08-24 at `b590de2`.** The
+45 completed plans were verified against current source and their files removed;
+their outcomes are in the ledger below. Plans 051 to 068 address the 2026-08-12
+audit; plans 069 to 075 record later targeted work and reconciliation findings.
 
 Recover any removed plan with `git show HEAD:plans/<filename>`.
 
@@ -16,19 +17,21 @@ Measured on this commit, not inherited from the previous reconciliation:
 
 | Gate | Result |
 |---|---|
-| `bun run check` | **exit 0**, 757 files checked in 92s |
-| `bun run typecheck` | **exit 0** |
-| `bun run test` | **exit 0**, 17/17 tasks. `apps/app` 65 files / 254 tests, `@repo/feeds` 10 / 108, `@repo/core` 2 / 18, `web` 3 / 7 |
+| `bun run check` | **exit 1** on plan 052 branch `d1d4a94`, whose only source diff from `b590de2` passes scoped lint; all 62 errors are outside that diff: 60 in seven committed debug-route files and two in temporary sync-action console output; plan 075 owns the complete blocker |
+| `bun run typecheck` | **exit 0** on plan 052 branch `d1d4a94`, 19/19 tasks |
+| `bun run test` | **exit 0** on `d1d4a94`, 17/17 tasks; availability 33 files / 280 tests |
 | `bun run build` | exit 0 as of `8adeaa5` (plan 049); not re-run on this commit |
-| `bun run test:integration` | **not verified.** Needs a live `DATABASE_URL`; no local Postgres on the operator host |
+| `bun run test:integration` | **exit 0** on `d1d4a94` against the configured database, 5/5 tasks and 60 tests |
 
 This supersedes the previous index's claim that `bun run test` is "not a usable
 local gate". It is now a real gate and should be treated as one. The per-package
 commands recorded under plan 048 are no longer necessary, though they remain
 valid for narrowing a run.
 
-The integration lane is the one gate still unproven. **Plan 051 is the likely
-cause and is first in the queue for that reason.**
+The full integration lane is proven on the isolated plan 052 branch. Plan 051's
+suspected fixture collision was fixed independently in `37e7231`; its two
+affected jobs files also passed together twice consecutively against the live
+database.
 
 ## Execution order and status
 
@@ -37,30 +40,31 @@ Plans are ordered by leverage, with dependencies respected. Each row is merged t
 
 | # | Plan | Priority | Effort | Risk | Depends on | Status |
 |---|---|---|---|---|---|---|
-| 1 | [051](051-isolate-the-jobs-integration-test-fixtures.md) Isolate the jobs integration fixtures | P1 | S | LOW | — | TODO |
-| 2 | [052](052-correct-the-timezone-contract-for-working-day-units.md) Correct the timezone contract for working-day units | P1 | M | MED | — | TODO |
-| 3 | [053](053-guard-the-inbound-leave-upsert-against-stale-writes.md) Guard the inbound leave upsert | P1 | M | MED | — | BLOCKED (2026-08-23: implementation and targeted database proof pass in `advisor/053-guard-inbound-upsert`; `bun run check` has 68 pre-existing out-of-scope debug-route diagnostics) |
-| 4 | [054](054-keep-synced-leave-in-the-feed-for-its-whole-last-day.md) Keep synced leave in the feed for its last day | P1 | S | MED | — | TODO |
-| 5 | [055](055-make-launch-mode-safe-in-the-browser.md) Make launch mode safe in the browser | P1 | S | LOW | — | TODO |
-| 6 | [057](057-make-failures-visible-and-scrub-what-is-logged.md) Make failures visible, scrub what is logged | P1 | S | LOW | — | TODO |
-| 7 | [056](056-give-the-approval-reconciler-a-cursor.md) Give the approval reconciler a cursor | P2 | M | LOW | needs `DATABASE_URL` | TODO |
-| 8 | [058](058-bound-the-unbounded-sync-loops.md) Bound the unbounded sync loops | P2 | L | MED | 053 | TODO (reconciled 2026-08-23 at `206af7b`: one cursor page per run; bulk stale archive) |
-| 9 | [059](059-make-the-notification-stream-reliable-and-affordable.md) Make the notification stream reliable | P2 | M | MED | — | TODO |
-| 10 | [060](060-project-explicit-columns-in-the-analytics-services.md) Project explicit columns in analytics | P2 | S | LOW | — | TODO |
-| 11 | [061](061-halve-the-work-on-the-ics-feed-read-path.md) Halve the work on the ICS read path | P2 | S | LOW | 054 | TODO |
-| 12 | [063](063-close-the-validation-and-authorisation-gaps.md) Close the validation and authorisation gaps | P2 | M | LOW | — | TODO |
-| 13 | [066](066-test-the-untested-money-and-tenancy-paths.md) Test the money and tenancy paths | P2 | M | LOW | 051 | TODO |
-| 14 | [062](062-enforce-a-content-security-policy.md) Enforce a Content Security Policy | P2 | M | MED | — | TODO |
-| 15 | [067](067-consolidation-and-hygiene.md) Consolidation and hygiene | P3 | S | LOW | — | TODO |
-| 16 | [064](064-harden-the-public-feed-and-support-surfaces.md) Harden the public feed and support surfaces | P3 | M | LOW | 061 | TODO |
-| 17 | [065](065-unify-the-public-holiday-predicate.md) Unify the public holiday predicate | P3 | M | **MED** | 060, 061 | TODO, **decision required** |
-| 18 | [068](068-merge-the-twin-analytics-services.md) Merge the twin analytics services | P3 | L | MED | 060, 065 | TODO |
-| 19 | [069](069-fix-xero-people-sync-and-directory-ui.md) Fix Xero people sync and directory UI gaps | P1 | M | LOW | — | DONE (2026-08-23, commit 5993283, verified: check/typecheck/test pass) |
-| 20 | [070](070-xero-token-and-refresh-token-management-architecture.md) Xero token & refresh token management architecture | P1 | M | LOW | — | DONE (2026-08-23, branch `advisor/070-xero-token-refresh-management`, commit `0514f71`, review approved; not merged) |
-| 21 | [071](071-nz-and-uk-xero-payroll-read-and-sync-expansion.md) NZ & UK Xero payroll read and sync expansion | P1 | XL | HIGH | 058, 069 | TODO (reconciled 2026-08-23: monetary balances included as `currency` plus ISO 4217 code) |
-| 22 | [072](072-automated-clerk-user-matching-and-bulk-invitations.md) Import every missing Xero employee before reconciling Clerk access | P1 | M | MED | 069, 071 | TODO |
-| 23 | [073](073-orphaned-xero-employee-lifecycle-reconciliation.md) Soft-archive Xero employees missing from a complete payroll snapshot | P2 | M | MED | 072 | TODO |
-| 24 | [074](074-xero-tracking-category-team-and-manager-hierarchy-sync.md) Xero tracking category team & manager hierarchy sync | P2 | M | LOW | 073 | TODO |
+| 1 | [075](075-remove-the-committed-xero-debug-harness.md) Remove the committed Xero debug harness and restore the quality gate | P1 | S | LOW | — | TODO, prerequisite for 052 and 053 |
+| 2 | [051](051-isolate-the-jobs-integration-test-fixtures.md) Isolate the jobs integration fixtures | P1 | S | LOW | — | REJECTED (2026-08-24: fixed independently in `37e7231`; live pair passed twice at `b590de2`) |
+| 3 | [052](052-correct-the-timezone-contract-for-working-day-units.md) Correct the timezone contract for working-day units | P1 | S | MED | 075 | BLOCKED (`d1d4a94` remains correct and focused tests pass 32/32; execute 075, then rebase and re-run all gates) |
+| 4 | [053](053-guard-the-inbound-leave-upsert-against-stale-writes.md) Guard the inbound leave upsert | P1 | M | MED | 075 | BLOCKED (implementation and database proof pass; execute 075, then resume Step 5) |
+| 5 | [054](054-keep-synced-leave-in-the-feed-for-its-whole-last-day.md) Keep synced leave in the feed for its last day | P1 | S | MED | — | TODO |
+| 6 | [055](055-make-launch-mode-safe-in-the-browser.md) Make launch mode safe in the browser | P1 | S | LOW | — | TODO |
+| 7 | [057](057-make-failures-visible-and-scrub-what-is-logged.md) Make failures visible, scrub what is logged | P1 | S | LOW | — | TODO |
+| 8 | [056](056-give-the-approval-reconciler-a-cursor.md) Give the approval reconciler a cursor | P2 | M | LOW | needs `DATABASE_URL` | TODO |
+| 9 | [058](058-bound-the-unbounded-sync-loops.md) Bound the unbounded sync loops | P2 | L | MED | 053 | TODO (reconciled 2026-08-23 at `206af7b`: one cursor page per run; bulk stale archive) |
+| 10 | [059](059-make-the-notification-stream-reliable-and-affordable.md) Make the notification stream reliable | P2 | M | MED | — | TODO |
+| 11 | [060](060-project-explicit-columns-in-the-analytics-services.md) Project explicit columns in analytics | P2 | S | LOW | — | TODO |
+| 12 | [061](061-halve-the-work-on-the-ics-feed-read-path.md) Halve the work on the ICS read path | P2 | S | LOW | 054 | TODO |
+| 13 | [063](063-close-the-validation-and-authorisation-gaps.md) Close the validation and authorisation gaps | P2 | M | LOW | — | TODO |
+| 14 | [066](066-test-the-untested-money-and-tenancy-paths.md) Test the money and tenancy paths | P2 | M | LOW | — | TODO (reconciled 2026-08-24: allocate a unique local fixture prefix; no registry dependency) |
+| 15 | [062](062-enforce-a-content-security-policy.md) Enforce a Content Security Policy | P2 | M | MED | — | TODO |
+| 16 | [067](067-consolidation-and-hygiene.md) Consolidation and hygiene | P3 | S | LOW | — | TODO |
+| 17 | [064](064-harden-the-public-feed-and-support-surfaces.md) Harden the public feed and support surfaces | P3 | M | LOW | 061 | TODO |
+| 18 | [065](065-unify-the-public-holiday-predicate.md) Unify the public holiday predicate | P3 | M | **MED** | 060, 061 | TODO, **decision required** |
+| 19 | [068](068-merge-the-twin-analytics-services.md) Merge the twin analytics services | P3 | L | MED | 060, 065 | TODO |
+| 20 | [069](069-fix-xero-people-sync-and-directory-ui.md) Fix Xero people sync and directory UI gaps | P1 | M | LOW | — | DONE (2026-08-23, commit 5993283, verified: check/typecheck/test pass) |
+| 21 | [070](070-xero-token-and-refresh-token-management-architecture.md) Xero token & refresh token management architecture | P1 | M | LOW | — | DONE (2026-08-23, branch `advisor/070-xero-token-refresh-management`, commit `0514f71`, review approved; not merged) |
+| 22 | [071](071-nz-and-uk-xero-payroll-read-and-sync-expansion.md) NZ & UK Xero payroll read and sync expansion | P1 | XL | HIGH | 058, 069 | TODO (reconciled 2026-08-23: monetary balances included as `currency` plus ISO 4217 code) |
+| 23 | [072](072-automated-clerk-user-matching-and-bulk-invitations.md) Import every missing Xero employee before reconciling Clerk access | P1 | M | MED | 069, 071 | TODO |
+| 24 | [073](073-orphaned-xero-employee-lifecycle-reconciliation.md) Soft-archive Xero employees missing from a complete payroll snapshot | P2 | M | MED | 072 | TODO |
+| 25 | [074](074-xero-tracking-category-team-and-manager-hierarchy-sync.md) Xero tracking category team & manager hierarchy sync | P2 | M | LOW | 073 | TODO |
 
 ## Companion reference docs (not executable)
 
@@ -68,9 +72,9 @@ Not part of the execution queue — same pattern as `gtm-team-calendar-go-to-mar
 
 - [xero-people-sync architecture](../docs/architecture/xero-people-sync.md) — companion to **069** (`069-fix-xero-people-sync-and-directory-ui.md`), reconciled 2026-08-23 at `18a8bae`; moved from `plans/069-xero-people-sync-architecture-and-reconciliation.md` to resolve duplicate numbering. Updated to reflect `person_type` mapping and `syncResult` error surfacing.
 
-**Plan 051 goes first.** Until the integration lane is trustworthy, every later
-plan's `bun run test:integration` gate is unverifiable, and two of them (056, 066)
-depend on it directly.
+**Plan 051 is retired.** The original fixture collision is gone and the affected
+pair has live database proof. Plans 056 and 066 no longer depend on it, although
+their own database-backed done criteria still require a reachable `DATABASE_URL`.
 
 Every numbered file in this directory is an executable implementation plan.
 `gtm-team-calendar-go-to-market-plan.md` is deliberately unnumbered: it is a
@@ -84,7 +88,7 @@ first" section has to be agreed before any code is written.
 ### Dependency notes
 
 ```text
-051 -> 056, 066            (integration lane must be trustworthy; 066 claims a UUID prefix)
+075 -> 052 + 053           (removes unsafe debug routes and restores the mandatory quality gate)
 053 -> 058                 (same handler file; 053 is the smaller diff)
 054 -> 061                 (same projection file)
 060 + 061 -> 065           (065 narrows what the predicate reads; both must land first)
@@ -99,9 +103,10 @@ Everything not named above is independent and may run in any order.
 
 ### May run in parallel
 
-051, 052, 055, 057 and 059 touch disjoint files and can run concurrently if
-throughput matters. Do **not** parallelise 053 with 058, 054 with 061, any pair
-of 071, 072, 073 and 074, or anything with 065 and 068.
+055, 057, 059 and 075 touch disjoint files and can run concurrently if
+throughput matters. After 075 is merged, 052 can run alongside 055, 057 and
+059. Do **not** parallelise 053 with 058, 054 with 061, any pair of 071, 072,
+073 and 074, or anything with 065 and 068.
 
 ## Deferred plans from the earlier backlog
 
@@ -157,7 +162,7 @@ verified by reading the cited code, not taken from a subagent report.
 | A-02 | Five divergent holiday predicates; four schema scopes ignored | 065 |
 | A-03 | Two hand-rolled KV clients; notifications has no `keys.ts` | 067 |
 | A-04 | The twin analytics services | 068 |
-| T-01 | Two integration test files claim the same six primary keys | 051 |
+| T-01 | Two integration test files claimed the same six primary keys | 051 (REJECTED: fixed independently in `37e7231`, verified 2026-08-24) |
 | T-02 | Stripe ordering guard and idempotency SQL untested | 066 |
 | T-03 | XeroConnection/XeroTenant uniqueness invariants untested | 066 |
 | T-04 | Duplicate route tests in `apps/api/__tests__/` have drifted | 066 |
@@ -166,14 +171,19 @@ verified by reading the cited code, not taken from a subagent report.
 | D-01 | The documented single-test command fails on all 28 `.tsx` tests | 067 |
 | D-02 | `.env.example` omits all seven variables preflight requires | 055 |
 | DOC-01 | `CLAUDE.md` omits two real packages, warns against ten that don't exist | 067 |
+| R-S-01 | Committed Xero debug routes perform unscoped reads and writes and fabricate sync history | 075 |
+| R-D-01 | The debug harness and temporary sync logging break `bun run check` with 62 errors | 075 |
+
+The `R-` findings were discovered during the 2026-08-24 reconciliation of plan
+052, after the original audit.
 
 **Note on S-06.** `apps/app/proxy.ts` is bare `clerkMiddleware()`, which protects
 nothing, while `CLAUDE.md:336` states route protection is composed there. The
-real gate is the `(authenticated)` layout, and `apps/app` contains zero route
-handlers, so the present exposure is bounded. Either the doc or the code is
-wrong. Plan 067 corrects the documentation; **if the operator wants the
-framework-level gate instead**, that is a separate plan and should be written
-before any new route group or route handler is added to `apps/app`.
+`(authenticated)` layout guards pages but does not protect route handlers. At
+`b590de2`, the committed debug route handlers make that exposure concrete; plan
+075 deletes them. Plan 067 still corrects the documentation. Any future route
+handler that accesses protected data must add resource-level authentication and
+both tenant scopes. A framework-level gate remains a separate operator decision.
 
 Confidence was HIGH on every finding except S-05, S-07 and S-08, which are MED
 because they depend on facts outside the repository: whether a legitimate flow
