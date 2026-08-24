@@ -189,9 +189,10 @@ describe("renderFeedBody", () => {
     expect(result.error.code).toBe("unknown_error");
     expect(result.error.message).toBe("Failed to render feed");
     expect(mocks.logWarn).toHaveBeenCalledTimes(1);
-    expect(mocks.logWarn).toHaveBeenCalledWith(
-      expect.stringContaining("unknown_error")
-    );
+    expect(mocks.logWarn).toHaveBeenCalledWith("Feed projection failed", {
+      errorCode: "unknown_error",
+      feedId: renderBodyInput.feedId,
+    });
     expect(mocks.logWarn.mock.calls[0][0]).not.toContain("plaintext-token");
   });
 
@@ -215,7 +216,10 @@ describe("renderFeedBody", () => {
         return;
       }
       expect(result.error.code).toBe("unknown_error");
-      expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining(code));
+      expect(mocks.logWarn).toHaveBeenCalledWith("Feed projection failed", {
+        errorCode: code,
+        feedId: renderBodyInput.feedId,
+      });
       const logged = mocks.logWarn.mock.calls
         .map((c) => String(c[0]))
         .join(" ");
@@ -238,7 +242,11 @@ describe("renderFeedBody", () => {
     expect(result.error.code).toBe("unknown_error");
     expect(result.error.message).toBe("Failed to render feed");
     expect(mocks.logWarn).toHaveBeenCalledWith(
-      expect.stringContaining("Feed ICS serialisation failed")
+      "Feed ICS serialisation failed",
+      {
+        error: expect.any(Error),
+        feedId: renderBodyInput.feedId,
+      }
     );
     expect(mocks.logWarn.mock.calls[0][0]).not.toContain("plaintext-token");
   });
@@ -256,7 +264,11 @@ describe("renderFeedBody", () => {
     }
     expect(result.error.code).toBe("unknown_error");
     expect(mocks.logWarn).toHaveBeenCalledWith(
-      expect.stringContaining("Feed ICS serialisation failed")
+      "Feed ICS serialisation failed",
+      {
+        error: expect.any(Error),
+        feedId: renderBodyInput.feedId,
+      }
     );
     const logged = mocks.logWarn.mock.calls.map((c) => String(c[0])).join(" ");
     expect(logged).not.toContain("plaintext-token");
@@ -359,9 +371,10 @@ describe("renderFeedForToken", () => {
     expect(result.value.body).toContain("SUMMARY:Jane Smith: Annual Leave");
     expect(mocks.feedTokenUpdate).toHaveBeenCalled();
     expect(mocks.feedUpdate).toHaveBeenCalled();
-    expect(mocks.logWarn).toHaveBeenCalledWith(
-      "Feed cache write failed for feed 20000000-0000-4000-8000-000000000001: Error: KV unavailable"
-    );
+    expect(mocks.logWarn).toHaveBeenCalledWith("Feed cache write failed", {
+      error: expect.any(Error),
+      feedId: "20000000-0000-4000-8000-000000000001",
+    });
   });
 
   it("skips writing last_used_at on a cache hit when last_used_at was 5 minutes ago", async () => {
@@ -439,9 +452,10 @@ describe("renderFeedForToken", () => {
       value: { body: "cached-ics", etag: "cached-etag", status: "active" },
     });
     await new Promise((r) => setTimeout(r, 10));
-    expect(mocks.logWarn).toHaveBeenCalledWith(
-      "Feed token use write failed: Error: DB timeout"
-    );
+    expect(mocks.logWarn).toHaveBeenCalledWith("Feed token use write failed", {
+      error: expect.any(Error),
+      feedId: "20000000-0000-4000-8000-000000000001",
+    });
   });
 
   it("returns not_found when projection returns feed_not_found", async () => {
@@ -479,7 +493,10 @@ describe("renderFeedForToken", () => {
         return;
       }
       expect(result.error.code).toBe("unknown_error");
-      expect(mocks.logWarn).toHaveBeenCalledWith(expect.stringContaining(code));
+      expect(mocks.logWarn).toHaveBeenCalledWith("Feed projection failed", {
+        errorCode: code,
+        feedId: renderBodyInput.feedId,
+      });
       const logged = mocks.logWarn.mock.calls
         .map((c) => String(c[0]))
         .join(" ");
@@ -522,7 +539,11 @@ describe("renderFeedForToken", () => {
     }
     expect(result.error.code).toBe("unknown_error");
     expect(mocks.logWarn).toHaveBeenCalledWith(
-      expect.stringContaining("Feed ICS serialisation failed")
+      "Feed ICS serialisation failed",
+      {
+        error: expect.any(Error),
+        feedId: renderBodyInput.feedId,
+      }
     );
     const logged = mocks.logWarn.mock.calls.map((c) => String(c[0])).join(" ");
     expect(logged).not.toContain("super-secret-token-xyz");
