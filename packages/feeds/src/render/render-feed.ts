@@ -59,9 +59,10 @@ export async function renderFeedBody(input: {
         ok: false,
       };
     }
-    log.warn(
-      `Feed projection failed for feed ${input.feedId}: ${projected.error.code}`
-    );
+    log.warn("Feed projection failed", {
+      errorCode: projected.error.code,
+      feedId: input.feedId,
+    });
     return {
       error: { code: "unknown_error", message: "Failed to render feed" },
       ok: false,
@@ -92,9 +93,7 @@ export async function renderFeedBody(input: {
     const etag = createHash("sha256").update(body).digest("hex");
     return { ok: true, value: { body, etag } };
   } catch (error) {
-    log.warn(
-      `Feed ICS serialisation failed for feed ${input.feedId}: ${String(error)}`
-    );
+    log.warn("Feed ICS serialisation failed", { error, feedId: input.feedId });
     return {
       error: { code: "unknown_error", message: "Failed to render feed" },
       ok: false,
@@ -172,7 +171,10 @@ export async function renderFeedForToken(
   if (cached.ok && cached.value) {
     // Telemetry only: never block or fail the feed response on it.
     markTokenUsed(feedToken).catch((error) => {
-      log.warn(`Feed token use write failed: ${String(error)}`);
+      log.warn("Feed token use write failed", {
+        error,
+        feedId: feedToken.feed_id,
+      });
     });
     return { ok: true, value: { ...cached.value, status: "active" } };
   }
@@ -210,9 +212,10 @@ export async function renderFeedForToken(
   try {
     await setCachedFeedBody({ body, etag, key, ttlSeconds: 3600 });
   } catch (error) {
-    log.warn(
-      `Feed cache write failed for feed ${feedToken.feed_id}: ${String(error)}`
-    );
+    log.warn("Feed cache write failed", {
+      error,
+      feedId: feedToken.feed_id,
+    });
   }
 
   return { ok: true, value: { body, etag, status: "active" } };
