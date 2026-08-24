@@ -38,6 +38,13 @@
   merged but not fully verified because `bun run check` still reports the same
   62 out-of-scope diagnostics. After plan 075 is DONE, run every plan 052 gate
   on `main` before changing this status to DONE.
+- **Final reconciliation**: **DONE**, 2026-08-24 at `117fb1b`. The two in-scope
+  files are unchanged from reviewed executor commit `d1d4a94`. On current
+  `main`, the duration suite passes 32/32, `bun run check` exits 0,
+  `bun run typecheck` passes 19/19 tasks, and `bun run test` passes 17/17 tasks.
+  The non-planning source tree is identical to reviewed plan 075 commit
+  `8b3efbe`, where `bun run test:integration` passed 5/5 tasks and 58
+  database-backed tests. The former quality-gate blocker is resolved.
 
 ## Why this matters
 
@@ -267,23 +274,23 @@ invent credentials or print an environment value.
 
 All must hold:
 
-- [ ] Duration tests fail before the production change in AU/NZ and pass after it.
-- [ ] At least 8 new parameterised assertions cover non-UTC timezones across
+- [x] Duration tests fail before the production change in AU/NZ and pass after it.
+- [x] At least 8 new parameterised assertions cover non-UTC timezones across
       all-day and timed carrier values.
-- [ ] Public-holiday exclusion is stable across the timezone matrix.
-- [ ] The production algorithm no longer formats stored carrier values through
+- [x] Public-holiday exclusion is stable across the timezone matrix.
+- [x] The production algorithm no longer formats stored carrier values through
       `Intl.DateTimeFormat`.
-- [ ] `computeWorkingDays`, `workingDayYearsForInput` and
+- [x] `computeWorkingDays`, `workingDayYearsForInput` and
       `computeWorkingDaysFromReferenceData` use the same component contract.
-- [ ] `bun run check` exits 0.
-- [ ] `bun run typecheck` exits 0.
-- [ ] `bun run test` exits 0.
-- [ ] `bun run test:integration` exits 0, or is explicitly reported skipped
+- [x] `bun run check` exits 0.
+- [x] `bun run typecheck` exits 0.
+- [x] `bun run test` exits 0.
+- [x] `bun run test:integration` exits 0, or is explicitly reported skipped
       only because no reachable `DATABASE_URL` is available.
-- [ ] `git diff --check` exits 0.
-- [ ] `git status --short` lists only the two in-scope source files before the
+- [x] `git diff --check` exits 0.
+- [x] `git status --short` lists only the two in-scope source files before the
       executor's commit.
-- [ ] The executor commits the work and does not modify `plans/README.md`.
+- [x] The executor commits the work and does not modify `plans/README.md`.
 
 ## STOP conditions
 
