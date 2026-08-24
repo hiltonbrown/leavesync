@@ -18,15 +18,16 @@
 - **Depends on**: none. Land plan 053 first if both are queued — same handler file.
 - **Category**: bug
 - **Planned at**: commit `121da2a`, 2026-08-12
-- **Review status**: DONE on 2026-08-24. Implementation commit `07885a5` on
-  `advisor/054-feed-horizon-last-day` was independently reviewed and approved;
-  not merged.
+- **Review status**: MERGED on 2026-08-24 as `85756fe`. Implementation commit
+  `07885a5` on `advisor/054-feed-horizon-last-day` was independently reviewed
+  and approved.
 
 ## Execution outcome
 
 - **Worktree**: `/tmp/teamcalendar-plan-054`
 - **Branch**: `advisor/054-feed-horizon-last-day`
 - **Commit**: `07885a5` (`fix(feeds): keep leave published for its full last day`)
+- **Merge**: `85756fe` (`merge: keep synced leave through its last day`)
 - **Scope**: exactly the two in-scope projection source and test files; worktree
   clean and `packages/jobs/` untouched.
 - **Independent verification**: `bun run check` checked 767 files; typecheck
