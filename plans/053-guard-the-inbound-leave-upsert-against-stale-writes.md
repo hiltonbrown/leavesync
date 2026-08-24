@@ -21,25 +21,24 @@
 - **Category**: bug
 - **Planned at**: commit `206af7b`, 2026-08-23
 - **Covers finding**: C-02
-- **Review status**: BLOCKED during execution on 2026-08-23. The implementation
-  and targeted tests are present in the isolated worktree described below, but
-  the mandatory repository-wide check cannot pass on the current base.
+- **Review status**: MERGED on 2026-08-24 as `6a5e9d0`. Implementation commit
+  `27b739b` on `advisor/053-guard-inbound-upsert-v2` was independently reviewed
+  and approved.
 
-## Execution blocker
+## Execution outcome
 
-- **Worktree**: `/tmp/teamcalendar-plan-053-8T660L/worktree`
-- **Branch**: `advisor/053-guard-inbound-upsert`
-- **Commit**: none, execution stopped before the commit step
-- **Verified**: 20 targeted unit tests pass; all 8 database-backed integration
-  tests execute and pass; the three in-scope files pass Ultracite; typecheck
-  passes; `git diff --check` passes.
-- **Blocked by**: `bun run check` reports 68 pre-existing diagnostics in
-  out-of-scope `apps/app/app/(authenticated)/debug/**` files. The same command
-  failed twice for the executor and once for the reviewer. No diagnostic was
-  reported in an in-scope file.
-- **Resume condition**: execute plan 075 so `bun run check` passes on the branch
-  base, then resume this worktree at Step 5 and run every remaining mandatory
-  gate before commit.
+- **Worktree**: `/tmp/teamcalendar-plan-053`
+- **Branch**: `advisor/053-guard-inbound-upsert-v2`
+- **Commit**: `27b739b` (`fix(jobs): reject stale inbound leave snapshots`)
+- **Merge**: `6a5e9d0` (`merge: guard inbound leave upserts`)
+- **Scope**: exactly the three in-scope source and test files; worktree clean.
+- **Independent verification**: targeted unit 20/20; targeted database
+  integration 8/8; `bun run check` checked 767 files; typecheck 19/19 tasks;
+  unit suite 17/17 tasks; integration 5/5 tasks, including jobs 27/27; build
+  4/4 tasks; `git diff --check` passed. Two credential-gated external Xero
+  tests remained skipped and were unrelated to this plan.
+- **Verdict**: APPROVE. The stale-remote and concurrent-local-write windows are
+  both guarded and proven by meaningful database tests.
 
 ## Why this matters
 
@@ -347,22 +346,22 @@ Required assertions:
 
 ## Done criteria
 
-- [ ] `loadExistingRecordsBySourceRemoteId` selects `derived_sequence`,
+- [x] `loadExistingRecordsBySourceRemoteId` selects `derived_sequence`,
       `source_last_modified_at`, and `updated_at`.
-- [ ] The update predicate pins both tenant scopes, ID, approval status,
+- [x] The update predicate pins both tenant scopes, ID, approval status,
       sequence, local update time, remote timestamp, and remote hash.
-- [ ] A zero-row update increments `skipped`, not `failed` or `upserted`.
-- [ ] A skipped update does not mutate the in-memory snapshot, materialise a
+- [x] A zero-row update increments `skipped`, not `failed` or `upserted`.
+- [x] A skipped update does not mutate the in-memory snapshot, materialise a
       publication, or enqueue a feed rebuild.
-- [ ] Known remote timestamps are never overwritten with null.
-- [ ] Unit and database-backed tests prove both race windows.
-- [ ] Existing create, current-update, tenant-isolation, local-field, and
+- [x] Known remote timestamps are never overwritten with null.
+- [x] Unit and database-backed tests prove both race windows.
+- [x] Existing create, current-update, tenant-isolation, local-field, and
       failed-withdraw cases pass.
-- [ ] `bun run check`, `bun run typecheck`, `bun run test`,
+- [x] `bun run check`, `bun run typecheck`, `bun run test`,
       `bun run test:integration`, `bun run build`, and `git diff --check` exit 0.
-- [ ] Before the plan-index update, only the three in-scope source/test files
+- [x] Before the plan-index update, only the three in-scope source/test files
       are modified; afterwards only `plans/README.md` is additionally modified.
-- [ ] `plans/README.md` is updated to `DONE` with date, commit, and verification
+- [x] `plans/README.md` is updated to `DONE` with date, commit, and verification
       evidence.
 
 ## STOP conditions
