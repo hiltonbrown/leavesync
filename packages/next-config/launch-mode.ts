@@ -25,8 +25,8 @@ export const getLaunchMode = (): LaunchMode => {
   }
 
   if (isProductionEnvironment()) {
-    throw new Error(
-      "NEXT_PUBLIC_LAUNCH_MODE environment variable is required in production. Must be 'early_access' or 'paid'."
+    console.warn(
+      "NEXT_PUBLIC_LAUNCH_MODE is not set in production; defaulting to early_access."
     );
   }
 
