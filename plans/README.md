@@ -4,10 +4,10 @@ This directory is the implementation backlog produced by the `improve` skill.
 Every plan is self-contained and must be drift-checked before execution.
 
 **Reconciled and re-planned on 2026-08-12 against local `main` at commit
-`121da2a`, with targeted reconciliations through 2026-08-24 at `b7bef70`.** The
+`121da2a`, with targeted reconciliations through 2026-08-24 at `1c0d0d2`.** The
 45 completed plans were verified against current source and their files removed;
 their outcomes are in the ledger below. Plans 051 to 068 address the 2026-08-12
-audit; plans 069 to 075 record later targeted work and reconciliation findings.
+audit; plans 069 to 076 record later targeted work and reconciliation findings.
 
 Recover any removed plan with `git show HEAD:plans/<filename>`.
 
@@ -48,24 +48,25 @@ Plans are ordered by leverage, with dependencies respected. Each row is merged t
 | 5 | [054](054-keep-synced-leave-in-the-feed-for-its-whole-last-day.md) Keep synced leave in the feed for its last day | P1 | S | MED | — | MERGED (`85756fe`; implementation `07885a5`; review approved) |
 | 6 | [055](055-make-launch-mode-safe-in-the-browser.md) Make launch mode safe in the browser | P1 | S | LOW | — | MERGED (`1f507b9`; implementation `e4c5997`; review approved) |
 | 7 | [057](057-make-failures-visible-and-scrub-what-is-logged.md) Make approval failures visible and structured logging safe | P1 | M | MED | — | MERGED (`b800f20`; implementation `eee7891`; operator-directed verification exception, follow-up required below) |
-| 8 | [056](056-give-the-approval-reconciler-a-cursor.md) Give the approval reconciler a cursor | P2 | M | LOW | needs `DATABASE_URL` | TODO |
-| 9 | [058](058-bound-the-unbounded-sync-loops.md) Bound the unbounded sync loops | P2 | L | MED | 053 | TODO (reconciled 2026-08-23 at `206af7b`: one cursor page per run; bulk stale archive) |
-| 10 | [059](059-make-the-notification-stream-reliable-and-affordable.md) Make the notification stream reliable | P2 | M | MED | — | TODO |
-| 11 | [060](060-project-explicit-columns-in-the-analytics-services.md) Project explicit columns in analytics | P2 | S | LOW | — | TODO |
-| 12 | [061](061-halve-the-work-on-the-ics-feed-read-path.md) Halve the work on the ICS read path | P2 | S | LOW | 054, 057 | TODO |
-| 13 | [063](063-close-the-validation-and-authorisation-gaps.md) Close the validation and authorisation gaps | P2 | M | LOW | — | TODO |
-| 14 | [066](066-test-the-untested-money-and-tenancy-paths.md) Test the money and tenancy paths | P2 | M | LOW | — | TODO (reconciled 2026-08-24: allocate a unique local fixture prefix; no registry dependency) |
-| 15 | [062](062-enforce-a-content-security-policy.md) Enforce a Content Security Policy | P2 | M | MED | — | TODO |
-| 16 | [067](067-consolidation-and-hygiene.md) Consolidation and hygiene | P3 | S | LOW | — | TODO |
-| 17 | [064](064-harden-the-public-feed-and-support-surfaces.md) Harden the public feed and support surfaces | P3 | M | LOW | 061 | TODO |
-| 18 | [065](065-unify-the-public-holiday-predicate.md) Unify the public holiday predicate | P3 | M | **MED** | 060, 061 | TODO, **decision required** |
-| 19 | [068](068-merge-the-twin-analytics-services.md) Merge the twin analytics services | P3 | L | MED | 060, 065 | TODO |
-| 20 | [069](069-fix-xero-people-sync-and-directory-ui.md) Fix Xero people sync and directory UI gaps | P1 | M | LOW | — | DONE (2026-08-23, commit 5993283, verified: check/typecheck/test pass) |
-| 21 | [070](070-xero-token-and-refresh-token-management-architecture.md) Xero token & refresh token management architecture | P1 | M | LOW | — | DONE (2026-08-23, branch `advisor/070-xero-token-refresh-management`, commit `0514f71`, review approved; not merged) |
-| 22 | [071](071-nz-and-uk-xero-payroll-read-and-sync-expansion.md) NZ & UK Xero payroll read and sync expansion | P1 | XL | HIGH | 058, 069 | TODO (reconciled 2026-08-23: monetary balances included as `currency` plus ISO 4217 code) |
-| 23 | [072](072-automated-clerk-user-matching-and-bulk-invitations.md) Import every missing Xero employee before reconciling Clerk access | P1 | M | MED | 069, 071 | TODO |
-| 24 | [073](073-orphaned-xero-employee-lifecycle-reconciliation.md) Soft-archive Xero employees missing from a complete payroll snapshot | P2 | M | MED | 072 | TODO |
-| 25 | [074](074-xero-tracking-category-team-and-manager-hierarchy-sync.md) Xero tracking category team & manager hierarchy sync | P2 | M | LOW | 073 | TODO |
+| 8 | [076](076-route-scheduled-syncs-by-the-database-tenant-id.md) Route scheduled syncs by the database Xero tenant ID | P1 | S | LOW | needs `DATABASE_URL` and default build runner | TODO |
+| 9 | [056](056-give-the-approval-reconciler-a-cursor.md) Give the approval reconciler a cursor | P2 | M | LOW | needs `DATABASE_URL` | TODO |
+| 10 | [058](058-bound-the-unbounded-sync-loops.md) Bound the unbounded sync loops | P2 | L | MED | 053, 076, operator approval | **BLOCKED** (2026-08-24 at `1c0d0d2`: scheduled routing prerequisite, product-contract approval, `DATABASE_URL`, and default build runner required) |
+| 11 | [059](059-make-the-notification-stream-reliable-and-affordable.md) Make the notification stream reliable | P2 | M | MED | — | TODO |
+| 12 | [060](060-project-explicit-columns-in-the-analytics-services.md) Project explicit columns in analytics | P2 | S | LOW | — | TODO |
+| 13 | [061](061-halve-the-work-on-the-ics-feed-read-path.md) Halve the work on the ICS read path | P2 | S | LOW | 054, 057 | TODO |
+| 14 | [063](063-close-the-validation-and-authorisation-gaps.md) Close the validation and authorisation gaps | P2 | M | LOW | — | TODO |
+| 15 | [066](066-test-the-untested-money-and-tenancy-paths.md) Test the money and tenancy paths | P2 | M | LOW | — | TODO (reconciled 2026-08-24: allocate a unique local fixture prefix; no registry dependency) |
+| 16 | [062](062-enforce-a-content-security-policy.md) Enforce a Content Security Policy | P2 | M | MED | — | TODO |
+| 17 | [067](067-consolidation-and-hygiene.md) Consolidation and hygiene | P3 | S | LOW | — | TODO |
+| 18 | [064](064-harden-the-public-feed-and-support-surfaces.md) Harden the public feed and support surfaces | P3 | M | LOW | 061 | TODO |
+| 19 | [065](065-unify-the-public-holiday-predicate.md) Unify the public holiday predicate | P3 | M | **MED** | 060, 061 | TODO, **decision required** |
+| 20 | [068](068-merge-the-twin-analytics-services.md) Merge the twin analytics services | P3 | L | MED | 060, 065 | TODO |
+| 21 | [069](069-fix-xero-people-sync-and-directory-ui.md) Fix Xero people sync and directory UI gaps | P1 | M | LOW | — | DONE (2026-08-23, commit 5993283, verified: check/typecheck/test pass) |
+| 22 | [070](070-xero-token-and-refresh-token-management-architecture.md) Xero token & refresh token management architecture | P1 | M | LOW | — | MERGED (`206af7b`; implementation `0514f71`; review approved) |
+| 23 | [071](071-nz-and-uk-xero-payroll-read-and-sync-expansion.md) NZ & UK Xero payroll read and sync expansion | P1 | XL | HIGH | 058, 069 | TODO (reconciled 2026-08-23: monetary balances included as `currency` plus ISO 4217 code) |
+| 24 | [072](072-automated-clerk-user-matching-and-bulk-invitations.md) Import every missing Xero employee before reconciling Clerk access | P1 | M | MED | 069, 071 | TODO |
+| 25 | [073](073-orphaned-xero-employee-lifecycle-reconciliation.md) Soft-archive Xero employees missing from a complete payroll snapshot | P2 | M | MED | 072 | TODO |
+| 26 | [074](074-xero-tracking-category-team-and-manager-hierarchy-sync.md) Xero tracking category team & manager hierarchy sync | P2 | M | LOW | 073 | TODO |
 
 ### Plan 057 deferred follow-up
 
@@ -76,6 +77,26 @@ production error-channel sanitisation. The default `bun run build` must also run
 successfully on a runner that permits Turbopack's loader process to bind its
 loopback port. After that work, rerun check, build, typecheck, unit and
 integration gates before marking the follow-up verified.
+
+### Plan 058 execution block
+
+Cold review on 2026-08-24 found that scheduled syncs currently route Xero's
+provider tenant identifier where all handlers require the database tenant UUID.
+Plan 076 isolates that P1 prerequisite. Plan 058 also cannot choose a page cap
+honestly while PRODUCT promises hourly balance sync and public pricing accepts
+unbounded payroll-file size: its provisional 40-person page makes full-cycle
+age `ceil(active Xero people / 40)` hours.
+
+Plan 058 now contains one atomic implementation branch that preserves the
+unlimited-roster promise, defines the whole-organisation balance cycle as
+rolling best-effort with no fixed completion SLA, and publishes matching
+PRODUCT, pricing, and settings language only when the bounded backend ships.
+It remains BLOCKED until the operator explicitly approves that contract.
+
+Before Plan 058 returns to TODO, record operator approval in the plan, merge
+Plan 076, then reconcile Plan 058 with its exact merge SHA. Execution also
+requires database-backed suites to run without skipping and the default
+Turbopack build to pass on a port-capable runner.
 
 ## Companion reference docs (not executable)
 
@@ -100,7 +121,7 @@ first" section has to be agreed before any code is written.
 
 ```text
 075 -> 053                 (removes unsafe debug routes before the stale-write branch resumes)
-053 -> 058                 (same handler file; 053 is the smaller diff)
+053 + 076 -> 058           (preserve stale-write guards and repair scheduled tenant routing before atomic rolling sync and product activation)
 054 -> 061                 (same projection file)
 057 -> 061                 (same renderer; land logging safety before read-path optimisation)
 060 + 061 -> 065           (065 narrows what the predicate reads; both must land first)
@@ -178,6 +199,8 @@ verified by reading the cited code, not taken from a subagent report.
 | T-03 | XeroConnection/XeroTenant uniqueness invariants untested | 066 |
 | T-04 | Duplicate route tests in `apps/api/__tests__/` have drifted | 066 |
 | T-05 | `alternative-contact-service.ts`: 599 lines, no co-located test | 066 |
+| R-058-01 | Scheduled syncs dispatch the provider tenant ID where handlers require the database tenant UUID | 076 |
+| R-058-02 | The proposed bounded balance page conflicts with unqualified hourly and unlimited-roster product language | 058 |
 | M-01 | Root `ws` override conflicts with the range `packages/database` declares | 067 |
 | D-01 | The documented single-test command fails on all 28 `.tsx` tests | 067 |
 | D-02 | `.env.example` omits all seven variables preflight requires | 055 |
