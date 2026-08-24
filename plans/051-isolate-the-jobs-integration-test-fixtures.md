@@ -1,5 +1,15 @@
 # Plan 051: Give every integration test file its own primary keys so the lane is trustworthy
 
+> **Reconciliation verdict (2026-08-24): REJECTED, fixed independently. Do not
+> execute this plan.** Commit `37e7231` moved the schedule fixtures from the
+> colliding `50000000`/`60000000` prefixes to distinct `95000000`/`96000000`
+> prefixes. At `b590de2`, the two affected files passed together against the
+> live database twice consecutively (2 files, 7 tests per run), with no P2002
+> and successful teardown between runs. The proposed exact-ID teardown would
+> let one parallel test delete another test's rows if a collision were ever
+> reintroduced, while the proposed registry was neither complete nor enforced.
+> No source change remains justified.
+
 > **Executor instructions**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving to the next
 > step. If anything in "STOP conditions" occurs, stop and report — do not
@@ -18,6 +28,8 @@
 - **Depends on**: none
 - **Category**: tests
 - **Planned at**: commit `121da2a`, 2026-08-12
+- **Outcome**: REJECTED on 2026-08-24, fixed independently in `37e7231` and
+  verified at `b590de2`
 
 ## Why this matters
 
