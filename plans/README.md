@@ -45,7 +45,7 @@ Plans are ordered by leverage, with dependencies respected. Each row is merged t
 | 2 | [051](051-isolate-the-jobs-integration-test-fixtures.md) Isolate the jobs integration fixtures | P1 | S | LOW | — | REJECTED (2026-08-24: fixed independently in `37e7231`; live pair passed twice at `b590de2`) |
 | 3 | [052](052-correct-the-timezone-contract-for-working-day-units.md) Correct the timezone contract for working-day units | P1 | S | MED | — | DONE (2026-08-24 at `117fb1b`; merge `660b1a6`; current check/typecheck/test and focused 32/32 pass; integration proven on identical source tree at `8b3efbe`) |
 | 4 | [053](053-guard-the-inbound-leave-upsert-against-stale-writes.md) Guard the inbound leave upsert | P1 | M | MED | 075 | MERGED (`6a5e9d0`; implementation `27b739b`; review approved) |
-| 5 | [054](054-keep-synced-leave-in-the-feed-for-its-whole-last-day.md) Keep synced leave in the feed for its last day | P1 | S | MED | — | TODO |
+| 5 | [054](054-keep-synced-leave-in-the-feed-for-its-whole-last-day.md) Keep synced leave in the feed for its last day | P1 | S | MED | — | DONE (2026-08-24; implementation `07885a5` on `advisor/054-feed-horizon-last-day`; review approved; not merged) |
 | 6 | [055](055-make-launch-mode-safe-in-the-browser.md) Make launch mode safe in the browser | P1 | S | LOW | — | TODO |
 | 7 | [057](057-make-failures-visible-and-scrub-what-is-logged.md) Make failures visible, scrub what is logged | P1 | S | LOW | — | TODO |
 | 8 | [056](056-give-the-approval-reconciler-a-cursor.md) Give the approval reconciler a cursor | P2 | M | LOW | needs `DATABASE_URL` | TODO |

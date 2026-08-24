@@ -18,6 +18,29 @@
 - **Depends on**: none. Land plan 053 first if both are queued — same handler file.
 - **Category**: bug
 - **Planned at**: commit `121da2a`, 2026-08-12
+- **Review status**: DONE on 2026-08-24. Implementation commit `07885a5` on
+  `advisor/054-feed-horizon-last-day` was independently reviewed and approved;
+  not merged.
+
+## Execution outcome
+
+- **Worktree**: `/tmp/teamcalendar-plan-054`
+- **Branch**: `advisor/054-feed-horizon-last-day`
+- **Commit**: `07885a5` (`fix(feeds): keep leave published for its full last day`)
+- **Scope**: exactly the two in-scope projection source and test files; worktree
+  clean and `packages/jobs/` untouched.
+- **Independent verification**: `bun run check` checked 767 files; typecheck
+  19/19 tasks; unit suite 17/17 tasks; feeds suite 10/10 files and 113/113
+  tests, with one integration file and nine database tests skipped by that unit
+  command; full integration 5/5 tasks and 60 database-backed tests; `git
+  diff --check` passed. Two credential-gated external Xero tests remained
+  skipped and were unrelated to this plan.
+- **Mutation check**: reverting the UTC day-start and inclusive lower bound made
+  the Xero last-day case fail with zero projected events; restoring the change
+  returned the worktree to a clean state.
+- **Verdict**: APPROVE. The lower horizon remains exactly `horizonDays` wide,
+  includes Xero's midnight final-day value, excludes prior-day records, and
+  preserves the existing exclusive far edge.
 
 ## Why this matters
 
