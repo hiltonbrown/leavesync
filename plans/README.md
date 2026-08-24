@@ -4,7 +4,7 @@ This directory is the implementation backlog produced by the `improve` skill.
 Every plan is self-contained and must be drift-checked before execution.
 
 **Reconciled and re-planned on 2026-08-12 against local `main` at commit
-`121da2a`, with targeted reconciliations through 2026-08-24 at `b590de2`.** The
+`121da2a`, with targeted reconciliations through 2026-08-24 at `117fb1b`.** The
 45 completed plans were verified against current source and their files removed;
 their outcomes are in the ledger below. Plans 051 to 068 address the 2026-08-12
 audit; plans 069 to 075 record later targeted work and reconciliation findings.
@@ -17,9 +17,9 @@ Measured on this commit, not inherited from the previous reconciliation:
 
 | Gate | Result |
 |---|---|
-| `bun run check` | **exit 0** on plan 075 branch `8b3efbe`; removing the debug harness and temporary sync logging clears all 62 diagnostics |
-| `bun run typecheck` | **exit 0** on `8b3efbe`, 19/19 tasks |
-| `bun run test` | **exit 0** on `8b3efbe`, 17/17 tasks; app 71 files / 278 tests |
+| `bun run check` | **exit 0** on current `main` at `117fb1b`; removing the debug harness and temporary sync logging cleared all 62 diagnostics |
+| `bun run typecheck` | **exit 0** on `117fb1b`, 19/19 tasks |
+| `bun run test` | **exit 0** on `117fb1b`, 17/17 tasks; app 71 files / 278 tests |
 | `bun run build` | **exit 0** on `8b3efbe`, 4/4 tasks for app, API, web and database generation |
 | `bun run test:integration` | **exit 0** on `8b3efbe`, 5/5 tasks and 58 database-backed tests; two credential-gated Xero external tests skipped |
 
@@ -29,9 +29,10 @@ commands recorded under plan 048 are no longer necessary, though they remain
 valid for narrowing a run.
 
 The full database-backed integration lane is proven on the isolated plan 075
-branch, which includes merged plan 052. Plan 051's suspected fixture collision
-was fixed independently in `37e7231`; its two affected jobs files also passed
-together twice consecutively against the live database.
+branch, which includes merged plan 052. The non-planning source tree at current
+`main` is identical to that reviewed commit. Plan 051's suspected fixture
+collision was fixed independently in `37e7231`; its two affected jobs files
+also passed together twice consecutively against the live database.
 
 ## Execution order and status
 
@@ -42,7 +43,7 @@ Plans are ordered by leverage, with dependencies respected. Each row is merged t
 |---|---|---|---|---|---|---|
 | 1 | [075](075-remove-the-committed-xero-debug-harness.md) Remove the committed Xero debug harness and restore the quality gate | P1 | S | LOW | — | MERGED (`3040948`; implementation `8b3efbe`; review approved) |
 | 2 | [051](051-isolate-the-jobs-integration-test-fixtures.md) Isolate the jobs integration fixtures | P1 | S | LOW | — | REJECTED (2026-08-24: fixed independently in `37e7231`; live pair passed twice at `b590de2`) |
-| 3 | [052](052-correct-the-timezone-contract-for-working-day-units.md) Correct the timezone contract for working-day units | P1 | S | MED | — | MERGED (`660b1a6`; focused tests pass 32/32; full gates pass on reviewed plan 075 branch `8b3efbe`) |
+| 3 | [052](052-correct-the-timezone-contract-for-working-day-units.md) Correct the timezone contract for working-day units | P1 | S | MED | — | DONE (2026-08-24 at `117fb1b`; merge `660b1a6`; current check/typecheck/test and focused 32/32 pass; integration proven on identical source tree at `8b3efbe`) |
 | 4 | [053](053-guard-the-inbound-leave-upsert-against-stale-writes.md) Guard the inbound leave upsert | P1 | M | MED | 075 | READY (implementation and database proof pass; resume Step 5 on a base containing `3040948`) |
 | 5 | [054](054-keep-synced-leave-in-the-feed-for-its-whole-last-day.md) Keep synced leave in the feed for its last day | P1 | S | MED | — | TODO |
 | 6 | [055](055-make-launch-mode-safe-in-the-browser.md) Make launch mode safe in the browser | P1 | S | LOW | — | TODO |
@@ -89,7 +90,6 @@ first" section has to be agreed before any code is written.
 
 ```text
 075 -> 053                 (removes unsafe debug routes before the stale-write branch resumes)
-075 -> verify merged 052   (restores the mandatory quality gate after the operator-directed merge)
 053 -> 058                 (same handler file; 053 is the smaller diff)
 054 -> 061                 (same projection file)
 060 + 061 -> 065           (065 narrows what the predicate reads; both must land first)
@@ -104,9 +104,8 @@ Everything not named above is independent and may run in any order.
 
 ### May run in parallel
 
-055, 057, 059 and 075 touch disjoint files and can run concurrently if
-throughput matters. Plan 052 is already merged; run its remaining full gate
-after 075. Do **not** parallelise 053 with 058, 054 with 061, any pair of 071,
+055, 057 and 059 touch disjoint files and can run concurrently if throughput
+matters. Do **not** parallelise 053 with 058, 054 with 061, any pair of 071,
 072, 073 and 074, or anything with 065 and 068.
 
 ## Deferred plans from the earlier backlog
