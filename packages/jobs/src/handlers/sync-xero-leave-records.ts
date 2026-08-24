@@ -86,11 +86,22 @@ interface Counts {
   upserted: number;
 }
 
-interface ProcessedLeaveRecord {
+interface AppliedLeaveRecord {
   changed: boolean;
   personId: string;
   sourceRemoteId: string;
 }
+
+type ProcessLeaveRecordOutcome =
+  | { kind: "applied"; record: AppliedLeaveRecord }
+  | { kind: "failed" }
+  | { kind: "skipped"; reason: RemoteSnapshotSkipReason };
+
+type RemoteSnapshotSkipReason =
+  | "duplicate_remote_snapshot"
+  | "local_changed_after_run_started"
+  | "older_remote_snapshot"
+  | "stale_local_snapshot";
 
 type SyncStatus = "cancelled" | "failed" | "partial_success" | "succeeded";
 type SyncXeroLeaveRecordsResult = Result<
@@ -181,7 +192,7 @@ export async function syncXeroLeaveRecords(
 
     const { complete, leaveRecords: fetched } = leaveRecordsResult.value;
     counts.fetched = fetched.length;
-    const processed: ProcessedLeaveRecord[] = [];
+    const processed: AppliedLeaveRecord[] = [];
 
     for (let index = 0; index < fetched.length; index += BATCH_SIZE) {
       const runState = await database.syncRun.findFirst({
@@ -223,13 +234,24 @@ export async function syncXeroLeaveRecords(
           xeroTenant.id,
           leaveRecord,
           peopleByEmployeeId,
-          existingRecordsBySourceRemoteId
+          existingRecordsBySourceRemoteId,
+          startedAt
         );
-        if (result) {
-          processed.push(result);
-          counts.upserted += 1;
-        } else {
-          counts.failed += 1;
+        switch (result.kind) {
+          case "applied":
+            processed.push(result.record);
+            counts.upserted += 1;
+            break;
+          case "skipped":
+            counts.skipped += 1;
+            break;
+          case "failed":
+            counts.failed += 1;
+            break;
+          default: {
+            const exhaustive: never = result;
+            throw new Error(`Unexpected leave record outcome: ${exhaustive}`);
+          }
         }
       }
 
@@ -477,11 +499,14 @@ async function loadExistingRecordsBySourceRemoteId(
   const records = await database.availabilityRecord.findMany({
     select: {
       approval_status: true,
+      derived_sequence: true,
       failed_action: true,
       id: true,
+      source_last_modified_at: true,
       source_remote_hash: true,
       source_remote_id: true,
       source_type: true,
+      updated_at: true,
     },
     where: {
       ...scoped(context),
@@ -507,8 +532,9 @@ async function processLeaveRecord(
   peopleByEmployeeId: Awaited<ReturnType<typeof loadPeopleByEmployeeId>>,
   existingRecordsBySourceRemoteId: Awaited<
     ReturnType<typeof loadExistingRecordsBySourceRemoteId>
-  >
-): Promise<ProcessedLeaveRecord | null> {
+  >,
+  startedAt: Date
+): Promise<ProcessLeaveRecordOutcome> {
   const validation = validateLeaveRecord(leaveRecord);
   if (!validation.valid) {
     await recordFailure(context, {
@@ -519,7 +545,7 @@ async function processLeaveRecord(
       runId,
       sourceId: leaveRecord.leaveApplicationId || "unknown",
     });
-    return null;
+    return { kind: "failed" };
   }
 
   try {
@@ -533,7 +559,7 @@ async function processLeaveRecord(
         runId,
         sourceId: leaveRecord.leaveApplicationId,
       });
-      return null;
+      return { kind: "failed" };
     }
 
     const startsAt = parseXeroDate(leaveRecord.startDate);
@@ -558,7 +584,7 @@ async function processLeaveRecord(
         runId,
         sourceId: leaveRecord.leaveApplicationId,
       });
-      return null;
+      return { kind: "failed" };
     }
 
     const normalised = normaliseInboundLeaveRecord({
@@ -589,6 +615,17 @@ async function processLeaveRecord(
     const existing = existingRecordsBySourceRemoteId.get(
       normalised.sourceRemoteId
     );
+    const freshness = decideRemoteSnapshot(existing, normalised, startedAt);
+    if (freshness.kind === "skip") {
+      log.info("Skipped inbound Xero leave snapshot", {
+        clerkOrgId: context.clerkOrgId,
+        organisationId: context.organisationId,
+        reason: freshness.reason,
+        sourceRemoteId: normalised.sourceRemoteId,
+        xeroTenantId,
+      });
+      return { kind: "skipped", reason: freshness.reason };
+    }
     let approvalStatusToPersist = normalised.approvalStatus;
     if (
       existing?.approval_status === "xero_sync_failed" &&
@@ -614,6 +651,7 @@ async function processLeaveRecord(
             xero_write_error_raw: Prisma.DbNull,
           };
 
+    const updatedAt = new Date();
     const xeroOwned = {
       all_day: normalised.allDay,
       approval_status: approvalStatusToPersist,
@@ -625,11 +663,11 @@ async function processLeaveRecord(
       person_id: normalised.personId,
       publish_status: normalised.publishStatus,
       record_type: normalised.recordType,
-      source_last_modified_at: normalised.sourceLastModifiedAt,
+      source_last_modified_at: freshness.sourceLastModifiedAt,
       source_payload_json: toPrismaJsonValue(normalised.rawPayload),
       source_remote_hash: normalised.sourceRemoteHash,
       starts_at: normalised.startsAt,
-      updated_at: new Date(),
+      updated_at: updatedAt,
     };
     // Privacy mode, feed inclusion and title are set by the person who owns the
     // record. Xero is not the source of truth for them, so they are seeded on
@@ -649,20 +687,41 @@ async function processLeaveRecord(
         existing.source_type === "team_calendar_leave"
           ? xeroOwned
           : { ...xeroOwned, ...locallyOwned };
-      await database.availabilityRecord.updateMany({
+      const updateResult = await database.availabilityRecord.updateMany({
         data: updateData,
-        where: { ...scoped(context), id: recordId },
+        where: {
+          ...scoped(context),
+          approval_status: existing.approval_status,
+          derived_sequence: existing.derived_sequence,
+          id: recordId,
+          source_last_modified_at: existing.source_last_modified_at,
+          source_remote_hash: existing.source_remote_hash,
+          updated_at: existing.updated_at,
+        },
       });
+      if (updateResult.count === 0) {
+        log.info("Skipped inbound Xero leave snapshot after concurrent write", {
+          clerkOrgId: context.clerkOrgId,
+          organisationId: context.organisationId,
+          reason: "stale_local_snapshot",
+          sourceRemoteId: normalised.sourceRemoteId,
+          xeroTenantId,
+        });
+        return { kind: "skipped", reason: "stale_local_snapshot" };
+      }
       existingRecordsBySourceRemoteId.set(normalised.sourceRemoteId, {
         approval_status: approvalStatusToPersist,
+        derived_sequence: existing.derived_sequence,
         failed_action:
           approvalStatusToPersist === "xero_sync_failed"
             ? (existing?.failed_action ?? null)
             : null,
         id: recordId,
+        source_last_modified_at: freshness.sourceLastModifiedAt,
         source_remote_hash: normalised.sourceRemoteHash,
         source_remote_id: normalised.sourceRemoteId,
         source_type: existing.source_type,
+        updated_at: updatedAt,
       });
     } else {
       const created = await database.availabilityRecord.create({
@@ -677,11 +736,14 @@ async function processLeaveRecord(
       });
       existingRecordsBySourceRemoteId.set(normalised.sourceRemoteId, {
         approval_status: approvalStatusToPersist,
+        derived_sequence: 0,
         failed_action: null,
         id: created.id,
+        source_last_modified_at: freshness.sourceLastModifiedAt,
         source_remote_hash: normalised.sourceRemoteHash,
         source_remote_id: normalised.sourceRemoteId,
         source_type: normalised.sourceType,
+        updated_at: updatedAt,
       });
       await materialiseSyncedPublication(context, created.id);
     }
@@ -689,9 +751,12 @@ async function processLeaveRecord(
       await materialiseSyncedPublication(context, recordId);
     }
     return {
-      changed,
-      personId: person.id,
-      sourceRemoteId: normalised.sourceRemoteId,
+      kind: "applied",
+      record: {
+        changed,
+        personId: person.id,
+        sourceRemoteId: normalised.sourceRemoteId,
+      },
     };
   } catch (error) {
     await recordFailure(context, {
@@ -705,8 +770,60 @@ async function processLeaveRecord(
       runId,
       sourceId: leaveRecord.leaveApplicationId || "unknown",
     });
-    return null;
+    return { kind: "failed" };
   }
+}
+
+function decideRemoteSnapshot(
+  existing: Awaited<
+    ReturnType<typeof loadExistingRecordsBySourceRemoteId>
+  > extends Map<string, infer Snapshot>
+    ? Snapshot | undefined
+    : never,
+  normalised: {
+    sourceLastModifiedAt: Date | null;
+    sourceRemoteHash: string;
+  },
+  startedAt: Date
+):
+  | { kind: "apply"; sourceLastModifiedAt: Date | null }
+  | { kind: "skip"; reason: RemoteSnapshotSkipReason } {
+  if (!existing) {
+    return {
+      kind: "apply",
+      sourceLastModifiedAt: normalised.sourceLastModifiedAt,
+    };
+  }
+  if (existing.updated_at > startedAt) {
+    return { kind: "skip", reason: "local_changed_after_run_started" };
+  }
+  const incomingTimestamp = normalised.sourceLastModifiedAt;
+  const storedTimestamp = existing.source_last_modified_at;
+  if (
+    incomingTimestamp &&
+    storedTimestamp &&
+    incomingTimestamp < storedTimestamp
+  ) {
+    return { kind: "skip", reason: "older_remote_snapshot" };
+  }
+  if (
+    incomingTimestamp &&
+    storedTimestamp &&
+    incomingTimestamp.getTime() === storedTimestamp.getTime() &&
+    existing.source_remote_hash === normalised.sourceRemoteHash
+  ) {
+    return { kind: "skip", reason: "duplicate_remote_snapshot" };
+  }
+  if (
+    incomingTimestamp === null &&
+    existing.source_remote_hash === normalised.sourceRemoteHash
+  ) {
+    return { kind: "skip", reason: "duplicate_remote_snapshot" };
+  }
+  return {
+    kind: "apply",
+    sourceLastModifiedAt: incomingTimestamp ?? storedTimestamp,
+  };
 }
 
 async function archiveStaleRecords(

@@ -130,7 +130,7 @@ describe("leave records stale archival", () => {
     mocks.availabilityRecordCreate.mockResolvedValue({
       id: "80000000-0000-4000-8000-000000000001",
     });
-    mocks.availabilityRecordUpdateMany.mockResolvedValue({ count: 0 });
+    mocks.availabilityRecordUpdateMany.mockResolvedValue({ count: 1 });
     mocks.failedRecordCreate.mockResolvedValue({});
     mocks.feedFindMany.mockResolvedValue([]);
     mocks.inngestSend.mockResolvedValue({ ids: ["event_1"] });
@@ -614,7 +614,228 @@ describe("leave records stale archival", () => {
       xero_write_error_raw: Prisma.DbNull,
     });
   });
+
+  it("skips a local row changed after the sync run started", async () => {
+    configureExistingRecord({
+      source_last_modified_at: new Date("2026-05-01T01:02:03.000Z"),
+      source_remote_hash: "hash-before-update",
+      updated_at: new Date(Date.now() + 1000),
+    });
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        failed: 0,
+        skipped: 1,
+        upserted: 0,
+      });
+    }
+    expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalled();
+    expect(mocks.materialiseAvailabilityPublication).not.toHaveBeenCalled();
+    expect(mocks.inngestSend).not.toHaveBeenCalled();
+  });
+
+  it("skips an older remote snapshot", async () => {
+    configureExistingRecord({
+      source_last_modified_at: new Date("2026-06-01T00:00:00.000Z"),
+      source_remote_hash: "hash-before-update",
+      updated_at: new Date("2026-01-01T00:00:00.000Z"),
+    });
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.skipped).toBe(1);
+    }
+    expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it("skips an equal remote timestamp and hash", async () => {
+    configureExistingRecord({
+      source_last_modified_at: new Date("2026-05-01T01:02:03.000Z"),
+      source_remote_hash: `hash-${LEAVE_APPLICATION_ID}`,
+      updated_at: new Date("2026-01-01T00:00:00.000Z"),
+    });
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        failed: 0,
+        skipped: 1,
+        upserted: 0,
+      });
+    }
+    expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it("skips a null remote timestamp when the hash is unchanged", async () => {
+    mocks.normaliseInboundLeaveRecord.mockReturnValue(
+      normalisedLeaveRecord({
+        hash: `hash-${LEAVE_APPLICATION_ID}`,
+        personId: PERSON_ID,
+        sourceLastModifiedAt: null,
+        sourceRemoteId: LEAVE_APPLICATION_ID,
+      })
+    );
+    configureExistingRecord({
+      source_last_modified_at: new Date("2026-05-01T01:02:03.000Z"),
+      source_remote_hash: `hash-${LEAVE_APPLICATION_ID}`,
+      updated_at: new Date("2026-01-01T00:00:00.000Z"),
+    });
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.skipped).toBe(1);
+    }
+    expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it("retains a known timestamp when a changed hash has no remote timestamp", async () => {
+    mocks.normaliseInboundLeaveRecord.mockReturnValue(
+      normalisedLeaveRecord({
+        hash: "hash-changed-without-timestamp",
+        personId: PERSON_ID,
+        sourceLastModifiedAt: null,
+        sourceRemoteId: LEAVE_APPLICATION_ID,
+      })
+    );
+    const storedTimestamp = new Date("2026-05-01T01:02:03.000Z");
+    configureExistingRecord({
+      source_last_modified_at: storedTimestamp,
+      source_remote_hash: "hash-before-update",
+      updated_at: new Date("2026-01-01T00:00:00.000Z"),
+    });
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    expect(
+      mocks.availabilityRecordUpdateMany.mock.calls[0]?.[0]?.data
+    ).toMatchObject({ source_last_modified_at: storedTimestamp });
+  });
+
+  it("applies an equal remote timestamp when the hash changed", async () => {
+    const storedTimestamp = new Date("2026-05-01T01:02:03.000Z");
+    configureExistingRecord({
+      source_last_modified_at: storedTimestamp,
+      source_remote_hash: "hash-before-update",
+      updated_at: new Date("2026-01-01T00:00:00.000Z"),
+    });
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        failed: 0,
+        skipped: 0,
+        upserted: 1,
+      });
+    }
+    expect(mocks.availabilityRecordUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          approval_status: "approved",
+          clerk_org_id: CLERK_ORG_ID,
+          derived_sequence: 3,
+          id: "80000000-0000-4000-8000-000000000001",
+          organisation_id: ORGANISATION_ID,
+          source_last_modified_at: storedTimestamp,
+          source_remote_hash: "hash-before-update",
+          updated_at: new Date("2026-01-01T00:00:00.000Z"),
+        },
+      })
+    );
+  });
+
+  it("counts a compare-and-swap database error as a failed record", async () => {
+    configureExistingRecord({
+      source_last_modified_at: new Date("2026-04-01T00:00:00.000Z"),
+      source_remote_hash: "hash-before-update",
+      updated_at: new Date("2026-01-01T00:00:00.000Z"),
+    });
+    mocks.availabilityRecordUpdateMany.mockRejectedValueOnce(
+      new Error("CAS failed")
+    );
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        failed: 1,
+        skipped: 0,
+        upserted: 0,
+      });
+    }
+    expect(mocks.failedRecordCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ error_code: "db_error" }),
+      })
+    );
+  });
+
+  it("skips publication work when the compare-and-swap loses the race", async () => {
+    configureExistingRecord({
+      source_last_modified_at: new Date("2026-04-01T00:00:00.000Z"),
+      source_remote_hash: "hash-before-update",
+      updated_at: new Date("2026-01-01T00:00:00.000Z"),
+    });
+    mocks.availabilityRecordUpdateMany.mockResolvedValueOnce({ count: 0 });
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        failed: 0,
+        skipped: 1,
+        upserted: 0,
+      });
+    }
+    expect(mocks.materialiseAvailabilityPublication).not.toHaveBeenCalled();
+    expect(mocks.inngestSend).not.toHaveBeenCalled();
+  });
 });
+
+function configureExistingRecord(fields: {
+  derived_sequence?: number;
+  source_last_modified_at?: Date | null;
+  source_remote_hash?: string | null;
+  updated_at?: Date;
+}) {
+  mocks.fetchLeaveRecordsForRegion.mockResolvedValue({
+    ok: true,
+    value: {
+      complete: true,
+      leaveRecords: [xeroLeaveRecord()],
+      rawResponse: {},
+    },
+  });
+  mocks.personFindMany.mockResolvedValue([person(PERSON_ID, XERO_EMPLOYEE_ID)]);
+  mocks.availabilityRecordFindMany
+    .mockResolvedValueOnce([
+      {
+        approval_status: "approved",
+        derived_sequence: fields.derived_sequence ?? 3,
+        failed_action: null,
+        id: "80000000-0000-4000-8000-000000000001",
+        source_last_modified_at: fields.source_last_modified_at ?? null,
+        source_remote_hash: fields.source_remote_hash ?? null,
+        source_remote_id: LEAVE_APPLICATION_ID,
+        source_type: "xero_leave",
+        updated_at: fields.updated_at ?? new Date("2026-01-01T00:00:00.000Z"),
+      },
+    ])
+    .mockResolvedValueOnce([]);
+}
 
 function person(id: string, xeroEmployeeId: string) {
   return {
@@ -628,10 +849,12 @@ function person(id: string, xeroEmployeeId: string) {
 function normalisedLeaveRecord({
   hash,
   personId,
+  sourceLastModifiedAt = new Date("2026-05-01T01:02:03.000Z"),
   sourceRemoteId,
 }: {
   hash: string;
   personId: string;
+  sourceLastModifiedAt?: Date | null;
   sourceRemoteId: string;
 }) {
   return {
@@ -645,7 +868,7 @@ function normalisedLeaveRecord({
     publishStatus: "eligible",
     rawPayload: { LeaveApplicationID: sourceRemoteId },
     recordType: "annual_leave",
-    sourceLastModifiedAt: new Date("2026-05-01T01:02:03.000Z"),
+    sourceLastModifiedAt,
     sourceRemoteHash: hash,
     sourceRemoteId,
     sourceType: "xero_leave",
