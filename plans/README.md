@@ -4,7 +4,7 @@ This directory is the implementation backlog produced by the `improve` skill.
 Every plan is self-contained and must be drift-checked before execution.
 
 **Reconciled and re-planned on 2026-08-12 against local `main` at commit
-`121da2a`, with targeted reconciliations through 2026-08-24 at `117fb1b`.** The
+`121da2a`, with targeted reconciliations through 2026-08-24 at `b7bef70`.** The
 45 completed plans were verified against current source and their files removed;
 their outcomes are in the ledger below. Plans 051 to 068 address the 2026-08-12
 audit; plans 069 to 075 record later targeted work and reconciliation findings.
@@ -47,12 +47,12 @@ Plans are ordered by leverage, with dependencies respected. Each row is merged t
 | 4 | [053](053-guard-the-inbound-leave-upsert-against-stale-writes.md) Guard the inbound leave upsert | P1 | M | MED | 075 | MERGED (`6a5e9d0`; implementation `27b739b`; review approved) |
 | 5 | [054](054-keep-synced-leave-in-the-feed-for-its-whole-last-day.md) Keep synced leave in the feed for its last day | P1 | S | MED | — | MERGED (`85756fe`; implementation `07885a5`; review approved) |
 | 6 | [055](055-make-launch-mode-safe-in-the-browser.md) Make launch mode safe in the browser | P1 | S | LOW | — | MERGED (`1f507b9`; implementation `e4c5997`; review approved) |
-| 7 | [057](057-make-failures-visible-and-scrub-what-is-logged.md) Make failures visible, scrub what is logged | P1 | S | LOW | — | TODO |
+| 7 | [057](057-make-failures-visible-and-scrub-what-is-logged.md) Make approval failures visible and structured logging safe | P1 | M | MED | — | MERGED (`b800f20`; implementation `eee7891`; operator-directed verification exception, follow-up required below) |
 | 8 | [056](056-give-the-approval-reconciler-a-cursor.md) Give the approval reconciler a cursor | P2 | M | LOW | needs `DATABASE_URL` | TODO |
 | 9 | [058](058-bound-the-unbounded-sync-loops.md) Bound the unbounded sync loops | P2 | L | MED | 053 | TODO (reconciled 2026-08-23 at `206af7b`: one cursor page per run; bulk stale archive) |
 | 10 | [059](059-make-the-notification-stream-reliable-and-affordable.md) Make the notification stream reliable | P2 | M | MED | — | TODO |
 | 11 | [060](060-project-explicit-columns-in-the-analytics-services.md) Project explicit columns in analytics | P2 | S | LOW | — | TODO |
-| 12 | [061](061-halve-the-work-on-the-ics-feed-read-path.md) Halve the work on the ICS read path | P2 | S | LOW | 054 | TODO |
+| 12 | [061](061-halve-the-work-on-the-ics-feed-read-path.md) Halve the work on the ICS read path | P2 | S | LOW | 054, 057 | TODO |
 | 13 | [063](063-close-the-validation-and-authorisation-gaps.md) Close the validation and authorisation gaps | P2 | M | LOW | — | TODO |
 | 14 | [066](066-test-the-untested-money-and-tenancy-paths.md) Test the money and tenancy paths | P2 | M | LOW | — | TODO (reconciled 2026-08-24: allocate a unique local fixture prefix; no registry dependency) |
 | 15 | [062](062-enforce-a-content-security-policy.md) Enforce a Content Security Policy | P2 | M | MED | — | TODO |
@@ -66,6 +66,16 @@ Plans are ordered by leverage, with dependencies respected. Each row is merged t
 | 23 | [072](072-automated-clerk-user-matching-and-bulk-invitations.md) Import every missing Xero employee before reconciling Clerk access | P1 | M | MED | 069, 071 | TODO |
 | 24 | [073](073-orphaned-xero-employee-lifecycle-reconciliation.md) Soft-archive Xero employees missing from a complete payroll snapshot | P2 | M | MED | 072 | TODO |
 | 25 | [074](074-xero-tracking-category-team-and-manager-hierarchy-sync.md) Xero tracking category team & manager hierarchy sync | P2 | M | LOW | 073 | TODO |
+
+### Plan 057 deferred follow-up
+
+Plan 057 was merged by explicit operator direction before review approval. Add
+regression coverage proving that top-level and nested string-valued `error`
+fields are replaced with `"[SCRUBBED]"`, and implement the corresponding exact
+production error-channel sanitisation. The default `bun run build` must also run
+successfully on a runner that permits Turbopack's loader process to bind its
+loopback port. After that work, rerun check, build, typecheck, unit and
+integration gates before marking the follow-up verified.
 
 ## Companion reference docs (not executable)
 
@@ -92,6 +102,7 @@ first" section has to be agreed before any code is written.
 075 -> 053                 (removes unsafe debug routes before the stale-write branch resumes)
 053 -> 058                 (same handler file; 053 is the smaller diff)
 054 -> 061                 (same projection file)
+057 -> 061                 (same renderer; land logging safety before read-path optimisation)
 060 + 061 -> 065           (065 narrows what the predicate reads; both must land first)
 060 + 065 -> 068           (068 adopts the shared projection and shared predicate)
 058 + 069 -> 071           (bounded sync foundations and AU people fixes precede regional employee-scoped reads)
@@ -141,7 +152,7 @@ verified by reading the cited code, not taken from a subagent report.
 | C-03 | Xero-synced leave leaves the ICS feed part-way through its last day | 054 |
 | C-04 | `getLaunchMode()` throws inside client components when the env var is unset | 055 |
 | C-05 | Approval reconciler starves records past the first 500 (residual after plan 038) | 056 |
-| C-06 | Seven bare catches discard the post-Xero-write failure | 057 |
+| C-06 | Eight catch paths discard approval-service failures, including post-Xero-write divergence | 057 |
 | C-07 | Leave-balance sync is unbounded and outlives its Xero token | 058 |
 | C-08 | SSE poll errors swallowed; stream stays open and silent | 059 |
 | C-09 | Resolved not-found reconciliation also counted as a failure | 056 |
