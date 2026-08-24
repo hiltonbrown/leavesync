@@ -111,8 +111,9 @@ describeWithDatabase("sync-xero-leave-records database flow", () => {
         archived: 0,
         failed: 0,
         fetched: 1,
+        skipped: 1,
         status: "succeeded",
-        upserted: 1,
+        upserted: 0,
       });
     }
 
@@ -277,6 +278,113 @@ describeWithDatabase("sync-xero-leave-records database flow", () => {
     });
   });
 
+  it("skips an inbound snapshot older than the stored remote state", async () => {
+    await setupTenant(tenantA);
+    await setupPerson(tenantA);
+    const storedTimestamp = new Date("2026-06-01T00:00:00.000Z");
+    const existing = await createExistingRecord(tenantA, {
+      approvalNote: "Manager decision",
+      approvalStatus: "approved",
+      sourceLastModifiedAt: storedTimestamp,
+      sourceRemoteHash: "stored-newer-hash",
+      sourceRemoteId: leaveId(),
+      sourceType: "xero_leave",
+    });
+    mockFetchLeaveRecordsForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: true,
+        leaveRecords: [xeroLeaveRecord(tenantA)],
+        rawResponse: {},
+      },
+    });
+
+    const result = await syncXeroLeaveRecords(syncInput(tenantA));
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        failed: 0,
+        skipped: 1,
+        upserted: 0,
+      });
+    }
+    expect(
+      await database.availabilityRecord.findUnique({
+        where: { id: existing.id },
+      })
+    ).toMatchObject({
+      approval_note: "Manager decision",
+      approval_status: "approved",
+      source_last_modified_at: storedTimestamp,
+      source_remote_hash: "stored-newer-hash",
+    });
+  });
+
+  it("preserves a concurrent local write when the compare-and-swap loses", async () => {
+    await setupTenant(tenantA);
+    await setupPerson(tenantA);
+    const existing = await createExistingRecord(tenantA, {
+      approvalStatus: "approved",
+      sourceRemoteId: leaveId(),
+      sourceType: "xero_leave",
+    });
+    mockFetchLeaveRecordsForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: true,
+        leaveRecords: [xeroLeaveRecord(tenantA)],
+        rawResponse: {},
+      },
+    });
+
+    const originalFindMany = database.availabilityRecord.findMany;
+    let injected = false;
+    const findManySpy = vi
+      .spyOn(database.availabilityRecord, "findMany")
+      .mockImplementation(async (args) => {
+        const rows = await originalFindMany.call(
+          database.availabilityRecord,
+          args
+        );
+        if (args.select?.source_last_modified_at === true && !injected) {
+          injected = true;
+          await database.availabilityRecord.update({
+            data: {
+              approval_status: "declined",
+              derived_sequence: 7,
+              updated_at: new Date(),
+            },
+            where: { id: existing.id },
+          });
+        }
+        return rows;
+      });
+
+    try {
+      const result = await syncXeroLeaveRecords(syncInput(tenantA));
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value).toMatchObject({
+          failed: 0,
+          skipped: 1,
+          upserted: 0,
+        });
+      }
+      expect(
+        await database.availabilityRecord.findUnique({
+          where: { id: existing.id },
+        })
+      ).toMatchObject({
+        approval_status: "declined",
+        derived_sequence: 7,
+      });
+    } finally {
+      findManySpy.mockRestore();
+    }
+  });
+
   it("preserves a failed withdrawal while Xero still reports the leave as approved", async () => {
     await setupTenant(tenantA);
     await setupPerson(tenantA);
@@ -407,8 +515,11 @@ async function createStaleRecord(tenant: typeof tenantA) {
 async function createExistingRecord(
   tenant: typeof tenantA,
   input: {
+    approvalNote?: string;
     approvalStatus: "approved" | "xero_sync_failed";
     failedAction?: "withdraw";
+    sourceLastModifiedAt?: Date;
+    sourceRemoteHash?: string;
     sourceRemoteId: string;
     sourceType: "team_calendar_leave" | "xero_leave";
   }
@@ -416,6 +527,7 @@ async function createExistingRecord(
   return await database.availabilityRecord.create({
     data: {
       all_day: true,
+      approval_note: input.approvalNote ?? null,
       approval_status: input.approvalStatus,
       clerk_org_id: tenant.clerkOrgId,
       contactability: "unavailable",
@@ -427,6 +539,8 @@ async function createExistingRecord(
       privacy_mode: "named",
       publish_status: "eligible",
       record_type: "annual_leave",
+      source_last_modified_at: input.sourceLastModifiedAt ?? null,
+      source_remote_hash: input.sourceRemoteHash ?? null,
       source_remote_id: input.sourceRemoteId,
       source_type: input.sourceType,
       starts_at: new Date("2026-05-07T00:00:00.000Z"),
