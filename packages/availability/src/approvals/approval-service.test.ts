@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   leaveBalanceFindMany: vi.fn(),
   listForOrganisation: vi.fn(),
   locationFindMany: vi.fn(),
+  logError: vi.fn(),
   managerScopePersonIds: vi.fn(),
   materialiseAvailabilityPublication: vi.fn(() =>
     Promise.resolve({ ok: true, value: undefined })
@@ -79,6 +80,9 @@ vi.mock("@repo/notifications", () => ({
 vi.mock("@repo/feeds", () => ({
   materialiseAvailabilityPublication: mocks.materialiseAvailabilityPublication,
 }));
+vi.mock("@repo/observability/log", () => ({
+  log: { error: mocks.logError, warn: vi.fn() },
+}));
 
 const mockPort = {
   approveLeaveApplication: mocks.approveLeaveApplicationForRegion,
@@ -92,6 +96,8 @@ const mockPort = {
 const {
   approve,
   decline,
+  getApprovalDetail,
+  getApprovalSummaryCounts,
   listForApprover,
   requestMoreInfo,
   revertApprovalAttempt,
@@ -216,6 +222,173 @@ describe("approval-service", () => {
       value: [2026],
     });
     mocks.xeroTenantFindFirst.mockResolvedValue(xeroTenant);
+  });
+
+  it.each([
+    {
+      configure: () =>
+        mocks.availabilityFindMany.mockRejectedValueOnce(new Error("list")),
+      message: "Failed to load leave approvals.",
+      operation: "list_for_approver",
+      recordId: undefined,
+      run: () => listForApprover(input),
+    },
+    {
+      configure: () =>
+        mocks.availabilityFindFirst.mockRejectedValueOnce(new Error("detail")),
+      message: "Failed to load this approval.",
+      operation: "get_approval_detail",
+      recordId: input.recordId,
+      run: () => getApprovalDetail(input),
+    },
+    {
+      configure: () =>
+        mocks.availabilityCount.mockRejectedValueOnce(new Error("summary")),
+      message: "Failed to load approval summary.",
+      operation: "get_approval_summary_counts",
+      recordId: undefined,
+      run: () => getApprovalSummaryCounts(input),
+    },
+    {
+      configure: () =>
+        mocks.availabilityFindFirst.mockRejectedValueOnce(new Error("retry")),
+      message: "Failed to retry this decline.",
+      operation: "retry_decline_preflight",
+      recordId: input.recordId,
+      run: () => retryDecline(input, mockPort),
+    },
+    {
+      configure: () =>
+        mocks.availabilityFindFirst.mockRejectedValueOnce(new Error("info")),
+      message: "Failed to request more information.",
+      operation: "request_more_info",
+      recordId: input.recordId,
+      run: () =>
+        requestMoreInfo({ ...input, question: "Please clarify this leave" }),
+    },
+    {
+      configure: () =>
+        mocks.availabilityFindFirst.mockRejectedValueOnce(new Error("revert")),
+      message: "Failed to revert this approval attempt.",
+      operation: "revert_approval_attempt",
+      recordId: input.recordId,
+      run: () => revertApprovalAttempt(input),
+    },
+  ])(
+    "logs $operation catch failures with unchanged public results",
+    async (testCase) => {
+      testCase.configure();
+      const result = await testCase.run();
+      expect(result).toMatchObject({
+        error: { code: "unknown_error", message: testCase.message },
+        ok: false,
+      });
+      expect(mocks.logError).toHaveBeenCalledOnce();
+      expect(mocks.logError).toHaveBeenCalledWith(
+        "Unexpected approval service failure",
+        expect.objectContaining({
+          clerkOrgId: input.clerkOrgId,
+          operation: testCase.operation,
+          organisationId: input.organisationId,
+          ...(testCase.recordId ? { recordId: testCase.recordId } : {}),
+          error: expect.any(Error),
+        })
+      );
+    }
+  );
+
+  it.each([
+    [
+      "approve",
+      () => approve(input, mockPort),
+      mocks.approveLeaveApplicationForRegion,
+    ],
+    [
+      "decline",
+      () => decline({ ...input, reason: "Too much overlap" }, mockPort),
+      mocks.declineLeaveApplicationForRegion,
+    ],
+  ])(
+    "logs %s local transaction failures after Xero succeeds",
+    async (operation, run, write) => {
+      mocks.availabilityFindFirst.mockResolvedValueOnce(record);
+      write.mockResolvedValueOnce({ ok: true, value: undefined });
+      mocks.availabilityUpdateMany.mockRejectedValueOnce(
+        new Error("database unavailable")
+      );
+      const result = await run();
+      expect(result).toMatchObject({
+        error: { code: "unknown_error" },
+        ok: false,
+      });
+      expect(mocks.logError).toHaveBeenCalledWith(
+        "Unexpected approval service failure",
+        expect.objectContaining({
+          failureStage: "local_transaction",
+          operation,
+          xeroWriteSucceeded: true,
+        })
+      );
+    }
+  );
+
+  it.each([
+    [
+      "retry_approve",
+      () => retryApproval(input, mockPort),
+      mocks.approveLeaveApplicationForRegion,
+      "approve",
+    ],
+    [
+      "retry_decline",
+      () => retryDecline(input, mockPort),
+      mocks.declineLeaveApplicationForRegion,
+      "decline",
+    ],
+  ])(
+    "logs %s when the external port throws",
+    async (operation, run, write, failedAction) => {
+      const failedRecord = {
+        ...record,
+        approval_note: failedAction === "decline" ? "Too much overlap" : null,
+        approval_status: "xero_sync_failed",
+        failed_action: failedAction,
+      };
+      mocks.availabilityFindFirst.mockResolvedValue(failedRecord);
+      write.mockRejectedValueOnce(new Error("provider unavailable"));
+      const result = await run();
+      expect(result).toMatchObject({
+        error: { code: "unknown_error" },
+        ok: false,
+      });
+      expect(mocks.logError).toHaveBeenCalledWith(
+        "Unexpected approval service failure",
+        expect.objectContaining({
+          failureStage: "xero_write",
+          operation,
+          xeroWriteSucceeded: false,
+        })
+      );
+    }
+  );
+
+  it("logs preparation failures before any Xero write", async () => {
+    mocks.availabilityFindFirst.mockRejectedValueOnce(
+      new Error("database unavailable")
+    );
+    const result = await approve(input, mockPort);
+    expect(result).toMatchObject({
+      error: { code: "unknown_error" },
+      ok: false,
+    });
+    expect(mocks.logError).toHaveBeenCalledWith(
+      "Unexpected approval service failure",
+      expect.objectContaining({
+        failureStage: "prepare",
+        operation: "approve",
+        xeroWriteSucceeded: false,
+      })
+    );
   });
 
   it("approves submitted leave, clears failed_action, notifies owner and audits", async () => {
@@ -673,6 +846,18 @@ describe("approval-service", () => {
     if (!result.ok) {
       expect(result.error.code).toBe("invalid_state_for_approve");
     }
+    expect(mocks.logError).toHaveBeenCalledWith(
+      "Approval state changed after Xero write succeeded",
+      expect.objectContaining({
+        failureStage: "local_transaction",
+        operation: "approve",
+        xeroWriteSucceeded: true,
+      })
+    );
+    expect(mocks.logError).not.toHaveBeenCalledWith(
+      "Unexpected approval service failure",
+      expect.anything()
+    );
   });
 
   it("keeps decline conflicts mapped to invalid state", async () => {
@@ -692,6 +877,18 @@ describe("approval-service", () => {
       error: { code: "invalid_state_for_decline" },
       ok: false,
     });
+    expect(mocks.logError).toHaveBeenCalledWith(
+      "Approval state changed after Xero write succeeded",
+      expect.objectContaining({
+        failureStage: "local_transaction",
+        operation: "decline",
+        xeroWriteSucceeded: true,
+      })
+    );
+    expect(mocks.logError).not.toHaveBeenCalledWith(
+      "Unexpected approval service failure",
+      expect.anything()
+    );
     expect(mocks.dispatchNotification).not.toHaveBeenCalled();
   });
 
