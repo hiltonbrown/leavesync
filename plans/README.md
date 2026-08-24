@@ -40,10 +40,10 @@ Plans are ordered by leverage, with dependencies respected. Each row is merged t
 
 | # | Plan | Priority | Effort | Risk | Depends on | Status |
 |---|---|---|---|---|---|---|
-| 1 | [075](075-remove-the-committed-xero-debug-harness.md) Remove the committed Xero debug harness and restore the quality gate | P1 | S | LOW | — | DONE (2026-08-24, branch `advisor/075-remove-xero-debug-harness`, commit `8b3efbe`, review approved; not merged) |
+| 1 | [075](075-remove-the-committed-xero-debug-harness.md) Remove the committed Xero debug harness and restore the quality gate | P1 | S | LOW | — | MERGED (`3040948`; implementation `8b3efbe`; review approved) |
 | 2 | [051](051-isolate-the-jobs-integration-test-fixtures.md) Isolate the jobs integration fixtures | P1 | S | LOW | — | REJECTED (2026-08-24: fixed independently in `37e7231`; live pair passed twice at `b590de2`) |
 | 3 | [052](052-correct-the-timezone-contract-for-working-day-units.md) Correct the timezone contract for working-day units | P1 | S | MED | — | MERGED (`660b1a6`; focused tests pass 32/32; full gates pass on reviewed plan 075 branch `8b3efbe`) |
-| 4 | [053](053-guard-the-inbound-leave-upsert-against-stale-writes.md) Guard the inbound leave upsert | P1 | M | MED | 075 | BLOCKED (implementation and database proof pass; merge approved plan 075, then resume Step 5) |
+| 4 | [053](053-guard-the-inbound-leave-upsert-against-stale-writes.md) Guard the inbound leave upsert | P1 | M | MED | 075 | READY (implementation and database proof pass; resume Step 5 on a base containing `3040948`) |
 | 5 | [054](054-keep-synced-leave-in-the-feed-for-its-whole-last-day.md) Keep synced leave in the feed for its last day | P1 | S | MED | — | TODO |
 | 6 | [055](055-make-launch-mode-safe-in-the-browser.md) Make launch mode safe in the browser | P1 | S | LOW | — | TODO |
 | 7 | [057](057-make-failures-visible-and-scrub-what-is-logged.md) Make failures visible, scrub what is logged | P1 | S | LOW | — | TODO |
