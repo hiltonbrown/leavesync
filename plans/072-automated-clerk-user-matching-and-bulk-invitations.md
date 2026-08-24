@@ -1,6 +1,11 @@
 # Plan 072: Import every missing Xero payroll employee before reconciling Clerk access
 
-> **Executor instructions**: Follow this plan step by step. Run every
+> **Reconciliation outcome (2026-08-24)**: **REJECTED** because employee
+> reactivation, missing-person lifecycle, Clerk mutations and browser UI must
+> not ship as one change. Plans 097, 098 and 099 replace it in safe order. Do
+> not execute this document.
+
+> **Historical executor instructions (do not use)**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving to the
 > next step. If anything in the "STOP conditions" section occurs, stop and
 > report. Do not improvise. When done, update the status row for this plan in
@@ -20,10 +25,11 @@
 - **Priority**: P1
 - **Effort**: M
 - **Risk**: MED
-- **Depends on**: 069 and 071. Plan 073 must execute after this plan, never in
-  parallel.
+- **Depends on**: not applicable, rejected
+- **Superseded by**: Plans 097, 098 and 099
 - **Category**: bug
 - **Planned at**: commit `2e82ef4`, 2026-08-23
+- **Execution status**: REJECTED, superseded by Plans 097, 098 and 099
 
 ## Why this matters
 

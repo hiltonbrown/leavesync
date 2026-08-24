@@ -1,5 +1,10 @@
 # Plan 031: Fix the `@repo/database` package boundary
 
+> **Reconciliation verdict (2026-08-24): REJECTED as a stale compound plan.
+> Do not execute it.** The deep-import inventory grew, the package gained a
+> scheduler query export, and the remaining client-side Prisma projection is a
+> separate concern. Plans 088 and 089 replace the two independent outcomes.
+
 > **Executor instructions**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving to the
 > next step. If anything in the "STOP conditions" section occurs, stop and
@@ -19,6 +24,7 @@
 - **Depends on**: plan 032 should land first (same files, security fix)
 - **Category**: tech debt, architecture
 - **Planned at**: commit `f3a9a68`, 2026-07-29 (reconciled after plan 032 landed)
+- **Outcome**: REJECTED, superseded by plans 088 and 089
 
 ## Why this matters
 

@@ -6,7 +6,7 @@
 > improvise. When done, update this plan's row in `plans/README.md`.
 >
 > **Drift check (run first)**:
-> `git diff --stat 121da2a..HEAD -- packages/feeds/src/render packages/feeds/src/projection "apps/api/app/ical"`
+> `git diff --stat ecd49f5..HEAD -- packages/feeds/src/render packages/feeds/src/projection "apps/api/app/ical"`
 > If any in-scope file changed, compare the "Current state" excerpts against the
 > live code before proceeding; on a mismatch, treat it as a STOP condition.
 
@@ -15,9 +15,10 @@
 - **Priority**: P2
 - **Effort**: S
 - **Risk**: LOW
-- **Depends on**: plan 054 (same projection file — land 054 first)
+- **Depends on**: Plan 054 (DONE), Plan 057 and Plan 066. Plan 066 deletes the
+  duplicate route suite before this plan changes the canonical route tests.
 - **Category**: perf
-- **Planned at**: commit `121da2a`, 2026-08-12
+- **Planned at**: commit `ecd49f5`, 2026-08-24
 - **Covers findings**: P-03, P-05
 
 ## Why this matters
@@ -128,12 +129,12 @@ The default horizon is 366 days
 - `apps/api/app/ical/[token]/route.ts` and its co-located test
 
 **Out of scope**:
-- The 404/410/503 response decision table. Plan 064 owns the 404/410 question;
-  this plan must keep the current status codes exactly as they are.
+- The 404/410/503 response decision table. PRODUCT.md explicitly requires 410
+  for expired or revoked tokens; keep every current status exactly as-is.
 - KV cache TTL, cache keys or invalidation policy.
-- `holidayAppliesToLocation` semantics — plan 065 owns the predicate divergence.
+- `holidayAppliesToLocation` semantics, owned by replacement Plans 095–096.
   Coordinate: narrow the holiday projection to exactly the fields that predicate
-  reads **today**, so 065 can widen it if its unified rule needs more.
+  reads **today**, so Plan 095 can widen it for the supported unified rule.
 - `apps/api/__tests__/ical-route.test.ts` — plan 066 owns the duplicate tests.
 
 ## Git workflow
@@ -163,6 +164,10 @@ thin wrappers if other callers exist — check with
 
 The decision table must not change. Same statuses, same headers, same
 `Retry-After` on the 503 path that plan 043 established.
+
+Preserve all expiry mutations, observability calls, feed-access metadata writes
+and cache writes. The single-resolution result must carry enough state to avoid
+re-querying without bypassing those side effects.
 
 **Verify**: the Step 1 test now asserts 1 token lookup and 1 KV read; all
 existing feeds and api tests pass.
@@ -198,6 +203,8 @@ projected output for a fixed dataset.
 - the 304 path still returns 304 with the same headers
 - the 410 path (expired/revoked) and the 404 path are unchanged
 - the 503 retryable path from plan 043 is unchanged
+- expired-token mutation, access metadata, telemetry and cache writes occur
+  exactly once on their existing paths
 - holiday projection: a holiday inside the horizon appears; one outside does not;
   an archived one does not — driven by the SQL predicate, not the JS filter
 - a fixed dataset produces byte-identical ICS output before and after
@@ -227,7 +234,7 @@ Stop and report if:
 - Byte-identical ICS output cannot be achieved — that means a projection change
   altered content, which is out of scope here.
 - The holiday `where` clause needs a field `holidayAppliesToLocation` does not
-  read today, implying plan 065's unified predicate is already partly landed.
+  read today, implying Plan 095's predicate is already partly landed.
   Rebase or report.
 
 ## Maintenance notes
@@ -236,7 +243,7 @@ Stop and report if:
   one lookup per request. A reviewer should count round trips on any change to
   this route.
 - Narrowing the holiday `select` couples this file to whatever
-  `holidayAppliesToLocation` reads. Plan 065 unifies that predicate — when it
+  `holidayAppliesToLocation` reads. Plan 095 unifies that predicate; when it
   lands, the `select` must be checked against the unified field set.
 - Deliberately deferred: short-circuiting to KV before the token lookup on
   `If-None-Match` hits. It would remove the last DB round trip on the hot path

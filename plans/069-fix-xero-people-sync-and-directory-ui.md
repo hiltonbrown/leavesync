@@ -20,6 +20,9 @@
 - **Depends on**: none
 - **Category**: bug
 - **Planned at**: commit `5993283`, 2026-08-22
+- **Outcome**: DONE in implementation commit `18a8bae`; verified against
+  `ecd49f5` on 2026-08-24. Residual promised regression coverage moved to Plan
+  087.
 
 ## Why this matters
 

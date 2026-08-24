@@ -1,5 +1,10 @@
 # Plan 024: Harden env validation in `apps/app` and `apps/web`
 
+> **Reconciliation verdict (2026-08-24): REJECTED. Do not execute this
+> plan.** Package-owned schemas now normalise optional blank values, and
+> `apps/app/env.ts` composes the billing schema. Plan 041 implemented the valid
+> replacement. This file is retained as the decision record.
+
 > **Executor instructions**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving to the
 > next step. If anything in the "STOP conditions" section occurs, stop and
@@ -24,6 +29,7 @@
 - **Depends on**: none (but see "Git workflow" for ordering with plan 023)
 - **Category**: dx, correctness
 - **Planned at**: commit `75202db`, 2026-07-25
+- **Outcome**: REJECTED, superseded by completed plan 041
 
 ## Why this matters
 

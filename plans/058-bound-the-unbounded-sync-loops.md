@@ -1,12 +1,20 @@
 # Plan 058: Bound balance sync work and remove per-record stale-archive work
 
-> **Executor instructions**: Follow this plan step by step. Run every
+> **Reconciliation outcome (2026-08-24)**: **REJECTED** as a compound plan.
+> The findings remain valid and are superseded by Plans 090 and 091. The
+> resolved product contract is an unlimited roster, one scheduled page of 40
+> people each hour, and a rolling best-effort cycle with no completion SLA.
+> Public pricing remains unchanged. This planning default was adopted in
+> response to the operator's 2026-08-24 instruction to reconcile the blocked
+> plans to an executable backlog. Do not execute this document.
+
+> **Historical executor instructions (do not use)**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving to the
 > next step. If anything in the "STOP conditions" section occurs, stop and
 > report. Do not improvise. When done, update this plan's row in
 > `plans/README.md`, unless a reviewer has said they maintain the index.
 >
-> **Dispatch gate**: Plans 053 and 076 must be merged, and the product contract
+> **Historical dispatch gate**: Plans 053 and 076 must be merged, and the product contract
 > below must be approved, before this plan starts.
 > Preserve plan 053's inbound freshness and compare-and-swap guard when editing
 > `sync-xero-leave-records.ts`. Plan 076 must first prove that scheduled events
@@ -14,7 +22,7 @@
 > resume.
 >
 > **Drift check (run first)**:
-> `git diff --stat 1c0d0d2..HEAD -- PRODUCT.md apps/web/app/pricing/components/pricing-experience.tsx apps/web/app/pricing/pricing.test.ts apps/app/app/'(authenticated)'/settings/integrations/_connection-view.ts apps/app/app/'(authenticated)'/settings/integrations/_connection-view.test.ts apps/app/app/'(authenticated)'/settings/integrations/xero/xero-client.tsx packages/jobs/src/handlers/sync-xero-leave-balances.ts packages/jobs/src/handlers/sync-xero-leave-balances.test.ts packages/jobs/src/handlers/sync-xero-leave-balances.integration.test.ts packages/jobs/src/handlers/sync-xero-leave-records.ts packages/jobs/src/handlers/sync-xero-leave-records.test.ts packages/jobs/src/handlers/sync-xero-leave-records.integration.test.ts`
+> `git diff --stat ecd49f5..HEAD -- PRODUCT.md apps/web/app/pricing/components/pricing-experience.tsx apps/web/app/pricing/pricing.test.ts apps/app/app/'(authenticated)'/settings/integrations/_connection-view.ts apps/app/app/'(authenticated)'/settings/integrations/_connection-view.test.ts apps/app/app/'(authenticated)'/settings/integrations/xero/xero-client.tsx packages/jobs/src/handlers/sync-xero-leave-balances.ts packages/jobs/src/handlers/sync-xero-leave-balances.test.ts packages/jobs/src/handlers/sync-xero-leave-balances.integration.test.ts packages/jobs/src/handlers/sync-xero-leave-records.ts packages/jobs/src/handlers/sync-xero-leave-records.test.ts packages/jobs/src/handlers/sync-xero-leave-records.integration.test.ts`
 > If any in-scope file changed, compare the live code with "Current state" and
 > stop on a contract mismatch. The three new Xero settings test/helper paths
 > named under Scope must not already exist. Separately re-read the read-only
@@ -26,15 +34,14 @@
 - **Priority**: P2
 - **Effort**: L
 - **Risk**: MED
-- **Depends on**: plans 053 and 076, plus operator approval below
+- **Depends on**: not applicable, rejected
+- **Superseded by**: Plans 090 and 091
 - **Category**: bug, perf
-- **Planned at**: commit `1c0d0d2`, 2026-08-24
+- **Planned at**: commit `ecd49f5`, 2026-08-24 (reconciled onto current main;
+  scoped source snapshot unchanged)
 - **Covers findings**: C-07, P-04
-- **Operator approval**: PENDING
-- **Review status**: BLOCKED after cold review and reconciliation. The findings
-  remain, but execution requires Plan 076, operator approval of the product
-  contract, a reachable integration database, and a runner that can pass the
-  default Turbopack build.
+- **Operator approval**: RESOLVED by the reconciliation outcome above
+- **Review status**: REJECTED, superseded by Plans 090 and 091
 
 ## Why this matters
 
@@ -319,7 +326,8 @@ reconciliation, not executor improvisation.
 | Integration suite | `bun run test:integration` | exit 0 with database tests executed |
 | Build | `bun run build` | exit 0 |
 
-The reconciled baseline at `1c0d0d2` for the two targeted unit files is 25
+Re-measure the two targeted unit-file baselines at dispatch; the former
+`1c0d0d2` count was historical and is not a completion criterion. The suite had 25
 passing tests, verified on 2026-08-24.
 
 ## Scope
@@ -415,7 +423,7 @@ Before source edits:
 - `bun run build` exits 0 using the repository default;
 - `git merge-base --is-ancestor 27b739b HEAD`, plus the exact Plan 076 merge SHA
   inserted by the required post-dependency reconciliation, both exit 0. If the
-  exact Plan 076 SHA is absent here, stop: this blocked plan has not been
+  exact Plan 076 SHA is absent here, stop: this rejected historical plan has not been
   reconciled for execution.
 
 Stop before implementation if any preflight fails.

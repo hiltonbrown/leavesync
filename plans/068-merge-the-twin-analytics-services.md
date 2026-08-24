@@ -1,5 +1,10 @@
 # Plan 068: Merge the two near-identical analytics services
 
+> **Reconciliation verdict (2026-08-24): REJECTED in its current abstraction
+> form. Do not execute it.** The services differ in source predicates, public
+> outputs and service-specific aggregation/holiday logic. Reassess a narrower
+> shared query primitive only after plans 060, 065 and 082 land.
+
 > **Executor instructions**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving to the next
 > step. If anything in "STOP conditions" occurs, stop and report — do not
@@ -20,6 +25,8 @@
   dependencies are hard".
 - **Category**: tech-debt
 - **Planned at**: commit `121da2a`, 2026-08-12
+- **Outcome**: REJECTED; no replacement until prerequisite work lands and
+  remaining duplication is re-measured
 - **Covers findings**: A-04
 
 ## Why this matters

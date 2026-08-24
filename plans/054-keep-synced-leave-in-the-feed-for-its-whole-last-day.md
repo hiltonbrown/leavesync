@@ -18,7 +18,7 @@
 - **Depends on**: none. Land plan 053 first if both are queued — same handler file.
 - **Category**: bug
 - **Planned at**: commit `121da2a`, 2026-08-12
-- **Review status**: MERGED on 2026-08-24 as `85756fe`. Implementation commit
+- **Review status**: DONE on 2026-08-24 as `85756fe`. Implementation commit
   `07885a5` on `advisor/054-feed-horizon-last-day` was independently reviewed
   and approved.
 

@@ -1,5 +1,10 @@
 # Plan 064: Stop the feed endpoint confirming revoked tokens, and minimise support PII
 
+> **Reconciliation verdict (2026-08-24): REJECTED. Do not execute this
+> plan.** Returning `410 Gone` for revoked and expired feed tokens is an
+> explicit PRODUCT contract, not a vulnerability. The valid rate-limit and
+> support-data concerns are replaced by plans 080 and 081.
+
 > **Executor instructions**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving to the next
 > step. If anything in "STOP conditions" occurs, stop and report — do not
@@ -18,6 +23,8 @@
 - **Depends on**: plan 061 (same route file — land 061 first)
 - **Category**: security
 - **Planned at**: commit `121da2a`, 2026-08-12
+- **Outcome**: REJECTED. The response-code finding was by design; plans 080 and
+  081 own the remaining findings.
 - **Covers findings**: S-07, S-08
 
 ## Why this matters

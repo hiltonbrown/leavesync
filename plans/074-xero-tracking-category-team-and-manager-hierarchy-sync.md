@@ -1,5 +1,11 @@
 # Plan 074: Xero Tracking Category Team & Manager Hierarchy Sync
 
+> **Reconciliation verdict (2026-08-24): REJECTED. Do not execute this
+> plan.** The official AU Payroll employee schema exposes `EmployeeGroupName`,
+> not employee tracking-category fields, and exposes no supervisor relationship.
+> The plan also promises manager hierarchy without implementing it. Plan 086 is
+> a read-only spike for the supportable employee-group-to-team question.
+
 > **Executor instructions**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving to the
 > next step. If anything in the "STOP conditions" section occurs, stop and
@@ -21,6 +27,7 @@
 - **Depends on**: 073, which transitively depends on 071 and 072
 - **Category**: direction
 - **Planned at**: commit `5993283`, 2026-08-22
+- **Outcome**: REJECTED, superseded by plan 086
 
 ---
 

@@ -6,7 +6,7 @@
 > improvise. When done, update this plan's row in `plans/README.md`.
 >
 > **Drift check (run first)**:
-> `git diff --stat 121da2a..HEAD -- packages/availability/src/analytics`
+> `git diff --stat ecd49f5..HEAD -- packages/availability/src/analytics/leave-reports-service.ts packages/availability/src/analytics/leave-reports-service.test.ts packages/availability/src/analytics/out-of-office-service.ts packages/availability/src/analytics/out-of-office-service.test.ts packages/availability/src/analytics/analytics-record-select.ts`
 > If any in-scope file changed, compare the "Current state" excerpts against the
 > live code before proceeding; on a mismatch, treat it as a STOP condition.
 
@@ -15,9 +15,9 @@
 - **Priority**: P2
 - **Effort**: S
 - **Risk**: LOW
-- **Depends on**: none. Land before plan 068, so the projection is fixed once.
+- **Depends on**: none
 - **Category**: perf, security
-- **Planned at**: commit `121da2a`, 2026-08-12
+- **Planned at**: commit `ecd49f5`, 2026-08-24
 - **Covers findings**: P-01
 
 ## Why this matters
@@ -98,12 +98,12 @@ so the rule stays discoverable.
 - a new shared `packages/availability/src/analytics/analytics-record-select.ts`
 
 **Out of scope**:
-- Deduplicating the two twin services. Plan 068 owns that, and doing it here
-  makes this change unreviewable.
+- Deduplicating the two services. The former Plan 068 abstraction was rejected;
+  reassess only after this projection and Plan 082's label helper land.
 - Adding `take` to the aggregate queries. Bounding an aggregate changes the
   reported numbers, which is a product decision, not a projection fix. The
   drilldown queries are already bounded.
-- The holiday predicate divergence in these files — plan 065 owns it.
+- The holiday predicate divergence in these files, owned by Plans 095–096.
 - `apps/app` analytics pages. They consume named fields already.
 
 ## Git workflow
@@ -180,8 +180,8 @@ ALL must hold:
 - [ ] `bun run test` exits 0, 17/17 tasks, with at least 4 new tests
 - [ ] `grep -c "recordInclude" packages/availability/src/analytics/leave-reports-service.ts packages/availability/src/analytics/out-of-office-service.ts`
       prints `0` for both
-- [ ] `grep -rn "source_payload_json" packages/availability/src/analytics/` returns
-      only the comment naming it as excluded
+- [ ] `rg -n "source_payload_json|xero_write_error_raw" packages/availability/src/analytics --glob '!*.test.ts'`
+      returns only the projection comment naming the excluded fields
 - [ ] No new `as` casts introduced
 - [ ] `git status --short` lists only the in-scope files
 - [ ] `plans/README.md` row updated
@@ -203,8 +203,7 @@ Stop and report if:
 - The rule to enforce in review, now stated in three places: `include` without
   `select` on `availability_records` pulls audit blobs. Prefer an explicit
   projection on any query whose result reaches a render path.
-- Plan 068 will merge these two services. Landing this first means the shared
-  projection already exists for it to adopt.
+- Reassess shared analytics control flow only after this plan and Plan 082 land.
 - If a new audit-shaped column is added to `availability_records`, it inherits
   the correct behaviour here automatically — which is the point of projecting
   rather than excluding.
