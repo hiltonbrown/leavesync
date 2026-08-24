@@ -78,6 +78,30 @@ const baseInput = {
   organisationId: "40000000-0000-4000-8000-000000000001",
 };
 
+function mockFeedRecord(record: { ends_at: Date; starts_at: Date }) {
+  mocks.feedFindFirst.mockResolvedValueOnce({
+    created_by_user_id: "user_1",
+    includes_public_holidays: false,
+    privacy_mode: "named",
+    scopes: [{ scope_type: "org", scope_value: null }],
+  });
+  mocks.availabilityRecordFindMany.mockImplementationOnce(
+    (query: {
+      where: {
+        ends_at: { gte: Date };
+        starts_at: { lt: Date };
+      };
+    }) => {
+      const endsAfterHorizon = record.ends_at >= query.where.ends_at.gte;
+      const startsBeforeHorizonEnd =
+        record.starts_at < query.where.starts_at.lt;
+      return Promise.resolve(
+        endsAfterHorizon && startsBeforeHorizonEnd ? [record] : []
+      );
+    }
+  );
+}
+
 describe("projectFeedEvents", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -327,6 +351,184 @@ describe("projectFeedEvents", () => {
     expect(result.value[0].startsAt.toISOString()).toBe(
       "2026-05-07T00:00:00.000Z"
     );
+  });
+
+  it("projects a Xero-shaped all-day record throughout its final day", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-08T10:00:00.000Z"));
+    const record = {
+      all_day: true,
+      contactability: "unavailable",
+      derived_sequence: 0,
+      derived_uid_key: "fallback@ical.teamcalendar.online",
+      ends_at: new Date("2026-05-08T00:00:00.000Z"),
+      id: "10000000-0000-4000-8000-000000000005",
+      person: {
+        display_name: null,
+        first_name: "Jane",
+        last_name: "Smith",
+        location: { name: "Brisbane" },
+      },
+      publication: null,
+      record_type: "annual_leave",
+      starts_at: new Date("2026-05-07T00:00:00.000Z"),
+      title: null,
+    };
+    mockFeedRecord(record);
+
+    const result = await projectFeedEvents({
+      ...baseInput,
+      privacyMode: "named",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value).toHaveLength(1);
+    expect(result.value[0].sourceRecordId).toBe(record.id);
+  });
+
+  it("projects a Team Calendar all-day record throughout its final day", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-08T10:00:00.000Z"));
+    const record = {
+      all_day: true,
+      contactability: "unavailable",
+      derived_sequence: 0,
+      derived_uid_key: "fallback@ical.teamcalendar.online",
+      ends_at: new Date("2026-05-08T23:59:59.999Z"),
+      id: "10000000-0000-4000-8000-000000000006",
+      person: {
+        display_name: null,
+        first_name: "Jane",
+        last_name: "Smith",
+        location: { name: "Brisbane" },
+      },
+      publication: null,
+      record_type: "annual_leave",
+      starts_at: new Date("2026-05-08T00:00:00.000Z"),
+      title: null,
+    };
+    mockFeedRecord(record);
+
+    const result = await projectFeedEvents({
+      ...baseInput,
+      privacyMode: "named",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value).toHaveLength(1);
+    expect(result.value[0].sourceRecordId).toBe(record.id);
+  });
+
+  it("does not project a record that ended the previous day", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-08T10:00:00.000Z"));
+    const record = {
+      all_day: true,
+      contactability: "unavailable",
+      derived_sequence: 0,
+      derived_uid_key: "fallback@ical.teamcalendar.online",
+      ends_at: new Date("2026-05-07T00:00:00.000Z"),
+      id: "10000000-0000-4000-8000-000000000007",
+      person: {
+        display_name: null,
+        first_name: "Jane",
+        last_name: "Smith",
+        location: { name: "Brisbane" },
+      },
+      publication: null,
+      record_type: "annual_leave",
+      starts_at: new Date("2026-05-06T00:00:00.000Z"),
+      title: null,
+    };
+    mockFeedRecord(record);
+
+    const result = await projectFeedEvents({
+      ...baseInput,
+      privacyMode: "named",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value).toHaveLength(0);
+  });
+
+  it("projects a record starting tomorrow within the horizon", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-08T10:00:00.000Z"));
+    const record = {
+      all_day: true,
+      contactability: "unavailable",
+      derived_sequence: 0,
+      derived_uid_key: "fallback@ical.teamcalendar.online",
+      ends_at: new Date("2026-05-10T00:00:00.000Z"),
+      id: "10000000-0000-4000-8000-000000000008",
+      person: {
+        display_name: null,
+        first_name: "Jane",
+        last_name: "Smith",
+        location: { name: "Brisbane" },
+      },
+      publication: null,
+      record_type: "annual_leave",
+      starts_at: new Date("2026-05-09T00:00:00.000Z"),
+      title: null,
+    };
+    mockFeedRecord(record);
+
+    const result = await projectFeedEvents({
+      ...baseInput,
+      privacyMode: "named",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value).toHaveLength(1);
+    expect(result.value[0].sourceRecordId).toBe(record.id);
+  });
+
+  it("keeps the far edge of the horizon exclusive", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-08T10:00:00.000Z"));
+    const record = {
+      all_day: true,
+      contactability: "unavailable",
+      derived_sequence: 0,
+      derived_uid_key: "fallback@ical.teamcalendar.online",
+      ends_at: new Date("2026-06-08T00:00:00.000Z"),
+      id: "10000000-0000-4000-8000-000000000009",
+      person: {
+        display_name: null,
+        first_name: "Jane",
+        last_name: "Smith",
+        location: { name: "Brisbane" },
+      },
+      publication: null,
+      record_type: "annual_leave",
+      starts_at: new Date("2026-06-07T00:00:00.000Z"),
+      title: null,
+    };
+    mockFeedRecord(record);
+
+    const result = await projectFeedEvents({
+      ...baseInput,
+      privacyMode: "named",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value).toHaveLength(0);
   });
 
   it("converts a multi-day Xero-shaped all-day record inclusive midnight end to the following midnight", async () => {

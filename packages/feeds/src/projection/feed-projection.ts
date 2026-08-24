@@ -91,6 +91,7 @@ export async function projectFeedEvents(
       people.map((person) => [person.id, person.location])
     );
     const horizonStart = new Date();
+    horizonStart.setUTCHours(0, 0, 0, 0);
     const horizonEnd = new Date(horizonStart);
     horizonEnd.setUTCDate(horizonEnd.getUTCDate() + input.horizonDays);
 
@@ -104,7 +105,7 @@ export async function projectFeedEvents(
               approval_status: "approved",
               archived_at: null,
               clerk_org_id: input.clerkOrgId,
-              ends_at: { gt: horizonStart },
+              ends_at: { gte: horizonStart },
               include_in_feed: true,
               organisation_id: input.organisationId,
               person_id: { in: personIds },
