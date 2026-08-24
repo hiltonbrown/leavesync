@@ -1,5 +1,10 @@
 # Plan 067: Consolidate the duplicated helpers and correct the wrong documentation
 
+> **Reconciliation verdict (2026-08-24): REJECTED as a compound plan. Do not
+> execute it.** It combines four independent code/tooling changes and one
+> partly incorrect documentation finding. Plans 082 to 085 replace the valid
+> work with explicit scope and dependencies.
+
 > **Executor instructions**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving to the next
 > step. If anything in "STOP conditions" occurs, stop and report — do not
@@ -18,6 +23,7 @@
 - **Depends on**: none
 - **Category**: tech-debt, deps, dx, docs
 - **Planned at**: commit `121da2a`, 2026-08-12
+- **Outcome**: REJECTED, superseded by plans 082, 083, 084 and 085
 - **Covers findings**: A-01, A-03, M-01, D-01, DOC-01
 
 ## Why this matters

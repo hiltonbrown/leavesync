@@ -1,12 +1,16 @@
 # Plan 062: Make the Content Security Policy real
 
-> **Executor instructions**: Follow this plan step by step. Run every
+> **Reconciliation outcome (2026-08-24)**: **REJECTED** as a compound rollout.
+> Plans 092, 093 and 094 separately add HSTS, collect CSP evidence, and enforce
+> the observed policy. Do not execute this document.
+
+> **Historical executor instructions (do not use)**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving to the next
 > step. If anything in "STOP conditions" occurs, stop and report — do not
 > improvise. When done, update this plan's row in `plans/README.md`.
 >
 > **Drift check (run first)**:
-> `git diff --stat 121da2a..HEAD -- apps/app/next.config.ts packages/next-config/index.ts`
+> `git diff --stat ecd49f5..HEAD -- apps/app/next.config.ts apps/app/proxy.ts apps/api/next.config.ts apps/api/app/api/csp-report packages/next-config/index.ts`
 > If any in-scope file changed, compare the "Current state" excerpts against the
 > live code before proceeding; on a mismatch, treat it as a STOP condition.
 
@@ -15,9 +19,11 @@
 - **Priority**: P2
 - **Effort**: M
 - **Risk**: MED
-- **Depends on**: none
+- **Depends on**: not applicable, rejected
+- **Superseded by**: Plans 092, 093 and 094
 - **Category**: security
-- **Planned at**: commit `121da2a`, 2026-08-12
+- **Planned at**: commit `ecd49f5`, 2026-08-24
+- **Execution status**: REJECTED, superseded by Plans 092, 093 and 094
 - **Covers findings**: S-02
 
 ## Why this matters
@@ -92,9 +98,12 @@ The plaintext feed token surface is
 
 **In scope**:
 - `apps/app/next.config.ts`
+- `apps/app/proxy.ts`
 - `packages/next-config/index.ts`
 - `apps/api/next.config.ts`
-- a new test asserting the header set
+- an optional `apps/api/app/api/csp-report/route.ts` and test, but only when the
+  operator chooses a first-party reporting sink
+- tests asserting the header set and nonce propagation
 
 **Out of scope**:
 - Removing `'unsafe-inline'` from `style-src`. Tailwind and the design system
@@ -117,6 +126,9 @@ Add a `report-to` (and `report-uri` for older browser support) directive so
 violations are collected. Point it at the Sentry CSP reporting endpoint if the
 project has one configured, otherwise at a route in `apps/api` that logs
 violations through the observability logger.
+
+Before editing, record the operator's selected sink, retention/redaction policy
+and environment URL in this plan. Do not infer these operational decisions.
 
 Until this step exists, every later step is guesswork. Do not skip it.
 

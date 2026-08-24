@@ -21,7 +21,7 @@
 - **Category**: bug
 - **Planned at**: commit `206af7b`, 2026-08-23
 - **Covers finding**: C-02
-- **Review status**: MERGED on 2026-08-24 as `6a5e9d0`. Implementation commit
+- **Review status**: DONE on 2026-08-24 as `6a5e9d0`. Implementation commit
   `27b739b` on `advisor/053-guard-inbound-upsert-v2` was independently reviewed
   and approved.
 
@@ -198,7 +198,7 @@ test-count total in assertions or done criteria because workspace counts change.
   is already correct
 - `packages/availability/src/sync/inbound-leave-normaliser.ts`, its stable hash
   and remote timestamp contract already provide the required inputs
-- stale-record archival and balance paging, owned by plan 058
+- stale-record archival and balance paging, owned by Plans 090 and 091
 - date-only end semantics, owned by plan 054
 - changes to feed UID or `derived_sequence`
 - any schema or migration change
@@ -390,7 +390,7 @@ Stop and report if:
   decision. Do not add a second unguarded update path around this helper.
 - `derived_sequence` remains a local publication/transition sequence. Inbound
   sync observes it in the compare-and-swap but does not increment it.
-- Plan 058 changes the archive half of this handler. Land plan 053 first, then
-  re-run plan 058's drift check and preserve this update guard verbatim.
-- Plan 071 later adds regional readers and depends on these stale-write and
+- Plan 090 changes the archive half of this handler. Preserve this update guard
+  verbatim when executing it.
+- Plans 100–109 add regional readers/rollout and depend on these stale-write and
   bounded-loop contracts remaining region-agnostic.

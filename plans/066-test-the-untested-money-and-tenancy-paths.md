@@ -6,7 +6,7 @@
 > improvise. When done, update this plan's row in `plans/README.md`.
 >
 > **Drift check (run first)**:
-> `git diff --stat 121da2a..HEAD -- packages/database apps/api/__tests__ packages/availability/src/people`
+> `git diff --stat ecd49f5..HEAD -- packages/database/billing.integration.test.ts packages/database/xero-tenancy.integration.test.ts apps/api/__tests__/webhooks-payments.test.ts apps/api/__tests__/ical-route.test.ts apps/api/app/webhooks/payments/route.test.ts "apps/api/app/ical/[token]/route.test.ts" packages/availability/src/people/alternative-contact-service.test.ts`
 > If any in-scope file changed, compare the "Current state" excerpts against the
 > live code before proceeding; on a mismatch, treat it as a STOP condition.
 
@@ -15,9 +15,10 @@
 - **Priority**: P2
 - **Effort**: M
 - **Risk**: LOW
-- **Depends on**: none
+- **Depends on**: a reachable integration-test `DATABASE_URL`. Complete before
+  Plans 061, 077 and 079 so their tests build on the canonical route suites.
 - **Category**: tests
-- **Planned at**: commit `121da2a`, 2026-08-12
+- **Planned at**: commit `ecd49f5`, 2026-08-24
 - **Covers findings**: T-02, T-03, T-04, T-05
 
 ## Why this matters
@@ -189,16 +190,13 @@ assertions than before; `ls apps/api/__tests__/` shows only
 
 ### Step 5: Characterise `alternative-contact-service.ts`
 
-Run coverage scoped to the package first to see what the server-action tests
-already exercise incidentally:
-`cd packages/availability && bunx vitest run --coverage src/people`.
-
-Then write characterisation tests for what is uncovered, prioritising the
+Read the existing service and tests to inventory the observable branches. Write
+characterisation tests prioritising the
 tenant-scoping predicates (every query must carry both `clerk_org_id` and
 `organisation_id`) and the contact resolution and precedence rules.
 
-This is a first pass, not exhaustive coverage. Document the measured starting
-percentage and the ending one in the report.
+This is a first pass, not an arbitrary coverage-percentage target. Do not add a
+coverage provider solely for this plan.
 
 **Verify**: `bun run test` → exit 0, 17/17 tasks.
 
@@ -225,8 +223,8 @@ ALL must hold:
 - [ ] `grep -rn "P2002" --include="*.test.ts" packages | grep -i "xero"` returns at least one match
 - [ ] `ls apps/api/__tests__/` lists exactly `availability-routes.test.ts` and `health.test.ts`
 - [ ] `packages/availability/src/people/alternative-contact-service.test.ts` exists
-- [ ] The report records the before/after coverage figure for
-      `alternative-contact-service.ts`
+- [ ] The report lists every characterised branch and any intentionally
+      uncovered branch in `alternative-contact-service.ts`
 - [ ] `plans/README.md` row updated
 
 ## STOP conditions

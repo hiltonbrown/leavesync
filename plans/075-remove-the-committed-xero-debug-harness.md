@@ -21,7 +21,7 @@
 - **Category**: security, dx
 - **Planned at**: commit `b590de2`, 2026-08-24
 - **Unblocks**: plan 053; restores the full quality gate for merged plan 052
-- **Execution**: MERGED into `main` at commit `3040948`; implementation commit
+- **Execution**: DONE in `main` at commit `3040948`; implementation commit
   `8b3efbe`; reviewer verdict APPROVE
 
 ## Why this matters

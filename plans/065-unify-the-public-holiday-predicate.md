@@ -1,12 +1,17 @@
 # Plan 065: One rule for whether a public holiday applies to a person
 
-> **Executor instructions**: Follow this plan step by step. Run every
+> **Reconciliation outcome (2026-08-24)**: **REJECTED** because the proposed
+> all-scope rule activates dormant assignment types without supported writers
+> or product UI and misses current-status consumers. Plans 095 and 096 implement
+> the supported location/jurisdiction rule. Do not execute this document.
+
+> **Historical executor instructions (do not use)**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving to the next
 > step. If anything in "STOP conditions" occurs, stop and report — do not
 > improvise. When done, update this plan's row in `plans/README.md`.
 >
 > **Drift check (run first)**:
-> `git diff --stat 121da2a..HEAD -- packages/feeds/src/projection packages/availability/src/calendar packages/availability/src/analytics packages/availability/src/duration packages/availability/src/dashboard`
+> `git diff --stat ecd49f5..HEAD -- packages/core/src/holiday-applies.ts packages/feeds/src/projection packages/availability/src/calendar packages/availability/src/analytics packages/availability/src/duration packages/availability/src/dashboard`
 > If any in-scope file changed, compare the "Current state" excerpts against the
 > live code before proceeding; on a mismatch, treat it as a STOP condition.
 
@@ -15,9 +20,11 @@
 - **Priority**: P3
 - **Effort**: M
 - **Risk**: MED — this plan **changes behaviour on three surfaces by design**
-- **Depends on**: plans 060 and 061 (both narrow queries this predicate reads from)
+- **Depends on**: not applicable, rejected
+- **Superseded by**: Plans 095 and 096
 - **Category**: tech-debt, bug
-- **Planned at**: commit `121da2a`, 2026-08-12
+- **Planned at**: commit `ecd49f5`, 2026-08-24
+- **Execution status**: REJECTED, superseded by Plans 095 and 096
 - **Covers findings**: A-02
 
 ## Why this matters
@@ -65,8 +72,9 @@ import Prisma or any database module.
 
 ## The decision this plan must make first
 
-Before writing code, write down the canonical rule and get it agreed. The
-proposal, derived from the five implementations:
+Before writing code, reconcile PRODUCT.md's older location-oriented wording
+with the schema's five assignment scopes, write down the canonical rule and get
+it agreed. The proposal, derived from the five implementations:
 
 1. **Scope coverage** from the dashboard: honour `organisation`, `location`,
    `team` and `person` assignments.

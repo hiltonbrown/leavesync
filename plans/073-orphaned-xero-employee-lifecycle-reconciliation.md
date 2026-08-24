@@ -1,6 +1,11 @@
 # Plan 073: Soft-archive Xero employees missing from a complete payroll snapshot
 
-> **Executor instructions**: Follow this plan step by step. Run every
+> **Reconciliation outcome (2026-08-24)**: **REJECTED**. Its one-pass 50%
+> threshold can archive half a small organisation after one truncated snapshot.
+> Plan 098 replaces it with persisted confirmation and conservative guards. Do
+> not execute this document.
+
+> **Historical executor instructions (do not use)**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving to the
 > next step. If anything in the "STOP conditions" section occurs, stop and
 > report. Do not improvise. When done, update the status row for this plan in
@@ -19,9 +24,11 @@
 - **Priority**: P2
 - **Effort**: M
 - **Risk**: MED
-- **Depends on**: 072, which transitively depends on 071
+- **Depends on**: not applicable, rejected
+- **Superseded by**: Plan 098
 - **Category**: bug
 - **Planned at**: commit `2e82ef4`, 2026-08-23
+- **Execution status**: REJECTED, superseded by Plan 098
 
 ## Why this matters
 

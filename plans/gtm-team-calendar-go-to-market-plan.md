@@ -1,5 +1,12 @@
 # Team Calendar go-to-market plan
 
+> **Reconciled 24 August 2026**: The 21 August instrumentation milestone was not
+> met. Current source proves Clerk lifecycle instrumentation, but not the full
+> application-to-activation event set in this plan. The public site still uses
+> direct sign-up rather than a closed-cohort application flow. Treat both as
+> launch blockers, not completed assumptions. Pricing remains A$19/A$49 and the
+> launch remains Australia-only.
+
 ## Strategic recommendation
 
 Launch on **14 September 2026** as an Australia-only expansion of closed early
@@ -34,7 +41,7 @@ and verified.
 | Activation speed | 70% activated within seven days | Signup-to-activation duration |
 | Product adoption | 6 organisations active weekly by week +4 | Weekly active organisations |
 | Workflow proof | 50 completed leave approval/write-back cycles | Product telemetry |
-| Calendar adoption | 30 active feed subscriptions | Feed analytics |
+| Calendar adoption | 30 active feed tokens observed by feed-access telemetry | Feed access analytics |
 | Partner distribution | 10 active adviser relationships, 5 referred leads | Referral attribution |
 | Advocacy | 3 case studies, 5 App Store reviews when listed | Published assets |
 | Commercial validation | 6 paid-conversion commitments and at least A$250 committed MRR | Pricing interviews and commitments |
@@ -52,7 +59,9 @@ An organisation counts as activated only when it has:
 
 ### Milestones
 
-- **21 August:** Positioning, public claims and funnel instrumentation complete.
+- **28 August (recovery gate):** Reconcile positioning and public claims; finish
+  application, signup, Xero connection, sync, feed, approval and activation
+  instrumentation that was due 21 August.
 - **28 August:** Three reference customers and ten adviser prospects secured.
 - **4 September:** Campaigns, partner kit, case study and webinar ready.
 - **11 September:** Launch readiness gate passed.
@@ -155,9 +164,11 @@ guide](https://developer.xero.com/static/otherfiles/Grow-with-the-Xero-App-Store
 | Help centre | Xero setup, privacy, calendar subscription and troubleshooting guides | Ready before launch | Reduced support volume |
 | Founder profile | Product demonstrations and operational insights | Three posts weekly | Qualified conversations |
 
-Replace direct public signup with an application flow if access is genuinely
-closed. Capture company size, country, Xero Payroll usage, calendar client,
-current process and acquisition source.
+Replace the current direct public signup with an application flow before calling
+access closed. Capture company size, country, Xero Payroll usage, calendar
+client, current process and acquisition source. Until that ships, the
+"Apply for guided early access" CTA and demand-generation KPI are not measurable
+as written.
 
 ### Paid channels
 
@@ -222,7 +233,7 @@ Paid-media stop rules:
 
 | Week | Dates | Actions | Owner |
 |---|---|---|---|
-| Week -4 | 17–21 Aug | Reconcile AU-only claims, pricing and access language. Instrument application, signup, Xero connection, sync, feed, approval and activation events. Confirm three reference customers. | Product, engineering, GTM |
+| Week -4 | 17–21 Aug | Missed as a complete gate. AU-only pricing/access review and full funnel instrumentation carry into the 24–28 August recovery gate. | Product, engineering, GTM |
 | Week -3 | 24–28 Aug | Interview reference customers about their last leave workflow. Record demo. Draft first case study. Build 30-practice adviser list and start outreach. | Founder, customer success |
 | Week -2 | 31 Aug–4 Sep | Publish AU landing page. Prepare partner kit, webinar registration and Search campaigns. Start A$300 Search validation test. Draft all emails and social posts. | GTM, design |
 | Week -1 | 7–11 Sep | Brief partners. QA signup and onboarding. Test analytics attribution. Schedule launch content. Run support simulation and final go/no-go review. | Whole launch team |
@@ -388,4 +399,3 @@ The strongest expected acquisition loop is:
 **Xero adviser introduction → guided pilot → first successful approval and
 calendar subscription → case study and App Store review → next adviser
 referral.**
-

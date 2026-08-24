@@ -6,7 +6,7 @@
 > improvise. When done, update this plan's row in `plans/README.md`.
 >
 > **Drift check (run first)**:
-> `git diff --stat 121da2a..HEAD -- packages/jobs/src/handlers/reconcile-xero-approval-state.ts packages/database/prisma/schema.prisma`
+> `git diff --stat ecd49f5..HEAD -- packages/jobs/src/handlers/reconcile-xero-approval-state.ts packages/jobs/src/handlers/reconcile-xero-approval-state.test.ts packages/database/prisma/schema.prisma packages/database/prisma/migrations`
 > If any in-scope file changed, compare the "Current state" excerpts against the
 > live code before proceeding; on a mismatch, treat it as a STOP condition.
 
@@ -15,9 +15,10 @@
 - **Priority**: P2
 - **Effort**: M
 - **Risk**: LOW
-- **Depends on**: none. Requires a reachable `DATABASE_URL` (adds a migration).
+- **Depends on**: none. Requires a reachable `DATABASE_URL` (adds a migration
+  and a database-backed fairness test).
 - **Category**: bug
-- **Planned at**: commit `121da2a`, 2026-08-12
+- **Planned at**: commit `ecd49f5`, 2026-08-24
 - **Covers findings**: C-05, C-09
 
 ## Why this matters
@@ -104,9 +105,10 @@ return {};
 Note `counts.failed += 1` is outside the `if`, so the archived-and-resolved case
 increments both counters.
 
-**Existing infrastructure to prefer over inventing new state**: the schema
-already has an `XeroSyncCursor` model used by the inbound sync handlers. Read it
-before adding a column.
+`XeroSyncCursor` cannot represent this progress safely: its enum only covers
+`people`, `leave_records` and `leave_balances`, and its singleton cursor shape is
+for upstream pagination, not per-record scheduling. This plan therefore chooses
+an explicit nullable marker on each record.
 
 ## Commands you will need
 
@@ -123,8 +125,9 @@ before adding a column.
 **In scope**:
 - `packages/jobs/src/handlers/reconcile-xero-approval-state.ts`
 - `packages/jobs/src/handlers/reconcile-xero-approval-state.test.ts`
-- `packages/database/prisma/schema.prisma` (one nullable column, if that is the
-  chosen mechanism)
+- `packages/jobs/src/handlers/reconcile-xero-approval-state.integration.test.ts`
+- `packages/database/prisma/schema.prisma` (one nullable
+  `xero_approval_checked_at DateTime?` column)
 - The one generated migration directory under
   `packages/database/prisma/migrations/`
 
@@ -161,40 +164,44 @@ In `reconcile-xero-approval-state.test.ts`:
 **Verify**: `cd packages/jobs && bunx vitest run src/handlers/reconcile-xero-approval-state.test.ts`
 → both new cases fail, for the reasons stated.
 
-### Step 2: Choose and record the progress mechanism
+### Step 2: Add the per-record scheduling marker
 
-Prefer reusing `XeroSyncCursor` if it can express "last reconciled position" for
-this handler without distorting its existing meaning. If it cannot, add a single
-nullable column `last_reconciled_at DateTime?` to `availability_records`.
+Add `xero_approval_checked_at DateTime?` to `AvailabilityRecord` and generate one
+migration. The name is deliberately specific: it records when the Xero approval
+reconciler last considered a record, not whether every reconciliation concern
+was completed.
 
-Write a one-paragraph comment at the top of the handler stating which mechanism
-was chosen and why, so the next reader does not have to re-derive it.
+Add the matching index needed by the candidate query, beginning with the tenant
+scope and eligibility fields and ending with `xero_approval_checked_at` and
+`id`. Confirm the final index order with `EXPLAIN` against representative data;
+do not add an unproven broad index.
 
 **Verify**: `bun run migrate` → migration created and applied; `bun run typecheck`
 → exit 0.
 
 ### Step 3: Order by progress, and stamp every record the run touches
 
-Order the candidate query by the progress marker ascending, nulls first, so
-never-reconciled records go first and the least-recently-checked follow.
+Order the candidate query by `xero_approval_checked_at` ascending with nulls
+first, then `id` ascending. Never-checked records go first; the least recently
+checked follow, with `id` providing deterministic tie-breaking.
 
-Stamp the marker on **every** record the run touches — including `matched`
-no-ops. This is the crux: if matched records are not stamped, they stay at the
-front of the queue forever and nothing changes.
+Stamp the marker on **every** record the run attempts, including matched no-ops,
+resolved not-found records and genuine upstream failures. Use one timestamp per
+run and retain both tenant keys in every update. Do not stamp rows selected but
+never attempted after an unexpected run-level failure.
 
 **Verify**: Step 1 case 1 passes — two consecutive runs process disjoint sets.
 
 ### Step 4: Fix the not-found counter and the run summary
 
-Move `counts.failed += 1` into an `else` branch so the archived-and-resolved case
-is not counted as a failure. Reconsider the `recordFailure` write for that case:
-either downgrade it to an audit event or give it an explicit resolved
-classification, so genuine failures stay distinguishable in the
-`failed_records` surface.
+Handle `not_found_error` before `recordFailure`: archive the missing record,
+increment `archivedMissing`, and do not create a failed-record row or increment
+`failed`. Genuine upstream failures keep both behaviours.
 
-Replace the `rerun to continue` summary with a real progress figure — how many
-were processed and roughly how many remain — now that rerunning genuinely
-continues.
+Replace `rerun to continue` with counts derived from the same dual-tenant,
+eligibility-scoped predicate. If an exact remaining count would add a costly
+query, report only that the fair queue was capped; do not publish an estimate as
+an exact value.
 
 **Verify**: Step 1 case 2 passes; `bun run test` → exit 0, 17/17 tasks.
 
@@ -222,6 +229,10 @@ following the existing structure of that file:
 - an existing optimistic-concurrency case still behaves (regression guard for
   plan 007's work)
 
+Add one database-backed integration case proving the generated query orders
+null markers first and advances beyond the first 500 rows across runs. Mock-only
+tests cannot prove Prisma's null ordering or the migration/index contract.
+
 Verification: `bun run test` → exit 0, with at least 5 new tests.
 
 ## Done criteria
@@ -231,12 +242,15 @@ ALL must hold:
 - [ ] `bun run check` exits 0
 - [ ] `bun run typecheck` exits 0
 - [ ] `bun run test` exits 0, 17/17 tasks, with at least 5 new tests
+- [ ] `bun run test:integration` exits 0 with the database-backed fairness case
 - [ ] `bun run migrate` succeeded and the drift check prints "This is an empty
       migration"
 - [ ] `grep -c "rerun to continue" packages/jobs/src/handlers/reconcile-xero-approval-state.ts`
       prints `0`
-- [ ] `grep -B2 -A2 "counts.failed += 1" packages/jobs/src/handlers/reconcile-xero-approval-state.ts`
-      shows it inside an `else` branch, not unconditional
+- [ ] The `not_found_error` branch returns before `recordFailure` and
+      `counts.failed += 1`, asserted by test
+- [ ] Every attempted row receives `xero_approval_checked_at` under both tenant
+      keys, including matched, missing and failed outcomes
 - [ ] `grep -c "reconciliationEnabled" "apps/app/app/(authenticated)/leave-approvals/page.tsx"`
       prints `1` and its value is still `false`
 - [ ] `git status --short` lists no file under
@@ -249,9 +263,9 @@ Stop and report if:
 
 - No `DATABASE_URL` is reachable. This plan generates a migration and cannot be
   completed or verified without one.
-- `XeroSyncCursor` looks like the right home but adapting it would change
-  behaviour for the inbound sync handlers that already use it. Report rather
-  than overloading it.
+- The current `XeroSyncCursor` enum or semantics have expanded since planning in
+  a way that could safely represent per-record approval scheduling. Stop and
+  re-evaluate the chosen column rather than creating two progress mechanisms.
 - Stamping every touched record materially increases write volume per run beyond
   what the rate-limit budget allows. Report the measured figure.
 - You find yourself wanting to flip `reconciliationEnabled` to prove the fix.

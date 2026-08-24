@@ -1,5 +1,9 @@
 # Plan 063: Validate what crosses the API boundary and stop trusting webhook metadata
 
+> **Reconciliation verdict (2026-08-24): REJECTED as a compound plan. Do not
+> execute it.** The three findings remain, but they have different boundaries
+> and failure contracts. Plans 077, 078 and 079 replace them.
+
 > **Executor instructions**: Follow this plan step by step. Run every
 > verification command and confirm the expected result before moving to the next
 > step. If anything in "STOP conditions" occurs, stop and report — do not
@@ -18,6 +22,7 @@
 - **Depends on**: none
 - **Category**: security
 - **Planned at**: commit `121da2a`, 2026-08-12
+- **Outcome**: REJECTED, superseded by plans 077, 078 and 079
 - **Covers findings**: S-03, S-04, S-05
 
 ## Why this matters

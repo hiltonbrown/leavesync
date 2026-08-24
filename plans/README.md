@@ -1,383 +1,296 @@
 # Team Calendar implementation plans
 
-This directory is the implementation backlog produced by the `improve` skill.
-Every plan is self-contained and must be drift-checked before execution.
+This directory is the implementation backlog maintained through the `improve`
+skill. It was fully reconciled on 24 August 2026 against `main` at `ecd49f5`.
+Every current source claim was either rechecked, narrowed, made executable,
+completed or rejected. Rejected plan files remain as decision records and must
+not be executed. All design and decomposition blockers are resolved. Only the
+two regional activation plans remain `BLOCKED`, on named live Xero environments
+and UK partner permission that repository analysis cannot supply.
 
-**Reconciled and re-planned on 2026-08-12 against local `main` at commit
-`121da2a`, with targeted reconciliations through 2026-08-24 at `1c0d0d2`.** The
-45 completed plans were verified against current source and their files removed;
-their outcomes are in the ledger below. Plans 051 to 068 address the 2026-08-12
-audit; plans 069 to 076 record later targeted work and reconciliation findings.
+## Verification snapshot
 
-Recover any removed plan with `git show HEAD:plans/<filename>`.
+This reconciliation was read-only outside `plans/`.
 
-## Verified gate state
-
-Measured on this commit, not inherited from the previous reconciliation:
-
-| Gate | Result |
+| Evidence | Result |
 |---|---|
-| `bun run check` | **exit 0** on current `main` at `117fb1b`; removing the debug harness and temporary sync logging cleared all 62 diagnostics |
-| `bun run typecheck` | **exit 0** on `117fb1b`, 19/19 tasks |
-| `bun run test` | **exit 0** on `117fb1b`, 17/17 tasks; app 71 files / 278 tests |
-| `bun run build` | **exit 0** on `8b3efbe`, 4/4 tasks for app, API, web and database generation |
-| `bun run test:integration` | **exit 0** on `8b3efbe`, 5/5 tasks and 58 database-backed tests; two credential-gated Xero external tests skipped |
+| Availability focused tests | 2 files, 89 tests passed |
+| Jobs leave-record focused tests | 1 file, 20 tests passed |
+| Feed projection/render focused tests | 2 files, 40 tests passed |
+| Next config, Xero and observability focused tests | 6 files, 91 tests passed |
+| Additional Xero plan-review suite | 6 files, 96 tests passed |
+| `DATABASE_URL` | absent, so current integration gates were not rerun |
+| Default `bun run build` | failed on this host because Turbopack followed a workspace TypeScript symlink cycle; no application compile defect was established |
+| Blocked-plan cold review | 9 plans reviewed; 3 rewritten, 6 rejected and split |
+| Current indexed plans | 64: 41 TODO, 7 DONE, 14 REJECTED, 2 BLOCKED |
 
-This supersedes the previous index's claim that `bun run test` is "not a usable
-local gate". It is now a real gate and should be treated as one. The per-package
-commands recorded under plan 048 are no longer necessary, though they remain
-valid for narrowing a run.
+Historical green gates remain useful evidence, but are not represented as fresh
+proof on `ecd49f5`. A plan requiring build or database integration must run on a
+host that can satisfy those gates before it can become `DONE`.
 
-The full database-backed integration lane is proven on the isolated plan 075
-branch, which includes merged plan 052. The non-planning source tree at current
-`main` is identical to that reviewed commit. Plan 051's suspected fixture
-collision was fixed independently in `37e7231`; its two affected jobs files
-also passed together twice consecutively against the live database.
+## Execution queue
 
-## Execution order and status
+Execute in dependency order, not numeric order. Merge one plan before starting a
+dependent plan unless the files and dependencies are explicitly disjoint.
 
-Plans are ordered by leverage, with dependencies respected. Each row is merged to
-`main` before the next begins unless the parallel note says otherwise.
+| Plan | Outcome | Priority | Depends on | Status |
+|---|---|---:|---|---|
+| [024](024-harden-env-validation-in-the-app-and-web-apps.md) | Preserve why outer env validation cannot fix package-owned parsing | P1 | completed 041 | REJECTED, do not execute |
+| [030](030-remove-three-avoidable-round-trip-patterns.md) | Remove manager-dashboard query amplification | P2 | none | TODO |
+| [031](031-fix-the-database-package-boundary.md) | Original compound database/client-boundary change | P2 | replacements 088, 089 | REJECTED, do not execute |
+| [037](037-spike-nz-and-uk-payroll-write-back.md) | Decide NZ/UK write-back capability from primary sources | P3 | reconcile 071 evidence | TODO, research only |
+| [039](039-decide-what-to-do-with-the-html-feed-renderer.md) | Delete the out-of-scope HTML feed prototype | P3 | none | TODO |
+| [051](051-isolate-the-jobs-integration-test-fixtures.md) | Fixture collision | P1 | none | REJECTED, independently fixed in `37e7231` |
+| [052](052-correct-the-timezone-contract-for-working-day-units.md) | Correct working-day timezone contract | P1 | none | DONE, merge `660b1a6` |
+| [053](053-guard-the-inbound-leave-upsert-against-stale-writes.md) | Guard inbound leave from stale writes | P1 | none | DONE, implementation `27b739b` |
+| [054](054-keep-synced-leave-in-the-feed-for-its-whole-last-day.md) | Keep synced leave for its full last day | P1 | none | DONE, implementation `07885a5` |
+| [055](055-make-launch-mode-safe-in-the-browser.md) | Make launch mode browser-safe | P1 | none | DONE, implementation `e4c5997` |
+| [056](056-give-the-approval-reconciler-a-cursor.md) | Fair per-record approval reconciliation | P2 | integration database | TODO |
+| [057](057-make-failures-visible-and-scrub-what-is-logged.md) | Finish exact `error` channel scrubbing | P1 | execution preflight: DB/build runner | TODO |
+| [058](058-bound-the-unbounded-sync-loops.md) | Original balance/archive compound plan | P2 | replacements 090–091 | REJECTED, do not execute |
+| [059](059-make-the-notification-stream-reliable-and-affordable.md) | Surface SSE failures and reduce idle polling | P2 | none | TODO |
+| [060](060-project-explicit-columns-in-the-analytics-services.md) | Exclude audit blobs from analytics queries | P2 | none | TODO |
+| [061](061-halve-the-work-on-the-ics-feed-read-path.md) | Resolve feed/cache once and narrow holiday reads | P2 | 054 DONE, 057, 066 | TODO |
+| [062](062-enforce-a-content-security-policy.md) | Original CSP/HSTS compound rollout | P2 | replacements 092–094 | REJECTED, do not execute |
+| [063](063-close-the-validation-and-authorisation-gaps.md) | Original validation/auth compound plan | P2 | replacements 077–079 | REJECTED, do not execute |
+| [064](064-harden-the-public-feed-and-support-surfaces.md) | Original feed/support compound plan | P2 | replacements 080–081 | REJECTED, do not execute |
+| [065](065-unify-the-public-holiday-predicate.md) | Original unsupported all-scope holiday rule | P3 | replacements 095–096 | REJECTED, do not execute |
+| [066](066-test-the-untested-money-and-tenancy-paths.md) | Test billing SQL, tenancy and contact logic | P2 | integration database | TODO |
+| [067](067-consolidation-and-hygiene.md) | Original consolidation compound plan | P3 | replacements 082–085 | REJECTED, do not execute |
+| [068](068-merge-the-twin-analytics-services.md) | Original twin-service abstraction | P3 | reassess after 060, 095, 082 | REJECTED, do not execute |
+| [069](069-fix-xero-people-sync-and-directory-ui.md) | Fix Xero People ingestion and UI feedback | P1 | none | DONE, implementation `18a8bae`; residual tests 087 |
+| [070](070-xero-token-and-refresh-token-management-architecture.md) | Harden Xero token lifecycle | P1 | none | DONE, implementation `0514f71`, merge `206af7b` |
+| [071](071-nz-and-uk-xero-payroll-read-and-sync-expansion.md) | Original XL regional migration | P1 | replacements 100–109 | REJECTED, do not execute |
+| [072](072-automated-clerk-user-matching-and-bulk-invitations.md) | Original import/Clerk compound plan | P1 | replacements 097–099 | REJECTED, do not execute |
+| [073](073-orphaned-xero-employee-lifecycle-reconciliation.md) | Original one-pass orphan archival | P2 | replacement 098 | REJECTED, do not execute |
+| [074](074-xero-tracking-category-team-and-manager-hierarchy-sync.md) | Original hierarchy proposal | P2 | replacement 086 | REJECTED, unsupported API assumptions |
+| [075](075-remove-the-committed-xero-debug-harness.md) | Remove unsafe debug harness | P1 | none | DONE, merge `3040948` |
+| [076](076-route-scheduled-syncs-by-the-database-tenant-id.md) | Route scheduled jobs by database tenant UUID | P1 | DB/build runner | TODO, environment-gated |
+| [077](077-validate-availability-route-identifiers.md) | Validate availability UUIDs before queries | P2 | 066 | TODO |
+| [078](078-delete-dead-feed-token-helpers.md) | Delete unused token service surface | P3 | none | TODO |
+| [079](079-cross-check-stripe-webhook-tenant-identity.md) | Cross-check Stripe customer and Clerk org | P1 | 066 | TODO |
+| [080](080-rate-limit-public-feed-token-probes.md) | Rate-limit public feed probes | P2 | 061, 066, 083, operator limits | TODO |
+| [081](081-minimise-and-delimit-support-issue-data.md) | Minimise/delimit support issue data | P2 | 066 | TODO |
+| [082](082-centralise-availability-record-labels.md) | Centralise record labels only | P3 | 060, 061 | TODO |
+| [083](083-share-redis-rest-transport-and-notification-keys.md) | Share Redis transport and declare notification keys | P3 | 059, 061 | TODO |
+| [084](084-remove-the-production-workspaces-override.md) | Remove redundant root `ws` override | P3 | none | TODO |
+| [085](085-correct-repository-guidance-and-package-tables.md) | Correct commands and package ownership docs | P3 | none | TODO |
+| [086](086-spike-xero-employee-group-team-mapping.md) | Decide EmployeeGroupName team mapping | P3 | none | TODO, research only |
+| [087](087-complete-xero-people-sync-regression-tests.md) | Complete Plan 069 test promises | P2 | DB runner | TODO |
+| [088](088-publish-explicit-database-package-subpaths.md) | Publish database subpaths, remove `/src/` imports | P2 | 066, 079 | TODO |
+| [089](089-map-xero-matches-to-a-client-view-model.md) | Map Xero matches to a browser-safe view model | P2 | none | TODO |
+| [090](090-bulk-stale-xero-leave-archival.md) | Bulk stale leave archival and feed invalidation | P2 | 053 DONE | TODO |
+| [091](091-page-scheduled-xero-balance-sync.md) | Page scheduled balance sync across runs | P2 | 076 | TODO |
+| [092](092-add-shared-hsts.md) | Add shared HSTS without preload promises | P1 | none | TODO |
+| [093](093-observe-a-nonce-ready-csp.md) | Observe a privacy-safe nonce CSP | P2 | 057 | TODO |
+| [094](094-enforce-the-observed-csp.md) | Enforce the observed nonce CSP | P2 | 093 plus observation evidence | TODO, dependency-gated |
+| [095](095-centralise-the-supported-holiday-rule.md) | Centralise the supported holiday rule | P2 | 061 | TODO |
+| [096](096-align-current-status-holiday-consumers.md) | Align status/dashboard holiday consumers | P2 | 095 | TODO |
+| [097](097-harden-returned-xero-employee-import.md) | Harden payroll import and reactivation | P1 | 069 DONE | TODO |
+| [098](098-confirm-missing-xero-people-before-archival.md) | Confirm absence before person archival | P1 | 097 | TODO |
+| [099](099-reconcile-clerk-access-and-invitations.md) | Link active people and guard Clerk invitations | P1 | 097, 098 | TODO |
+| [100](100-add-regional-xero-employee-readers.md) | Add NZ/UK employee readers | P1 | 097, 098 | TODO |
+| [101](101-add-currency-leave-balance-contract.md) | Add currency balance schema contract | P1 | migration runner | TODO |
+| [102](102-add-new-zealand-xero-read-adapters.md) | Add NZ leave/balance/status adapters | P1 | 100, 101 | TODO |
+| [103](103-add-united-kingdom-xero-read-adapters.md) | Add UK leave/balance/status adapters | P1 | 102 | TODO |
+| [104](104-orchestrate-regional-leave-sync.md) | Page and reconcile regional leave | P1 | 090, 102, 103 | TODO |
+| [105](105-reconcile-regional-approval-state.md) | Reconcile regional approval state | P1 | 056, 102, 103 | TODO |
+| [106](106-orchestrate-regional-balance-sync.md) | Orchestrate regional balance pages | P1 | 091, 101–103 | TODO |
+| [107](107-present-currency-safe-leave-balances.md) | Present balances with currency-safe formatting | P1 | 101 | TODO |
+| [108](108-activate-new-zealand-xero-sync.md) | Activate NZ sync after live verification | P1 | 076, 100, 102, 104–107 plus live tenant | BLOCKED, live NZ environment not recorded |
+| [109](109-activate-united-kingdom-xero-sync.md) | Validate and activate UK sync | P1 | 076, 100–107 plus UK permission/live tenant | BLOCKED, external permission/environment |
 
-| # | Plan | Priority | Effort | Risk | Depends on | Status |
-|---|---|---|---|---|---|---|
-| 1 | [075](075-remove-the-committed-xero-debug-harness.md) Remove the committed Xero debug harness and restore the quality gate | P1 | S | LOW | — | MERGED (`3040948`; implementation `8b3efbe`; review approved) |
-| 2 | [051](051-isolate-the-jobs-integration-test-fixtures.md) Isolate the jobs integration fixtures | P1 | S | LOW | — | REJECTED (2026-08-24: fixed independently in `37e7231`; live pair passed twice at `b590de2`) |
-| 3 | [052](052-correct-the-timezone-contract-for-working-day-units.md) Correct the timezone contract for working-day units | P1 | S | MED | — | DONE (2026-08-24 at `117fb1b`; merge `660b1a6`; current check/typecheck/test and focused 32/32 pass; integration proven on identical source tree at `8b3efbe`) |
-| 4 | [053](053-guard-the-inbound-leave-upsert-against-stale-writes.md) Guard the inbound leave upsert | P1 | M | MED | 075 | MERGED (`6a5e9d0`; implementation `27b739b`; review approved) |
-| 5 | [054](054-keep-synced-leave-in-the-feed-for-its-whole-last-day.md) Keep synced leave in the feed for its last day | P1 | S | MED | — | MERGED (`85756fe`; implementation `07885a5`; review approved) |
-| 6 | [055](055-make-launch-mode-safe-in-the-browser.md) Make launch mode safe in the browser | P1 | S | LOW | — | MERGED (`1f507b9`; implementation `e4c5997`; review approved) |
-| 7 | [057](057-make-failures-visible-and-scrub-what-is-logged.md) Make approval failures visible and structured logging safe | P1 | M | MED | — | MERGED (`b800f20`; implementation `eee7891`; operator-directed verification exception, follow-up required below) |
-| 8 | [076](076-route-scheduled-syncs-by-the-database-tenant-id.md) Route scheduled syncs by the database Xero tenant ID | P1 | S | LOW | needs `DATABASE_URL` and default build runner | TODO |
-| 9 | [056](056-give-the-approval-reconciler-a-cursor.md) Give the approval reconciler a cursor | P2 | M | LOW | needs `DATABASE_URL` | TODO |
-| 10 | [058](058-bound-the-unbounded-sync-loops.md) Bound the unbounded sync loops | P2 | L | MED | 053, 076, operator approval | **BLOCKED** (2026-08-24 at `1c0d0d2`: scheduled routing prerequisite, product-contract approval, `DATABASE_URL`, and default build runner required) |
-| 11 | [059](059-make-the-notification-stream-reliable-and-affordable.md) Make the notification stream reliable | P2 | M | MED | — | TODO |
-| 12 | [060](060-project-explicit-columns-in-the-analytics-services.md) Project explicit columns in analytics | P2 | S | LOW | — | TODO |
-| 13 | [061](061-halve-the-work-on-the-ics-feed-read-path.md) Halve the work on the ICS read path | P2 | S | LOW | 054, 057 | TODO |
-| 14 | [063](063-close-the-validation-and-authorisation-gaps.md) Close the validation and authorisation gaps | P2 | M | LOW | — | TODO |
-| 15 | [066](066-test-the-untested-money-and-tenancy-paths.md) Test the money and tenancy paths | P2 | M | LOW | — | TODO (reconciled 2026-08-24: allocate a unique local fixture prefix; no registry dependency) |
-| 16 | [062](062-enforce-a-content-security-policy.md) Enforce a Content Security Policy | P2 | M | MED | — | TODO |
-| 17 | [067](067-consolidation-and-hygiene.md) Consolidation and hygiene | P3 | S | LOW | — | TODO |
-| 18 | [064](064-harden-the-public-feed-and-support-surfaces.md) Harden the public feed and support surfaces | P3 | M | LOW | 061 | TODO |
-| 19 | [065](065-unify-the-public-holiday-predicate.md) Unify the public holiday predicate | P3 | M | **MED** | 060, 061 | TODO, **decision required** |
-| 20 | [068](068-merge-the-twin-analytics-services.md) Merge the twin analytics services | P3 | L | MED | 060, 065 | TODO |
-| 21 | [069](069-fix-xero-people-sync-and-directory-ui.md) Fix Xero people sync and directory UI gaps | P1 | M | LOW | — | DONE (2026-08-23, commit 5993283, verified: check/typecheck/test pass) |
-| 22 | [070](070-xero-token-and-refresh-token-management-architecture.md) Xero token & refresh token management architecture | P1 | M | LOW | — | MERGED (`206af7b`; implementation `0514f71`; review approved) |
-| 23 | [071](071-nz-and-uk-xero-payroll-read-and-sync-expansion.md) NZ & UK Xero payroll read and sync expansion | P1 | XL | HIGH | 058, 069 | TODO (reconciled 2026-08-23: monetary balances included as `currency` plus ISO 4217 code) |
-| 24 | [072](072-automated-clerk-user-matching-and-bulk-invitations.md) Import every missing Xero employee before reconciling Clerk access | P1 | M | MED | 069, 071 | TODO |
-| 25 | [073](073-orphaned-xero-employee-lifecycle-reconciliation.md) Soft-archive Xero employees missing from a complete payroll snapshot | P2 | M | MED | 072 | TODO |
-| 26 | [074](074-xero-tracking-category-team-and-manager-hierarchy-sync.md) Xero tracking category team & manager hierarchy sync | P2 | M | LOW | 073 | TODO |
+The unnumbered [go-to-market plan](gtm-team-calendar-go-to-market-plan.md) is a
+business strategy document, not an executor plan. It was refreshed on 24 August:
+the missed instrumentation milestone and absent application flow are launch
+blockers, and calendar adoption is measured through observed feed-token access.
 
-### Plan 057 deferred follow-up
-
-Plan 057 was merged by explicit operator direction before review approval. Add
-regression coverage proving that top-level and nested string-valued `error`
-fields are replaced with `"[SCRUBBED]"`, and implement the corresponding exact
-production error-channel sanitisation. The default `bun run build` must also run
-successfully on a runner that permits Turbopack's loader process to bind its
-loopback port. After that work, rerun check, build, typecheck, unit and
-integration gates before marking the follow-up verified.
-
-### Plan 058 execution block
-
-Cold review on 2026-08-24 found that scheduled syncs currently route Xero's
-provider tenant identifier where all handlers require the database tenant UUID.
-Plan 076 isolates that P1 prerequisite. Plan 058 also cannot choose a page cap
-honestly while PRODUCT promises hourly balance sync and public pricing accepts
-unbounded payroll-file size: its provisional 40-person page makes full-cycle
-age `ceil(active Xero people / 40)` hours.
-
-Plan 058 now contains one atomic implementation branch that preserves the
-unlimited-roster promise, defines the whole-organisation balance cycle as
-rolling best-effort with no fixed completion SLA, and publishes matching
-PRODUCT, pricing, and settings language only when the bounded backend ships.
-It remains BLOCKED until the operator explicitly approves that contract.
-
-Before Plan 058 returns to TODO, record operator approval in the plan, merge
-Plan 076, then reconcile Plan 058 with its exact merge SHA. Execution also
-requires database-backed suites to run without skipping and the default
-Turbopack build to pass on a port-capable runner.
-
-## Companion reference docs (not executable)
-
-Not part of the execution queue — same pattern as `gtm-team-calendar-go-to-market-plan.md` (business strategy doc). Kept for audit and implementation correctness.
-
-- [xero-people-sync architecture](../docs/architecture/xero-people-sync.md) — companion to **069** (`069-fix-xero-people-sync-and-directory-ui.md`), reconciled 2026-08-23 at `18a8bae`; moved from `plans/069-xero-people-sync-architecture-and-reconciliation.md` to resolve duplicate numbering. Updated to reflect `person_type` mapping and `syncResult` error surfacing.
-
-**Plan 051 is retired.** The original fixture collision is gone and the affected
-pair has live database proof. Plans 056 and 066 no longer depend on it, although
-their own database-backed done criteria still require a reachable `DATABASE_URL`.
-
-Every numbered file in this directory is an executable implementation plan.
-`gtm-team-calendar-go-to-market-plan.md` is deliberately unnumbered: it is a
-business strategy document, not work for an executor, and is not part of this
-queue.
-
-**Plan 065 must not start without an operator decision.** It changes what
-customers see on three surfaces by design. Its "The decision this plan must make
-first" section has to be agreed before any code is written.
-
-### Dependency notes
+## Recommended sequence
 
 ```text
-075 -> 053                 (removes unsafe debug routes before the stale-write branch resumes)
-053 + 076 -> 058           (preserve stale-write guards and repair scheduled tenant routing before atomic rolling sync and product activation)
-054 -> 061                 (same projection file)
-057 -> 061                 (same renderer; land logging safety before read-path optimisation)
-060 + 061 -> 065           (065 narrows what the predicate reads; both must land first)
-060 + 065 -> 068           (068 adopts the shared projection and shared predicate)
-058 + 069 -> 071           (bounded sync foundations and AU people fixes precede regional employee-scoped reads)
-069 + 071 -> 072           (071 establishes all regional readers; 072 then locks their shared import/reactivation contract)
-072 -> 073                 (same handler and tests; 072 owns returned-ID import/reactivation, then 073 adds guarded absence archival)
-073 -> 074                 (same mapper, handler and tests; 074 adds hierarchy only after the employee lifecycle is stable)
+Independent first:
+  030, 039, 057, 059, 060, 066, 076, 078, 084, 085, 086, 089, 092, 097, 101
+
+Security and boundary chain:
+  066 -> 077
+  066 -> 079 -> 088
+  066 -> 081
+  057 -> 093 -> seven-day observation -> 094
+
+Feed and Redis chain:
+  057 + 066 -> 061
+  059 + 061 -> 083 -> 080
+
+Shared domain chain:
+  060 + 061 -> 082
+  061 -> 095 -> 096
+  reassess analytics abstraction after 060 + 082 + 095; do not revive 068 verbatim
+
+Xero sync chain:
+  053 DONE -> 090
+  076 -> 091
+  069 DONE -> 097 -> 098 -> 099
+  097 -> 098 -> 100
+  100 + 101 -> 102 -> 103
+  090 + 102 + 103 -> 104
+  056 + 102 + 103 -> 105
+  091 + 101 + 102 + 103 -> 106
+  101 -> 107
+  076 + 100 + 102 + 104 + 105 + 106 + 107 + live NZ evidence -> 108
+  076 + 100 + 101 + 103 + 104 + 105 + 106 + 107 + UK permission/evidence -> 109
+
+Evidence-only work:
+  037, 086
+  087 when DATABASE_URL is available
 ```
 
-Everything not named above is independent and may run in any order.
+Database/build and deployed-observation gates remain executable TODO preflights.
+Plans 108 and 109 are honestly blocked because their named live provider
+environments have not been recorded.
 
-### May run in parallel
+## Remaining unblock checklist
 
-055, 057 and 059 touch disjoint files and can run concurrently if throughput
-matters. Do **not** parallelise 053 with 058, 054 with 061, any pair of 071,
-072, 073 and 074, or anything with 065 and 068.
+- **Plan 108**: record a sanctioned NZ demo/verification payroll tenant, Xero
+  preview credential types, payroll-admin authoriser and preview callback/deploy
+  path. Do not place credential values or tenant data in plans.
+- **Plan 109**: record Xero partner permission for Payroll UK plus the equivalent
+  sanctioned UK tenant and preview path. NZ live rollout is not a prerequisite.
 
-## Deferred plans from the earlier backlog
+Every other former blocker has an executable replacement or an explicit
+predecessor/preflight contract in its plan.
 
-Still valid, still TODO, unchanged by this audit.
+## Reconciliation decisions
 
-| Plan | Required outcome | Trigger |
-|---|---|---|
-| [030](030-remove-three-avoidable-round-trip-patterns.md) | Remove avoidable round trips in organisation lookup, holiday import and the people directory | Re-profile after real early-access traffic; execute only the parts supported by measured cost |
-| [031](031-fix-the-database-package-boundary.md) | Correct the `packages/database` export and client boundary | Before the next material database export/client-boundary refactor |
-| [037](037-spike-nz-and-uk-payroll-write-back.md) | Spike NZ and UK payroll write-back and produce follow-on plans | Before committing to an NZ or UK launch |
-| [039](039-decide-what-to-do-with-the-html-feed-renderer.md) | Decide whether to expose, extend or delete the HTML feed renderer | Before relying on the renderer; otherwise choose deletion as maintenance |
+- Plan 024 stays as the record of a rejected env-validation design. Plan 041 is
+  the completed replacement. Rejected records are not “safe to delete”.
+- Plan 031 mixed public package exports with a React client boundary. Plans 088
+  and 089 separate those concerns.
+- Plan 057 now contains only the residual exact-error-key scrubber work. The
+  earlier approval/logging implementation remains merged. Runner availability
+  is a preflight, not a backlog blocker.
+- Plan 058 was rejected and split into independent stale-archive Plan 090 and
+  scheduled balance-page Plan 091. The reconciled contract keeps unlimited
+  rosters and defines rolling 40-person hourly pages without a completion SLA.
+- Plan 059 no longer claims there are two notification providers; that bug was
+  independently fixed. The real SSE failure and polling findings remain.
+- Plan 063 was split into Plans 077, 078 and 079.
+- Plan 062 was split into immediate HSTS Plan 092, privacy-safe report-only CSP
+  Plan 093, and evidence-gated enforcement Plan 094. The rollout now has a real
+  observation interval.
+- Plan 064 was rejected because PRODUCT.md explicitly specifies `410 Gone` for
+  expired/revoked tokens. Plans 080 and 081 retain rate limiting and support-data
+  hardening.
+- Plan 067 was split into Plans 082–085. The “not in use” package warning remains
+  valid and must not be deleted.
+- Plan 068 proposed an abstraction before its shared primitives were stable. It
+  is rejected pending narrower work.
+- Plan 069 is complete at `18a8bae`, not its original planning SHA. Plan 087 owns
+  missing regression tests.
+- Plan 065 proposed activating dormant holiday scopes without supported writers
+  and missed current-status consumers. Plans 095 and 096 implement the existing
+  location/jurisdiction product contract across all six consumers.
+- Plan 071's API and currency research remains useful, but its single XL change
+  was rejected. Plans 100–109 separate data, adapters, orchestration,
+  presentation and regional activation.
+- Plans 072 and 073 were rejected. Plans 097–099 order returned-person import,
+  confirmed missing-person lifecycle and Clerk access so stale payroll people
+  cannot become invitation candidates. The safety rule is two observations at
+  least 24 hours apart with inclusive bulk-loss guards.
+- Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
+  not the assumed tracking-category or supervisor relationships. Plan 086 is a
+  read-only team-mapping spike; manager hierarchy is unsupported.
 
-Do not execute plan 030 solely because it exists. Capture production timings
-first. The current release must continue to present AU as the only supported
-payroll write-back region until plan 037 is done and its follow-ons land.
+## Finding-to-plan map
 
-## Rejected
-
-| Plan | Rationale |
+| Finding | Current owner |
 |---|---|
-| [024](024-harden-env-validation-in-the-app-and-web-apps.md) | An outer app `createEnv()` cannot repair values already validated by package-level `createEnv()` calls. Plan 041 was the implemented replacement and is done. **Do not execute.** Retained only as the record of why the approach fails; safe to delete |
+| C-01 working-day timezone | 052 DONE |
+| C-02 stale inbound leave write | 053 DONE |
+| C-03 final-day ICS inclusion | 054 DONE |
+| C-04 browser launch-mode env | 055 DONE |
+| C-05 approval reconciliation starvation | 056 |
+| C-06 approval failure visibility | original 057 DONE; residual scrubber in 057 |
+| C-07 unbounded balance work | 091 |
+| C-08 silent SSE poll failures | 059 |
+| C-09 not-found counted as failure | 056 |
+| S-01 exact `error` channel not scrubbed | 057 |
+| S-02 inert CSP and no HSTS | 092–094 |
+| S-03 unvalidated availability identifiers | 077 |
+| S-04 dead ungated token helpers | 078 |
+| S-05 Stripe metadata as sole tenant key | 079 |
+| S-06 proxy/documentation mismatch | dangerous debug handlers removed by 075; guidance in 085 |
+| S-07 public feed exposure | 410 retained by design; rate limiting in 080 |
+| S-08 support issue data boundary | 081 |
+| P-01 analytics audit-blob projection | 060 |
+| P-02 SSE polling cost | duplicate provider fixed; residual in 059 |
+| P-03 duplicate feed/cache lookup | 061 |
+| P-04 unbounded stale archive | 090 |
+| P-05 broad holiday reads | 061 |
+| A-01 duplicate record labels | 082 |
+| A-02 divergent holiday predicates | 095–096 |
+| A-03 duplicate Redis REST mechanics | 083 |
+| A-04 twin analytics services | 068 rejected; reassess after 060/082/095 |
+| T-01 fixture collision | 051 rejected, independently fixed |
+| T-02 billing SQL coverage | 066 |
+| T-03 Xero tenancy uniqueness coverage | 066 |
+| T-04 duplicate API route suites | 066 |
+| T-05 alternative-contact service coverage | 066 |
+| R-058-01 scheduled provider/database tenant mismatch | 076 |
+| R-058-02 bounded sync/product contract mismatch | 091, contract resolved |
+| M-01 duplicate `ws` ownership | 084 |
+| D-01 stale test command guidance | 085 |
+| D-02 missing preflight env examples | 055 DONE |
+| DOC-01 package-table drift | 085 |
+| R-069-01 missing Plan 069 regression seams | 087 |
+| R-031-01 private database `/src/` imports | 088 |
+| R-031-02 Prisma model types cross a client boundary | 089 |
+| R-071-01 NZ/UK adapters and rollout | 100–109 |
+| R-072-01 returning people and Clerk access ordering | 097–099 |
+| R-073-01 unsafe one-pass missing-person archival | 098 |
 
-## Finding to plan map
+## Completed-plan ledger
 
-Every finding from the 2026-08-12 audit, and where it is addressed. Findings were
-verified by reading the cited code, not taken from a subagent report.
+Plans 001–023, 025–029, 032–036, 038, 040–050 are complete and their plan files
+were removed in an earlier reconciliation. Recover a historical file with
+`git show <relevant-commit>:plans/<filename>` when needed. The following outcomes
+remain important dependencies:
 
-| Finding | Summary | Plan |
-|---|---|---|
-| C-01 | Working-day units written to Xero payroll are wrong for every AU/NZ org | 052 |
-| C-02 | Inbound leave sync overwrites newer local approval state | 053 |
-| C-03 | Xero-synced leave leaves the ICS feed part-way through its last day | 054 |
-| C-04 | `getLaunchMode()` throws inside client components when the env var is unset | 055 |
-| C-05 | Approval reconciler starves records past the first 500 (residual after plan 038) | 056 |
-| C-06 | Eight catch paths discard approval-service failures, including post-Xero-write divergence | 057 |
-| C-07 | Leave-balance sync is unbounded and outlives its Xero token | 058 |
-| C-08 | SSE poll errors swallowed; stream stays open and silent | 059 |
-| C-09 | Resolved not-found reconciliation also counted as a failure | 056 |
-| S-01 | The log scrubber is wired to no sink at all | 057 |
-| S-02 | CSP is report-only, unenforceable, and not reporting; no HSTS | 062 |
-| S-03 | Availability routes read the tenant key outside the Zod schema | 063 |
-| S-04 | `createInitialToken` mints a plaintext token with no role check, no callers | 063 |
-| S-05 | Stripe webhook trusts `metadata.clerk_org_id` as sole tenant key | 063 |
-| S-06 | `proxy.ts` protects nothing while `CLAUDE.md` says it does | 067 (doc half); see note |
-| S-07 | ICS endpoint distinguishes 404 from 410; no rate limit | 064 |
-| S-08 | Support form exports tenant PII and interpolates untrusted text | 064 |
-| P-01 | Analytics pulls raw Xero payloads into the RSC | 060 |
-| P-02 | Duplicate `NotificationsProvider` plus a 2s KV poll per connection | 059 |
-| P-03 | ICS cache miss does the token lookup and KV read twice | 061 |
-| P-04 | Stale-record archive is unbounded | 058 |
-| P-05 | Holidays fetched a whole year at a time with an unused join | 061 |
-| A-01 | Eight `labelForRecordType` copies; `Wfh` vs `WFH` reaches subscribers | 067 |
-| A-02 | Five divergent holiday predicates; four schema scopes ignored | 065 |
-| A-03 | Two hand-rolled KV clients; notifications has no `keys.ts` | 067 |
-| A-04 | The twin analytics services | 068 |
-| T-01 | Two integration test files claimed the same six primary keys | 051 (REJECTED: fixed independently in `37e7231`, verified 2026-08-24) |
-| T-02 | Stripe ordering guard and idempotency SQL untested | 066 |
-| T-03 | XeroConnection/XeroTenant uniqueness invariants untested | 066 |
-| T-04 | Duplicate route tests in `apps/api/__tests__/` have drifted | 066 |
-| T-05 | `alternative-contact-service.ts`: 599 lines, no co-located test | 066 |
-| R-058-01 | Scheduled syncs dispatch the provider tenant ID where handlers require the database tenant UUID | 076 |
-| R-058-02 | The proposed bounded balance page conflicts with unqualified hourly and unlimited-roster product language | 058 |
-| M-01 | Root `ws` override conflicts with the range `packages/database` declares | 067 |
-| D-01 | The documented single-test command fails on all 28 `.tsx` tests | 067 |
-| D-02 | `.env.example` omits all seven variables preflight requires | 055 |
-| DOC-01 | `CLAUDE.md` omits two real packages, warns against ten that don't exist | 067 |
-| R-S-01 | Committed Xero debug routes perform unscoped reads and writes and fabricate sync history | 075 |
-| R-D-01 | The debug harness and temporary sync logging break `bun run check` with 62 errors | 075 |
-
-The `R-` findings were discovered during the 2026-08-24 reconciliation of plan
-052, after the original audit.
-
-**Note on S-06.** `apps/app/proxy.ts` is bare `clerkMiddleware()`, which protects
-nothing, while `CLAUDE.md:336` states route protection is composed there. The
-`(authenticated)` layout guards pages but does not protect route handlers. At
-`b590de2`, the committed debug route handlers make that exposure concrete; plan
-075 deletes them. Plan 067 still corrects the documentation. Any future route
-handler that accesses protected data must add resource-level authentication and
-both tenant scopes. A framework-level gate remains a separate operator decision.
-
-Confidence was HIGH on every finding except S-05, S-07 and S-08, which are MED
-because they depend on facts outside the repository: whether a legitimate flow
-re-points a Clerk Org at a new Stripe customer, what Vercel Firewall rules exist,
-and whether the configured GitHub issue repo is private. Each of those is a STOP
-condition in its plan.
-
-## Direction options, not defects
-
-Recorded for the maintainer to weigh. No plans written; none of these is a
-defect.
-
-- **Recurrence is UI-only.** A full recurrence editor and a tested expansion
-  module exist (`apps/app/app/(authenticated)/recurrence.ts`,
-  `components/recurrence-fields.tsx`), but there are no recurrence columns in
-  `schema.prisma` and no `RRULE` anywhere in `packages/feeds`. Occurrences become
-  independent records, so there is no edit-series or cancel-series, one VEVENT
-  per occurrence reaches subscribers, and a series has no identity in the UID
-  strategy.
-- **The holiday assignment model is four-fifths unused.**
-  `public_holiday_assignment_scope_type` models organisation, location, team,
-  person and feed, and `include_in_feeds` is written on every assignment, but
-  only the dashboard honours non-location scopes and nothing reads
-  `include_in_feeds`. Plan 065 does most of the work; turning it into a feature
-  is the smaller remaining step.
-- **Paid-launch readiness is the real gate, not the launch-mode flag.** Stripe is
-  fully wired and gated off. Flipping to `paid` today lights up four unverified
-  paths at once: T-02, D-02, S-05 and C-04 — plans 066, 055 and 063.
-
-## Completed plans
-
-Verified against `main` at `121da2a`. Files removed in this reconciliation;
-recover any with `git show HEAD:plans/<filename>`. Their behaviour remains part
-of the release baseline.
-
-| Plan | Outcome | Landed as |
-|---|---|---|
-| 001 | Core calendar, contact and notification interactions made accessible and responsive | `2f8f12a` |
-| 002 | An unlinked Clerk user cannot pass the nullable manager check | `4b84e49` in `b14e7c0` |
-| 003 | A malformed Xero page cannot be treated as a complete sync or trigger mass archive | `5f5bdd7` in `3568795`, `2095b1f` |
-| 004 | Managers cannot approve or decline their own leave | `f880889` in `c151225` |
-| 005 | Manifests, overrides and lockfile agree; the `sharp` advisory is cleared | `daa3985` in `fbaace4`, completed by `f1884db` |
-| 006 | Inbound sync preserves user-owned privacy and feed choices | `f903a8f` in `0e0ea09` |
-| 007 | Approval reconciliation cannot overwrite a newer local transition | `ef0bdab` in `6f181ff` |
-| 008 | Xero OAuth state is time-bound, browser-bound and replay-resistant | `f183e2b` in `832c9ff` |
-| 009 | Feed token telemetry debounced; matching ETags short-circuit to 304 | `2e063fe` |
-| 010 | Token decryption failures remain typed, diagnosable Xero errors | merged |
-| 011 | A settings failure cannot disable the decline-reason policy | merged |
-| 012 | Notification failure cannot roll back durable Xero failure state | merged |
-| 013 | Approvals list bounded; raw Xero and write-error payloads never cross the manager browser boundary | `96ef8df` |
-| 014 | Feed invalidation batched and keyspace scans removed | `df05bf3` |
-| 015 | Root and CI tests enter every owned workspace | merged |
-| 016 | CI requires a production build for all deployable apps | `e38511f` |
-| 017 | Retries and concurrent requests cannot create duplicate Xero leave applications | verified: `xero_write_claimed_at` at `schema.prisma:602` |
-| 018 | Reconciled records do not retain misleading stale write errors | verified: `approval-service.ts:688,844,939` |
-| 019 | Feed-lookup action enforces both tenant keys; the Xero-match half superseded by 050 | `b56106b`; verified at `_actions.ts:162,164` |
-| 020 | Destructive Xero disconnect isolation runs in the integration lane | `431d5e1` |
-| 021 | Shared two-key tenant-scoping helper adopted | `6ab940c` |
-| 022 | Check and fix commands cover the same source scope | `65afb84` |
-| 023 | Environment examples corrected and dead Knock configuration removed | `84d0907`, `c4f5f3b` |
-| 025 | Product Help points to the real web help centre | `532ae91` |
-| 026 | Repository agent documentation corrected for Team Calendar | `abaded2` |
-| 027 | A Person can bind only to a valid Clerk member of the active organisation | `80434d3`, verified at `f09386e` |
-| 028 | Role hierarchy, feed-preview privacy and tenant-query behaviour pinned by tests | `91be435`, `f5a12c7` in `9352efd` |
-| 029 | Authenticated mutation boundaries covered | `878809d`, `49219ef`, `a06cf63` in `06a595e` |
-| 032 | Client Xero connection projection uses an explicit safe allowlist | `2a5b29b` |
-| 033 | Dead code and manifest hygiene completed | `fa140b9`, `462f5c9` |
-| 034 | Feed publication reconciler bounded and batched | `350e425`, `ab49530`, `8b9134c`, `2f1baef` in `ca6d186` |
-| 035 | Test and typecheck tasks express their real dependencies | `d026e01`, `5f9a8ec` |
-| 036 | Cross-tenant access is logged server-side, not reported to the caller | `c7f3396` in `52d7d86` |
-| 038 | Approval reconciliation bounded and safe to schedule (residual cursor gap is C-05, plan 056) | `cf0e77a` |
-| 040 | Web build environment guard corrected | `bad2224` |
-| 041 | Empty-string environment handling moved to package-owned schemas | `dc60b1b` |
-| 042 | One-day and multi-day all-day leave emit correct exclusive ICS end dates | `f09386e` |
-| 043 | Transient feed failures return a retryable response instead of a permanent 404 | `5670ff5` |
-| 044 | Active AU tenants receive bounded people, leave and balance syncs | `9928d65` |
-| 045 | Public journeys, billing controls, preflight, help and telemetry match closed early access | `2ced190` |
-| 046 | Closed AU early access go-live executed | `951e2e2` |
-| 047 | React pins aligned, `next 16.3.0` and the refreshed lockfile committed | `f1884db` |
-| 048 | `bun run check` exits 0; the lint gate is real | `b015511` |
-| 049 | `bun run build` exits 0 for all four tasks | `8adeaa5`, verified at `44c2eb6` |
-| 050 | The Xero person-match surface is scoped to a single Organisation | `297ba7d` |
-
-## Findings considered and rejected
-
-Recorded to prevent low-value re-audits:
-
-- The recurring "react and react-dom patch versions differ" blocker was one
-  uncommitted lockfile, owned by plan 047. Do not re-diagnose it per plan.
-- The earlier report of roughly twelve unscoped writes reduced to the two genuine
-  action gaps in plan 019. Other id-only writes follow a tenant-scoped read in
-  the same transaction.
-- `lint/performance/noJsxPropsBind` (240 sites) and
-  `lint/performance/noAwaitInLoops` (47 sites) are disabled with recorded
-  reasons. React 19 with the React Compiler makes manual `useCallback` wrapping
-  unnecessary, and the flagged loops are deliberately sequential because Xero
-  allows only five concurrent requests per organisation.
-- Constant-time behaviour for a database-backed UUID existence check is not a
-  practical goal. Plan 036 kept internal detection and removed the caller
-  distinction. S-07 concerns the 404/410 distinction and rate limiting, which is
-  a different question.
-- A new Playwright lane is not required for the closed cohort.
-- Completing the Mintlify documentation application is deferred. `apps/docs`
-  declares a `lint` script with no matching `turbo.json` task, so it never runs
-  in CI; acceptable while the work is deferred.
-- Pinning or downgrading Bun to work around the old build crash is rejected;
-  plan 049 removed the `--bun` flag instead.
-- The two `bun audit` advisories (`esbuild` low, `uuid` moderate) are build-time
-  only and remain accepted. Re-verified 2026-08-12: unchanged, no critical or
-  high advisories.
-- `country_code: "CUSTOM"` on manual holidays is a deliberate sentinel, handled
-  at `feed-projection.ts:335`. Stringly-typed, but not a defect.
-- `turbo.json`'s `test` task has no `dependsOn: ["^build"]` while `typecheck`
-  does. Not a defect: `packages/database/generated/` is committed and CI
-  generates the Prisma client explicitly.
-- 34 `apps/app` server components hand-roll Prisma queries alongside the
-  `packages/availability` service layer. Real pattern inconsistency, but plan 031
-  already owns the boundary question.
-- `@types/node` and `@types/react` pinned exactly everywhere except
-  `packages/design-system`. Real drift, zero cost, and that package is out of
-  scope.
-- The outbound-write claim lock exists on submit but not on approve/decline/
-  withdraw. Not a defect: those paths are guarded by `approval_status` plus
-  `derived_sequence` on commit, and the Xero operations are idempotent state
-  transitions rather than creates.
-- The `XeroRateLimiter` timeout promise leaves an uncleared `setTimeout` per
-  queued waiter. Bounded by concurrency and self-clearing; noise, not a leak.
+| Plan | Outcome |
+|---|---|
+| 013 | Approval list uses an explicit projection; audit payloads do not cross the manager browser boundary |
+| 021 | Shared dual-tenant scoping helper adopted |
+| 034 | Feed publication reconciliation bounded and batched |
+| 038 | Approval reconciliation capped safely; Plan 056 owns fairness |
+| 041 | Empty-string env handling moved to package-owned schemas |
+| 043 | Transient feed failures return retryable 503 behaviour |
+| 044 | Scheduled AU sync orchestration established; it does not prove bounded whole-organisation balance work |
+| 045–046 | Closed AU early-access product and go-live baseline |
+| 049 | Default build previously passed on a suitable runner |
+| 050 | Xero person-match surface scoped to one Organisation |
 
 ## What this reconciliation did not verify
 
-- The integration lane. `bun run test:integration` needs a live `DATABASE_URL`
-  and the operator host has no local Postgres.
-- Live Vercel, Clerk, Xero, Inngest, Neon, KV, Resend, Sentry, DNS, email-domain
-  or backup configuration.
-- Production data, load, browser performance or support volume.
-- `packages/design-system`, `apps/docs`, `apps/email` and `ds-bundle`.
-- Marketing-site quality outside the launch-critical pricing, contact, legal and
-  help paths.
+- Current full `check`, `typecheck`, unit and integration gates as one release
+  run. Focused suites passed; database integration could not run without
+  `DATABASE_URL`.
+- A successful current default build. This host hit a Turbopack workspace
+  TypeScript symlink cycle.
+- Live Vercel, Clerk, Xero, Stripe, Inngest, Neon, KV, Resend, Sentry, DNS,
+  email-domain, firewall or backup configuration.
+- Production data shape, load, browser performance, calendar-client refresh,
+  support volume or go-to-market conversion.
+- A new comprehensive audit of source areas unrelated to current plan claims.
 
 ## Status rules
 
-- `TODO`: not started or not evidenced on the current release commit.
-- `IN PROGRESS`: an executor is actively working on it.
-- `DONE`: implementation and done criteria are merged into the release branch.
-- `BLOCKED`: a STOP condition prevents execution; include a one-line reason.
-- `REJECTED`: superseded or no longer worth executing; include a one-line
-  rationale.
+- `TODO`: executable and not yet evidenced.
+- `IN PROGRESS`: actively being implemented.
+- `DONE`: implementation and every required gate are proven on the target branch.
+- `BLOCKED`: a named STOP condition or external decision prevents honest
+  execution.
+- `REJECTED`: superseded or based on an invalid design; never execute.
 
-Executors must:
-
-1. read the selected plan completely;
-2. run its drift check against current `HEAD`;
-3. stop on a material mismatch and refresh the plan rather than improvising;
-4. run every required verification gate;
-5. update this index only after evidence exists on the target branch.
-
-If a gate fails for a reason your change could not have caused, say so
-explicitly rather than marking the plan blocked. Eight plans were once wrongly
-blocked by three environmental problems while being individually correct.
-
-Several plans deliberately require a **mutation check**: revert the fix, confirm
-the new test fails, restore. A test that passes both before and after a fix is
-not testing the defect. Do not skip that step.
+Executors must read the selected plan completely, run its drift check, stop on a
+material mismatch, run every named gate and update this index only after evidence
+exists. A source change is not complete when its database or build proof was
+skipped.

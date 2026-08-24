@@ -1,12 +1,21 @@
 # Plan 071: Expand New Zealand and United Kingdom Xero Payroll Reads and Sync
 
-> **Executor instructions**: Follow this plan in order. Run every verification
+> **Reconciliation outcome (2026-08-24)**: **REJECTED** as an XL compound
+> migration. Plans 100 through 109 preserve its decided currency and regional
+> contracts as deployable slices. Do not execute this document.
+
+> **Historical executor instructions (do not use)**: Follow this plan in order. Run every verification
 > command and confirm its expected result before moving on. If a STOP condition
 > occurs, stop and report it. Do not improvise around API, tenancy, migration,
 > or monetary-balance contract failures. When complete, update this plan's row
 > in `plans/README.md`, unless a reviewer has said they maintain the index.
 >
-> **Dispatch gate**: Plan 069 must remain `DONE` and plan 058 must be `DONE`.
+> **Historical reconciliation gate (superseded)**: Plan 069 must remain `DONE`
+> and Plan 058 must be `DONE`. After Plan 058 lands, decompose this XL design
+> into migration, regional adapters, bounded orchestration and presentation
+> plans before dispatch. Do not execute this document as one change.
+>
+> **Historical dispatch gate**: Plan 069 must remain `DONE` and plan 058 must be `DONE`.
 > Plan 058 changes the balance handler named below, so re-read its completed
 > implementation before starting this plan. Its 40-person cap is provisional as
 > of the 2026-08-24 reconciliation; if the operator approves another cap or
@@ -24,13 +33,13 @@
 ## Status
 
 - **Priority**: P1
-- **Effort**: XL
+- **Effort**: L per replacement plan; this document requires decomposition
 - **Risk**: HIGH
-- **Depends on**: 058, 069
+- **Depends on**: not applicable, rejected
+- **Superseded by**: Plans 100 through 109
 - **Category**: migration
 - **Planned at**: commit `206af7b`, 2026-08-23
-- **Execution status**: TODO, reconciled after the product decision to include
-  monetary leave balances for jurisdictions where users expect them.
+- **Execution status**: REJECTED, superseded by Plans 100 through 109
 
 ## Decision record
 

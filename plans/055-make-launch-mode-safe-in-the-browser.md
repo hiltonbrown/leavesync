@@ -21,7 +21,7 @@
   `121da2a` after the pricing page safeguard and unrelated billing styles
   landed)
 - **Covers findings**: C-04, D-02
-- **Review status**: MERGED on 2026-08-24 as `1f507b9`. Implementation commit
+- **Review status**: DONE on 2026-08-24 as `1f507b9`. Implementation commit
   `e4c5997` on `advisor/055-launch-mode-browser-safe` was independently
   reviewed and approved.
 

@@ -7,7 +7,7 @@
 > `plans/README.md`, unless a reviewer has said they maintain the index.
 >
 > **Drift check (run first)**:
-> `git diff --stat 1c0d0d2..HEAD -- packages/database/src/queries/schedulable-xero-tenants.ts packages/database/src/queries/schedulable-xero-tenants.test.ts packages/jobs/src/handlers/schedule-xero-syncs.ts packages/jobs/src/handlers/schedule-xero-syncs.test.ts packages/jobs/src/handlers/schedule-xero-syncs.integration.test.ts`
+> `git diff --stat ecd49f5..HEAD -- packages/database/src/queries/schedulable-xero-tenants.ts packages/database/src/queries/schedulable-xero-tenants.test.ts packages/jobs/src/handlers/schedule-xero-syncs.ts packages/jobs/src/handlers/schedule-xero-syncs.test.ts packages/jobs/src/handlers/schedule-xero-syncs.integration.test.ts`
 > If any path changed, compare the live code with "Current state" and stop on a
 > contract mismatch.
 
@@ -18,7 +18,8 @@
 - **Risk**: LOW
 - **Depends on**: —
 - **Category**: bug, tests
-- **Planned at**: commit `1c0d0d2`, 2026-08-24
+- **Planned at**: commit `ecd49f5`, 2026-08-24 (source scope rechecked and
+  unchanged)
 - **Covers finding**: R-058-01
 - **Review status**: TODO. Execution requires a reachable `DATABASE_URL` and a
   runner on which the repository's default Turbopack build can bind its loader
@@ -33,8 +34,8 @@ four handlers interpret as the database UUID. In production, where the two
 values differ, scheduled people, leave-record, balance, and approval
 reconciliation runs cannot resolve their tenant.
 
-Plan 058 depends on hourly scheduled events to resume its balance cursor, so
-this routing contract must be corrected and database-backed before Plan 058 is
+Plan 091 depends on hourly scheduled events to resume its balance cursor, so
+this routing contract must be corrected and database-backed before Plan 091 is
 dispatched.
 
 ## Current state
@@ -83,7 +84,7 @@ from the loaded tenant row. Preserve that convention.
 | Integration suite | `bun run test:integration` | exit 0 with database suites executed |
 | Build | `bun run build` | exit 0 using the default Turbopack configuration |
 
-At `1c0d0d2`, the focused unit baselines are 4 passing query tests and 10
+At the reconciled source snapshot, the focused unit baselines are 4 passing query tests and 10
 passing scheduler tests, verified on 2026-08-24.
 
 ## Scope
@@ -105,7 +106,7 @@ passing scheduler tests, verified on 2026-08-24.
 - changing any handler's input schema or tenant lookup;
 - changing the provider `xero_tenant_id` stored in the database;
 - changing cadence, event names, event-ID slotting, or scheduler pagination;
-- Plan 058's balance cursor and stale-archive work;
+- Plan 091's balance cursor; Plan 090's stale archival is independent;
 - schema or migration changes.
 
 ## Git workflow
@@ -255,5 +256,5 @@ Stop and report if:
   provider tenant identifier loaded from that row.
 - Integration fixtures for provider-backed entities must use different local
   and remote IDs. Equal values erase exactly this class of contract bug.
-- Plan 058 must not start until this plan is merged and its distinct-ID
+- Plan 091 must not start until this plan is merged and its distinct-ID
   integration test passes.

@@ -20,6 +20,8 @@
 - **Depends on**: none
 - **Category**: security
 - **Planned at**: commit `5993283`, 2026-08-22
+- **Outcome**: DONE in implementation commit `0514f71` and merged by `206af7b`;
+  verified against `ecd49f5` on 2026-08-24.
 
 ---
 
