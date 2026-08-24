@@ -46,7 +46,7 @@ Plans are ordered by leverage, with dependencies respected. Each row is merged t
 | 3 | [052](052-correct-the-timezone-contract-for-working-day-units.md) Correct the timezone contract for working-day units | P1 | S | MED | — | DONE (2026-08-24 at `117fb1b`; merge `660b1a6`; current check/typecheck/test and focused 32/32 pass; integration proven on identical source tree at `8b3efbe`) |
 | 4 | [053](053-guard-the-inbound-leave-upsert-against-stale-writes.md) Guard the inbound leave upsert | P1 | M | MED | 075 | MERGED (`6a5e9d0`; implementation `27b739b`; review approved) |
 | 5 | [054](054-keep-synced-leave-in-the-feed-for-its-whole-last-day.md) Keep synced leave in the feed for its last day | P1 | S | MED | — | MERGED (`85756fe`; implementation `07885a5`; review approved) |
-| 6 | [055](055-make-launch-mode-safe-in-the-browser.md) Make launch mode safe in the browser | P1 | S | LOW | — | DONE (2026-08-24, branch `advisor/055-launch-mode-browser-safe`, commit `e4c5997`, review approved; not merged) |
+| 6 | [055](055-make-launch-mode-safe-in-the-browser.md) Make launch mode safe in the browser | P1 | S | LOW | — | MERGED (`1f507b9`; implementation `e4c5997`; review approved) |
 | 7 | [057](057-make-failures-visible-and-scrub-what-is-logged.md) Make failures visible, scrub what is logged | P1 | S | LOW | — | TODO |
 | 8 | [056](056-give-the-approval-reconciler-a-cursor.md) Give the approval reconciler a cursor | P2 | M | LOW | needs `DATABASE_URL` | TODO |
 | 9 | [058](058-bound-the-unbounded-sync-loops.md) Bound the unbounded sync loops | P2 | L | MED | 053 | TODO (reconciled 2026-08-23 at `206af7b`: one cursor page per run; bulk stale archive) |
