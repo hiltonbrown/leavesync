@@ -20,7 +20,7 @@
 - **Depends on**: none
 - **Category**: security, dx
 - **Planned at**: commit `b590de2`, 2026-08-24
-- **Unblocks**: plans 052 and 053
+- **Unblocks**: plan 053; restores the full quality gate for merged plan 052
 
 ## Why this matters
 
@@ -158,8 +158,8 @@ them with another sink under this plan.
   still required on every route that accesses protected data.
 - Editing Xero connection or sync-run data. This is source removal only.
 - The broader changes introduced by `2e82ef4`; review them separately if needed.
-- Plans 052 and 053 source branches. Verify and unblock them only after this
-  prerequisite is merged into their branch base.
+- Merged plan 052 source and the plan 053 source branch. This plan removes their
+  shared baseline blocker without changing either implementation.
 
 ## Existing conventions to follow
 
@@ -317,6 +317,5 @@ Stop and report if:
 - Never commit one-off verification routes containing fixed customer or tenant
   identifiers. Use tests, disposable local scripts outside shipped route trees,
   or an explicitly designed admin diagnostic surface.
-- After this plan lands, rebase or cherry-pick plan 052's `d1d4a94` onto the
-  clean base and re-run all of plan 052's gates. Resume plan 053 at its Step 5
-  in the same way.
+- After this plan lands, re-run all plan 052 gates on `main`. Resume plan 053 at
+  its Step 5 on a base that includes this plan.
