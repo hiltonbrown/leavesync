@@ -15,7 +15,7 @@
 - **Priority**: P1
 - **Effort**: S
 - **Risk**: MED
-- **Depends on**: plan 075 (`075-remove-the-committed-xero-debug-harness.md`)
+- **Depends on**: none
 - **Category**: bug
 - **Planned at**: commit `b590de2`, 2026-08-24
 - **Reconciled**: 2026-08-24. The original plan's `buildFormDate` change was
@@ -32,9 +32,12 @@
 - **Reconciled again**: 2026-08-24 at `b590de2`. The blocker is unchanged and
   now has an executable owner, plan 075. Scoped checks attribute 60 errors to
   seven unsafe debug-route files and two errors to temporary console output in
-  the manual sync action. Plan 052's focused suite remains 32/32 green. After
-  plan 075 is DONE, rebase or cherry-pick `d1d4a94` onto that clean base and run
-  every plan 052 gate before changing this status to DONE.
+  the manual sync action. Plan 052's focused suite remains 32/32 green.
+- **Operator disposition**: merged into `main` as merge commit `660b1a6` on
+  2026-08-24 before plan 075. Post-merge duration tests pass 32/32. The plan is
+  merged but not fully verified because `bun run check` still reports the same
+  62 out-of-scope diagnostics. After plan 075 is DONE, run every plan 052 gate
+  on `main` before changing this status to DONE.
 
 ## Why this matters
 
