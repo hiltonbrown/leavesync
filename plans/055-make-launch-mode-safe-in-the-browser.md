@@ -21,15 +21,16 @@
   `121da2a` after the pricing page safeguard and unrelated billing styles
   landed)
 - **Covers findings**: C-04, D-02
-- **Review status**: DONE on 2026-08-24. Implementation commit `e4c5997` on
-  `advisor/055-launch-mode-browser-safe` was independently reviewed and
-  approved; not merged.
+- **Review status**: MERGED on 2026-08-24 as `1f507b9`. Implementation commit
+  `e4c5997` on `advisor/055-launch-mode-browser-safe` was independently
+  reviewed and approved.
 
 ## Execution outcome
 
 - **Worktree**: `/tmp/teamcalendar-plan-055`
 - **Branch**: `advisor/055-launch-mode-browser-safe`
 - **Commit**: `e4c5997` (`fix(next-config): make launch mode browser safe`)
+- **Merge**: `1f507b9` (`merge: make launch mode browser safe`)
 - **Scope**: exactly four in-scope files. The existing web launch-mode example
   was already complete, so it remained untouched; the worktree is clean.
 - **Independent verification**: focused launch-mode suite 10/10; `bun run
