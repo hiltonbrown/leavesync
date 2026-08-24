@@ -68,10 +68,9 @@ export async function dispatchManualSyncAction(input: {
     runType: parsed.data.runType,
     xeroTenantId: parsed.data.xeroTenantId,
   });
-  console.log("[dispatchManualSyncAction] dispatch result", JSON.stringify(result, null, 2));
 
   // In local dev without Inngest dev server, dispatchSyncEvent fails with
-  // "Failed to queue the sync job." — fall back to inline execution so
+  // "Failed to queue the sync job.". Fall back to inline execution so
   // Sync People / leave records / balances still work without Inngest.
   const isDispatchFailed =
     !result.ok &&
@@ -128,7 +127,6 @@ export async function dispatchManualSyncAction(input: {
     }
   } catch (error) {
     syncError = error;
-    console.error("[dispatchManualSyncAction] inline sync threw", error);
   }
 
   // Always revalidate so run history reflects new run even on failure
@@ -138,7 +136,6 @@ export async function dispatchManualSyncAction(input: {
   revalidatePath("/notifications");
   revalidatePath("/settings/integrations/xero");
 
-  console.log("[dispatchManualSyncAction] inline syncResult", JSON.stringify({ syncResult, syncError: syncError instanceof Error ? syncError.message : syncError }, null, 2));
   if (syncError) {
     return {
       error: {
