@@ -15,9 +15,9 @@ export const parseError = (error: unknown): string => {
 
   try {
     Sentry.captureException(error);
-    log.error(`Parsing error: ${message}`);
-  } catch (newError) {
-    console.error("Error parsing error:", newError);
+    log.error("Parsing error", { error });
+  } catch {
+    console.error("Error reporting parsing error");
   }
 
   return message;

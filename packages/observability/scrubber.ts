@@ -19,33 +19,50 @@ const SENSITIVE_PATTERNS = [
   /encryption_key/i,
   /clerk/i,
   /stripe/i,
+  /message/i,
+  /query/i,
+  /param(?:s|eter|eters)?/i,
+  /response/i,
+  /cause/i,
 ];
 
+const NON_SECRET_OPERATIONAL_KEYS = new Set([
+  "actingClerkOrgId",
+  "clerkOrgId",
+  "errorCode",
+  "stripeSubscriptionId",
+  "xeroWriteSucceeded",
+]);
+
 export const isSensitiveKey = (key: string): boolean =>
+  !NON_SECRET_OPERATIONAL_KEYS.has(key) &&
   SENSITIVE_PATTERNS.some((pattern) => pattern.test(key));
+
+const sanitizeValue = (value: unknown): unknown => {
+  if (value instanceof Error) {
+    return { name: value.name };
+  }
+  if (Array.isArray(value)) {
+    return value.map(sanitizeValue);
+  }
+  if (value && typeof value === "object") {
+    const sanitized: Record<string, unknown> = {};
+    for (const [key, nestedValue] of Object.entries(value)) {
+      sanitized[key] = isSensitiveKey(key)
+        ? "[SCRUBBED]"
+        : sanitizeValue(nestedValue);
+    }
+    return sanitized;
+  }
+  return value;
+};
 
 export const sanitizeObject = (
   obj: Record<string, unknown>
 ): Record<string, unknown> => {
-  if (typeof obj !== "object" || Array.isArray(obj)) {
-    return obj;
-  }
-
   const sanitized: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(obj)) {
-    if (isSensitiveKey(key)) {
-      sanitized[key] = "[SCRUBBED]";
-    } else if (value && typeof value === "object" && !Array.isArray(value)) {
-      sanitized[key] = sanitizeObject(value as Record<string, unknown>);
-    } else if (Array.isArray(value)) {
-      sanitized[key] = value.map((item) =>
-        typeof item === "object" && item !== null
-          ? sanitizeObject(item as Record<string, unknown>)
-          : item
-      );
-    } else {
-      sanitized[key] = value;
-    }
+    sanitized[key] = isSensitiveKey(key) ? "[SCRUBBED]" : sanitizeValue(value);
   }
   return sanitized;
 };

@@ -245,8 +245,16 @@ export async function listForApprover(
 
   try {
     return await loadApproverPage(parsed.data);
-  } catch {
-    return unknownError("Failed to load leave approvals.");
+  } catch (error) {
+    return logAndReturnUnknown(
+      error,
+      {
+        clerkOrgId: parsed.data.clerkOrgId,
+        operation: "list_for_approver",
+        organisationId: parsed.data.organisationId,
+      },
+      "Failed to load leave approvals."
+    );
   }
 }
 
@@ -438,8 +446,17 @@ export async function getApprovalDetail(
         })),
       },
     };
-  } catch {
-    return unknownError("Failed to load this approval.");
+  } catch (error) {
+    return logAndReturnUnknown(
+      error,
+      {
+        clerkOrgId: parsed.data.clerkOrgId,
+        operation: "get_approval_detail",
+        organisationId: parsed.data.organisationId,
+        recordId: parsed.data.recordId,
+      },
+      "Failed to load this approval."
+    );
   }
 }
 
@@ -500,8 +517,16 @@ export async function getApprovalSummaryCounts(input: {
       ok: true,
       value: { approvedThisMonth, declinedThisMonth, failedSync, pending },
     };
-  } catch {
-    return unknownError("Failed to load approval summary.");
+  } catch (error) {
+    return logAndReturnUnknown(
+      error,
+      {
+        clerkOrgId: parsed.data.clerkOrgId,
+        operation: "get_approval_summary_counts",
+        organisationId: parsed.data.organisationId,
+      },
+      "Failed to load approval summary."
+    );
   }
 }
 
@@ -613,8 +638,17 @@ export async function retryDecline(
       retry: true,
       successAuditAction: "availability_records.decline_retry_succeeded",
     });
-  } catch {
-    return unknownError("Failed to retry this decline.");
+  } catch (error) {
+    return logAndReturnUnknown(
+      error,
+      {
+        clerkOrgId: parsed.data.clerkOrgId,
+        operation: "retry_decline_preflight",
+        organisationId: parsed.data.organisationId,
+        recordId: parsed.data.recordId,
+      },
+      "Failed to retry this decline."
+    );
   }
 }
 
@@ -651,8 +685,17 @@ export async function requestMoreInfo(
     });
 
     return { ok: true, value: await toApprovalListItem(record) };
-  } catch {
-    return unknownError("Failed to request more information.");
+  } catch (error) {
+    return logAndReturnUnknown(
+      error,
+      {
+        clerkOrgId: parsed.data.clerkOrgId,
+        operation: "request_more_info",
+        organisationId: parsed.data.organisationId,
+        recordId: parsed.data.recordId,
+      },
+      "Failed to request more information."
+    );
   }
 }
 
@@ -715,7 +758,16 @@ export async function revertApprovalAttempt(
     if (error instanceof OptimisticConflictError) {
       return invalidState("invalid_state_for_revert");
     }
-    return unknownError("Failed to revert this approval attempt.");
+    return logAndReturnUnknown(
+      error,
+      {
+        clerkOrgId: parsed.data.clerkOrgId,
+        operation: "revert_approval_attempt",
+        organisationId: parsed.data.organisationId,
+        recordId: parsed.data.recordId,
+      },
+      "Failed to revert this approval attempt."
+    );
   }
 }
 
@@ -791,6 +843,8 @@ async function performApproval(
     return validationError(parsed.error);
   }
 
+  let failureStage: ApprovalFailureStage = "prepare";
+  let xeroWriteSucceeded = false;
   try {
     const prepared = await prepareApprovalWrite(
       parsed.data,
@@ -815,6 +869,7 @@ async function performApproval(
       });
     }
 
+    failureStage = "xero_write";
     const response = await externalWritePort.approveLeaveApplication({
       clerkOrgId: parsed.data.clerkOrgId,
       employeeId: xeroEmployeeId,
@@ -822,6 +877,7 @@ async function performApproval(
       remoteId: xeroLeaveApplicationId,
     });
     if (!response.ok) {
+      failureStage = "local_transaction";
       return await persistApprovalFailure({
         auditAction: options.failureAuditAction,
         error: response.error,
@@ -830,7 +886,9 @@ async function performApproval(
         record,
       });
     }
+    xeroWriteSucceeded = true;
 
+    failureStage = "local_transaction";
     const now = new Date();
     await database.$transaction(async (tx) => {
       const update = await tx.availabilityRecord.updateMany({
@@ -856,24 +914,35 @@ async function performApproval(
       });
     });
 
+    failureStage = "notification";
     await notifyApprovalBestEffort(parsed.data, record, {
       actionUrl: `/plans?recordId=${record.id}`,
       type: "leave_approved",
     });
 
+    failureStage = "reload";
     const updated = await loadRecord(parsed.data);
     if (!updated) {
       return recordNotFound();
     }
+    failureStage = "publication";
     await materialiseApprovalPublication(parsed.data);
+    failureStage = "projection";
     return { ok: true, value: await toApprovalListItem(updated) };
   } catch (error) {
-    if (error instanceof OptimisticConflictError) {
-      return invalidState(
-        options.retry ? "invalid_state_for_retry" : "invalid_state_for_approve"
-      );
-    }
-    return unknownError("Failed to approve this leave.");
+    return handleApprovalWriteFailure(
+      error,
+      {
+        clerkOrgId: parsed.data.clerkOrgId,
+        failureStage,
+        operation: options.retry ? "retry_approve" : "approve",
+        organisationId: parsed.data.organisationId,
+        recordId: parsed.data.recordId,
+        xeroWriteSucceeded,
+      },
+      options.retry ? "invalid_state_for_retry" : "invalid_state_for_approve",
+      "Failed to approve this leave."
+    );
   }
 }
 
@@ -887,6 +956,8 @@ async function performDecline(
     successAuditAction: string;
   }
 ): Promise<Result<ApprovalListItem, ApprovalServiceError>> {
+  let failureStage: ApprovalFailureStage = "prepare";
+  let xeroWriteSucceeded = false;
   try {
     const prepared = await prepareApprovalWrite(input, externalWritePort, {
       expectedFailedAction: options.retry ? "decline" : null,
@@ -907,6 +978,7 @@ async function performDecline(
       });
     }
 
+    failureStage = "xero_write";
     const response = await externalWritePort.declineLeaveApplication({
       clerkOrgId: input.clerkOrgId,
       employeeId: xeroEmployeeId,
@@ -915,6 +987,7 @@ async function performDecline(
       remoteId: xeroLeaveApplicationId,
     });
     if (!response.ok) {
+      failureStage = "local_transaction";
       return await persistApprovalFailure({
         approvalNote: options.reason,
         auditAction: options.failureAuditAction,
@@ -924,7 +997,9 @@ async function performDecline(
         record,
       });
     }
+    xeroWriteSucceeded = true;
 
+    failureStage = "local_transaction";
     const now = new Date();
     await database.$transaction(async (tx) => {
       const update = await tx.availabilityRecord.updateMany({
@@ -952,25 +1027,36 @@ async function performDecline(
       });
     });
 
+    failureStage = "notification";
     await notifyApprovalBestEffort(input, record, {
       actionUrl: `/plans?recordId=${record.id}`,
       payload: { body: options.reason },
       type: "leave_declined",
     });
 
+    failureStage = "reload";
     const updated = await loadRecord(input);
     if (!updated) {
       return recordNotFound();
     }
+    failureStage = "publication";
     await materialiseApprovalPublication(input);
+    failureStage = "projection";
     return { ok: true, value: await toApprovalListItem(updated) };
   } catch (error) {
-    if (error instanceof OptimisticConflictError) {
-      return invalidState(
-        options.retry ? "invalid_state_for_retry" : "invalid_state_for_decline"
-      );
-    }
-    return unknownError("Failed to decline this leave.");
+    return handleApprovalWriteFailure(
+      error,
+      {
+        clerkOrgId: input.clerkOrgId,
+        failureStage,
+        operation: options.retry ? "retry_decline" : "decline",
+        organisationId: input.organisationId,
+        recordId: input.recordId,
+        xeroWriteSucceeded,
+      },
+      options.retry ? "invalid_state_for_retry" : "invalid_state_for_decline",
+      "Failed to decline this leave."
+    );
   }
 }
 
@@ -1814,6 +1900,71 @@ function resolutionBlocked(
     },
     ok: false,
   };
+}
+
+type ApprovalFailureStage =
+  | "prepare"
+  | "xero_write"
+  | "local_transaction"
+  | "notification"
+  | "reload"
+  | "publication"
+  | "projection";
+
+type ApprovalFailureOperation =
+  | "list_for_approver"
+  | "get_approval_detail"
+  | "get_approval_summary_counts"
+  | "retry_decline_preflight"
+  | "request_more_info"
+  | "revert_approval_attempt"
+  | "approve"
+  | "retry_approve"
+  | "decline"
+  | "retry_decline";
+
+interface ApprovalFailureContext {
+  clerkOrgId: string;
+  failureStage?: ApprovalFailureStage;
+  operation: ApprovalFailureOperation;
+  organisationId: string;
+  recordId?: string;
+  xeroWriteSucceeded?: boolean;
+}
+
+function logAndReturnUnknown(
+  error: unknown,
+  context: ApprovalFailureContext,
+  userMessage: string
+): Result<never, ApprovalServiceError> {
+  log.error("Unexpected approval service failure", { ...context, error });
+  return unknownError(userMessage);
+}
+
+function handleApprovalWriteFailure(
+  error: unknown,
+  context: ApprovalFailureContext & {
+    failureStage: ApprovalFailureStage;
+    xeroWriteSucceeded: boolean;
+  },
+  invalidStateCode:
+    | "invalid_state_for_approve"
+    | "invalid_state_for_decline"
+    | "invalid_state_for_retry",
+  userMessage: string
+): Result<never, ApprovalServiceError> {
+  if (error instanceof OptimisticConflictError) {
+    if (context.xeroWriteSucceeded) {
+      log.error("Approval state changed after Xero write succeeded", {
+        ...context,
+        error,
+        failureStage: "local_transaction",
+        xeroWriteSucceeded: true,
+      });
+    }
+    return invalidState(invalidStateCode);
+  }
+  return logAndReturnUnknown(error, context, userMessage);
 }
 
 function unknownError(message: string): Result<never, ApprovalServiceError> {
