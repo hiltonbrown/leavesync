@@ -40,9 +40,9 @@ Plans are ordered by leverage, with dependencies respected. Each row is merged t
 
 | # | Plan | Priority | Effort | Risk | Depends on | Status |
 |---|---|---|---|---|---|---|
-| 1 | [075](075-remove-the-committed-xero-debug-harness.md) Remove the committed Xero debug harness and restore the quality gate | P1 | S | LOW | — | TODO, prerequisite for 052 and 053 |
+| 1 | [075](075-remove-the-committed-xero-debug-harness.md) Remove the committed Xero debug harness and restore the quality gate | P1 | S | LOW | — | TODO, prerequisite for 053 and post-merge verification for 052 |
 | 2 | [051](051-isolate-the-jobs-integration-test-fixtures.md) Isolate the jobs integration fixtures | P1 | S | LOW | — | REJECTED (2026-08-24: fixed independently in `37e7231`; live pair passed twice at `b590de2`) |
-| 3 | [052](052-correct-the-timezone-contract-for-working-day-units.md) Correct the timezone contract for working-day units | P1 | S | MED | 075 | BLOCKED (`d1d4a94` remains correct and focused tests pass 32/32; execute 075, then rebase and re-run all gates) |
+| 3 | [052](052-correct-the-timezone-contract-for-working-day-units.md) Correct the timezone contract for working-day units | P1 | S | MED | — | MERGED (`660b1a6`; post-merge focused tests pass 32/32; full verification remains blocked on 075) |
 | 4 | [053](053-guard-the-inbound-leave-upsert-against-stale-writes.md) Guard the inbound leave upsert | P1 | M | MED | 075 | BLOCKED (implementation and database proof pass; execute 075, then resume Step 5) |
 | 5 | [054](054-keep-synced-leave-in-the-feed-for-its-whole-last-day.md) Keep synced leave in the feed for its last day | P1 | S | MED | — | TODO |
 | 6 | [055](055-make-launch-mode-safe-in-the-browser.md) Make launch mode safe in the browser | P1 | S | LOW | — | TODO |
@@ -88,7 +88,8 @@ first" section has to be agreed before any code is written.
 ### Dependency notes
 
 ```text
-075 -> 052 + 053           (removes unsafe debug routes and restores the mandatory quality gate)
+075 -> 053                 (removes unsafe debug routes before the stale-write branch resumes)
+075 -> verify merged 052   (restores the mandatory quality gate after the operator-directed merge)
 053 -> 058                 (same handler file; 053 is the smaller diff)
 054 -> 061                 (same projection file)
 060 + 061 -> 065           (065 narrows what the predicate reads; both must land first)
@@ -104,9 +105,9 @@ Everything not named above is independent and may run in any order.
 ### May run in parallel
 
 055, 057, 059 and 075 touch disjoint files and can run concurrently if
-throughput matters. After 075 is merged, 052 can run alongside 055, 057 and
-059. Do **not** parallelise 053 with 058, 054 with 061, any pair of 071, 072,
-073 and 074, or anything with 065 and 068.
+throughput matters. Plan 052 is already merged; run its remaining full gate
+after 075. Do **not** parallelise 053 with 058, 054 with 061, any pair of 071,
+072, 073 and 074, or anything with 065 and 068.
 
 ## Deferred plans from the earlier backlog
 
