@@ -15,7 +15,7 @@
 - **Priority**: P2
 - **Effort**: M
 - **Risk**: LOW
-- **Depends on**: plan 051 (claim a UUID prefix from its registry)
+- **Depends on**: none
 - **Category**: tests
 - **Planned at**: commit `121da2a`, 2026-08-12
 - **Covers findings**: T-02, T-03, T-04, T-05
@@ -135,13 +135,16 @@ shape.
 
 ## Steps
 
-### Step 1: Claim a UUID prefix
+### Step 1: Allocate a unique UUID prefix
 
-Register this plan's integration fixtures in the prefix module plan 051 created,
-so the new tests cannot collide with existing ones.
+Before adding fixtures, search every integration test in `packages/database`,
+`packages/jobs` and `packages/xero` for hard-coded UUIDs. Choose a readable UUID
+prefix that no existing integration test uses, then keep the fixture constants
+local to the new test file. Plan 051's proposed registry was rejected because it
+was incomplete and did not enforce uniqueness.
 
-**Verify**: the new prefix appears in `integration-fixture-prefixes.ts` (or the
-equivalent registry) and is used by nothing else.
+**Verify**: `rg -o '"[0-9a-f]{8}-[0-9a-f-]{27}"' packages/database packages/jobs packages/xero --glob '*.integration.test.ts' | sort -u`
+shows the new prefix only in the new test file and no pre-existing file shares it.
 
 ### Step 2: Cover the billing SQL
 
@@ -238,7 +241,8 @@ Stop and report if:
   under this plan.
 - An assertion exists only in a `__tests__` duplicate and cannot be ported
   cleanly, meaning the two files test genuinely different things.
-- Plan 051 has not landed and there is no prefix registry to claim from.
+- Existing integration fixtures already use the chosen prefix. Pick another
+  unused prefix before writing any rows; do not renumber another file here.
 
 ## Maintenance notes
 
