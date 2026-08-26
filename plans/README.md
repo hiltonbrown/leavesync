@@ -53,7 +53,8 @@ This reconciliation was read-only outside `plans/`.
 | Plan 030 execution | approved at `ecd49f5`, merged as `bf789b9`; focused dashboard tests 14/14 (including a constant-query-count boundary test proven to fail against the pre-plan implementation), check, typecheck, unit and live database integration gates passed; `api` build passed in isolation, default monorepo `bun run build` still blocked by the pre-existing Turbopack symlink issue above |
 | Plan 056 execution | approved at `d0a9416`; focused handler tests 19/19 (including 5 new fairness and not_found tests), migration applied cleanly and verified with `prisma migrate diff`, check, typecheck, unit and live database integration gates passed |
 | Plan 059 execution | approved at `c26a38e`; focused stream route tests 14/14 with fake timers, check, typecheck, unit, live database integration and diff gates passed |
-| Current indexed plans | 64: 33 TODO, 15 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 060 execution | approved at `36e0bc3`; focused analytics tests 25/25, query shape assertions confirming audit blobs omitted, check, typecheck, unit and live database integration gates passed |
+| Current indexed plans | 64: 32 TODO, 16 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -73,7 +74,7 @@ before starting its dependent plan.
 | [030](030-remove-three-avoidable-round-trip-patterns.md) | Remove manager-dashboard query amplification | P2 | none | DONE |
 | [056](056-give-the-approval-reconciler-a-cursor.md) | Fair per-record approval reconciliation | P2 | integration database | DONE |
 | [059](059-make-the-notification-stream-reliable-and-affordable.md) | Surface SSE failures and reduce idle polling | P2 | none | DONE |
-| [060](060-project-explicit-columns-in-the-analytics-services.md) | Exclude audit blobs from analytics queries | P2 | none | TODO |
+| [060](060-project-explicit-columns-in-the-analytics-services.md) | Exclude audit blobs from analytics queries | P2 | none | DONE |
 | [066](066-test-the-untested-money-and-tenancy-paths.md) | Test billing SQL, tenancy and contact logic | P2 | integration database | TODO |
 | [087](087-complete-xero-people-sync-regression-tests.md) | Complete Plan 069 test promises | P2 | integration database | TODO |
 | [089](089-map-xero-matches-to-a-client-view-model.md) | Map Xero matches to a browser-safe view model | P2 | none | TODO |
@@ -243,6 +244,11 @@ predecessor/preflight contract in its plan.
   failures, switches from 2s to 10s polling after 60s idleness, validates
   `Last-Event-ID`, and uses recursive `setTimeout` with idempotent cancellation
   to prevent overlapping polls.
+- Plan 060 is complete at `36e0bc3`. Aggregate and drilldown queries in
+  `leave-reports-service.ts` and `out-of-office-service.ts` now use a shared
+  explicit `analyticsRecordSelect` projection. `source_payload_json` and
+  `xero_write_error_raw` audit blobs are never loaded or transported to RSC
+  consumers.
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
@@ -268,8 +274,8 @@ predecessor/preflight contract in its plan.
 | S-06 proxy/documentation mismatch | dangerous debug handlers removed by 075; guidance in 085 |
 | S-07 public feed exposure | 410 retained by design; rate limiting in 080 |
 | S-08 support issue data boundary | 081 |
-| P-01 analytics audit-blob projection | 060 |
-| P-02 SSE polling cost | duplicate provider fixed; residual in 059 |
+| P-01 analytics audit-blob projection | 060 DONE |
+| P-02 SSE polling cost | duplicate provider fixed; residual in 059 DONE |
 | P-03 duplicate feed/cache lookup | 061 |
 | P-04 unbounded stale archive | 090 |
 | P-05 broad holiday reads | 061 |
