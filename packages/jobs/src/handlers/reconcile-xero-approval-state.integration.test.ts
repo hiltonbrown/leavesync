@@ -272,8 +272,8 @@ describeWithDatabase("reconcile-xero-approval-state database flow", () => {
     if (result.ok) {
       expect(result.value).toMatchObject({
         archivedMissing: 1,
-        failed: 1,
-        status: "partial_success",
+        failed: 0,
+        status: "succeeded",
       });
     }
 
@@ -283,6 +283,7 @@ describeWithDatabase("reconcile-xero-approval-state database flow", () => {
       publish_status: "archived",
     });
     expect(updated?.archived_at).toBeInstanceOf(Date);
+    expect(updated?.xero_approval_checked_at).toBeInstanceOf(Date);
 
     const failedRecord = await database.failedRecord.findFirst({
       where: {
@@ -291,11 +292,7 @@ describeWithDatabase("reconcile-xero-approval-state database flow", () => {
         source_remote_id: leaveApplicationId("missing"),
       },
     });
-    expect(failedRecord).toMatchObject({
-      entity_type: "leave_records",
-      error_code: "xero_application_missing",
-      record_type: "annual_leave",
-    });
+    expect(failedRecord).toBeNull();
 
     const auditEvent = await database.auditEvent.findFirst({
       where: {
@@ -466,6 +463,81 @@ describeWithDatabase("reconcile-xero-approval-state database flow", () => {
       updated_at: tenantBBefore?.updated_at,
     });
   });
+
+  it("orders null markers first and advances beyond the first 500 rows across runs without starving remaining candidates", async () => {
+    await setupTenant(tenantA);
+    await setupPerson(tenantA);
+
+    const now = new Date();
+    const count = 505;
+    const recordsData = Array.from({ length: count }, (_, i) => ({
+      all_day: true,
+      approval_status: "submitted" as const,
+      clerk_org_id: tenantA.clerkOrgId,
+      contactability: "unavailable" as const,
+      derived_uid_key: `${tenantA.clerkOrgId}-leave-fairness-${i}`,
+      ends_at: new Date(now.getTime() + 86_400_000),
+      id: `bb100000-0000-4000-8000-${String(i).padStart(12, "0")}`,
+      organisation_id: tenantA.organisationId,
+      person_id: tenantA.personId,
+      privacy_mode: "named" as const,
+      publish_status: "eligible" as const,
+      record_type: "annual_leave" as const,
+      source_remote_id: `xero-leave-fairness-${i}`,
+      source_type: "xero_leave" as const,
+      starts_at: now,
+      xero_approval_checked_at: null,
+    }));
+
+    await database.availabilityRecord.createMany({
+      data: recordsData,
+    });
+
+    mockFetchLeaveApplicationStatusForRegion.mockResolvedValue(
+      xeroStatus("APPROVED")
+    );
+
+    // Run 1
+    const run1 = await reconcileXeroApprovalState(reconcileInput(tenantA));
+    expect(run1).toMatchObject({
+      ok: true,
+      value: {
+        approved: 500,
+        partial: true,
+        status: "partial_success",
+      },
+    });
+
+    // Run 1 processed 500 records; 5 records remain with xero_approval_checked_at: null
+    const uncheckedAfterRun1 = await database.availabilityRecord.count({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        organisation_id: tenantA.organisationId,
+        xero_approval_checked_at: null,
+      },
+    });
+    expect(uncheckedAfterRun1).toBe(5);
+
+    // Run 2: starts by picking the 5 null-checked records first
+    const run2 = await reconcileXeroApprovalState(reconcileInput(tenantA));
+    expect(run2).toMatchObject({
+      ok: true,
+      value: {
+        partial: true,
+        status: "partial_success",
+      },
+    });
+
+    // After run 2, all 505 records have been checked at least once
+    const uncheckedAfterRun2 = await database.availabilityRecord.count({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        organisation_id: tenantA.organisationId,
+        xero_approval_checked_at: null,
+      },
+    });
+    expect(uncheckedAfterRun2).toBe(0);
+  }, 120_000);
 
   it("returns a validation error for invalid input", async () => {
     const result = await reconcileXeroApprovalState({});
