@@ -22,7 +22,8 @@ This reconciliation was read-only outside `plans/`.
 | `DATABASE_URL` | absent, so current integration gates were not rerun |
 | Default `bun run build` | failed on this host because Turbopack followed a workspace TypeScript symlink cycle; no application compile defect was established |
 | Blocked-plan cold review | 9 plans reviewed; 3 rewritten, 6 rejected and split |
-| Current indexed plans | 64: 40 TODO, 8 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 076 execution | focused tests 15/15; full check, typecheck, unit, database integration and default build gates passed |
+| Current indexed plans | 64: 39 TODO, 9 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -37,7 +38,6 @@ before starting its dependent plan.
 
 | Plan | Outcome | Priority | Depends on | Status |
 |---|---|---:|---|---|
-| [076](076-route-scheduled-syncs-by-the-database-tenant-id.md) | Route scheduled jobs by database tenant UUID | P1 | DB/build runner | TODO |
 | [092](092-add-shared-hsts.md) | Add shared HSTS without preload promises | P1 | none | TODO |
 | [097](097-harden-returned-xero-employee-import.md) | Harden payroll import and reactivation | P1 | none | TODO |
 | [101](101-add-currency-leave-balance-contract.md) | Add currency balance schema contract | P1 | migration runner | TODO |
@@ -87,7 +87,7 @@ blockers, and calendar adoption is measured through observed feed-token access.
 
 ```text
 Ready roots, grouped by priority:
-  P1: 076, 092, 097, 101
+  P1: 092, 097, 101
   P2: 030, 056, 059, 060, 066, 087, 089, 090, 093
   P3: 037, 039, 078, 084, 085, 086
 
@@ -107,7 +107,7 @@ Shared domain chain:
   061 -> 095 -> 096
 
 Xero sync chain:
-  076 -> 091
+  076 DONE (merge before 091) -> 091
   097 -> 098 -> 099
   097 -> 098 -> 100
   100 + 101 -> 102 -> 103
@@ -142,6 +142,11 @@ predecessor/preflight contract in its plan.
   case-insensitive `error` keys retain only an actual `Error` name and scrub
   every other value wholesale; the earlier approval/logging implementation
   remains merged.
+- Plan 076 is complete at `a2c3afb` on
+  `advisor/076-scheduled-tenant-routing`, pending the user's merge decision.
+  The scheduler query now returns only the database tenant UUID, and distinct-ID
+  unit and database-backed integration coverage proves payload and event-ID
+  routing use that value.
 - Plan 058 was rejected and split into independent stale-archive Plan 090 and
   scheduled balance-page Plan 091. The reconciled contract keeps unlimited
   rosters and defines rolling 40-person hourly pages without a completion SLA.
@@ -209,7 +214,7 @@ predecessor/preflight contract in its plan.
 | T-03 Xero tenancy uniqueness coverage | 066 |
 | T-04 duplicate API route suites | 066 |
 | T-05 alternative-contact service coverage | 066 |
-| R-058-01 scheduled provider/database tenant mismatch | 076 |
+| R-058-01 scheduled provider/database tenant mismatch | 076 DONE |
 | R-058-02 bounded sync/product contract mismatch | 091, contract resolved |
 | M-01 duplicate `ws` ownership | 084 |
 | D-01 stale test command guidance | 085 |
@@ -242,6 +247,7 @@ remain important dependencies:
 | 049 | Default build previously passed on a suitable runner |
 | 050 | Xero person-match surface scoped to one Organisation |
 | 057 | Exact `error` channels scrubbed at every nesting level; approved as `782c2b5` and merged as `409fd10` after all gates passed |
+| 076 | Scheduled sync payloads and event IDs use the database tenant UUID; approved as `a2c3afb` after distinct-ID integration coverage and all gates passed |
 
 ## What this reconciliation did not verify
 

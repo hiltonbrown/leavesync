@@ -21,9 +21,26 @@
 - **Planned at**: commit `ecd49f5`, 2026-08-24 (source scope rechecked and
   unchanged)
 - **Covers finding**: R-058-01
-- **Review status**: TODO. Execution requires a reachable `DATABASE_URL` and a
-  runner on which the repository's default Turbopack build can bind its loader
-  loopback port.
+- **Review status**: DONE on 2026-08-26. Implementation commit `a2c3afb` on
+  `advisor/076-scheduled-tenant-routing` was independently reviewed and
+  approved.
+
+## Execution outcome
+
+- **Worktree**: `/tmp/teamcalendar-plan-076`
+- **Branch**: `advisor/076-scheduled-tenant-routing`
+- **Commit**: `a2c3afb` (`fix(jobs): route scheduled syncs by tenant primary
+  key`)
+- **Scope**: exactly the five planned source/test files; the worktree is clean.
+- **Independent verification**: query tests 4/4, scheduler unit tests 10/10,
+  database-backed scheduler integration 1/1; `bun run check` checked 770
+  files; typecheck 19/19 tasks; unit suite 17/17 tasks; integration 5/5 tasks
+  with 60 database-backed tests passed; build 4/4 tasks. Two credential-gated
+  external Xero tests remained skipped and were unrelated to this plan.
+  `git diff --check` and the exact five-file scope audit also passed.
+- **Verdict**: APPROVE. Scheduled payloads, event IDs and diagnostics now use
+  the database `XeroTenant.id`; the provider tenant identifier is no longer
+  selected by the scheduler query.
 
 ## Why this matters
 
@@ -222,17 +239,17 @@ and, after bookkeeping, `plans/README.md`.
 
 ## Done criteria
 
-- [ ] `SchedulableXeroTenant` exposes an unambiguous database tenant ID and no
+- [x] `SchedulableXeroTenant` exposes an unambiguous database tenant ID and no
       unused provider tenant ID.
-- [ ] All scheduled event payloads and event IDs use `XeroTenant.id`.
-- [ ] Provider `xero_tenant_id` remains available only after handlers load the
+- [x] All scheduled event payloads and event IDs use `XeroTenant.id`.
+- [x] Provider `xero_tenant_id` remains available only after handlers load the
       tenant row; no provider persistence or API contract changes.
-- [ ] Unit and database-backed integration tests use distinct identifiers and
+- [x] Unit and database-backed integration tests use distinct identifiers and
       fail if the scheduler routes by the provider value.
-- [ ] No handler input, cadence, schema, or migration changed.
-- [ ] `bun run check`, `bun run typecheck`, `bun run test`,
+- [x] No handler input, cadence, schema, or migration changed.
+- [x] `bun run check`, `bun run typecheck`, `bun run test`,
       `bun run test:integration`, `bun run build`, and `git diff --check` exit 0.
-- [ ] `plans/README.md` records completion with date, commit, and verification
+- [x] `plans/README.md` records completion with date, commit, and verification
       evidence.
 
 ## STOP conditions
