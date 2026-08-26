@@ -56,7 +56,8 @@ This reconciliation was read-only outside `plans/`.
 | Plan 060 execution | approved at `36e0bc3`; focused analytics tests 25/25, query shape assertions confirming audit blobs omitted, check, typecheck, unit and live database integration gates passed |
 | Plan 066 execution | approved at `93f73cc`; billing SQL integration suite 5/5, Xero tenancy P2002 uniqueness suite 3/3, duplicate route test files deleted, alternative-contact characterisation suite 22/22, check, typecheck, unit and live database integration gates passed |
 | Plan 087 execution | approved at `7aef039`; person_type integration assertions 8/8, People client notification test suite 11/11, sync actions error/cancellation suite 12/12, check, typecheck, unit and live database integration gates passed |
-| Current indexed plans | 64: 30 TODO, 18 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 089 execution | approved at `6fb72b2`; narrow Prisma select allowlist, serialisable XeroPersonMatchView mapper, matches client tests 6/6, check, typecheck, unit and live database integration gates passed |
+| Current indexed plans | 64: 29 TODO, 19 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -79,7 +80,7 @@ before starting its dependent plan.
 | [060](060-project-explicit-columns-in-the-analytics-services.md) | Exclude audit blobs from analytics queries | P2 | none | DONE |
 | [066](066-test-the-untested-money-and-tenancy-paths.md) | Test billing SQL, tenancy and contact logic | P2 | integration database | DONE |
 | [087](087-complete-xero-people-sync-regression-tests.md) | Complete Plan 069 test promises | P2 | integration database | DONE |
-| [089](089-map-xero-matches-to-a-client-view-model.md) | Map Xero matches to a browser-safe view model | P2 | none | TODO |
+| [089](089-map-xero-matches-to-a-client-view-model.md) | Map Xero matches to a browser-safe view model | P2 | none | DONE |
 | [090](090-bulk-stale-xero-leave-archival.md) | Bulk stale leave archival and feed invalidation | P2 | none | TODO |
 | [037](037-spike-nz-and-uk-payroll-write-back.md) | Decide NZ/UK write-back capability from primary sources | P3 | none | TODO |
 | [039](039-decide-what-to-do-with-the-html-feed-renderer.md) | Delete the out-of-scope HTML feed prototype | P3 | none | TODO |
@@ -261,6 +262,10 @@ predecessor/preflight contract in its plan.
   covered: `sync-xero-people.integration.test.ts` asserts `person_type`
   persistence, `people-client.test.tsx` tests notification event filtering and
   feedback, and `sync/_actions.test.ts` covers failed and cancelled results.
+- Plan 089 is complete at `6fb72b2`. `matches/page.tsx` now executes a narrow
+  allowlisted Prisma select and maps rows through a pure, serialisable
+  `XeroPersonMatchView` view-model mapper. `MatchesClient` imports only the
+  view-model interface without database model leakage.
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
@@ -308,7 +313,7 @@ predecessor/preflight contract in its plan.
 | DOC-01 package-table drift | 085 |
 | R-069-01 missing Plan 069 regression seams | 087 DONE |
 | R-031-01 private database `/src/` imports | 088 |
-| R-031-02 Prisma model types cross a client boundary | 089 |
+| R-031-02 Prisma model types cross a client boundary | 089 DONE |
 | R-071-01 NZ/UK adapters and rollout | 100–109 |
 | R-072-01 returning people and Clerk access ordering | 097–099 |
 | R-073-01 unsafe one-pass missing-person archival | 098 |
