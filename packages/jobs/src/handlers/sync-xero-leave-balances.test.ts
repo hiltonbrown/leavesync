@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   ensureFreshXeroConnection: vi.fn(),
   failedRecordCreate: vi.fn(),
   fetchLeaveBalancesForRegion: vi.fn(),
+  isSupportedCurrencyCode: vi.fn((value: unknown) => value === "NZD"),
   leaveBalanceUpsert: vi.fn(),
   personFindFirst: vi.fn(),
   personFindMany: vi.fn(),
@@ -16,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   syncRunFindFirst: vi.fn(),
   syncRunUpdateMany: vi.fn(),
   toPlainLanguageMessage: vi.fn(() => "Xero request failed"),
+  toValidatedLeaveBalanceRawPayload: vi.fn((value: unknown) => value ?? null),
   xeroTenantFindFirst: vi.fn(),
   xeroTenantUpdateMany: vi.fn(),
 }));
@@ -48,7 +50,7 @@ vi.mock("@repo/database", () => ({
   scopedTo: mocks.scopedTo,
 }));
 vi.mock("@repo/database/generated/client", () => ({
-  Prisma: { JsonNull: "JsonNull" },
+  Prisma: { DbNull: "DbNull", JsonNull: "JsonNull" },
 }));
 vi.mock("@repo/notifications", () => ({
   publishOrganisationNotificationEvent:
@@ -60,7 +62,9 @@ vi.mock("@repo/observability/log", () => ({
 vi.mock("@repo/xero", () => ({
   ensureFreshXeroConnection: mocks.ensureFreshXeroConnection,
   fetchLeaveBalancesForRegion: mocks.fetchLeaveBalancesForRegion,
+  isSupportedCurrencyCode: mocks.isSupportedCurrencyCode,
   toPlainLanguageMessage: mocks.toPlainLanguageMessage,
+  toValidatedLeaveBalanceRawPayload: mocks.toValidatedLeaveBalanceRawPayload,
 }));
 
 const { syncXeroLeaveBalances } = await import("./sync-xero-leave-balances");
@@ -169,6 +173,7 @@ describe("leave balances sync run lifecycle", () => {
         leaveBalances: [
           {
             balance: 12.5,
+            currencyCode: null,
             employeeId,
             leaveTypeId: "annual-leave",
             leaveTypeName: "Annual Leave",
@@ -188,13 +193,148 @@ describe("leave balances sync run lifecycle", () => {
     expect(mocks.leaveBalanceUpsert).toHaveBeenCalledWith(
       expect.objectContaining({
         create: expect.objectContaining({
+          currency_code: null,
           leave_type_name: "Annual Leave",
           record_type: "annual_leave",
+          source_payload_json: { LeaveType: "Annual Leave" },
         }),
         update: expect.objectContaining({
+          currency_code: null,
           leave_type_name: "Annual Leave",
           record_type: "annual_leave",
+          source_payload_json: { LeaveType: "Annual Leave" },
         }),
+      })
+    );
+  });
+
+  it("upserts a currency balance with a supported currency code", async () => {
+    const employeeId = "60000000-0000-4000-8000-000000000005";
+    mocks.personFindMany.mockResolvedValue([
+      {
+        id: "50000000-0000-4000-8000-000000000005",
+        xero_employee_id: employeeId,
+      },
+    ]);
+    mocks.fetchLeaveBalancesForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        failures: [],
+        leaveBalances: [
+          {
+            balance: 1234.56,
+            currencyCode: "NZD",
+            employeeId,
+            leaveTypeId: "holiday-pay",
+            leaveTypeName: "Holiday Pay",
+            rawPayload: { TypeOfUnits: "Dollars" },
+            unitType: "currency",
+          },
+        ],
+        rawResponses: [],
+      },
+    });
+
+    const result = await syncXeroLeaveBalances(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.status).toBe("succeeded");
+    }
+    expect(mocks.leaveBalanceUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({
+          balance_unit: "currency",
+          currency_code: "NZD",
+        }),
+        update: expect.objectContaining({
+          balance_unit: "currency",
+          currency_code: "NZD",
+        }),
+      })
+    );
+  });
+
+  it("rejects a currency balance without a supported currency code", async () => {
+    const employeeId = "60000000-0000-4000-8000-000000000006";
+    mocks.personFindMany.mockResolvedValue([
+      {
+        id: "50000000-0000-4000-8000-000000000006",
+        xero_employee_id: employeeId,
+      },
+    ]);
+    mocks.fetchLeaveBalancesForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        failures: [],
+        leaveBalances: [
+          {
+            balance: 1234.56,
+            currencyCode: null,
+            employeeId,
+            leaveTypeId: "holiday-pay",
+            leaveTypeName: "Holiday Pay",
+            rawPayload: { TypeOfUnits: "Dollars" },
+            unitType: "currency",
+          },
+        ],
+        rawResponses: [],
+      },
+    });
+
+    const result = await syncXeroLeaveBalances(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.status).toBe("partial_success");
+      expect(result.value.failed).toBe(1);
+    }
+    expect(mocks.leaveBalanceUpsert).not.toHaveBeenCalled();
+    expect(mocks.failedRecordCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ error_code: "validation_error" }),
+      })
+    );
+  });
+
+  it("rejects an hours balance that carries a currency code", async () => {
+    const employeeId = "60000000-0000-4000-8000-000000000007";
+    mocks.personFindMany.mockResolvedValue([
+      {
+        id: "50000000-0000-4000-8000-000000000007",
+        xero_employee_id: employeeId,
+      },
+    ]);
+    mocks.fetchLeaveBalancesForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        failures: [],
+        leaveBalances: [
+          {
+            balance: 76,
+            currencyCode: "NZD",
+            employeeId,
+            leaveTypeId: "annual-leave",
+            leaveTypeName: "Annual Leave",
+            rawPayload: { TypeOfUnits: "Hours" },
+            unitType: "hours",
+          },
+        ],
+        rawResponses: [],
+      },
+    });
+
+    const result = await syncXeroLeaveBalances(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.status).toBe("partial_success");
+      expect(result.value.failed).toBe(1);
+    }
+    expect(mocks.leaveBalanceUpsert).not.toHaveBeenCalled();
+    expect(mocks.failedRecordCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ error_code: "validation_error" }),
       })
     );
   });

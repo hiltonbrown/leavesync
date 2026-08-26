@@ -3074,6 +3074,8 @@ export const LeaveBalanceScalarFieldEnum = {
   record_type: 'record_type',
   balance: 'balance',
   balance_unit: 'balance_unit',
+  currency_code: 'currency_code',
+  source_payload_json: 'source_payload_json',
   as_at: 'as_at',
   last_fetched_at: 'last_fetched_at',
   created_at: 'created_at',

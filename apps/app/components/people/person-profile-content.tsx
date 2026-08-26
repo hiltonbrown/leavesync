@@ -505,7 +505,9 @@ function BalancesPanel({
                   <Button
                     onClick={() => {
                       setBalance(String(row.balanceUnits));
-                      setBalanceUnit(row.unitType ?? "hours");
+                      setBalanceUnit(
+                        row.unitType === "days" ? "days" : "hours"
+                      );
                       setLeaveTypeName(row.leaveTypeName ?? "");
                       setLeaveTypeXeroId(row.leaveTypeXeroId);
                     }}

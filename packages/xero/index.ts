@@ -35,7 +35,15 @@ export type {
   XeroLeaveApplicationStatus,
   XeroLeaveApplicationStatusResult,
 } from "./src/read/leave-application-status";
-export type { XeroLeaveBalance } from "./src/read/leave-balances";
+export {
+  isSupportedCurrencyCode,
+  type LeaveBalanceRawPayload,
+  LeaveBalanceRawPayloadSchema,
+  type SupportedCurrencyCode,
+  SupportedCurrencyCodeSchema,
+  toValidatedLeaveBalanceRawPayload,
+  type XeroLeaveBalance,
+} from "./src/read/leave-balances";
 export type {
   XeroLeaveRecord,
   XeroLeaveRecordStatus,

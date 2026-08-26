@@ -7,6 +7,7 @@ export interface LeaveBalanceData {
   balance: number;
   clerkOrgId: string;
   createdAt: Date;
+  currencyCode: null | string;
   id: string;
   leaveTypeXeroId: string;
   organisationId: OrganisationId;
@@ -17,6 +18,7 @@ export interface LeaveBalanceData {
 
 export interface LeaveBalanceSummaryData {
   balance: number;
+  currencyCode: null | string;
   id: string;
   leaveTypeXeroId: string;
   personFirstName: string;
@@ -38,6 +40,7 @@ export async function listLeaveBalancesForPerson(
         balance: true,
         clerk_org_id: true,
         created_at: true,
+        currency_code: true,
         id: true,
         leave_type_xero_id: true,
         organisation_id: true,
@@ -57,6 +60,7 @@ export async function listLeaveBalancesForPerson(
         balance: Number(b.balance),
         clerkOrgId: b.clerk_org_id,
         createdAt: b.created_at,
+        currencyCode: b.currency_code,
         id: b.id,
         leaveTypeXeroId: b.leave_type_xero_id,
         organisationId: b.organisation_id as OrganisationId,
@@ -86,6 +90,7 @@ export async function listLeaveBalancesForOrganisation(
       ],
       select: {
         balance: true,
+        currency_code: true,
         id: true,
         leave_type_xero_id: true,
         person: {
@@ -108,6 +113,7 @@ export async function listLeaveBalancesForOrganisation(
       ok: true,
       value: balances.map((b) => ({
         balance: Number(b.balance),
+        currencyCode: b.currency_code,
         id: b.id,
         leaveTypeXeroId: b.leave_type_xero_id,
         personFirstName: b.person.first_name,
