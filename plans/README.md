@@ -138,9 +138,10 @@ predecessor/preflight contract in its plan.
   the completed replacement. Rejected records are not “safe to delete”.
 - Plan 031 mixed public package exports with a React client boundary. Plans 088
   and 089 separate those concerns.
-- Plan 057 is complete at `782c2b5`. Exact case-insensitive `error` keys retain
-  only an actual `Error` name and scrub every other value wholesale; the earlier
-  approval/logging implementation remains merged.
+- Plan 057 is complete at `782c2b5`, merged as `409fd10`. Exact
+  case-insensitive `error` keys retain only an actual `Error` name and scrub
+  every other value wholesale; the earlier approval/logging implementation
+  remains merged.
 - Plan 058 was rejected and split into independent stale-archive Plan 090 and
   scheduled balance-page Plan 091. The reconciled contract keeps unlimited
   rosters and defines rolling 40-person hourly pages without a completion SLA.
@@ -240,7 +241,7 @@ remain important dependencies:
 | 045–046 | Closed AU early-access product and go-live baseline |
 | 049 | Default build previously passed on a suitable runner |
 | 050 | Xero person-match surface scoped to one Organisation |
-| 057 | Exact `error` channels scrubbed at every nesting level; approved as `782c2b5` after all gates passed |
+| 057 | Exact `error` channels scrubbed at every nesting level; approved as `782c2b5` and merged as `409fd10` after all gates passed |
 
 ## What this reconciliation did not verify
 

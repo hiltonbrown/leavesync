@@ -27,6 +27,7 @@
 - **Worktree**: `/tmp/teamcalendar-plan-057-finish`
 - **Branch**: `advisor/057-finish-error-scrubbing`
 - **Commit**: `782c2b5` (`fix(observability): scrub non-error exception channels`)
+- **Merge**: `409fd10` (`merge: finish exact error channel scrubbing`)
 - **Scope**: exactly the two observability files; the worktree is clean.
 - **Independent verification**: focused scrubber/log suite 17/17; `bun run
   check` checked 770 files; typecheck 19/19 tasks; unit suite 17/17 tasks;
