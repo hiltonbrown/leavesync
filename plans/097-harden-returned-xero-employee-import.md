@@ -15,7 +15,7 @@
 - **Depends on**: `plans/069-fix-xero-people-sync-and-directory-ui.md` DONE
 - **Category**: bug
 - **Planned at**: commit `ecd49f5`, 2026-08-24
-- **Execution status**: TODO
+- **Execution status**: DONE, merged as `e5ed63c` (approved at commit `ecd49f5`, no drift)
 - **Supersedes**: import half of rejected Plan 072
 
 ## Why this matters
