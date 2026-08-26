@@ -19,8 +19,28 @@
 - **Category**: security, tests
 - **Planned at**: commit `ecd49f5`, 2026-08-24
 - **Covers finding**: residual S-01 from the partially completed original plan
-- **Execution status**: TODO. A runner with `DATABASE_URL` and a passing default
-  build baseline is an execution preflight, not a design blocker.
+- **Review status**: DONE on 2026-08-26. Implementation commit `782c2b5` on
+  `advisor/057-finish-error-scrubbing` was independently reviewed and approved.
+
+## Execution outcome
+
+- **Worktree**: `/tmp/teamcalendar-plan-057-finish`
+- **Branch**: `advisor/057-finish-error-scrubbing`
+- **Commit**: `782c2b5` (`fix(observability): scrub non-error exception channels`)
+- **Scope**: exactly the two observability files; the worktree is clean.
+- **Independent verification**: focused scrubber/log suite 17/17; `bun run
+  check` checked 770 files; typecheck 19/19 tasks; unit suite 17/17 tasks;
+  integration 5/5 tasks with 60 database-backed tests passed; build 4/4 tasks.
+  Two credential-gated external Xero tests remained skipped and were unrelated
+  to this plan. `git diff --check` and the two-file scope audit also passed.
+- **Mutation proof**: the executor changed the new non-`Error` branch back to
+  recursive sanitisation temporarily; all four new non-`Error` cases failed,
+  then passed after restoring `"[SCRUBBED]"`. The reviewer inspected the final
+  assertions and confirmed they exercise that branch at the top level, nested,
+  mixed-case and object-valued boundaries.
+- **Verdict**: APPROVE. Exact case-insensitive `error` keys now retain only an
+  actual `Error` name and scrub every other value wholesale; `errorCode`
+  remains visible.
 
 ## Why this matters
 
@@ -149,14 +169,14 @@ assertions for the cases above. Do not use snapshots.
 
 ## Done criteria
 
-- [ ] Focused tests pass and the mutation check fails for the intended reason.
-- [ ] Exact `error` values follow the policy at every nesting level.
-- [ ] `errorCode` and existing operational keys remain visible.
-- [ ] `bun run check`, `bun run typecheck`, `bun run test`,
+- [x] Focused tests pass and the mutation check fails for the intended reason.
+- [x] Exact `error` values follow the policy at every nesting level.
+- [x] `errorCode` and existing operational keys remain visible.
+- [x] `bun run check`, `bun run typecheck`, `bun run test`,
       `bun run test:integration` and `bun run build` exit 0.
-- [ ] `git diff --name-only` lists only the two observability files and plan
+- [x] `git diff --name-only` lists only the two observability files and plan
       bookkeeping.
-- [ ] `plans/README.md` records DONE with commit and gate evidence.
+- [x] `plans/README.md` records DONE with commit and gate evidence.
 
 ## STOP conditions
 
