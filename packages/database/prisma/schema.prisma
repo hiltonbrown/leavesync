@@ -601,6 +601,9 @@ model AvailabilityRecord {
   // older than the TTL in submit-service.ts are treated as abandoned so a
   // crashed process cannot wedge a record permanently.
   xero_write_claimed_at    DateTime?
+  // When the Xero approval reconciler last checked this record against Xero Payroll.
+  // Nullable; null indicates the record has never been checked by the reconciler.
+  xero_approval_checked_at DateTime?
   submitted_at             DateTime?
   withdrawn_at             DateTime?
   created_at               DateTime                     @default(now())
@@ -628,6 +631,7 @@ model AvailabilityRecord {
   @@index([organisation_id, publish_status, include_in_feed])
   @@index([source_type, source_last_modified_at])
   @@index([organisation_id, approval_status, submitted_at])
+  @@index([organisation_id, approval_status, archived_at, ends_at, xero_approval_checked_at, id])
   @@map("availability_records")
 }
 
