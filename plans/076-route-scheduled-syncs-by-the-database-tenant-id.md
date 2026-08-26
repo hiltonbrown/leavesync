@@ -31,6 +31,7 @@
 - **Branch**: `advisor/076-scheduled-tenant-routing`
 - **Commit**: `a2c3afb` (`fix(jobs): route scheduled syncs by tenant primary
   key`)
+- **Merge**: `d608a12` (`merge: route scheduled syncs by tenant primary key`)
 - **Scope**: exactly the five planned source/test files; the worktree is clean.
 - **Independent verification**: query tests 4/4, scheduler unit tests 10/10,
   database-backed scheduler integration 1/1; `bun run check` checked 770

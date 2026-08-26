@@ -107,7 +107,7 @@ Shared domain chain:
   061 -> 095 -> 096
 
 Xero sync chain:
-  076 DONE (merge before 091) -> 091
+  076 DONE -> 091
   097 -> 098 -> 099
   097 -> 098 -> 100
   100 + 101 -> 102 -> 103
@@ -142,11 +142,10 @@ predecessor/preflight contract in its plan.
   case-insensitive `error` keys retain only an actual `Error` name and scrub
   every other value wholesale; the earlier approval/logging implementation
   remains merged.
-- Plan 076 is complete at `a2c3afb` on
-  `advisor/076-scheduled-tenant-routing`, pending the user's merge decision.
-  The scheduler query now returns only the database tenant UUID, and distinct-ID
-  unit and database-backed integration coverage proves payload and event-ID
-  routing use that value.
+- Plan 076 is complete at `a2c3afb`, merged as `d608a12`. The scheduler query
+  now returns only the database tenant UUID, and distinct-ID unit and
+  database-backed integration coverage proves payload and event-ID routing use
+  that value.
 - Plan 058 was rejected and split into independent stale-archive Plan 090 and
   scheduled balance-page Plan 091. The reconciled contract keeps unlimited
   rosters and defines rolling 40-person hourly pages without a completion SLA.
@@ -247,7 +246,7 @@ remain important dependencies:
 | 049 | Default build previously passed on a suitable runner |
 | 050 | Xero person-match surface scoped to one Organisation |
 | 057 | Exact `error` channels scrubbed at every nesting level; approved as `782c2b5` and merged as `409fd10` after all gates passed |
-| 076 | Scheduled sync payloads and event IDs use the database tenant UUID; approved as `a2c3afb` after distinct-ID integration coverage and all gates passed |
+| 076 | Scheduled sync payloads and event IDs use the database tenant UUID; approved as `a2c3afb` and merged as `d608a12` after distinct-ID integration coverage and all gates passed |
 
 ## What this reconciliation did not verify
 
