@@ -1,6 +1,12 @@
 # 069: Xero People Synchronisation & Reconciliation Architecture
 
 > Reconciled 2026-08-23 at `18a8bae` — moved from `plans/069-xero-people-sync-architecture-and-reconciliation.md` to `docs/architecture/` to resolve duplicate numbering; updated to reflect committed code: `person_type` mapping (contractor vs employee) and `syncResult` error surfacing in `dispatchManualSyncAction`.
+>
+> Updated by Plan 097 to reflect record-level employee page parsing and
+> archival reactivation: one malformed employee record no longer discards its
+> valid page neighbours, and a Person that returns from Xero after being
+> archived (e.g. following a destructive disconnect) is reactivated in place
+> rather than left archived.
 
 ## Overview
 
@@ -32,11 +38,16 @@ This document details how people records are synchronised between **Xero Payroll
              ▼
 [fetchEmployeesForRegion]
   ├─ AU: GET /payroll.xro/1.0/Employees (Paginated, rate-limited via xeroFetch)
+  │    └─ Each page parsed record-by-record: a malformed record becomes a
+  │       mapping failure (mapping_error) without discarding valid neighbours
+  │       on the same page. Pagination termination uses the raw page length
+  │       Xero returned, never the count of records that mapped cleanly.
   └─ NZ / UK: Stubbed read adapter (Graceful success with notice)
              │
              ▼
 [Process in Batches of 50 (150ms delay)]
   ├─ Check cancel_requested_at
+  ├─ Record mapping failures up front (mapping_error, source: raw EmployeeID or "unknown")
   ├─ Validate Employee (UUID, First Name, Last Name)
   │    └─ Invalid ──► [Log to failed_records (validation_error)]
   └─ Upsert into PostgreSQL 'people' table:
@@ -44,7 +55,10 @@ This document details how people records are synchronised between **Xero Payroll
        ├─ Map email (fallback: ${firstName}.${lastName}@noemail.teamcalendar.online)
        ├─ Map employment_type (employee, contractor, director, offshore)
        ├─ Map person_type (contractor → contractor, else employee; directors/offshore → employee)
-       └─ Set is_active = (Status == 'ACTIVE')
+       ├─ Set is_active = (Status == 'ACTIVE')
+       └─ Clear archived_at (reactivate) — the employee was returned by Xero
+          in this run, so any prior archival no longer applies; is_active is
+          mapped independently and does not gate reactivation
              │
              ▼
 [Finalise Run & Timestamp]
@@ -76,8 +90,10 @@ This document details how people records are synchronised between **Xero Payroll
 | **Terminated / Inactive Xero AU Employees** | ✅ Yes | `is_active: false` | Preserved for historical reporting and audit integrity; marked inactive. |
 | **Employees without an Email in Xero** | ✅ Yes | `is_active: (status == 'ACTIVE')` | Assigned deterministic fallback email: `${firstName}.${lastName}@noemail.teamcalendar.online`. |
 | **Contractors / Directors / Offshore** | ✅ Yes | Mapped `employment_type` + `person_type` | `employment_type`: `employee`, `contractor`, `director`, `offshore` (default: `employee`); `person_type`: `contractor` if employment_type is contractor else `employee` (directors/offshore → `employee`). |
-| **Employees with Missing / Malformed UUID** | ❌ No | Logged to `failed_records` | Fails Zod UUID check (`validation_error`); does not block other employees. |
-| **Employees with Missing First or Last Name** | ❌ No | Logged to `failed_records` | Fails non-empty string check (`validation_error`). |
+| **Employee Records That Do Not Parse (wrong shape, or malformed/missing EmployeeID)** | ❌ No | Logged to `failed_records` | Isolated at the page-mapping stage (`mapping_error`); does not block other records on the same page — one malformed employee no longer discards an otherwise usable page. |
+| **Employees with Missing / Malformed UUID (parses, fails handler check)** | ❌ No | Logged to `failed_records` | Fails the handler's UUID check (`validation_error`); does not block other employees. |
+| **Employees with Missing First or Last Name** | ❌ No | Logged to `failed_records` | Fails the handler's non-empty string check (`validation_error`). This is a Team Calendar import requirement, not an assertion the page mapper makes. |
+| **Previously Archived Employees That Return in Xero** | ✅ Yes | `archived_at: null` (reactivated) | The existing Person row is reused (same Person ID, history preserved) and unarchived; `is_active` is mapped independently from Xero's employment status. |
 | **NZ & UK Payroll Employees** | ⏳ Pending | N/A | Region employee read adapters are currently stubbed in the adapter layer. |
 | **Paused / Revoked Tenants** | ❌ No | N/A | Run aborted early (`status: "cancelled"` or `"failed"`). |
 
@@ -119,3 +135,4 @@ This document details how people records are synchronised between **Xero Payroll
      - Synced `xero_employee_id` references are cleared (`null`).
      - Synced leave records and balances are archived/removed.
      - Manually created people (`source_system = "MANUAL"`) and manual availability entries remain unaffected.
+   - If the Xero connection is later reconnected and the same EmployeeID is returned by a subsequent people sync, the existing (organisation_id, source_system, source_person_key) Person row is reused and reactivated (`archived_at: null`) rather than replaced. Person ID and historical records are preserved; `xero_employee_id` and Xero-owned fields are re-populated from the returned record.
