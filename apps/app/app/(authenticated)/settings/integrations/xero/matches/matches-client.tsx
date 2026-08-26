@@ -1,6 +1,5 @@
 "use client";
 
-import type { Person, XeroPersonMatch } from "@repo/database/generated/client";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   Card,
@@ -13,17 +12,10 @@ import { Input } from "@repo/design-system/components/ui/input";
 import { toast } from "@repo/design-system/components/ui/sonner";
 import { useState, useTransition } from "react";
 import { resolveXeroPersonMatchAction } from "./_actions";
+import type { XeroPersonMatchView } from "./_match-view";
 
 interface MatchesClientProps {
-  matches: Array<
-    XeroPersonMatch & {
-      candidate_person: null | Pick<
-        Person,
-        "clerk_user_id" | "email" | "id" | "first_name" | "last_name"
-      >;
-      xero_person: Pick<Person, "email" | "id" | "first_name" | "last_name">;
-    }
-  >;
+  matches: XeroPersonMatchView[];
   organisationId: string;
 }
 
