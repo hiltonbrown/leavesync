@@ -420,6 +420,8 @@ Fetched from Xero per person per leave type during normal operation, or managed 
 
 **Note on the unique constraint:** PostgreSQL treats each NULL value as distinct, so the composite unique above does not prevent duplicate manual balances where `xero_tenant_id IS NULL`. A partial unique index on `(person_id, leave_type_xero_id) WHERE xero_tenant_id IS NULL` guards the manual case so create-or-update can target a single row.
 
+**Balance unit and currency:** `balance_unit` is `hours | days | currency`. `currency_code` is nullable and holds an ISO 4217 code (e.g. `NZD`) for NZ Payroll balances such as Holiday Pay that Xero exposes in dollars rather than hours or days. The unit/code pairing is enforced at the application layer, not by a database constraint: a `currency` balance requires a code from `SupportedCurrencyCodeSchema` (`packages/xero/src/read/leave-balances.ts`, currently `["NZD"]`, extended only alongside a documented provider mapping); an `hours` or `days` balance must never carry a code. Manual balances are always hours or days and always carry a null `currency_code`. `source_payload_json` retains the raw Xero balance payload for admin audit only, validated as Prisma-safe JSON via `LeaveBalanceRawPayloadSchema` in the same file; it is always null for manual balances, which have no Xero-provided payload. Team Calendar stores and displays these provider values as given; it never calculates accruals, converts currency, or subtracts a duration from a monetary balance.
+
 ### `public_holidays`
 
 Sourced from Nager.Date API or entered manually. `location_id = null` means the holiday applies to all locations in the Organisation. Unique on `(organisation_id, source, source_remote_id)`.

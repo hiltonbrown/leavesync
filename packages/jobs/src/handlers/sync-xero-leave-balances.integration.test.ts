@@ -109,11 +109,94 @@ describeWithDatabase("sync-xero-leave-balances database flow", () => {
     expect(balances).toHaveLength(1);
     expect(balances[0]).toMatchObject({
       balance_unit: "hours",
+      currency_code: null,
       leave_type_xero_id: "annual",
       person_id: tenantA.personId,
+      source_payload_json: { LeaveTypeID: "annual" },
       xero_tenant_id: tenantA.xeroTenantId,
     });
     expect(Number(balances[0]?.balance)).toBe(76);
+  });
+
+  it("syncs a currency balance with a validated currency code and raw payload round trip", async () => {
+    await setupTenant(tenantA);
+    await setupPerson(tenantA);
+    mockFetchLeaveBalancesForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        failures: [],
+        leaveBalances: [xeroCurrencyBalance(tenantA, 1234.56)],
+        rawResponses: [],
+      },
+    });
+
+    const first = await syncXeroLeaveBalances(syncInput(tenantA));
+    const second = await syncXeroLeaveBalances(syncInput(tenantA));
+
+    expect(first.ok).toBe(true);
+    expect(second.ok).toBe(true);
+    if (second.ok) {
+      expect(second.value).toMatchObject({
+        failed: 0,
+        fetched: 1,
+        status: "succeeded",
+        upserted: 1,
+      });
+    }
+
+    const balances = await database.leaveBalance.findMany({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        organisation_id: tenantA.organisationId,
+      },
+    });
+    expect(balances).toHaveLength(1);
+    expect(balances[0]).toMatchObject({
+      balance_unit: "currency",
+      currency_code: "NZD",
+      leave_type_xero_id: "holiday-pay",
+      person_id: tenantA.personId,
+      source_payload_json: { CurrencyCode: "NZD", TypeOfUnits: "Dollars" },
+      xero_tenant_id: tenantA.xeroTenantId,
+    });
+    expect(Number(balances[0]?.balance)).toBe(1234.56);
+  });
+
+  it("fails closed on a currency balance without a supported currency code", async () => {
+    await setupTenant(tenantA);
+    await setupPerson(tenantA);
+    mockFetchLeaveBalancesForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        failures: [],
+        leaveBalances: [
+          {
+            ...xeroCurrencyBalance(tenantA, 1234.56),
+            currencyCode: null,
+          },
+        ],
+        rawResponses: [],
+      },
+    });
+
+    const result = await syncXeroLeaveBalances(syncInput(tenantA));
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        failed: 1,
+        status: "partial_success",
+        upserted: 0,
+      });
+    }
+
+    const balances = await database.leaveBalance.findMany({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        organisation_id: tenantA.organisationId,
+      },
+    });
+    expect(balances).toHaveLength(0);
   });
 
   it("requires both scope keys when resolving people for balances", async () => {
@@ -271,10 +354,23 @@ function syncInput(tenant: typeof tenantA) {
 function xeroBalance(tenant: typeof tenantA, balance: number) {
   return {
     balance,
+    currencyCode: null,
     employeeId: tenant.xeroEmployeeId,
     leaveTypeId: "annual",
     leaveTypeName: "Annual Leave",
     rawPayload: { LeaveTypeID: "annual" },
     unitType: "hours" as const,
+  };
+}
+
+function xeroCurrencyBalance(tenant: typeof tenantA, balance: number) {
+  return {
+    balance,
+    currencyCode: "NZD",
+    employeeId: tenant.xeroEmployeeId,
+    leaveTypeId: "holiday-pay",
+    leaveTypeName: "Holiday Pay",
+    rawPayload: { CurrencyCode: "NZD", TypeOfUnits: "Dollars" },
+    unitType: "currency" as const,
   };
 }
