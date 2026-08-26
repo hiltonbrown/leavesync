@@ -23,7 +23,8 @@ This reconciliation was read-only outside `plans/`.
 | Default `bun run build` | failed on this host because Turbopack followed a workspace TypeScript symlink cycle; no application compile defect was established |
 | Blocked-plan cold review | 9 plans reviewed; 3 rewritten, 6 rejected and split |
 | Plan 076 execution | focused tests 15/15; full check, typecheck, unit, database integration and default build gates passed |
-| Current indexed plans | 64: 39 TODO, 9 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 092 execution | approved at `c680fc2`, merged as `1122457`; focused test 2/2, check, typecheck, unit, live database integration, build and diff gates passed; app, web and API each returned one exact HSTS header |
+| Current indexed plans | 64: 38 TODO, 10 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -38,7 +39,6 @@ before starting its dependent plan.
 
 | Plan | Outcome | Priority | Depends on | Status |
 |---|---|---:|---|---|
-| [092](092-add-shared-hsts.md) | Add shared HSTS without preload promises | P1 | none | TODO |
 | [097](097-harden-returned-xero-employee-import.md) | Harden payroll import and reactivation | P1 | none | TODO |
 | [101](101-add-currency-leave-balance-contract.md) | Add currency balance schema contract | P1 | migration runner | TODO |
 | [030](030-remove-three-avoidable-round-trip-patterns.md) | Remove manager-dashboard query amplification | P2 | none | TODO |
@@ -87,7 +87,7 @@ blockers, and calendar adoption is measured through observed feed-token access.
 
 ```text
 Ready roots, grouped by priority:
-  P1: 092, 097, 101
+  P1: 097, 101
   P2: 030, 056, 059, 060, 066, 087, 089, 090, 093
   P3: 037, 039, 078, 084, 085, 086
 
@@ -146,6 +146,11 @@ predecessor/preflight contract in its plan.
   now returns only the database tenant UUID, and distinct-ID unit and
   database-backed integration coverage proves payload and event-ID routing use
   that value.
+- Plan 092 is complete at `c680fc2`, merged as `1122457`. The shared Next
+  configuration now emits one exact
+  `Strict-Transport-Security: max-age=31536000` header without preload or
+  subdomain promises. Focused, full and live response checks passed for app,
+  web and API.
 - Plan 058 was rejected and split into independent stale-archive Plan 090 and
   scheduled balance-page Plan 091. The reconciled contract keeps unlimited
   rosters and defines rolling 40-person hourly pages without a completion SLA.
