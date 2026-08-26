@@ -30,75 +30,54 @@ host that can satisfy those gates before it can become `DONE`.
 
 ## Execution queue
 
-Execute in dependency order, not numeric order. Merge one plan before starting a
-dependent plan unless the files and dependencies are explicitly disjoint.
+This queue contains TODO plans only and is topologically ordered: every plan
+appears after its TODO plan dependencies. Plans without plan dependencies may be
+executed in parallel when their file scopes are disjoint. Merge each dependency
+before starting its dependent plan.
 
 | Plan | Outcome | Priority | Depends on | Status |
 |---|---|---:|---|---|
-| [024](024-harden-env-validation-in-the-app-and-web-apps.md) | Preserve why outer env validation cannot fix package-owned parsing | P1 | completed 041 | REJECTED, do not execute |
+| [057](057-make-failures-visible-and-scrub-what-is-logged.md) | Finish exact `error` channel scrubbing | P1 | DB/build preflight | TODO |
+| [076](076-route-scheduled-syncs-by-the-database-tenant-id.md) | Route scheduled jobs by database tenant UUID | P1 | DB/build runner | TODO |
+| [092](092-add-shared-hsts.md) | Add shared HSTS without preload promises | P1 | none | TODO |
+| [097](097-harden-returned-xero-employee-import.md) | Harden payroll import and reactivation | P1 | none | TODO |
+| [101](101-add-currency-leave-balance-contract.md) | Add currency balance schema contract | P1 | migration runner | TODO |
 | [030](030-remove-three-avoidable-round-trip-patterns.md) | Remove manager-dashboard query amplification | P2 | none | TODO |
-| [031](031-fix-the-database-package-boundary.md) | Original compound database/client-boundary change | P2 | replacements 088, 089 | REJECTED, do not execute |
-| [037](037-spike-nz-and-uk-payroll-write-back.md) | Decide NZ/UK write-back capability from primary sources | P3 | reconcile 071 evidence | TODO, research only |
-| [039](039-decide-what-to-do-with-the-html-feed-renderer.md) | Delete the out-of-scope HTML feed prototype | P3 | none | TODO |
-| [051](051-isolate-the-jobs-integration-test-fixtures.md) | Fixture collision | P1 | none | REJECTED, independently fixed in `37e7231` |
-| [052](052-correct-the-timezone-contract-for-working-day-units.md) | Correct working-day timezone contract | P1 | none | DONE, merge `660b1a6` |
-| [053](053-guard-the-inbound-leave-upsert-against-stale-writes.md) | Guard inbound leave from stale writes | P1 | none | DONE, implementation `27b739b` |
-| [054](054-keep-synced-leave-in-the-feed-for-its-whole-last-day.md) | Keep synced leave for its full last day | P1 | none | DONE, implementation `07885a5` |
-| [055](055-make-launch-mode-safe-in-the-browser.md) | Make launch mode browser-safe | P1 | none | DONE, implementation `e4c5997` |
 | [056](056-give-the-approval-reconciler-a-cursor.md) | Fair per-record approval reconciliation | P2 | integration database | TODO |
-| [057](057-make-failures-visible-and-scrub-what-is-logged.md) | Finish exact `error` channel scrubbing | P1 | execution preflight: DB/build runner | TODO |
-| [058](058-bound-the-unbounded-sync-loops.md) | Original balance/archive compound plan | P2 | replacements 090–091 | REJECTED, do not execute |
 | [059](059-make-the-notification-stream-reliable-and-affordable.md) | Surface SSE failures and reduce idle polling | P2 | none | TODO |
 | [060](060-project-explicit-columns-in-the-analytics-services.md) | Exclude audit blobs from analytics queries | P2 | none | TODO |
-| [061](061-halve-the-work-on-the-ics-feed-read-path.md) | Resolve feed/cache once and narrow holiday reads | P2 | 054 DONE, 057, 066 | TODO |
-| [062](062-enforce-a-content-security-policy.md) | Original CSP/HSTS compound rollout | P2 | replacements 092–094 | REJECTED, do not execute |
-| [063](063-close-the-validation-and-authorisation-gaps.md) | Original validation/auth compound plan | P2 | replacements 077–079 | REJECTED, do not execute |
-| [064](064-harden-the-public-feed-and-support-surfaces.md) | Original feed/support compound plan | P2 | replacements 080–081 | REJECTED, do not execute |
-| [065](065-unify-the-public-holiday-predicate.md) | Original unsupported all-scope holiday rule | P3 | replacements 095–096 | REJECTED, do not execute |
 | [066](066-test-the-untested-money-and-tenancy-paths.md) | Test billing SQL, tenancy and contact logic | P2 | integration database | TODO |
-| [067](067-consolidation-and-hygiene.md) | Original consolidation compound plan | P3 | replacements 082–085 | REJECTED, do not execute |
-| [068](068-merge-the-twin-analytics-services.md) | Original twin-service abstraction | P3 | reassess after 060, 095, 082 | REJECTED, do not execute |
-| [069](069-fix-xero-people-sync-and-directory-ui.md) | Fix Xero People ingestion and UI feedback | P1 | none | DONE, implementation `18a8bae`; residual tests 087 |
-| [070](070-xero-token-and-refresh-token-management-architecture.md) | Harden Xero token lifecycle | P1 | none | DONE, implementation `0514f71`, merge `206af7b` |
-| [071](071-nz-and-uk-xero-payroll-read-and-sync-expansion.md) | Original XL regional migration | P1 | replacements 100–109 | REJECTED, do not execute |
-| [072](072-automated-clerk-user-matching-and-bulk-invitations.md) | Original import/Clerk compound plan | P1 | replacements 097–099 | REJECTED, do not execute |
-| [073](073-orphaned-xero-employee-lifecycle-reconciliation.md) | Original one-pass orphan archival | P2 | replacement 098 | REJECTED, do not execute |
-| [074](074-xero-tracking-category-team-and-manager-hierarchy-sync.md) | Original hierarchy proposal | P2 | replacement 086 | REJECTED, unsupported API assumptions |
-| [075](075-remove-the-committed-xero-debug-harness.md) | Remove unsafe debug harness | P1 | none | DONE, merge `3040948` |
-| [076](076-route-scheduled-syncs-by-the-database-tenant-id.md) | Route scheduled jobs by database tenant UUID | P1 | DB/build runner | TODO, environment-gated |
-| [077](077-validate-availability-route-identifiers.md) | Validate availability UUIDs before queries | P2 | 066 | TODO |
+| [087](087-complete-xero-people-sync-regression-tests.md) | Complete Plan 069 test promises | P2 | integration database | TODO |
+| [089](089-map-xero-matches-to-a-client-view-model.md) | Map Xero matches to a browser-safe view model | P2 | none | TODO |
+| [090](090-bulk-stale-xero-leave-archival.md) | Bulk stale leave archival and feed invalidation | P2 | none | TODO |
+| [037](037-spike-nz-and-uk-payroll-write-back.md) | Decide NZ/UK write-back capability from primary sources | P3 | none | TODO |
+| [039](039-decide-what-to-do-with-the-html-feed-renderer.md) | Delete the out-of-scope HTML feed prototype | P3 | none | TODO |
 | [078](078-delete-dead-feed-token-helpers.md) | Delete unused token service surface | P3 | none | TODO |
-| [079](079-cross-check-stripe-webhook-tenant-identity.md) | Cross-check Stripe customer and Clerk org | P1 | 066 | TODO |
-| [080](080-rate-limit-public-feed-token-probes.md) | Rate-limit public feed probes | P2 | 061, 066, 083, operator limits | TODO |
-| [081](081-minimise-and-delimit-support-issue-data.md) | Minimise/delimit support issue data | P2 | 066 | TODO |
-| [082](082-centralise-availability-record-labels.md) | Centralise record labels only | P3 | 060, 061 | TODO |
-| [083](083-share-redis-rest-transport-and-notification-keys.md) | Share Redis transport and declare notification keys | P3 | 059, 061 | TODO |
 | [084](084-remove-the-production-workspaces-override.md) | Remove redundant root `ws` override | P3 | none | TODO |
 | [085](085-correct-repository-guidance-and-package-tables.md) | Correct commands and package ownership docs | P3 | none | TODO |
-| [086](086-spike-xero-employee-group-team-mapping.md) | Decide EmployeeGroupName team mapping | P3 | none | TODO, research only |
-| [087](087-complete-xero-people-sync-regression-tests.md) | Complete Plan 069 test promises | P2 | DB runner | TODO |
-| [088](088-publish-explicit-database-package-subpaths.md) | Publish database subpaths, remove `/src/` imports | P2 | 066, 079 | TODO |
-| [089](089-map-xero-matches-to-a-client-view-model.md) | Map Xero matches to a browser-safe view model | P2 | none | TODO |
-| [090](090-bulk-stale-xero-leave-archival.md) | Bulk stale leave archival and feed invalidation | P2 | 053 DONE | TODO |
-| [091](091-page-scheduled-xero-balance-sync.md) | Page scheduled balance sync across runs | P2 | 076 | TODO |
-| [092](092-add-shared-hsts.md) | Add shared HSTS without preload promises | P1 | none | TODO |
-| [093](093-observe-a-nonce-ready-csp.md) | Observe a privacy-safe nonce CSP | P2 | 057 | TODO |
-| [094](094-enforce-the-observed-csp.md) | Enforce the observed nonce CSP | P2 | 093 plus observation evidence | TODO, dependency-gated |
-| [095](095-centralise-the-supported-holiday-rule.md) | Centralise the supported holiday rule | P2 | 061 | TODO |
-| [096](096-align-current-status-holiday-consumers.md) | Align status/dashboard holiday consumers | P2 | 095 | TODO |
-| [097](097-harden-returned-xero-employee-import.md) | Harden payroll import and reactivation | P1 | 069 DONE | TODO |
+| [086](086-spike-xero-employee-group-team-mapping.md) | Decide EmployeeGroupName team mapping | P3 | none | TODO |
 | [098](098-confirm-missing-xero-people-before-archival.md) | Confirm absence before person archival | P1 | 097 | TODO |
+| [107](107-present-currency-safe-leave-balances.md) | Present balances with currency-safe formatting | P1 | 101 | TODO |
+| [061](061-halve-the-work-on-the-ics-feed-read-path.md) | Resolve feed/cache once and narrow holiday reads | P2 | 057, 066 | TODO |
+| [077](077-validate-availability-route-identifiers.md) | Validate availability UUIDs before queries | P2 | 066 | TODO |
+| [079](079-cross-check-stripe-webhook-tenant-identity.md) | Cross-check Stripe customer and Clerk org | P1 | 066 | TODO |
+| [081](081-minimise-and-delimit-support-issue-data.md) | Minimise/delimit support issue data | P2 | 066 | TODO |
+| [091](091-page-scheduled-xero-balance-sync.md) | Page scheduled balance sync across runs | P2 | 076 | TODO |
+| [093](093-observe-a-nonce-ready-csp.md) | Observe a privacy-safe nonce CSP | P2 | 057 | TODO |
 | [099](099-reconcile-clerk-access-and-invitations.md) | Link active people and guard Clerk invitations | P1 | 097, 098 | TODO |
 | [100](100-add-regional-xero-employee-readers.md) | Add NZ/UK employee readers | P1 | 097, 098 | TODO |
-| [101](101-add-currency-leave-balance-contract.md) | Add currency balance schema contract | P1 | migration runner | TODO |
+| [088](088-publish-explicit-database-package-subpaths.md) | Publish database subpaths, remove `/src/` imports | P2 | 066, 079 | TODO |
+| [094](094-enforce-the-observed-csp.md) | Enforce the observed nonce CSP | P2 | 093 plus observation evidence | TODO |
+| [095](095-centralise-the-supported-holiday-rule.md) | Centralise the supported holiday rule | P2 | 061 | TODO |
+| [082](082-centralise-availability-record-labels.md) | Centralise record labels only | P3 | 060, 061 | TODO |
+| [083](083-share-redis-rest-transport-and-notification-keys.md) | Share Redis transport and declare notification keys | P3 | 059, 061 | TODO |
 | [102](102-add-new-zealand-xero-read-adapters.md) | Add NZ leave/balance/status adapters | P1 | 100, 101 | TODO |
+| [080](080-rate-limit-public-feed-token-probes.md) | Rate-limit public feed probes | P2 | 061, 066, 083 plus operator limits | TODO |
+| [096](096-align-current-status-holiday-consumers.md) | Align status/dashboard holiday consumers | P2 | 095 | TODO |
 | [103](103-add-united-kingdom-xero-read-adapters.md) | Add UK leave/balance/status adapters | P1 | 102 | TODO |
 | [104](104-orchestrate-regional-leave-sync.md) | Page and reconcile regional leave | P1 | 090, 102, 103 | TODO |
 | [105](105-reconcile-regional-approval-state.md) | Reconcile regional approval state | P1 | 056, 102, 103 | TODO |
-| [106](106-orchestrate-regional-balance-sync.md) | Orchestrate regional balance pages | P1 | 091, 101–103 | TODO |
-| [107](107-present-currency-safe-leave-balances.md) | Present balances with currency-safe formatting | P1 | 101 | TODO |
-| [108](108-activate-new-zealand-xero-sync.md) | Activate NZ sync after live verification | P1 | 076, 100, 102, 104–107 plus live tenant | BLOCKED, live NZ environment not recorded |
-| [109](109-activate-united-kingdom-xero-sync.md) | Validate and activate UK sync | P1 | 076, 100–107 plus UK permission/live tenant | BLOCKED, external permission/environment |
+| [106](106-orchestrate-regional-balance-sync.md) | Orchestrate regional balance pages | P1 | 091, 101, 102, 103 | TODO |
 
 The unnumbered [go-to-market plan](gtm-team-calendar-go-to-market-plan.md) is a
 business strategy document, not an executor plan. It was refreshed on 24 August:
@@ -108,8 +87,10 @@ blockers, and calendar adoption is measured through observed feed-token access.
 ## Recommended sequence
 
 ```text
-Independent first:
-  030, 039, 057, 059, 060, 066, 076, 078, 084, 085, 086, 089, 092, 097, 101
+Ready roots, grouped by priority:
+  P1: 057, 076, 092, 097, 101
+  P2: 030, 056, 059, 060, 066, 087, 089, 090
+  P3: 037, 039, 078, 084, 085, 086
 
 Security and boundary chain:
   066 -> 077
@@ -119,34 +100,27 @@ Security and boundary chain:
 
 Feed and Redis chain:
   057 + 066 -> 061
-  059 + 061 -> 083 -> 080
+  059 + 061 -> 083
+  061 + 066 + 083 + operator limits -> 080
 
 Shared domain chain:
   060 + 061 -> 082
   061 -> 095 -> 096
-  reassess analytics abstraction after 060 + 082 + 095; do not revive 068 verbatim
 
 Xero sync chain:
-  053 DONE -> 090
   076 -> 091
-  069 DONE -> 097 -> 098 -> 099
+  097 -> 098 -> 099
   097 -> 098 -> 100
   100 + 101 -> 102 -> 103
   090 + 102 + 103 -> 104
   056 + 102 + 103 -> 105
   091 + 101 + 102 + 103 -> 106
   101 -> 107
-  076 + 100 + 102 + 104 + 105 + 106 + 107 + live NZ evidence -> 108
-  076 + 100 + 101 + 103 + 104 + 105 + 106 + 107 + UK permission/evidence -> 109
-
-Evidence-only work:
-  037, 086
-  087 when DATABASE_URL is available
 ```
 
 Database/build and deployed-observation gates remain executable TODO preflights.
-Plans 108 and 109 are honestly blocked because their named live provider
-environments have not been recorded.
+Blocked regional activation work is documented separately below and is not part
+of the recommended TODO sequence.
 
 ## Remaining unblock checklist
 
