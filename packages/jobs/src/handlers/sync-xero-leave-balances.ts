@@ -9,7 +9,9 @@ import { log } from "@repo/observability/log";
 import {
   ensureFreshXeroConnection,
   fetchLeaveBalancesForRegion,
+  isSupportedCurrencyCode,
   toPlainLanguageMessage,
+  toValidatedLeaveBalanceRawPayload,
   type XeroLeaveBalance,
   type XeroLeaveBalanceFetchFailure,
   type XeroWriteError,
@@ -262,26 +264,33 @@ async function processBalance(
 
     const recordType = recordTypeFromLeaveType(balance.leaveTypeName);
 
+    const sourcePayloadJson =
+      toValidatedLeaveBalanceRawPayload(balance.rawPayload) ?? Prisma.DbNull;
+
     await database.leaveBalance.upsert({
       create: {
         ...scoped(context),
         as_at: new Date(),
         balance: balance.balance.toFixed(4),
         balance_unit: balance.unitType,
+        currency_code: balance.currencyCode,
         last_fetched_at: new Date(),
         leave_type_name: balance.leaveTypeName,
         leave_type_xero_id: balance.leaveTypeId,
         person_id: personId,
         record_type: recordType,
+        source_payload_json: sourcePayloadJson,
         xero_tenant_id: xeroTenantId,
       },
       update: {
         as_at: new Date(),
         balance: balance.balance.toFixed(4),
         balance_unit: balance.unitType,
+        currency_code: balance.currencyCode,
         last_fetched_at: new Date(),
         leave_type_name: balance.leaveTypeName,
         record_type: recordType,
+        source_payload_json: sourcePayloadJson,
         updated_at: new Date(),
       },
       where: {
@@ -543,6 +552,24 @@ function validateBalance(
   }
   if (!Number.isFinite(balance.balance)) {
     return { message: "Leave balance must be numeric", valid: false };
+  }
+  // The unit/currency-code pairing is application-enforced, not a DB constraint:
+  // a currency balance requires a supported ISO 4217 code, and an hours/days
+  // balance must never carry one.
+  if (balance.unitType === "currency") {
+    if (
+      !(balance.currencyCode && isSupportedCurrencyCode(balance.currencyCode))
+    ) {
+      return {
+        message: "Currency leave balances require a supported currency code",
+        valid: false,
+      };
+    }
+  } else if (balance.currencyCode) {
+    return {
+      message: "Only currency leave balances may carry a currency code",
+      valid: false,
+    };
   }
   return { valid: true };
 }

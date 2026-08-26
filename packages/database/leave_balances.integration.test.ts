@@ -1,4 +1,5 @@
 // biome-ignore-all lint/style/useFilenamingConvention: The requested test file is leave_balances.integration.test.ts.
+import type { ClerkOrgId, OrganisationId, PersonId } from "@repo/core";
 import { config } from "dotenv";
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -6,6 +7,8 @@ config({ path: new URL("./.env", import.meta.url).pathname });
 vi.mock("server-only", () => ({}));
 
 const { database, employment_type, source_system } = await import("./index.js");
+const { listLeaveBalancesForOrganisation, listLeaveBalancesForPerson } =
+  await import("./src/queries/leave-balances.js");
 
 const tenant = {
   clerkOrgId: "org_test_leave_balances_a",
@@ -180,5 +183,96 @@ describe("leave_balances", () => {
       leave_type_xero_id: "sick-leave",
       xero_tenant_id: null,
     });
+  });
+
+  test("projects a null currencyCode for an hours/days balance through both list queries", async () => {
+    await createTenant();
+    await createManualBalance({
+      id: "41000000-0000-4000-8000-000000000006",
+    });
+
+    const clerkOrgId = tenant.clerkOrgId as ClerkOrgId;
+    const organisationId = tenant.organisationId as OrganisationId;
+    const personId = tenant.personId as PersonId;
+
+    const forPerson = await listLeaveBalancesForPerson(
+      clerkOrgId,
+      organisationId,
+      personId
+    );
+    const forOrganisation = await listLeaveBalancesForOrganisation(
+      clerkOrgId,
+      organisationId
+    );
+
+    expect(forPerson.ok).toBe(true);
+    expect(forOrganisation.ok).toBe(true);
+    if (forPerson.ok) {
+      expect(forPerson.value).toEqual([
+        expect.objectContaining({
+          currencyCode: null,
+          id: "41000000-0000-4000-8000-000000000006",
+        }),
+      ]);
+    }
+    if (forOrganisation.ok) {
+      expect(forOrganisation.value).toEqual([
+        expect.objectContaining({
+          currencyCode: null,
+          id: "41000000-0000-4000-8000-000000000006",
+        }),
+      ]);
+    }
+  });
+
+  test("projects a validated currencyCode for a currency balance through both list queries", async () => {
+    await createTenant();
+    await database.leaveBalance.create({
+      data: {
+        balance: "1234.5600",
+        balance_unit: "currency",
+        clerk_org_id: tenant.clerkOrgId,
+        currency_code: "NZD",
+        id: "41000000-0000-4000-8000-000000000007",
+        leave_type_xero_id: "holiday-pay",
+        organisation_id: tenant.organisationId,
+        person_id: tenant.personId,
+        source_payload_json: { CurrencyCode: "NZD", TypeOfUnits: "Dollars" },
+        xero_tenant_id: null,
+      },
+    });
+
+    const clerkOrgId = tenant.clerkOrgId as ClerkOrgId;
+    const organisationId = tenant.organisationId as OrganisationId;
+    const personId = tenant.personId as PersonId;
+
+    const forPerson = await listLeaveBalancesForPerson(
+      clerkOrgId,
+      organisationId,
+      personId
+    );
+    const forOrganisation = await listLeaveBalancesForOrganisation(
+      clerkOrgId,
+      organisationId
+    );
+
+    expect(forPerson.ok).toBe(true);
+    expect(forOrganisation.ok).toBe(true);
+    if (forPerson.ok) {
+      expect(forPerson.value).toEqual([
+        expect.objectContaining({
+          currencyCode: "NZD",
+          id: "41000000-0000-4000-8000-000000000007",
+        }),
+      ]);
+    }
+    if (forOrganisation.ok) {
+      expect(forOrganisation.value).toEqual([
+        expect.objectContaining({
+          currencyCode: "NZD",
+          id: "41000000-0000-4000-8000-000000000007",
+        }),
+      ]);
+    }
   });
 });

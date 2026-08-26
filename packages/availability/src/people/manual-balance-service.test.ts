@@ -1,3 +1,4 @@
+import { Prisma } from "@repo/database/generated/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -83,9 +84,11 @@ describe("manual balance service", () => {
       data: expect.objectContaining({
         balance: "76.0000",
         clerk_org_id: input.clerkOrgId,
+        currency_code: null,
         leave_type_xero_id: input.leaveTypeXeroId,
         organisation_id: input.organisationId,
         person_id: input.personId,
+        source_payload_json: Prisma.DbNull,
         xero_tenant_id: null,
       }),
       select: { id: true },
@@ -112,12 +115,33 @@ describe("manual balance service", () => {
       },
     });
     expect(mocks.leaveBalanceUpdateMany).toHaveBeenCalledWith({
-      data: expect.objectContaining({ balance: "76.0000" }),
+      data: expect.objectContaining({
+        balance: "76.0000",
+        currency_code: null,
+        source_payload_json: Prisma.DbNull,
+      }),
       where: {
         clerk_org_id: input.clerkOrgId,
         id: "balance_existing",
         organisation_id: input.organisationId,
       },
     });
+  });
+
+  it("rejects a currency balance unit; manual balances are hours/days only", async () => {
+    const result = await setManualLeaveBalance({
+      ...input,
+      balanceUnit: "currency",
+    });
+
+    expect(result).toEqual({
+      error: {
+        code: "validation_error",
+        message: expect.any(String),
+      },
+      ok: false,
+    });
+    expect(mocks.leaveBalanceCreate).not.toHaveBeenCalled();
+    expect(mocks.leaveBalanceUpdateMany).not.toHaveBeenCalled();
   });
 });

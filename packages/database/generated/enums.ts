@@ -234,7 +234,8 @@ export type availability_publish_status = (typeof availability_publish_status)[k
 
 export const leave_balance_unit = {
   hours: 'hours',
-  days: 'days'
+  days: 'days',
+  currency: 'currency'
 } as const
 
 export type leave_balance_unit = (typeof leave_balance_unit)[keyof typeof leave_balance_unit]

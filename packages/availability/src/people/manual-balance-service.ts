@@ -173,8 +173,12 @@ function manualBalanceData(input: z.infer<typeof ManualBalanceSchema>) {
   return {
     balance: input.balance.toFixed(4),
     balance_unit: input.balanceUnit ?? null,
+    // Manual balances are never currency-denominated and have no Xero-provided
+    // payload; the invariant is enforced here, not by the nullable columns.
+    currency_code: null,
     leave_type_name: input.leaveTypeName ?? null,
     record_type: input.recordType ?? null,
+    source_payload_json: Prisma.DbNull,
   };
 }
 
