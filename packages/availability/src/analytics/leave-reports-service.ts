@@ -26,6 +26,7 @@ import {
   groupByTeam,
   percentileRank,
 } from "./aggregation-primitives";
+import { analyticsRecordSelect } from "./analytics-record-select";
 import type { ResolvedDateRange } from "./date-range";
 import { type AggregationCache, aggregationFingerprint } from "./request-cache";
 
@@ -162,15 +163,7 @@ type PersonRow = Prisma.PersonGetPayload<{
 }>;
 
 type RecordRow = Prisma.AvailabilityRecordGetPayload<{
-  include: {
-    approved_by: true;
-    person: {
-      include: {
-        location: true;
-        team: true;
-      };
-    };
-  };
+  select: typeof analyticsRecordSelect;
 }>;
 
 type HolidayRow =
@@ -274,8 +267,8 @@ export async function listLeaveReportRecordsForDrilldown(
 
     const records = await database.availabilityRecord.findMany({
       cursor: parsed.data.cursor ? { id: parsed.data.cursor } : undefined,
-      include: recordInclude,
       orderBy: [{ starts_at: "desc" }, { id: "desc" }],
+      select: analyticsRecordSelect,
       skip: parsed.data.cursor ? 1 : 0,
       take: parsed.data.pageSize + 1,
       where: recordWhere(parsed.data, filters, personIds),
@@ -352,8 +345,8 @@ async function loadDatasetUncached(
   }
 
   const records = await database.availabilityRecord.findMany({
-    include: recordInclude,
     orderBy: [{ starts_at: "asc" }, { id: "asc" }],
+    select: analyticsRecordSelect,
     where: recordWhere(input, filters, personIds),
   });
   const holidayRows = input.includePublicHolidays
@@ -462,16 +455,6 @@ function recordWhere(
   };
 }
 
-const recordInclude = {
-  approved_by: true,
-  person: {
-    include: {
-      location: true,
-      team: true,
-    },
-  },
-} satisfies Prisma.AvailabilityRecordInclude;
-
 async function loadHolidays(input: AggregateInput) {
   const years = yearsBetween(
     input.dateRange.start.getUTCFullYear(),
@@ -496,9 +479,20 @@ async function loadHolidays(input: AggregateInput) {
   return { ok: true as const, value: holidays };
 }
 
+type LocationForHolidayMatch = {
+  country_code?: string | null;
+  id?: string;
+  region_code?: string | null;
+} | null;
+
+interface PersonForHolidayMap {
+  location?: LocationForHolidayMatch;
+  location_id?: string | null;
+}
+
 function buildHolidayMap(
   holidays: readonly HolidayRow[],
-  people: readonly PersonRow[]
+  people: readonly PersonForHolidayMap[]
 ): Map<string, AnalyticsHoliday[]> {
   const map = new Map<string, AnalyticsHoliday[]>();
   for (const person of people) {
@@ -521,7 +515,7 @@ function buildHolidayMap(
 
 function holidayAppliesToLocation(
   holiday: HolidayRow,
-  location: PersonRow["location"]
+  location: LocationForHolidayMatch | undefined
 ): boolean {
   if (holiday.archived_at) {
     return false;
