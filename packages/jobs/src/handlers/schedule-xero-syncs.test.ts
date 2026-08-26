@@ -1,5 +1,3 @@
-const SCHEDULED_SYNC_PEOPLE_REGEX = /^scheduled-sync:.*:people:/;
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
@@ -30,16 +28,18 @@ vi.mock("../events", async (importOriginal) => {
 });
 
 import type { SchedulableXeroTenant } from "@repo/database";
+import { getScheduledSyncEventId, type RegisteredSyncRunType } from "../events";
 
 const { dueRunTypes, rotateDormantXeroConnections, scheduleXeroSyncsPage } =
   await import("./schedule-xero-syncs");
 
 describe("scheduleXeroSyncs Coordinator", () => {
+  const providerTenantId = "00000000-0000-4000-8000-000000000099";
   const baseTenant: SchedulableXeroTenant = {
     clerkOrgId: "org_clerk_1",
     connectionStatus: "active",
+    databaseTenantId: "00000000-0000-4000-8000-000000000010",
     disconnectedAt: null,
-    id: "tenant-id-1",
     lastApprovalStateReconciledAt: null,
     lastLeaveBalancesSyncAt: null,
     lastLeaveRecordsSyncAt: null,
@@ -49,7 +49,6 @@ describe("scheduleXeroSyncs Coordinator", () => {
     revokedAt: null,
     syncPausedAt: null,
     timezone: "Australia/Sydney",
-    xeroTenantId: "00000000-0000-4000-8000-000000000010",
   };
 
   beforeEach(() => {
@@ -233,7 +232,7 @@ describe("scheduleXeroSyncs Coordinator", () => {
             baseTenant,
             {
               ...baseTenant,
-              id: "tenant-id-2",
+              databaseTenantId: "00000000-0000-4000-8000-000000000020",
               timezone: "Invalid/Timezone",
             },
           ],
@@ -256,18 +255,33 @@ describe("scheduleXeroSyncs Coordinator", () => {
       expect(res.value.invalidTimezone).toBe(1);
       expect(res.value.dispatched).toBe(3); // people, leave_records, leave_balances for tenant 1
 
-      expect(mocks.dispatchSyncEvent).toHaveBeenCalledWith(
-        {
-          clerkOrgId: baseTenant.clerkOrgId,
-          organisationId: baseTenant.organisationId,
-          runType: "people",
-          triggerType: "scheduled",
-          xeroTenantId: baseTenant.xeroTenantId,
-        },
-        {
-          eventId: expect.stringMatching(SCHEDULED_SYNC_PEOPLE_REGEX),
-        }
+      const expectedRunTypes = [
+        "people",
+        "leave_records",
+        "leave_balances",
+      ] satisfies RegisteredSyncRunType[];
+
+      expect(mocks.dispatchSyncEvent.mock.calls).toEqual(
+        expectedRunTypes.map((runType) => [
+          {
+            clerkOrgId: baseTenant.clerkOrgId,
+            organisationId: baseTenant.organisationId,
+            runType,
+            triggerType: "scheduled",
+            xeroTenantId: baseTenant.databaseTenantId,
+          },
+          {
+            eventId: getScheduledSyncEventId(
+              baseTenant.databaseTenantId,
+              runType,
+              now
+            ),
+          },
+        ])
       );
+      for (const [event] of mocks.dispatchSyncEvent.mock.calls) {
+        expect(event.xeroTenantId).not.toBe(providerTenantId);
+      }
     });
 
     it("isolates dispatch failures so one failing tenant/event does not drop the rest", async () => {
