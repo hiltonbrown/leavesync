@@ -16,7 +16,7 @@
 - **Depends on**: none
 - **Category**: performance, availability
 - **Planned at**: commit `ecd49f5`, 2026-08-24
-- **Execution status**: TODO
+- **Execution status**: DONE, merged as `bf789b9` (approved at commit `ecd49f5`, no drift)
 
 ## Why this matters
 
