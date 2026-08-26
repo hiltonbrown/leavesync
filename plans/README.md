@@ -54,7 +54,8 @@ This reconciliation was read-only outside `plans/`.
 | Plan 056 execution | approved at `d0a9416`; focused handler tests 19/19 (including 5 new fairness and not_found tests), migration applied cleanly and verified with `prisma migrate diff`, check, typecheck, unit and live database integration gates passed |
 | Plan 059 execution | approved at `c26a38e`; focused stream route tests 14/14 with fake timers, check, typecheck, unit, live database integration and diff gates passed |
 | Plan 060 execution | approved at `36e0bc3`; focused analytics tests 25/25, query shape assertions confirming audit blobs omitted, check, typecheck, unit and live database integration gates passed |
-| Current indexed plans | 64: 32 TODO, 16 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 066 execution | approved at `93f73cc`; billing SQL integration suite 5/5, Xero tenancy P2002 uniqueness suite 3/3, duplicate route test files deleted, alternative-contact characterisation suite 22/22, check, typecheck, unit and live database integration gates passed |
+| Current indexed plans | 64: 31 TODO, 17 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -75,7 +76,7 @@ before starting its dependent plan.
 | [056](056-give-the-approval-reconciler-a-cursor.md) | Fair per-record approval reconciliation | P2 | integration database | DONE |
 | [059](059-make-the-notification-stream-reliable-and-affordable.md) | Surface SSE failures and reduce idle polling | P2 | none | DONE |
 | [060](060-project-explicit-columns-in-the-analytics-services.md) | Exclude audit blobs from analytics queries | P2 | none | DONE |
-| [066](066-test-the-untested-money-and-tenancy-paths.md) | Test billing SQL, tenancy and contact logic | P2 | integration database | TODO |
+| [066](066-test-the-untested-money-and-tenancy-paths.md) | Test billing SQL, tenancy and contact logic | P2 | integration database | DONE |
 | [087](087-complete-xero-people-sync-regression-tests.md) | Complete Plan 069 test promises | P2 | integration database | TODO |
 | [089](089-map-xero-matches-to-a-client-view-model.md) | Map Xero matches to a browser-safe view model | P2 | none | TODO |
 | [090](090-bulk-stale-xero-leave-archival.md) | Bulk stale leave archival and feed invalidation | P2 | none | TODO |
@@ -249,6 +250,12 @@ predecessor/preflight contract in its plan.
   explicit `analyticsRecordSelect` projection. `source_payload_json` and
   `xero_write_error_raw` audit blobs are never loaded or transported to RSC
   consumers.
+- Plan 066 is complete at `93f73cc`. Raw billing SQL ordering guards and dedupe
+  keys are covered by integration tests, XeroConnection and XeroTenant P2002
+  uniqueness constraints are verified with integration tests, duplicate route
+  test files in `apps/api/__tests__/` were deleted after porting unique
+  assertions, and `alternative-contact-service.ts` has a 22-test characterisation
+  suite covering authorization, validation, dual-tenant scoping, and ordering.
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
@@ -284,10 +291,10 @@ predecessor/preflight contract in its plan.
 | A-03 duplicate Redis REST mechanics | 083 |
 | A-04 twin analytics services | 068 rejected; reassess after 060/082/095 |
 | T-01 fixture collision | 051 rejected, independently fixed |
-| T-02 billing SQL coverage | 066 |
-| T-03 Xero tenancy uniqueness coverage | 066 |
-| T-04 duplicate API route suites | 066 |
-| T-05 alternative-contact service coverage | 066 |
+| T-02 billing SQL coverage | 066 DONE |
+| T-03 Xero tenancy uniqueness coverage | 066 DONE |
+| T-04 duplicate API route suites | 066 DONE |
+| T-05 alternative-contact service coverage | 066 DONE |
 | R-058-01 scheduled provider/database tenant mismatch | 076 DONE |
 | R-058-02 bounded sync/product contract mismatch | 091, contract resolved |
 | M-01 duplicate `ws` ownership | 084 |
