@@ -44,6 +44,8 @@ authenticated routes and cache policy.
 
 ## Git workflow
 
+- Base branch: `preview` (`origin/preview`), not `main`. Branch from `preview`, commit there, and land the finished work on `preview` — see `plans/README.md` § Execution policy.
+- Work directly in this working tree. No isolated git worktree is used for this repo's plan executions.
 - Branch: `advisor/080-feed-rate-limit`
 - Commit: `fix(api): rate limit public feed probes`
 - Do not push or open a PR unless instructed.

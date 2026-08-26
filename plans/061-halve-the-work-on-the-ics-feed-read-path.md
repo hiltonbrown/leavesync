@@ -139,6 +139,8 @@ The default horizon is 366 days
 
 ## Git workflow
 
+- Base branch: `preview` (`origin/preview`), not `main`. Branch from `preview`, commit there, and land the finished work on `preview` — see `plans/README.md` § Execution policy.
+- Work directly in this working tree. No isolated git worktree is used for this repo's plan executions.
 - Branch: `advisor/061-feed-read-path`
 - Conventional commits, e.g. `perf(feeds): resolve the feed token once per request`
 - Do NOT push or open a PR unless the operator instructed it.

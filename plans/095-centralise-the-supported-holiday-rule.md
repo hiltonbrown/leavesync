@@ -78,6 +78,8 @@ dashboard cards and dormant assignment scopes.
 
 ## Git workflow
 
+- Base branch: `preview` (`origin/preview`), not `main`. Branch from `preview`, commit there, and land the finished work on `preview` — see `plans/README.md` § Execution policy.
+- Work directly in this working tree. No isolated git worktree is used for this repo's plan executions.
 - Branch: `fix/095-supported-holiday-rule`
 - Commit: `fix(availability): centralise holiday applicability`
 - Do not push or open a pull request unless instructed.

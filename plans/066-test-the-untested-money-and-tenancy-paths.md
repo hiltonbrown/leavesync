@@ -130,6 +130,8 @@ shape.
 
 ## Git workflow
 
+- Base branch: `preview` (`origin/preview`), not `main`. Branch from `preview`, commit there, and land the finished work on `preview` — see `plans/README.md` § Execution policy.
+- Work directly in this working tree. No isolated git worktree is used for this repo's plan executions.
 - Branch: `advisor/066-test-coverage`
 - Conventional commits, e.g. `test(database): cover the stripe subscription mirror`
 - Do NOT push or open a PR unless the operator instructed it.

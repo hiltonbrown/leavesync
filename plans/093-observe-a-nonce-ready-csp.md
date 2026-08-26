@@ -60,6 +60,8 @@ CSP, marketing-site CSP, WAF changes and removal of style `unsafe-inline`.
 
 ## Git workflow
 
+- Base branch: `preview` (`origin/preview`), not `main`. Branch from `preview`, commit there, and land the finished work on `preview` — see `plans/README.md` § Execution policy.
+- Work directly in this working tree. No isolated git worktree is used for this repo's plan executions.
 - Branch: `security/093-observe-nonce-csp`
 - Commit: `feat(app): observe nonce content security policy`
 - Do not push or open a pull request unless instructed.

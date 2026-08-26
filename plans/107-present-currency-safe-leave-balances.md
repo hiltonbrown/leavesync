@@ -56,6 +56,8 @@ is a redirect and out of scope. No sync, schema, FX or manual-currency editing.
 
 ## Git workflow
 
+- Base branch: `preview` (`origin/preview`), not `main`. Branch from `preview`, commit there, and land the finished work on `preview` — see `plans/README.md` § Execution policy.
+- Work directly in this working tree. No isolated git worktree is used for this repo's plan executions.
 - Branch: `fix/107-currency-safe-balances`
 - Commit: `fix(app): present leave balances by unit`
 - Do not push or open a pull request unless instructed.
