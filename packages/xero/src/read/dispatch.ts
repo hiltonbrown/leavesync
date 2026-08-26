@@ -1,4 +1,7 @@
-import type { XeroLeaveBalanceFetchFailure } from "../au/read";
+import type {
+  XeroEmployeesFetchResult,
+  XeroLeaveBalanceFetchFailure,
+} from "../au/read";
 import {
   fetchEmployees as fetchAuEmployees,
   fetchLeaveApplicationStatus as fetchAuLeaveApplicationStatus,
@@ -12,7 +15,6 @@ import type {
   XeroTenantForWrite,
   XeroWriteResult,
 } from "../write/types";
-import type { XeroEmployee } from "./employees";
 import type {
   FetchLeaveApplicationStatusInput,
   XeroLeaveApplicationStatusResult,
@@ -45,9 +47,7 @@ export async function fetchLeaveApplicationStatusForRegion(
 export async function fetchEmployeesForRegion(
   payrollRegion: PayrollRegion | string,
   input: { xeroTenant: XeroTenantForWrite }
-): Promise<
-  XeroWriteResult<{ rawResponse: unknown; employees: XeroEmployee[] }>
-> {
+): Promise<XeroWriteResult<XeroEmployeesFetchResult>> {
   switch (payrollRegion) {
     case "AU":
       return await fetchAuEmployees(input);
