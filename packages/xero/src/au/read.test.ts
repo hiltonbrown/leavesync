@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { encryptXeroToken } from "../crypto/tokens";
-import { fetchLeaveBalances, fetchLeaveRecords } from "./read";
+import { fetchEmployees, fetchLeaveBalances, fetchLeaveRecords } from "./read";
 
 const ORIGINAL_ENV = process.env.XERO_TOKEN_ENCRYPTION_KEY;
 const TEST_ENCRYPTION_KEY = Buffer.alloc(32).toString("base64");
@@ -75,6 +75,140 @@ function leaveApplicationsResponse(ids: string[]): Response {
     { status: 200 }
   );
 }
+
+function employeeListResponse(items: unknown[]): Response {
+  return new Response(JSON.stringify({ Employees: items }), { status: 200 });
+}
+
+function validEmployeeItem(employeeId: string, overrides: object = {}) {
+  return {
+    EmployeeID: employeeId,
+    FirstName: "First",
+    LastName: "Last",
+    Status: "ACTIVE",
+    ...overrides,
+  };
+}
+
+describe("AU employee reads", () => {
+  beforeEach(() => {
+    process.env.XERO_TOKEN_ENCRYPTION_KEY = TEST_ENCRYPTION_KEY;
+    vi.restoreAllMocks();
+  });
+
+  afterEach(() => {
+    restoreEncryptionKey();
+  });
+
+  it("marks a single short page as complete and preserves valid neighbours of a malformed record", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      employeeListResponse([
+        validEmployeeItem("11111111-1111-4111-8111-111111111111"),
+        // Malformed: not an object at all.
+        null,
+        validEmployeeItem("22222222-2222-4222-8222-222222222222"),
+      ])
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await fetchEmployees({ xeroTenant: buildXeroTenant() });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.complete).toBe(true);
+    expect(result.value.employees.map((e) => e.employeeId)).toEqual([
+      "11111111-1111-4111-8111-111111111111",
+      "22222222-2222-4222-8222-222222222222",
+    ]);
+    expect(result.value.failures).toHaveLength(1);
+    // Raw item count uses the raw page length, not the valid employee count.
+    expect(result.value.rawItemCount).toBe(3);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("uses raw page length, not valid employee count, to continue pagination", async () => {
+    // A full page (100 raw items) where half fail to map must still be
+    // treated as a full page and trigger a second fetch.
+    const firstPageItems = Array.from({ length: 100 }, (_, index) =>
+      index % 2 === 0
+        ? validEmployeeItem(
+            `11111111-1111-4111-8111-${String(index).padStart(12, "0")}`
+          )
+        : null
+    );
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(employeeListResponse(firstPageItems))
+      .mockResolvedValueOnce(
+        employeeListResponse([
+          validEmployeeItem("22222222-2222-4222-8222-222222222222"),
+        ])
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await fetchEmployees({ xeroTenant: buildXeroTenant() });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.complete).toBe(true);
+    expect(result.value.rawItemCount).toBe(101);
+    expect(result.value.employees).toHaveLength(51);
+    expect(result.value.failures).toHaveLength(50);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      expect.stringContaining("/Employees?page=1"),
+      expect.stringContaining("/Employees?page=2"),
+    ]);
+  });
+
+  it("returns complete: false and preserves gathered employees when a page envelope cannot be read", async () => {
+    // A full first page forces pagination to continue; the second page's
+    // envelope (Employees is not an array) cannot be read.
+    const fullFirstPage = Array.from({ length: 100 }, (_, index) =>
+      validEmployeeItem(
+        `11111111-1111-4111-8111-${String(index).padStart(12, "0")}`
+      )
+    );
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(employeeListResponse(fullFirstPage))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ Employees: "not an array" }), {
+          status: 200,
+        })
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await fetchEmployees({ xeroTenant: buildXeroTenant() });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.complete).toBe(false);
+    expect(result.value.employees).toHaveLength(100);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns auth_error Result without throwing when access_token_iv is null", async () => {
+    const tenant = buildXeroTenant();
+    tenant.xero_connection.access_token_iv = null;
+
+    await expect(fetchEmployees({ xeroTenant: tenant })).resolves.toMatchObject(
+      {
+        error: {
+          code: "auth_error",
+          message: "Xero credentials are missing or revoked.",
+        },
+        ok: false,
+      }
+    );
+  });
+});
 
 describe("AU leave record reads", () => {
   beforeEach(() => {

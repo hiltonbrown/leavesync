@@ -2,7 +2,7 @@ import { log } from "@repo/observability/log";
 import { keys } from "../../keys";
 import { tryDecryptXeroToken } from "../crypto/tokens";
 import { orgRateLimitKey, xeroFetch } from "../rate-limit/xero-fetch";
-import type { XeroEmployee } from "../read/employees";
+import type { XeroEmployee, XeroEmployeeMapFailure } from "../read/employees";
 import { tryMapXeroEmployees } from "../read/employees";
 import {
   type FetchLeaveApplicationStatusInput,
@@ -38,11 +38,18 @@ export interface XeroLeaveBalanceFetchFailure {
   error: XeroWriteError;
 }
 
+export interface XeroEmployeesFetchResult {
+  complete: boolean;
+  employees: XeroEmployee[];
+  failures: XeroEmployeeMapFailure[];
+  rawItemCount: number;
+  rawResponse: unknown;
+  seenEmployeeIds: string[];
+}
+
 export async function fetchEmployees(input: {
   xeroTenant: XeroTenantForWrite;
-}): Promise<
-  XeroWriteResult<{ rawResponse: unknown; employees: XeroEmployee[] }>
-> {
+}): Promise<XeroWriteResult<XeroEmployeesFetchResult>> {
   const tokenResult = resolveAccessToken(input.xeroTenant);
   if (!tokenResult.ok) {
     return tokenResult;
@@ -51,6 +58,9 @@ export async function fetchEmployees(input: {
 
   try {
     const employees: XeroEmployee[] = [];
+    const failures: XeroEmployeeMapFailure[] = [];
+    const seenEmployeeIds: string[] = [];
+    let rawItemCount = 0;
     let page = 1;
     let rawResponse: unknown = null;
 
@@ -82,23 +92,49 @@ export async function fetchEmployees(input: {
       rawResponse ??= rawPayload;
       const mappedPage = tryMapXeroEmployees(rawPayload);
       if (!mappedPage.ok) {
+        // The page envelope itself could not be read (e.g. Employees was not
+        // an array). Record-level failures inside a well-formed envelope are
+        // already isolated by tryMapXeroEmployees, so this is rarer and
+        // treated like a truncated leave-record fetch: return what has been
+        // gathered so far as incomplete rather than discarding it.
         log.warn("Xero employee page could not be parsed", {
           clerkOrgId: input.xeroTenant.clerk_org_id,
           organisationId: input.xeroTenant.organisation_id,
           page,
         });
         return {
-          error: {
-            code: "unknown_error",
-            message: "Xero returned an employee page that could not be read.",
+          ok: true,
+          value: {
+            complete: false,
+            employees,
+            failures,
+            rawItemCount,
+            rawResponse,
+            seenEmployeeIds,
           },
-          ok: false,
         };
       }
-      employees.push(...mappedPage.employees);
 
-      if (mappedPage.employees.length < XERO_PAGE_SIZE) {
-        return { ok: true, value: { employees, rawResponse } };
+      employees.push(...mappedPage.employees);
+      failures.push(...mappedPage.failures);
+      seenEmployeeIds.push(...mappedPage.seenEmployeeIds);
+      rawItemCount += mappedPage.rawItemCount;
+
+      // Pagination termination must use the raw page length Xero returned,
+      // never the count of records that mapped cleanly, otherwise a page
+      // full of malformed records would look like a short final page.
+      if (mappedPage.rawItemCount < XERO_PAGE_SIZE) {
+        return {
+          ok: true,
+          value: {
+            complete: true,
+            employees,
+            failures,
+            rawItemCount,
+            rawResponse,
+            seenEmployeeIds,
+          },
+        };
       }
 
       page += 1;
@@ -110,11 +146,15 @@ export async function fetchEmployees(input: {
       page: XERO_MAX_PAGES,
     });
     return {
-      error: {
-        code: "unknown_error",
-        message: "Xero returned an employee page that could not be read.",
+      ok: true,
+      value: {
+        complete: false,
+        employees,
+        failures,
+        rawItemCount,
+        rawResponse,
+        seenEmployeeIds,
       },
-      ok: false,
     };
   } catch (error) {
     return {
