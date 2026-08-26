@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  availabilityRecordGroupBy: vi.fn(),
+  computeCurrentStatusForPeople: vi.fn(),
   getBillingSummaryForDashboard: vi.fn(),
   getCalendarRange: vi.fn(),
   getFeedSummaryForDashboard: vi.fn(),
@@ -20,6 +22,7 @@ const mocks = vi.hoisted(() => ({
   organisationFindFirst: vi.fn(),
   personCount: vi.fn(),
   personFindFirst: vi.fn(),
+  personFindMany: vi.fn(),
   scopedQuery: vi.fn((clerkOrgId: string, organisationId: string) => ({
     clerk_org_id: clerkOrgId,
     organisation_id: organisationId,
@@ -29,10 +32,12 @@ const mocks = vi.hoisted(() => ({
 vi.mock("server-only", () => ({}));
 vi.mock("@repo/database", () => ({
   database: {
+    availabilityRecord: { groupBy: mocks.availabilityRecordGroupBy },
     organisation: { findFirst: mocks.organisationFindFirst },
     person: {
       count: mocks.personCount,
       findFirst: mocks.personFindFirst,
+      findMany: mocks.personFindMany,
     },
   },
   scopedQuery: mocks.scopedQuery,
@@ -51,6 +56,9 @@ vi.mock("../calendar/calendar-service", () => ({
 }));
 vi.mock("../holidays/holiday-service", () => ({
   listForOrganisation: mocks.listForOrganisation,
+}));
+vi.mock("../people/current-status", () => ({
+  computeCurrentStatusForPeople: mocks.computeCurrentStatusForPeople,
 }));
 vi.mock("../people/people-service", () => ({
   getPersonProfile: mocks.getPersonProfile,
@@ -252,6 +260,80 @@ describe("dashboard-service", () => {
       baseInput.personId,
       "00000000-0000-4000-8000-000000000012",
     ]);
+    mocks.personFindMany.mockResolvedValue([
+      {
+        first_name: "Ari",
+        id: "00000000-0000-4000-8000-000000000012",
+        last_name: "Report",
+        location_id: null,
+      },
+      {
+        first_name: "Sam",
+        id: "00000000-0000-4000-8000-000000000013",
+        last_name: "Home",
+        location_id: null,
+      },
+      {
+        first_name: "Lee",
+        id: "00000000-0000-4000-8000-000000000014",
+        last_name: "Ready",
+        location_id: null,
+      },
+    ]);
+    mocks.availabilityRecordGroupBy.mockResolvedValue([
+      {
+        _count: { _all: 1 },
+        person_id: "00000000-0000-4000-8000-000000000012",
+      },
+    ]);
+    mocks.computeCurrentStatusForPeople.mockResolvedValue(
+      new Map([
+        [
+          "00000000-0000-4000-8000-000000000012",
+          {
+            activePublicHoliday: null,
+            activeRecord: {
+              endsAt: new Date("2026-04-22T23:59:59.999Z"),
+              recordType: "annual_leave",
+              startsAt: new Date("2026-04-20T00:00:00.000Z"),
+            },
+            approvalStatus: "approved",
+            contactabilityStatus: "unavailable",
+            label: "On annual leave",
+            recordType: "annual_leave",
+            statusKey: "on_leave",
+          },
+        ],
+        [
+          "00000000-0000-4000-8000-000000000013",
+          {
+            activePublicHoliday: null,
+            activeRecord: {
+              endsAt: new Date("2026-04-20T23:59:59.999Z"),
+              recordType: "wfh",
+              startsAt: new Date("2026-04-20T00:00:00.000Z"),
+            },
+            approvalStatus: "approved",
+            contactabilityStatus: "contactable",
+            label: "Working from home",
+            recordType: "wfh",
+            statusKey: "wfh",
+          },
+        ],
+        [
+          "00000000-0000-4000-8000-000000000014",
+          {
+            activePublicHoliday: null,
+            activeRecord: null,
+            approvalStatus: null,
+            contactabilityStatus: null,
+            label: "Available",
+            recordType: null,
+            statusKey: "available",
+          },
+        ],
+      ])
+    );
     mocks.listPeople.mockResolvedValue({
       ok: true,
       value: {
@@ -571,6 +653,298 @@ describe("dashboard-service", () => {
       status: "ready",
     });
   });
+
+  it("builds the manager view with a direct-reports-only scope label and reuses the resolved scope for the team query", async () => {
+    mocks.personCount.mockResolvedValue(1);
+
+    const result = await getManagerView({
+      ...baseInput,
+      actingRole: "manager",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value.header).toMatchObject({
+      directReportCount: 1,
+      roleLabel: "Manager",
+      scopeLabel: "1 direct reports",
+    });
+    expect(mocks.managerScopePersonIds).toHaveBeenCalledTimes(1);
+    expect(mocks.listPeople).not.toHaveBeenCalled();
+    expect(mocks.personFindMany).toHaveBeenCalledTimes(1);
+    expect(mocks.personFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          id: {
+            in: [baseInput.personId, "00000000-0000-4000-8000-000000000012"],
+          },
+        }),
+      })
+    );
+  });
+
+  it("computes every current-status bucket and orders the attention list by severity", async () => {
+    const ids = {
+      leave: "00000000-0000-4000-8000-000000000101",
+      other: "00000000-0000-4000-8000-000000000106",
+      pending: "00000000-0000-4000-8000-000000000102",
+      syncFailedButAvailable: "00000000-0000-4000-8000-000000000107",
+      travel: "00000000-0000-4000-8000-000000000105",
+      wfh: "00000000-0000-4000-8000-000000000104",
+      whollyAvailable: "00000000-0000-4000-8000-000000000100",
+    };
+    mocks.managerScopePersonIds.mockResolvedValue([
+      baseInput.personId,
+      ...Object.values(ids),
+    ]);
+    mocks.personFindMany.mockResolvedValue([
+      {
+        first_name: "Ada",
+        id: ids.whollyAvailable,
+        last_name: "Free",
+        location_id: null,
+      },
+      {
+        first_name: "Bea",
+        id: ids.leave,
+        last_name: "Leave",
+        location_id: null,
+      },
+      {
+        first_name: "Cal",
+        id: ids.pending,
+        last_name: "Pending",
+        location_id: null,
+      },
+      {
+        first_name: "Dee",
+        id: ids.wfh,
+        last_name: "Wfh",
+        location_id: null,
+      },
+      {
+        first_name: "Eve",
+        id: ids.travel,
+        last_name: "Travel",
+        location_id: null,
+      },
+      {
+        first_name: "Fay",
+        id: ids.other,
+        last_name: "Client",
+        location_id: null,
+      },
+      {
+        first_name: "Gia",
+        id: ids.syncFailedButAvailable,
+        last_name: "Failed",
+        location_id: null,
+      },
+    ]);
+    mocks.availabilityRecordGroupBy.mockResolvedValue([
+      { _count: { _all: 2 }, person_id: ids.syncFailedButAvailable },
+    ]);
+    mocks.computeCurrentStatusForPeople.mockResolvedValue(
+      new Map([
+        [
+          ids.whollyAvailable,
+          {
+            activePublicHoliday: null,
+            activeRecord: null,
+            approvalStatus: null,
+            contactabilityStatus: null,
+            label: "Available",
+            recordType: null,
+            statusKey: "available",
+          },
+        ],
+        [
+          ids.leave,
+          {
+            activePublicHoliday: null,
+            activeRecord: null,
+            approvalStatus: "approved",
+            contactabilityStatus: "unavailable",
+            label: "On annual leave",
+            recordType: "annual_leave",
+            statusKey: "on_leave",
+          },
+        ],
+        [
+          ids.pending,
+          {
+            activePublicHoliday: null,
+            activeRecord: null,
+            approvalStatus: "submitted",
+            contactabilityStatus: "unavailable",
+            label: "Leave pending approval",
+            recordType: "annual_leave",
+            statusKey: "pending_leave",
+          },
+        ],
+        [
+          ids.wfh,
+          {
+            activePublicHoliday: null,
+            activeRecord: null,
+            approvalStatus: "approved",
+            contactabilityStatus: "contactable",
+            label: "Working from home",
+            recordType: "wfh",
+            statusKey: "wfh",
+          },
+        ],
+        [
+          ids.travel,
+          {
+            activePublicHoliday: null,
+            activeRecord: null,
+            approvalStatus: "approved",
+            contactabilityStatus: "contactable",
+            label: "Travelling",
+            recordType: "travelling",
+            statusKey: "travelling",
+          },
+        ],
+        [
+          ids.other,
+          {
+            activePublicHoliday: null,
+            activeRecord: null,
+            approvalStatus: "approved",
+            contactabilityStatus: "contactable",
+            label: "At client site",
+            recordType: "client_site",
+            statusKey: "client_site",
+          },
+        ],
+        [
+          ids.syncFailedButAvailable,
+          {
+            activePublicHoliday: null,
+            activeRecord: null,
+            approvalStatus: null,
+            contactabilityStatus: null,
+            label: "Available",
+            recordType: null,
+            statusKey: "available",
+          },
+        ],
+      ])
+    );
+
+    const result = await getManagerView({
+      ...baseInput,
+      actingRole: "manager",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value.teamToday).toMatchObject({
+      data: {
+        peopleAvailableCount: 2,
+        peopleNeedingAttention: [
+          expect.objectContaining({
+            personId: ids.syncFailedButAvailable,
+            statusLabel: "Xero sync failed",
+            xeroSyncFailedCount: 2,
+          }),
+          expect.objectContaining({
+            personId: ids.leave,
+            statusLabel: "On annual leave",
+          }),
+          expect.objectContaining({
+            personId: ids.pending,
+            statusLabel: "Leave pending approval",
+          }),
+          expect.objectContaining({
+            personId: ids.wfh,
+            statusLabel: "Working from home",
+          }),
+          expect.objectContaining({
+            personId: ids.travel,
+            statusLabel: "Travelling",
+          }),
+          expect.objectContaining({
+            personId: ids.other,
+            statusLabel: "At client site",
+          }),
+        ],
+        peopleOnLeaveCount: 1,
+        peopleOtherOooCount: 2,
+        peopleTravellingCount: 1,
+        peopleWithXeroSyncFailedCount: 1,
+        peopleWorkingFromHomeCount: 1,
+      },
+      status: "ready",
+    });
+  });
+
+  it.each([1, 200, 201])(
+    "keeps a constant query count for %i visible people and never pages through listPeople",
+    async (scopeSize) => {
+      const ids = Array.from(
+        { length: scopeSize },
+        (_, index) =>
+          `00000000-0000-4000-9000-${String(index).padStart(12, "0")}`
+      );
+      mocks.managerScopePersonIds.mockResolvedValue([
+        baseInput.personId,
+        ...ids,
+      ]);
+      mocks.personFindMany.mockResolvedValue(
+        ids.map((id, index) => ({
+          first_name: `Person${index}`,
+          id,
+          last_name: "Test",
+          location_id: null,
+        }))
+      );
+      mocks.availabilityRecordGroupBy.mockResolvedValue([]);
+      mocks.computeCurrentStatusForPeople.mockResolvedValue(
+        new Map(
+          ids.map((id) => [
+            id,
+            {
+              activePublicHoliday: null,
+              activeRecord: null,
+              approvalStatus: null,
+              contactabilityStatus: null,
+              label: "Available",
+              recordType: null,
+              statusKey: "available",
+            },
+          ])
+        )
+      );
+
+      const result = await getManagerView({
+        ...baseInput,
+        actingRole: "manager",
+      });
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) {
+        return;
+      }
+
+      expect(result.value.teamToday).toMatchObject({
+        data: { peopleAvailableCount: scopeSize },
+        status: "ready",
+      });
+      expect(mocks.managerScopePersonIds).toHaveBeenCalledTimes(1);
+      expect(mocks.personFindMany).toHaveBeenCalledTimes(1);
+      expect(mocks.availabilityRecordGroupBy).toHaveBeenCalledTimes(1);
+      expect(mocks.computeCurrentStatusForPeople).toHaveBeenCalledTimes(1);
+      expect(mocks.listPeople).not.toHaveBeenCalled();
+    }
+  );
 
   it("builds the admin view and degrades only the billing card on failure", async () => {
     mocks.getBillingSummaryForDashboard.mockResolvedValue({
