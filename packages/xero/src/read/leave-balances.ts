@@ -2,15 +2,67 @@ import { z } from "zod";
 
 export interface XeroLeaveBalance {
   balance: number;
+  currencyCode: string | null;
   employeeId: string;
   leaveTypeId: string;
   leaveTypeName: string | null;
   rawPayload: unknown;
-  unitType: "days" | "hours" | null;
+  unitType: "currency" | "days" | "hours" | null;
+}
+
+// Supported ISO 4217 currency codes for monetary leave balances (e.g. NZ Payroll
+// Holiday Pay in dollars). Deliberately an explicit allowlist, not a regex that
+// pretends to validate all of ISO 4217: extend only alongside a documented
+// provider mapping (see packages/database/prisma/schema.prisma comment on
+// leave_balances.currency_code).
+export const SupportedCurrencyCodeSchema = z.enum(["NZD"]);
+export type SupportedCurrencyCode = z.infer<typeof SupportedCurrencyCodeSchema>;
+
+export function isSupportedCurrencyCode(
+  value: unknown
+): value is SupportedCurrencyCode {
+  return SupportedCurrencyCodeSchema.safeParse(value).success;
+}
+
+// Generic JSON-safe value schema used to validate that a raw Xero leave balance
+// payload can be persisted into the leave_balances.source_payload_json jsonb
+// column via Prisma. Xero balances are already parsed from an HTTP JSON
+// response, so this validation is a defensive, explicit guarantee rather than a
+// transformation.
+const JsonPrimitiveSchema = z.union([
+  z.string(),
+  z.number(),
+  z.boolean(),
+  z.null(),
+]);
+type JsonPrimitive = z.infer<typeof JsonPrimitiveSchema>;
+export type LeaveBalanceRawPayload =
+  | JsonPrimitive
+  | LeaveBalanceRawPayload[]
+  | { [key: string]: LeaveBalanceRawPayload };
+
+export const LeaveBalanceRawPayloadSchema: z.ZodType<LeaveBalanceRawPayload> =
+  z.lazy(() =>
+    z.union([
+      JsonPrimitiveSchema,
+      z.array(LeaveBalanceRawPayloadSchema),
+      z.record(z.string(), LeaveBalanceRawPayloadSchema),
+    ])
+  );
+
+// Validates a raw Xero payload against LeaveBalanceRawPayloadSchema and returns
+// a Prisma-safe JSON value, or null when the payload cannot be represented as
+// JSON (defensive fallback; a well-formed HTTP JSON response always succeeds).
+export function toValidatedLeaveBalanceRawPayload(
+  value: unknown
+): LeaveBalanceRawPayload | null {
+  const parsed = LeaveBalanceRawPayloadSchema.safeParse(value);
+  return parsed.success ? parsed.data : null;
 }
 
 const LeaveBalanceSchema = z
   .object({
+    CurrencyCode: z.string().optional().nullable(),
     LeaveName: z.string().optional().nullable(),
     LeaveTypeID: z.string().optional().nullable(),
     LeaveTypeId: z.string().optional().nullable(),
@@ -41,14 +93,21 @@ export function mapXeroLeaveBalances(payload: unknown): XeroLeaveBalance[] {
 
   return parsed.data.Employees.flatMap((employee) => {
     const employeeId = text(employee.EmployeeID ?? employee.EmployeeId);
-    return (employee.LeaveBalances ?? []).map((balance) => ({
-      balance: balance.NumberOfUnits ?? 0,
-      employeeId,
-      leaveTypeId: text(balance.LeaveTypeID ?? balance.LeaveTypeId),
-      leaveTypeName: nullableText(balance.LeaveName),
-      rawPayload: balance,
-      unitType: normaliseUnitType(balance.TypeOfUnits),
-    }));
+    return (employee.LeaveBalances ?? []).map((balance) => {
+      const unitType = normaliseUnitType(balance.TypeOfUnits);
+      return {
+        balance: balance.NumberOfUnits ?? 0,
+        currencyCode:
+          unitType === "currency"
+            ? nullableUppercaseText(balance.CurrencyCode)
+            : null,
+        employeeId,
+        leaveTypeId: text(balance.LeaveTypeID ?? balance.LeaveTypeId),
+        leaveTypeName: nullableText(balance.LeaveName),
+        rawPayload: balance,
+        unitType,
+      };
+    });
   });
 }
 
@@ -61,15 +120,29 @@ function nullableText(value: string | null | undefined): string | null {
   return normalised.length > 0 ? normalised : null;
 }
 
+function nullableUppercaseText(
+  value: string | null | undefined
+): string | null {
+  const normalised = nullableText(value);
+  return normalised ? normalised.toUpperCase() : null;
+}
+
 function normaliseUnitType(
   value: string | null | undefined
-): "days" | "hours" | null {
+): "currency" | "days" | "hours" | null {
   const normalised = text(value).toLowerCase();
   if (normalised === "day" || normalised === "days") {
     return "days";
   }
   if (normalised === "hour" || normalised === "hours") {
     return "hours";
+  }
+  if (
+    normalised === "dollar" ||
+    normalised === "dollars" ||
+    normalised === "currency"
+  ) {
+    return "currency";
   }
   return null;
 }

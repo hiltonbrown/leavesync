@@ -177,6 +177,7 @@ enum availability_publish_status {
 enum leave_balance_unit {
   hours
   days
+  currency
 }
 
 enum feed_scope_rule_type {
@@ -657,21 +658,31 @@ model AvailabilityPublication {
 }
 
 model LeaveBalance {
-  id                 String                    @id @default(uuid()) @db.Uuid
-  clerk_org_id       String
-  organisation_id    String                    @db.Uuid
-  person_id          String                    @db.Uuid
+  id                  String                    @id @default(uuid()) @db.Uuid
+  clerk_org_id        String
+  organisation_id     String                    @db.Uuid
+  person_id           String                    @db.Uuid
   // Nullable to support admin-managed manual balances when Xero is not connected.
-  xero_tenant_id     String?                   @db.Uuid
-  leave_type_xero_id String
-  leave_type_name    String?
-  record_type        availability_record_type?
-  balance            Decimal                   @db.Decimal(12, 4)
-  balance_unit       leave_balance_unit?
-  as_at              DateTime?
-  last_fetched_at    DateTime?
-  created_at         DateTime                  @default(now())
-  updated_at         DateTime                  @updatedAt
+  xero_tenant_id      String?                   @db.Uuid
+  leave_type_xero_id  String
+  leave_type_name     String?
+  record_type         availability_record_type?
+  balance             Decimal                   @db.Decimal(12, 4)
+  balance_unit        leave_balance_unit?
+  // Nullable; only meaningful when balance_unit = currency, where it must hold a
+  // value from SupportedCurrencyCodeSchema (packages/xero/src/read/leave-balances.ts).
+  // The unit/code pairing is enforced at the application layer (validateBalance in
+  // packages/jobs/src/handlers/sync-xero-leave-balances.ts), not by a DB constraint.
+  currency_code       String?                   @db.VarChar(3)
+  // Raw Xero leave balance payload, validated as Prisma-safe JSON via
+  // LeaveBalanceRawPayloadSchema (packages/xero/src/read/leave-balances.ts).
+  // Retained for admin audit only; never displayed to employees. Always null for
+  // manually managed balances, which have no Xero-provided payload.
+  source_payload_json Json?
+  as_at               DateTime?
+  last_fetched_at     DateTime?
+  created_at          DateTime                  @default(now())
+  updated_at          DateTime                  @updatedAt
 
   organisation Organisation @relation(fields: [organisation_id], references: [id])
   person       Person       @relation(fields: [person_id], references: [id])
