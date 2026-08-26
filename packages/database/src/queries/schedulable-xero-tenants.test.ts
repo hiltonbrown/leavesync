@@ -91,11 +91,15 @@ describe("listSchedulableXeroTenants", () => {
 
   it("queries active, non-archived, non-paused AU Xero tenants across Clerk orgs with no token columns in select", async () => {
     const fixtureDate = new Date("2026-08-01T00:00:00.000Z");
+    const databaseTenantIdA = "tenant-uuid-1";
+    const databaseTenantIdB = "tenant-uuid-2";
+    const providerTenantIdA = "xero-tenant-1";
+    const providerTenantIdB = "xero-tenant-2";
 
     mocks.tenantFindMany.mockResolvedValue([
       {
         clerk_org_id: "org_clerk_1",
-        id: "tenant-uuid-1",
+        id: databaseTenantIdA,
         last_approval_state_reconciled_at: fixtureDate,
         last_leave_balances_sync_at: fixtureDate,
         last_leave_records_sync_at: fixtureDate,
@@ -111,11 +115,11 @@ describe("listSchedulableXeroTenants", () => {
           revoked_at: null,
           status: "active",
         },
-        xero_tenant_id: "xero-tenant-1",
+        xero_tenant_id: providerTenantIdA,
       },
       {
         clerk_org_id: "org_clerk_2",
-        id: "tenant-uuid-2",
+        id: databaseTenantIdB,
         last_approval_state_reconciled_at: null,
         last_leave_balances_sync_at: null,
         last_leave_records_sync_at: null,
@@ -131,7 +135,7 @@ describe("listSchedulableXeroTenants", () => {
           revoked_at: null,
           status: "active",
         },
-        xero_tenant_id: "xero-tenant-2",
+        xero_tenant_id: providerTenantIdB,
       },
     ]);
 
@@ -145,6 +149,8 @@ describe("listSchedulableXeroTenants", () => {
     expect(result.value.tenants).toHaveLength(2);
     expect(result.value.tenants[0].clerkOrgId).toBe("org_clerk_1");
     expect(result.value.tenants[1].clerkOrgId).toBe("org_clerk_2");
+    expect(result.value.tenants[0].databaseTenantId).toBe(databaseTenantIdA);
+    expect(result.value.tenants[1].databaseTenantId).toBe(databaseTenantIdB);
 
     // Inspect the call to database.xeroTenant.findMany
     const [[callArgs]] = mocks.tenantFindMany.mock.calls;
@@ -166,6 +172,7 @@ describe("listSchedulableXeroTenants", () => {
 
     // Verify token columns are NOT selected
     const selectKeys = Object.keys(callArgs.select);
+    expect(selectKeys).not.toContain("xero_tenant_id");
     expect(selectKeys).not.toContain("access_token_encrypted");
     expect(selectKeys).not.toContain("refresh_token_encrypted");
     expect(selectKeys).not.toContain("access_token_iv");
@@ -176,10 +183,15 @@ describe("listSchedulableXeroTenants", () => {
   });
 
   it("handles cursor pagination properly", async () => {
+    const databaseTenantIdA = "tenant-uuid-1";
+    const databaseTenantIdB = "tenant-uuid-2";
+    const providerTenantIdA = "xero-tenant-1";
+    const providerTenantIdB = "xero-tenant-2";
+
     mocks.tenantFindMany.mockResolvedValue([
       {
         clerk_org_id: "org_clerk_1",
-        id: "tenant-uuid-1",
+        id: databaseTenantIdA,
         last_approval_state_reconciled_at: null,
         last_leave_balances_sync_at: null,
         last_leave_records_sync_at: null,
@@ -193,11 +205,11 @@ describe("listSchedulableXeroTenants", () => {
           revoked_at: null,
           status: "active",
         },
-        xero_tenant_id: "xero-tenant-1",
+        xero_tenant_id: providerTenantIdA,
       },
       {
         clerk_org_id: "org_clerk_1",
-        id: "tenant-uuid-2",
+        id: databaseTenantIdB,
         last_approval_state_reconciled_at: null,
         last_leave_balances_sync_at: null,
         last_leave_records_sync_at: null,
@@ -211,7 +223,7 @@ describe("listSchedulableXeroTenants", () => {
           revoked_at: null,
           status: "active",
         },
-        xero_tenant_id: "xero-tenant-2",
+        xero_tenant_id: providerTenantIdB,
       },
     ]);
 
@@ -226,7 +238,8 @@ describe("listSchedulableXeroTenants", () => {
     }
 
     expect(result.value.tenants).toHaveLength(1);
-    expect(result.value.nextCursor).toBe("tenant-uuid-1");
+    expect(result.value.tenants[0].databaseTenantId).toBe(databaseTenantIdA);
+    expect(result.value.nextCursor).toBe(databaseTenantIdA);
 
     expect(mocks.tenantFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
