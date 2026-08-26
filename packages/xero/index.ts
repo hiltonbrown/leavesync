@@ -1,7 +1,10 @@
 import "./keys";
 
 export { XeroWriteAdapter } from "./src/adapter/xero-write-adapter";
-export type { XeroLeaveBalanceFetchFailure } from "./src/au/read";
+export type {
+  XeroEmployeesFetchResult,
+  XeroLeaveBalanceFetchFailure,
+} from "./src/au/read";
 export {
   buildXeroOAuthStartUrl,
   completeXeroOAuth,
@@ -24,7 +27,10 @@ export {
   fetchLeaveBalancesForRegion,
   fetchLeaveRecordsForRegion,
 } from "./src/read/dispatch";
-export type { XeroEmployee } from "./src/read/employees";
+export type {
+  XeroEmployee,
+  XeroEmployeeMapFailure,
+} from "./src/read/employees";
 export type {
   XeroLeaveApplicationStatus,
   XeroLeaveApplicationStatusResult,

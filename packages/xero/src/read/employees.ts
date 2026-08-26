@@ -12,6 +12,18 @@ export interface XeroEmployee {
   status: string | null;
 }
 
+// A record that Xero returned inside an Employees page but that could not be
+// turned into an XeroEmployee: either it does not match the expected shape,
+// or it has no resolvable EmployeeID. Team-Calendar-specific import
+// requirements (e.g. first/last name) are NOT asserted here; those remain a
+// handler-level concern so a name-only gap never discards the record here.
+export interface XeroEmployeeMapFailure {
+  index: number;
+  rawEmployeeId: string | null;
+  rawPayload: unknown;
+  reason: string;
+}
+
 export const XeroEmployeeSchema = z
   .object({
     Email: z.string().optional().nullable(),
@@ -26,14 +38,23 @@ export const XeroEmployeeSchema = z
   })
   .passthrough();
 
-export const XeroEmployeesResponseSchema = z
+// The envelope only asserts that Employees is an array; each element is
+// validated individually below so one malformed record cannot discard its
+// valid neighbours on the same page.
+const XeroEmployeesEnvelopeSchema = z
   .object({
-    Employees: z.array(XeroEmployeeSchema),
+    Employees: z.array(z.unknown()),
   })
   .passthrough();
 
 export type MapXeroEmployeesResult =
-  | { ok: true; employees: XeroEmployee[] }
+  | {
+      ok: true;
+      employees: XeroEmployee[];
+      failures: XeroEmployeeMapFailure[];
+      rawItemCount: number;
+      seenEmployeeIds: string[];
+    }
   | { ok: false };
 
 export function mapXeroEmployees(payload: unknown): XeroEmployee[] {
@@ -42,36 +63,82 @@ export function mapXeroEmployees(payload: unknown): XeroEmployee[] {
 }
 
 export function tryMapXeroEmployees(payload: unknown): MapXeroEmployeesResult {
-  const parsed = XeroEmployeesResponseSchema.safeParse(payload);
-  if (!parsed.success) {
+  const parsedEnvelope = XeroEmployeesEnvelopeSchema.safeParse(payload);
+  if (!parsedEnvelope.success) {
     return { ok: false };
   }
-  const employees = parsed.data.Employees.map((e) => ({
-    email:
-      typeof e.Email === "string" && e.Email.trim().length > 0
-        ? e.Email.trim()
-        : null,
-    employeeId: e.EmployeeID ?? e.EmployeeId ?? "",
-    employmentType:
-      typeof e.EmploymentType === "string" && e.EmploymentType.trim().length > 0
-        ? e.EmploymentType.trim()
-        : null,
-    firstName: e.FirstName ?? "",
-    jobTitle:
-      typeof e.JobTitle === "string" && e.JobTitle.trim().length > 0
-        ? e.JobTitle.trim()
-        : null,
-    lastName: e.LastName ?? "",
-    rawPayload: e,
-    startDate:
-      typeof e.StartDate === "string" && e.StartDate.trim().length > 0
-        ? e.StartDate.trim()
-        : null,
-    status:
-      typeof e.Status === "string" && e.Status.trim().length > 0
-        ? e.Status.trim()
-        : null,
-  }));
 
-  return { employees, ok: true };
+  const rawItems = parsedEnvelope.data.Employees;
+  const employees: XeroEmployee[] = [];
+  const failures: XeroEmployeeMapFailure[] = [];
+  const seenEmployeeIds: string[] = [];
+
+  rawItems.forEach((rawItem, index) => {
+    // Capture the raw ID before record validation so a record that fails
+    // parsing is still accounted for.
+    const rawEmployeeId = extractRawEmployeeId(rawItem);
+    if (rawEmployeeId) {
+      seenEmployeeIds.push(rawEmployeeId);
+    }
+
+    const parsedItem = XeroEmployeeSchema.safeParse(rawItem);
+    if (!parsedItem.success) {
+      failures.push({
+        index,
+        rawEmployeeId,
+        rawPayload: rawItem,
+        reason: "Employee record does not match the expected shape",
+      });
+      return;
+    }
+
+    const e = parsedItem.data;
+    const employeeId = e.EmployeeID ?? e.EmployeeId ?? "";
+    if (!employeeId) {
+      failures.push({
+        index,
+        rawEmployeeId,
+        rawPayload: rawItem,
+        reason: "Missing Employee ID",
+      });
+      return;
+    }
+
+    employees.push({
+      email: trimmedOrNull(e.Email),
+      employeeId,
+      employmentType: trimmedOrNull(e.EmploymentType),
+      firstName: e.FirstName ?? "",
+      jobTitle: trimmedOrNull(e.JobTitle),
+      lastName: e.LastName ?? "",
+      rawPayload: e,
+      startDate: trimmedOrNull(e.StartDate),
+      status: trimmedOrNull(e.Status),
+    });
+  });
+
+  return {
+    employees,
+    failures,
+    ok: true,
+    rawItemCount: rawItems.length,
+    seenEmployeeIds,
+  };
+}
+
+function trimmedOrNull(value: string | null | undefined): string | null {
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim()
+    : null;
+}
+
+function extractRawEmployeeId(rawItem: unknown): string | null {
+  if (typeof rawItem !== "object" || rawItem === null) {
+    return null;
+  }
+  const record = rawItem as Record<string, unknown>;
+  const candidate = record.EmployeeID ?? record.EmployeeId;
+  return typeof candidate === "string" && candidate.trim().length > 0
+    ? candidate.trim()
+    : null;
 }

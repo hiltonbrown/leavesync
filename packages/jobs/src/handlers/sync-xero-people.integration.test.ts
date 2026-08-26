@@ -124,8 +124,12 @@ describe("sync-xero-people handler", () => {
     mockFetchEmployeesForRegion.mockResolvedValue({
       ok: true,
       value: {
+        complete: true,
         employees: mockEmployees,
+        failures: [],
+        rawItemCount: mockEmployees.length,
         rawResponse: {},
+        seenEmployeeIds: mockEmployees.map((e) => e.employeeId),
       },
     });
 
@@ -209,8 +213,12 @@ describe("sync-xero-people handler", () => {
     mockFetchEmployeesForRegion.mockResolvedValue({
       ok: true,
       value: {
+        complete: true,
         employees: [mockEmployee],
+        failures: [],
+        rawItemCount: 1,
         rawResponse: {},
+        seenEmployeeIds: [mockEmployee.employeeId],
       },
     });
 
@@ -277,8 +285,12 @@ describe("sync-xero-people handler", () => {
     mockFetchEmployeesForRegion.mockResolvedValue({
       ok: true,
       value: {
+        complete: true,
         employees: mockEmployees,
+        failures: [],
+        rawItemCount: mockEmployees.length,
         rawResponse: {},
+        seenEmployeeIds: mockEmployees.map((e) => e.employeeId),
       },
     });
 
@@ -315,6 +327,252 @@ describe("sync-xero-people handler", () => {
       error_message: "Last name is required",
       record_type: "people",
       source_id: "22222222-2222-4222-8222-222222222222",
+    });
+  });
+
+  it("records Xero page mapping failures separately from handler validation failures", async () => {
+    await setupTenant(tenantA);
+
+    const validEmployee = {
+      email: "john.doe@example.com",
+      employeeId: "11111111-1111-4111-8111-111111111111",
+      employmentType: "EMPLOYEE",
+      firstName: "John",
+      jobTitle: "Developer",
+      lastName: "Doe",
+      rawPayload: { employee: "data1" },
+      startDate: "2026-01-01",
+      status: "ACTIVE",
+    };
+
+    // fetchEmployeesForRegion already isolated a malformed page record into
+    // `failures` before it ever became an XeroEmployee, distinct from the
+    // handler's own validateEmployee failures (covered by the previous
+    // test) and from persistence (db_error) failures.
+    mockFetchEmployeesForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: true,
+        employees: [validEmployee],
+        failures: [
+          {
+            index: 1,
+            rawEmployeeId: null,
+            rawPayload: { Broken: true },
+            reason: "Missing Employee ID",
+          },
+        ],
+        rawItemCount: 2,
+        rawResponse: {},
+        seenEmployeeIds: [validEmployee.employeeId],
+      },
+    });
+
+    const result = await syncXeroPeople({
+      clerkOrgId: tenantA.clerkOrgId,
+      organisationId: tenantA.organisationId,
+      triggerType: "manual" as const,
+      xeroTenantId: tenantA.xeroTenantId,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      // fetched reflects the raw item count Xero returned, including the
+      // record that could not be mapped.
+      expect(result.value.fetched).toBe(2);
+      expect(result.value.upserted).toBe(1);
+      expect(result.value.failed).toBe(1);
+      expect(result.value.status).toBe("partial_success");
+    }
+
+    const failedRecords = await database.failedRecord.findMany({
+      where: { clerk_org_id: tenantA.clerkOrgId },
+    });
+    expect(failedRecords).toHaveLength(1);
+    expect(failedRecords[0]).toMatchObject({
+      error_code: "mapping_error",
+      error_message: "Missing Employee ID",
+      source_id: "unknown",
+    });
+  });
+
+  it("reuses the same Person and clears archived_at when a previously archived EmployeeID returns from Xero", async () => {
+    await setupTenant(tenantA);
+
+    const employeeId = "11111111-1111-4111-8111-111111111111";
+    const archived = await database.person.create({
+      data: {
+        archived_at: new Date("2026-01-01T00:00:00.000Z"),
+        clerk_org_id: tenantA.clerkOrgId,
+        display_name: "John Doe",
+        email: "john.doe@example.com",
+        employment_type: "employee",
+        first_name: "John",
+        is_active: false,
+        last_name: "Doe",
+        organisation_id: tenantA.organisationId,
+        person_type: "employee",
+        source_person_key: employeeId,
+        source_system: "XERO",
+      },
+    });
+
+    mockFetchEmployeesForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: true,
+        employees: [
+          {
+            email: "john.doe@example.com",
+            employeeId,
+            employmentType: "EMPLOYEE",
+            firstName: "John",
+            jobTitle: "Developer",
+            lastName: "Doe",
+            rawPayload: { employee: "data" },
+            startDate: "2026-01-01",
+            status: "ACTIVE",
+          },
+        ],
+        failures: [],
+        rawItemCount: 1,
+        rawResponse: {},
+        seenEmployeeIds: [employeeId],
+      },
+    });
+
+    const result = await syncXeroPeople({
+      clerkOrgId: tenantA.clerkOrgId,
+      organisationId: tenantA.organisationId,
+      triggerType: "manual" as const,
+      xeroTenantId: tenantA.xeroTenantId,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.upserted).toBe(1);
+      expect(result.value.failed).toBe(0);
+      expect(result.value.status).toBe("succeeded");
+    }
+
+    const people = await database.person.findMany({
+      where: { clerk_org_id: tenantA.clerkOrgId },
+    });
+    expect(people).toHaveLength(1);
+    expect(people[0].id).toBe(archived.id);
+    expect(people[0].archived_at).toBeNull();
+    expect(people[0].is_active).toBe(true);
+  });
+
+  it("maps active, inactive, and terminated employees independently from archival state, and leaves a manual same-email person untouched", async () => {
+    await setupTenant(tenantA);
+
+    const manualPerson = await database.person.create({
+      data: {
+        clerk_org_id: tenantA.clerkOrgId,
+        display_name: "Manual Person",
+        email: "shared@example.com",
+        employment_type: "employee",
+        first_name: "Manual",
+        is_active: true,
+        last_name: "Person",
+        organisation_id: tenantA.organisationId,
+        person_type: "employee",
+        source_system: "MANUAL",
+      },
+    });
+
+    const activeId = "11111111-1111-4111-8111-111111111111";
+    const inactiveId = "22222222-2222-4222-8222-222222222222";
+    const terminatedId = "33333333-3333-4333-8333-333333333333";
+
+    const mockEmployees = [
+      {
+        email: "shared@example.com",
+        employeeId: activeId,
+        employmentType: "EMPLOYEE",
+        firstName: "Active",
+        jobTitle: "Developer",
+        lastName: "Person",
+        rawPayload: { employee: "active" },
+        startDate: "2026-01-01",
+        status: "ACTIVE",
+      },
+      {
+        email: "inactive@example.com",
+        employeeId: inactiveId,
+        employmentType: "EMPLOYEE",
+        firstName: "Inactive",
+        jobTitle: "Developer",
+        lastName: "Person",
+        rawPayload: { employee: "inactive" },
+        startDate: "2026-01-01",
+        status: "INACTIVE",
+      },
+      {
+        email: "terminated@example.com",
+        employeeId: terminatedId,
+        employmentType: "EMPLOYEE",
+        firstName: "Terminated",
+        jobTitle: "Developer",
+        lastName: "Person",
+        rawPayload: { employee: "terminated" },
+        startDate: "2026-01-01",
+        status: "TERMINATED",
+      },
+    ];
+
+    mockFetchEmployeesForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: true,
+        employees: mockEmployees,
+        failures: [],
+        rawItemCount: mockEmployees.length,
+        rawResponse: {},
+        seenEmployeeIds: mockEmployees.map((e) => e.employeeId),
+      },
+    });
+
+    const result = await syncXeroPeople({
+      clerkOrgId: tenantA.clerkOrgId,
+      organisationId: tenantA.organisationId,
+      triggerType: "manual" as const,
+      xeroTenantId: tenantA.xeroTenantId,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.upserted).toBe(3);
+      expect(result.value.failed).toBe(0);
+      expect(result.value.status).toBe("succeeded");
+    }
+
+    const xeroPeople = await database.person.findMany({
+      orderBy: { first_name: "asc" },
+      where: { clerk_org_id: tenantA.clerkOrgId, source_system: "XERO" },
+    });
+    expect(xeroPeople).toHaveLength(3);
+    expect(
+      xeroPeople.find((p) => p.source_person_key === activeId)
+    ).toMatchObject({ archived_at: null, is_active: true });
+    expect(
+      xeroPeople.find((p) => p.source_person_key === inactiveId)
+    ).toMatchObject({ archived_at: null, is_active: false });
+    expect(
+      xeroPeople.find((p) => p.source_person_key === terminatedId)
+    ).toMatchObject({ archived_at: null, is_active: false });
+
+    // The manual person sharing an email must remain untouched: same row,
+    // still MANUAL, still active, unaffected by the Xero-sourced import.
+    const manualAfter = await database.person.findFirst({
+      where: { id: manualPerson.id },
+    });
+    expect(manualAfter).toMatchObject({
+      archived_at: null,
+      first_name: "Manual",
+      is_active: true,
+      source_system: "MANUAL",
     });
   });
 

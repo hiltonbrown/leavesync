@@ -11,6 +11,7 @@ import {
   fetchEmployeesForRegion,
   toPlainLanguageMessage,
   type XeroEmployee,
+  type XeroEmployeeMapFailure,
   type XeroWriteError,
 } from "@repo/xero";
 import type { InngestFunction } from "inngest";
@@ -183,8 +184,20 @@ export async function syncXeroPeople(input: unknown): Promise<
       };
     }
 
-    const { employees } = employeesResult.value;
-    counts.fetched = employees.length;
+    const { complete, employees, failures, rawItemCount } =
+      employeesResult.value;
+    // fetched reflects every raw item Xero returned for this run, including
+    // ones that could not be mapped, so the run's accounting is never
+    // silently smaller than what Xero actually sent.
+    counts.fetched = rawItemCount;
+    if (!complete) {
+      log.warn("Xero employee fetch was truncated before completion", {
+        clerkOrgId: context.clerkOrgId,
+        organisationId: context.organisationId,
+        xeroTenantId: context.xeroTenantId,
+      });
+    }
+    await recordMappingFailures(context, run.id, failures, counts);
 
     for (let index = 0; index < employees.length; index += BATCH_SIZE) {
       const runState = await database.syncRun.findFirst({
@@ -296,6 +309,11 @@ async function processBatch(
           xero_employee_id: employee.employeeId,
         },
         update: {
+          // The employee was returned by Xero in this run, so any prior
+          // archival (e.g. from a destructive disconnect) no longer applies.
+          // is_active is mapped independently below and reflects Xero's
+          // employment status, not whether the person is archived.
+          archived_at: null,
           display_name: `${employee.firstName} ${employee.lastName}`,
           email,
           employment_type: employmentType,
@@ -330,6 +348,28 @@ async function processBatch(
       });
       counts.failed += 1;
     }
+  }
+}
+
+// Mapping failures happen before an employee ever reaches XeroEmployee shape
+// (e.g. an unparseable record, or one with no resolvable EmployeeID), so they
+// are recorded distinctly from handler validation failures (validateEmployee,
+// below) and persistence failures (the db_error branch in processBatch).
+async function recordMappingFailures(
+  context: SyncXeroPeopleInput,
+  runId: string,
+  failures: XeroEmployeeMapFailure[],
+  counts: { failed: number }
+) {
+  for (const failure of failures) {
+    await recordFailure(context, {
+      errorCode: "mapping_error",
+      errorMessage: failure.reason,
+      rawPayload: failure.rawPayload,
+      runId,
+      sourceId: failure.rawEmployeeId ?? "unknown",
+    });
+    counts.failed += 1;
   }
 }
 
