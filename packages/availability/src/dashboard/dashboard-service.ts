@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
-import { database } from "@repo/database";
+import { database, scopedQuery } from "@repo/database";
 import type {
   availability_approval_status,
   availability_contactability,
@@ -26,6 +26,10 @@ import {
   getCalendarRange,
 } from "../calendar/calendar-service";
 import { listForOrganisation } from "../holidays/holiday-service";
+import {
+  type CurrentStatus,
+  computeCurrentStatusForPeople,
+} from "../people/current-status";
 import {
   type BalanceRow,
   getPersonProfile,
@@ -445,11 +449,10 @@ export async function getManagerView(
       weekCalendarResult,
       monthCalendarResult,
     ] = await Promise.all([
-      listAllPeople({
-        actingPersonId: parsed.data.personId,
+      loadTeamTodayPeople({
         clerkOrgId: parsed.data.clerkOrgId,
         organisationId: parsed.data.organisationId,
-        role: "manager",
+        scopePersonIds,
       }),
       listForApprover({
         actingPersonId: parsed.data.personId,
@@ -1065,53 +1068,98 @@ async function loadSyncHealthCard(input: {
   };
 }
 
-async function listAllPeople(input: {
-  actingPersonId: string;
+interface DashboardTeamTodayPerson {
+  currentStatus: CurrentStatus;
+  firstName: string;
+  id: string;
+  lastName: string;
+  xeroSyncFailedCount: number;
+}
+
+// Loads the minimal person projection for the manager-dashboard team-today
+// and attention-list cards, scoped to an already-resolved set of visible
+// person ids. This intentionally bypasses `listPeople`/`listAllPeople`: it
+// issues one person read, one grouped Xero-failure read and one batch
+// current-status calculation regardless of how many people are in scope,
+// instead of paging through the full visible population.
+async function loadTeamTodayPeople(input: {
   clerkOrgId: string;
   organisationId: string;
-  role: "admin" | "manager";
-}) {
-  const collected: PersonListItem[] = [];
-  let cursor: string | null = null;
-  let totalCount = 0;
-
-  for (;;) {
-    const result = await listPeople({
-      actingPersonId: input.actingPersonId,
-      clerkOrgId: input.clerkOrgId,
-      filters: {
-        includeArchived: false,
-        personType: "all",
-        xeroLinked: "all",
-        xeroSyncFailedOnly: false,
-      },
-      organisationId: input.organisationId,
-      pagination: {
-        cursor,
-        pageSize: 200,
-      },
-      role: input.role,
-    });
-    if (!result.ok) {
-      return result;
-    }
-
-    ({ totalCount } = result.value);
-    collected.push(...result.value.people);
-    if (!result.value.nextCursor) {
-      break;
-    }
-    cursor = result.value.nextCursor;
+  scopePersonIds: string[];
+}): Promise<
+  Result<{ people: DashboardTeamTodayPerson[] }, DashboardServiceError>
+> {
+  if (input.scopePersonIds.length === 0) {
+    return { ok: true, value: { people: [] } };
   }
 
-  return {
-    ok: true as const,
-    value: {
-      nextCursor: null,
-      people: collected,
-      totalCount,
-    },
-  };
+  try {
+    const scoped = scopedQuery(
+      input.clerkOrgId as ClerkOrgId,
+      input.organisationId as OrganisationId
+    );
+
+    const [people, failedCounts] = await Promise.all([
+      database.person.findMany({
+        orderBy: [{ last_name: "asc" }, { first_name: "asc" }, { id: "asc" }],
+        select: {
+          first_name: true,
+          id: true,
+          last_name: true,
+          location_id: true,
+        },
+        where: {
+          ...scoped,
+          archived_at: null,
+          id: { in: input.scopePersonIds },
+        },
+      }),
+      database.availabilityRecord.groupBy({
+        _count: { _all: true },
+        by: ["person_id"],
+        where: {
+          ...scoped,
+          approval_status: "xero_sync_failed",
+          person_id: { in: input.scopePersonIds },
+        },
+      }),
+    ]);
+
+    const failedCountByPersonId = new Map(
+      failedCounts.map((row) => [row.person_id, row._count._all])
+    );
+
+    const currentStatusesByPersonId = await computeCurrentStatusForPeople({
+      at: new Date(),
+      clerkOrgId: input.clerkOrgId,
+      organisationId: input.organisationId,
+      people: people.map((person) => ({
+        locationId: person.location_id,
+        personId: person.id,
+      })),
+    });
+
+    return {
+      ok: true,
+      value: {
+        people: people.map((person) => {
+          const currentStatus = currentStatusesByPersonId.get(person.id);
+          if (!currentStatus) {
+            throw new Error("Current status missing for dashboard person");
+          }
+          return {
+            currentStatus,
+            firstName: person.first_name,
+            id: person.id,
+            lastName: person.last_name,
+            xeroSyncFailedCount: failedCountByPersonId.get(person.id) ?? 0,
+          };
+        }),
+      },
+    };
+  } catch {
+    return unknownError("Failed to load team availability.");
+  }
 }
 
 function buildApprovalQueueCard(records: ApprovalListItem[]) {
@@ -1141,7 +1189,7 @@ function buildApprovalQueueCard(records: ApprovalListItem[]) {
   };
 }
 
-function buildTeamTodayCard(people: PersonListItem[]) {
+function buildTeamTodayCard(people: DashboardTeamTodayPerson[]) {
   let peopleOnLeaveCount = 0;
   let peopleWorkingFromHomeCount = 0;
   let peopleTravellingCount = 0;
