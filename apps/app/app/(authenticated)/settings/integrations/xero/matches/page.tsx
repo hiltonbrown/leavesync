@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { requirePageRole } from "@/lib/auth/require-page-role";
 import { requireActiveOrgPageContext } from "@/lib/server/require-active-org-page-context";
 import { SettingsSectionHeader } from "../../../components/settings-section-header";
+import { toXeroPersonMatchView, xeroPersonMatchSelect } from "./_match-view";
 import { MatchesClient } from "./matches-client";
 
 export const metadata: Metadata = {
@@ -24,33 +25,17 @@ export default async function XeroMatchesPage({
   const { clerkOrgId, organisationId } =
     await requireActiveOrgPageContext(orgParam);
 
-  const matches = await database.xeroPersonMatch.findMany({
-    include: {
-      candidate_person: {
-        select: {
-          clerk_user_id: true,
-          email: true,
-          first_name: true,
-          id: true,
-          last_name: true,
-        },
-      },
-      xero_person: {
-        select: {
-          email: true,
-          first_name: true,
-          id: true,
-          last_name: true,
-        },
-      },
-    },
+  const rawMatches = await database.xeroPersonMatch.findMany({
     orderBy: [{ created_at: "asc" }, { id: "asc" }],
+    select: xeroPersonMatchSelect,
     where: {
       clerk_org_id: clerkOrgId,
       organisation_id: organisationId,
       status: "pending",
     },
   });
+
+  const matches = rawMatches.map(toXeroPersonMatchView);
 
   return (
     <div className="space-y-6">
