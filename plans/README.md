@@ -51,7 +51,8 @@ This reconciliation was read-only outside `plans/`.
 | Plan 097 execution | approved at `ecd49f5`, merged as `e5ed63c`; focused mapper 21/21, focused job integration 8/8, check, typecheck, unit and live database integration gates passed; `api` build (the plan's actual consumer) passed in isolation, default monorepo `bun run build` still blocked by the pre-existing Turbopack symlink issue above |
 | Plan 101 execution | approved at `ecd49f5`, merged as `0a42835`; focused mapper/job/database/manual-balance tests 21/21, one migration generated and applied cleanly, check, typecheck, unit and live database integration gates passed; `api` build passed in isolation, default monorepo `bun run build` still blocked by the pre-existing Turbopack symlink issue above |
 | Plan 030 execution | approved at `ecd49f5`, merged as `bf789b9`; focused dashboard tests 14/14 (including a constant-query-count boundary test proven to fail against the pre-plan implementation), check, typecheck, unit and live database integration gates passed; `api` build passed in isolation, default monorepo `bun run build` still blocked by the pre-existing Turbopack symlink issue above |
-| Current indexed plans | 64: 35 TODO, 13 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 056 execution | approved at `d0a9416`; focused handler tests 19/19 (including 5 new fairness and not_found tests), migration applied cleanly and verified with `prisma migrate diff`, check, typecheck, unit and live database integration gates passed |
+| Current indexed plans | 64: 34 TODO, 14 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -69,7 +70,7 @@ before starting its dependent plan.
 | [097](097-harden-returned-xero-employee-import.md) | Harden payroll import and reactivation | P1 | none | DONE |
 | [101](101-add-currency-leave-balance-contract.md) | Add currency balance schema contract | P1 | migration runner | DONE |
 | [030](030-remove-three-avoidable-round-trip-patterns.md) | Remove manager-dashboard query amplification | P2 | none | DONE |
-| [056](056-give-the-approval-reconciler-a-cursor.md) | Fair per-record approval reconciliation | P2 | integration database | TODO |
+| [056](056-give-the-approval-reconciler-a-cursor.md) | Fair per-record approval reconciliation | P2 | integration database | DONE |
 | [059](059-make-the-notification-stream-reliable-and-affordable.md) | Surface SSE failures and reduce idle polling | P2 | none | TODO |
 | [060](060-project-explicit-columns-in-the-analytics-services.md) | Exclude audit blobs from analytics queries | P2 | none | TODO |
 | [066](066-test-the-untested-money-and-tenancy-paths.md) | Test billing SQL, tenancy and contact logic | P2 | integration database | TODO |
@@ -230,6 +231,11 @@ predecessor/preflight contract in its plan.
   `people-service.ts` is untouched). Team-today cards, counts and attention
   ordering are unchanged; a query-count test at 1/200/201 people is proven to
   fail against the pre-plan implementation.
+- Plan 056 is complete at `d0a9416`. Candidate records are ordered by
+  `xero_approval_checked_at` nulls-first ascending then `id` ascending, with every
+  attempted record stamped under dual-tenant scoping. `not_found_error` from Xero
+  archives missing records without incrementing the failure count or creating
+  failed-record entries.
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
@@ -242,11 +248,11 @@ predecessor/preflight contract in its plan.
 | C-02 stale inbound leave write | 053 DONE |
 | C-03 final-day ICS inclusion | 054 DONE |
 | C-04 browser launch-mode env | 055 DONE |
-| C-05 approval reconciliation starvation | 056 |
+| C-05 approval reconciliation starvation | 056 DONE |
 | C-06 approval failure visibility | 057 DONE |
 | C-07 unbounded balance work | 091 |
 | C-08 silent SSE poll failures | 059 |
-| C-09 not-found counted as failure | 056 |
+| C-09 not-found counted as failure | 056 DONE |
 | S-01 exact `error` channel not scrubbed | 057 DONE |
 | S-02 inert CSP and no HSTS | 092–094 |
 | S-03 unvalidated availability identifiers | 077 |
