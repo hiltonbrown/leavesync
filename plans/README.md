@@ -50,7 +50,8 @@ This reconciliation was read-only outside `plans/`.
 | Plan 092 execution | approved at `c680fc2`, merged as `1122457`; focused test 2/2, check, typecheck, unit, live database integration, build and diff gates passed; app, web and API each returned one exact HSTS header |
 | Plan 097 execution | approved at `ecd49f5`, merged as `e5ed63c`; focused mapper 21/21, focused job integration 8/8, check, typecheck, unit and live database integration gates passed; `api` build (the plan's actual consumer) passed in isolation, default monorepo `bun run build` still blocked by the pre-existing Turbopack symlink issue above |
 | Plan 101 execution | approved at `ecd49f5`, merged as `0a42835`; focused mapper/job/database/manual-balance tests 21/21, one migration generated and applied cleanly, check, typecheck, unit and live database integration gates passed; `api` build passed in isolation, default monorepo `bun run build` still blocked by the pre-existing Turbopack symlink issue above |
-| Current indexed plans | 64: 36 TODO, 12 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 030 execution | approved at `ecd49f5`, merged as `bf789b9`; focused dashboard tests 14/14 (including a constant-query-count boundary test proven to fail against the pre-plan implementation), check, typecheck, unit and live database integration gates passed; `api` build passed in isolation, default monorepo `bun run build` still blocked by the pre-existing Turbopack symlink issue above |
+| Current indexed plans | 64: 35 TODO, 13 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -67,7 +68,7 @@ before starting its dependent plan.
 |---|---|---:|---|---|
 | [097](097-harden-returned-xero-employee-import.md) | Harden payroll import and reactivation | P1 | none | DONE |
 | [101](101-add-currency-leave-balance-contract.md) | Add currency balance schema contract | P1 | migration runner | DONE |
-| [030](030-remove-three-avoidable-round-trip-patterns.md) | Remove manager-dashboard query amplification | P2 | none | TODO |
+| [030](030-remove-three-avoidable-round-trip-patterns.md) | Remove manager-dashboard query amplification | P2 | none | DONE |
 | [056](056-give-the-approval-reconciler-a-cursor.md) | Fair per-record approval reconciliation | P2 | integration database | TODO |
 | [059](059-make-the-notification-stream-reliable-and-affordable.md) | Surface SSE failures and reduce idle polling | P2 | none | TODO |
 | [060](060-project-explicit-columns-in-the-analytics-services.md) | Exclude audit blobs from analytics queries | P2 | none | TODO |
@@ -220,6 +221,15 @@ predecessor/preflight contract in its plan.
   fix in `apps/app/components/people/person-profile-content.tsx` kept
   `typecheck` green after the enum widened; reviewed and approved on merit as
   behaviour-preserving.
+- Plan 030 is complete at `ecd49f5`, merged as `bf789b9`. `getManagerView` now
+  reuses the already-resolved `scopePersonIds` for one minimal person read,
+  one grouped Xero-failure read and one batch
+  `computeCurrentStatusForPeople` call, both tenant keys included, instead of
+  paging the full visible population through the local `listAllPeople`
+  wrapper (removed as dead code; the public `listPeople` contract in
+  `people-service.ts` is untouched). Team-today cards, counts and attention
+  ordering are unchanged; a query-count test at 1/200/201 people is proven to
+  fail against the pre-plan implementation.
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
