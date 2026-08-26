@@ -16,7 +16,7 @@
 - **Depends on**: none; migration/database runner required
 - **Category**: migration
 - **Planned at**: commit `ecd49f5`, 2026-08-24
-- **Execution status**: TODO
+- **Execution status**: DONE, merged as `0a42835` (approved at commit `ecd49f5`, no drift; scope exception: `apps/app/components/people/person-profile-content.tsx` narrowed a `useState` union to keep `typecheck` green after `leave_balance_unit` widened — disclosed, minimal, behaviour-preserving, reviewed on merit)
 - **Supersedes**: currency-data slice of rejected Plan 071
 
 ## Why this matters

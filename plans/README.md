@@ -49,7 +49,8 @@ This reconciliation was read-only outside `plans/`.
 | Plan 076 execution | focused tests 15/15; full check, typecheck, unit, database integration and default build gates passed |
 | Plan 092 execution | approved at `c680fc2`, merged as `1122457`; focused test 2/2, check, typecheck, unit, live database integration, build and diff gates passed; app, web and API each returned one exact HSTS header |
 | Plan 097 execution | approved at `ecd49f5`, merged as `e5ed63c`; focused mapper 21/21, focused job integration 8/8, check, typecheck, unit and live database integration gates passed; `api` build (the plan's actual consumer) passed in isolation, default monorepo `bun run build` still blocked by the pre-existing Turbopack symlink issue above |
-| Current indexed plans | 64: 37 TODO, 11 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 101 execution | approved at `ecd49f5`, merged as `0a42835`; focused mapper/job/database/manual-balance tests 21/21, one migration generated and applied cleanly, check, typecheck, unit and live database integration gates passed; `api` build passed in isolation, default monorepo `bun run build` still blocked by the pre-existing Turbopack symlink issue above |
+| Current indexed plans | 64: 36 TODO, 12 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -65,7 +66,7 @@ before starting its dependent plan.
 | Plan | Outcome | Priority | Depends on | Status |
 |---|---|---:|---|---|
 | [097](097-harden-returned-xero-employee-import.md) | Harden payroll import and reactivation | P1 | none | DONE |
-| [101](101-add-currency-leave-balance-contract.md) | Add currency balance schema contract | P1 | migration runner | TODO |
+| [101](101-add-currency-leave-balance-contract.md) | Add currency balance schema contract | P1 | migration runner | DONE |
 | [030](030-remove-three-avoidable-round-trip-patterns.md) | Remove manager-dashboard query amplification | P2 | none | TODO |
 | [056](056-give-the-approval-reconciler-a-cursor.md) | Fair per-record approval reconciliation | P2 | integration database | TODO |
 | [059](059-make-the-notification-stream-reliable-and-affordable.md) | Surface SSE failures and reduce idle polling | P2 | none | TODO |
@@ -210,6 +211,15 @@ predecessor/preflight contract in its plan.
   people reuse their existing Person and clear `archived_at` with `is_active`
   mapped independently of archival state. Manual same-email people are
   untouched.
+- Plan 101 is complete at `ecd49f5`, merged as `0a42835`. `leave_balances` now
+  stores a `currency` unit, a nullable `currency_code` and a validated
+  `source_payload_json` raw payload. The unit/code pairing is enforced
+  fail-closed at the application layer (`validateBalance`), not by database
+  nullability; manual and AU hours/days balances always persist a null
+  currency code and payload. One disclosed, out-of-plan-scope, minimal type
+  fix in `apps/app/components/people/person-profile-content.tsx` kept
+  `typecheck` green after the enum widened; reviewed and approved on merit as
+  behaviour-preserving.
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
