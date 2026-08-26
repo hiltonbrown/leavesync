@@ -51,6 +51,24 @@ describe("observability scrubber", () => {
     expect(JSON.stringify(result)).not.toContain("LEAK_CANARY");
   });
 
+  it.each([
+    [{ error: "runtime text" }, { error: "[SCRUBBED]" }],
+    [
+      { nested: { error: "runtime text" } },
+      { nested: { error: "[SCRUBBED]" } },
+    ],
+    [{ ErRoR: "runtime text" }, { ErRoR: "[SCRUBBED]" }],
+    [{ error: { detail: "runtime text" } }, { error: "[SCRUBBED]" }],
+  ])("scrubs non-Error exception channels", (input, expected) => {
+    expect(sanitizeObject(input)).toEqual(expected);
+  });
+
+  it("keeps safe error codes visible", () => {
+    expect(sanitizeObject({ errorCode: "APPROVAL_FAILED" })).toEqual({
+      errorCode: "APPROVAL_FAILED",
+    });
+  });
+
   it("scrubs exception-shaped object fields", () => {
     expect(
       sanitizeObject({

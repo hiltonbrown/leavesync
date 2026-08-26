@@ -48,13 +48,18 @@ const sanitizeValue = (value: unknown): unknown => {
   if (value && typeof value === "object") {
     const sanitized: Record<string, unknown> = {};
     for (const [key, nestedValue] of Object.entries(value)) {
-      sanitized[key] = isSensitiveKey(key)
-        ? "[SCRUBBED]"
-        : sanitizeValue(nestedValue);
+      sanitized[key] = sanitizeKeyValue(key, nestedValue);
     }
     return sanitized;
   }
   return value;
+};
+
+const sanitizeKeyValue = (key: string, value: unknown): unknown => {
+  if (key.toLowerCase() === "error") {
+    return value instanceof Error ? { name: value.name } : "[SCRUBBED]";
+  }
+  return isSensitiveKey(key) ? "[SCRUBBED]" : sanitizeValue(value);
 };
 
 export const sanitizeObject = (
@@ -62,7 +67,7 @@ export const sanitizeObject = (
 ): Record<string, unknown> => {
   const sanitized: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(obj)) {
-    sanitized[key] = isSensitiveKey(key) ? "[SCRUBBED]" : sanitizeValue(value);
+    sanitized[key] = sanitizeKeyValue(key, value);
   }
   return sanitized;
 };
