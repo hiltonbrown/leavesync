@@ -5,6 +5,9 @@ const mocks = vi.hoisted(() => ({
   getFirstActiveOrganisationIdForClerkOrg: vi.fn(),
   inngestSend: vi.fn(() => Promise.resolve()),
   isStripeEventProcessed: vi.fn(),
+  logError: vi.fn(),
+  logInfo: vi.fn(),
+  logWarn: vi.fn(),
   recordStripeEvent: vi.fn(() => Promise.resolve()),
   resolvePlanKey: vi.fn(),
   upsertSubscriptionFromWebhook: vi.fn(() => Promise.resolve()),
@@ -25,7 +28,7 @@ vi.mock("@repo/jobs", () => ({
   inngest: { send: mocks.inngestSend },
 }));
 vi.mock("@repo/observability/log", () => ({
-  log: { error: vi.fn(), info: vi.fn(), warn: vi.fn() },
+  log: { error: mocks.logError, info: mocks.logInfo, warn: mocks.logWarn },
 }));
 vi.mock("@/env", () => ({
   env: { STRIPE_WEBHOOK_SECRET: "whsec_test" },
@@ -221,5 +224,76 @@ describe("Stripe payments webhook", () => {
         stripeEventCreatedAt: new Date(olderCreatedSeconds * 1000),
       })
     );
+  });
+
+  it("skips a subscription event failing schema validation, logs an error, and still records the event", async () => {
+    mocks.constructEvent.mockReturnValue({
+      ok: true,
+      value: {
+        created: 1_700_000_100,
+        data: { object: { not: "a subscription" } },
+        id: "evt_bad",
+        type: "customer.subscription.updated",
+      },
+    });
+
+    const response = await POST(webhookRequest());
+
+    expect(response.status).toBe(200);
+    expect(mocks.logError).toHaveBeenCalledWith(
+      "Stripe subscription event failed validation and was skipped.",
+      expect.objectContaining({
+        eventId: "evt_bad",
+        eventType: "customer.subscription.updated",
+      })
+    );
+    expect(mocks.upsertSubscriptionFromWebhook).not.toHaveBeenCalled();
+    expect(mocks.recordStripeEvent).toHaveBeenCalledWith(
+      "evt_bad",
+      "customer.subscription.updated"
+    );
+  });
+
+  it("logs an unhandled event type at info level and still records it", async () => {
+    mocks.constructEvent.mockReturnValue({
+      ok: true,
+      value: {
+        created: 1_700_000_100,
+        data: { object: {} },
+        id: "evt_charge",
+        type: "charge.succeeded",
+      },
+    });
+
+    const response = await POST(webhookRequest());
+
+    expect(response.status).toBe(200);
+    expect(mocks.logInfo).toHaveBeenCalledWith(
+      "Stripe event type not handled.",
+      expect.objectContaining({
+        eventId: "evt_charge",
+        eventType: "charge.succeeded",
+      })
+    );
+    expect(mocks.recordStripeEvent).toHaveBeenCalledWith(
+      "evt_charge",
+      "charge.succeeded"
+    );
+  });
+
+  it("propagates the error and does not record the event when the mirror write rejects", async () => {
+    mocks.constructEvent.mockReturnValue({
+      ok: true,
+      value: subscriptionEvent(),
+    });
+    mocks.upsertSubscriptionFromWebhook.mockRejectedValueOnce(
+      new Error("database unavailable")
+    );
+
+    await expect(POST(webhookRequest())).rejects.toThrow(
+      "database unavailable"
+    );
+
+    expect(mocks.recordStripeEvent).not.toHaveBeenCalled();
   });
 });
