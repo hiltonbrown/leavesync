@@ -22,7 +22,7 @@ This reconciliation was read-only outside `plans/`.
 | `DATABASE_URL` | absent, so current integration gates were not rerun |
 | Default `bun run build` | failed on this host because Turbopack followed a workspace TypeScript symlink cycle; no application compile defect was established |
 | Blocked-plan cold review | 9 plans reviewed; 3 rewritten, 6 rejected and split |
-| Current indexed plans | 64: 41 TODO, 7 DONE, 14 REJECTED, 2 BLOCKED |
+| Current indexed plans | 64: 40 TODO, 8 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -37,7 +37,6 @@ before starting its dependent plan.
 
 | Plan | Outcome | Priority | Depends on | Status |
 |---|---|---:|---|---|
-| [057](057-make-failures-visible-and-scrub-what-is-logged.md) | Finish exact `error` channel scrubbing | P1 | DB/build preflight | TODO |
 | [076](076-route-scheduled-syncs-by-the-database-tenant-id.md) | Route scheduled jobs by database tenant UUID | P1 | DB/build runner | TODO |
 | [092](092-add-shared-hsts.md) | Add shared HSTS without preload promises | P1 | none | TODO |
 | [097](097-harden-returned-xero-employee-import.md) | Harden payroll import and reactivation | P1 | none | TODO |
@@ -88,18 +87,18 @@ blockers, and calendar adoption is measured through observed feed-token access.
 
 ```text
 Ready roots, grouped by priority:
-  P1: 057, 076, 092, 097, 101
-  P2: 030, 056, 059, 060, 066, 087, 089, 090
+  P1: 076, 092, 097, 101
+  P2: 030, 056, 059, 060, 066, 087, 089, 090, 093
   P3: 037, 039, 078, 084, 085, 086
 
 Security and boundary chain:
   066 -> 077
   066 -> 079 -> 088
   066 -> 081
-  057 -> 093 -> seven-day observation -> 094
+  057 DONE -> 093 -> seven-day observation -> 094
 
 Feed and Redis chain:
-  057 + 066 -> 061
+  057 DONE + 066 -> 061
   059 + 061 -> 083
   061 + 066 + 083 + operator limits -> 080
 
@@ -139,9 +138,9 @@ predecessor/preflight contract in its plan.
   the completed replacement. Rejected records are not “safe to delete”.
 - Plan 031 mixed public package exports with a React client boundary. Plans 088
   and 089 separate those concerns.
-- Plan 057 now contains only the residual exact-error-key scrubber work. The
-  earlier approval/logging implementation remains merged. Runner availability
-  is a preflight, not a backlog blocker.
+- Plan 057 is complete at `782c2b5`. Exact case-insensitive `error` keys retain
+  only an actual `Error` name and scrub every other value wholesale; the earlier
+  approval/logging implementation remains merged.
 - Plan 058 was rejected and split into independent stale-archive Plan 090 and
   scheduled balance-page Plan 091. The reconciled contract keeps unlimited
   rosters and defines rolling 40-person hourly pages without a completion SLA.
@@ -183,11 +182,11 @@ predecessor/preflight contract in its plan.
 | C-03 final-day ICS inclusion | 054 DONE |
 | C-04 browser launch-mode env | 055 DONE |
 | C-05 approval reconciliation starvation | 056 |
-| C-06 approval failure visibility | original 057 DONE; residual scrubber in 057 |
+| C-06 approval failure visibility | 057 DONE |
 | C-07 unbounded balance work | 091 |
 | C-08 silent SSE poll failures | 059 |
 | C-09 not-found counted as failure | 056 |
-| S-01 exact `error` channel not scrubbed | 057 |
+| S-01 exact `error` channel not scrubbed | 057 DONE |
 | S-02 inert CSP and no HSTS | 092–094 |
 | S-03 unvalidated availability identifiers | 077 |
 | S-04 dead ungated token helpers | 078 |
@@ -241,6 +240,7 @@ remain important dependencies:
 | 045–046 | Closed AU early-access product and go-live baseline |
 | 049 | Default build previously passed on a suitable runner |
 | 050 | Xero person-match surface scoped to one Organisation |
+| 057 | Exact `error` channels scrubbed at every nesting level; approved as `782c2b5` after all gates passed |
 
 ## What this reconciliation did not verify
 
