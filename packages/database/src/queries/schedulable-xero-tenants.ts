@@ -5,8 +5,8 @@ import { database } from "../client";
 export interface SchedulableXeroTenant {
   clerkOrgId: string;
   connectionStatus: string;
+  databaseTenantId: string;
   disconnectedAt: Date | null;
-  id: string;
   lastApprovalStateReconciledAt: Date | null;
   lastLeaveBalancesSyncAt: Date | null;
   lastLeaveRecordsSyncAt: Date | null;
@@ -16,7 +16,6 @@ export interface SchedulableXeroTenant {
   revokedAt: Date | null;
   syncPausedAt: Date | null;
   timezone: string | null;
-  xeroTenantId: string;
 }
 
 export interface ListSchedulableXeroTenantsOptions {
@@ -156,7 +155,6 @@ export async function listSchedulableXeroTenants(
             status: true,
           },
         },
-        xero_tenant_id: true,
       },
       where: {
         organisation: {
@@ -184,8 +182,8 @@ export async function listSchedulableXeroTenants(
     const tenants: SchedulableXeroTenant[] = items.map((item) => ({
       clerkOrgId: item.clerk_org_id,
       connectionStatus: item.xero_connection.status,
+      databaseTenantId: item.id,
       disconnectedAt: item.xero_connection.disconnected_at,
-      id: item.id,
       lastApprovalStateReconciledAt: item.last_approval_state_reconciled_at,
       lastLeaveBalancesSyncAt: item.last_leave_balances_sync_at,
       lastLeaveRecordsSyncAt: item.last_leave_records_sync_at,
@@ -195,7 +193,6 @@ export async function listSchedulableXeroTenants(
       revokedAt: item.xero_connection.revoked_at,
       syncPausedAt: item.sync_paused_at,
       timezone: item.organisation.timezone,
-      xeroTenantId: item.xero_tenant_id,
     }));
 
     return {

@@ -1,5 +1,10 @@
 import "./setup-env";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  getScheduledSyncEventId,
+  type RegisteredSyncRunType,
+  syncEventNames,
+} from "../events";
 
 vi.mock("server-only", () => ({}));
 
@@ -33,16 +38,18 @@ if (process.env.DATABASE_URL) {
 
 const tenantA = {
   clerkOrgId: "org_test_schedule_sync_a",
+  databaseTenantId: "95000000-0000-4000-8000-000000000003",
   organisationId: "95000000-0000-4000-8000-000000000001",
+  providerTenantId: "95000000-0000-4000-8000-000000000004",
   xeroConnectionId: "95000000-0000-4000-8000-000000000002",
-  xeroTenantId: "95000000-0000-4000-8000-000000000003",
 } as const;
 
 const tenantB = {
   clerkOrgId: "org_test_schedule_sync_b",
+  databaseTenantId: "96000000-0000-4000-8000-000000000003",
   organisationId: "96000000-0000-4000-8000-000000000001",
+  providerTenantId: "96000000-0000-4000-8000-000000000004",
   xeroConnectionId: "96000000-0000-4000-8000-000000000002",
-  xeroTenantId: "96000000-0000-4000-8000-000000000003",
 } as const;
 
 const testClerkOrgIds = [tenantA.clerkOrgId, tenantB.clerkOrgId] as const;
@@ -76,11 +83,11 @@ async function setupTenant(tenant: typeof tenantA, timezone: string) {
   await database.xeroTenant.create({
     data: {
       clerk_org_id: tenant.clerkOrgId,
-      id: tenant.xeroTenantId,
+      id: tenant.databaseTenantId,
       organisation_id: tenant.organisationId,
       payroll_region: "AU",
       xero_connection_id: tenant.xeroConnectionId,
-      xero_tenant_id: tenant.xeroTenantId,
+      xero_tenant_id: tenant.providerTenantId,
     },
   });
 }
@@ -114,7 +121,7 @@ describeWithDatabase("scheduleXeroSyncs Integration", () => {
     await setupTenant(tenantA, "Australia/Sydney");
     await setupTenant(tenantB, "Australia/Melbourne");
 
-    const now = new Date("2026-08-12T00:00:00.000Z"); // Wed 10:00 AM local
+    const now = new Date("2026-08-11T15:30:00.000Z"); // Wed 01:30 AM local
     const result = await scheduleXeroSyncsPage({ now });
 
     expect(result.ok).toBe(true);
@@ -123,7 +130,7 @@ describeWithDatabase("scheduleXeroSyncs Integration", () => {
     }
 
     expect(result.value.scanned).toBeGreaterThanOrEqual(2);
-    expect(result.value.dispatched).toBeGreaterThanOrEqual(6); // 3 per tenant
+    expect(result.value.dispatched).toBeGreaterThanOrEqual(8); // 4 per tenant
 
     // Filter sent events for our test tenants
     const tenantAEvents = sentEvents.filter(
@@ -133,21 +140,53 @@ describeWithDatabase("scheduleXeroSyncs Integration", () => {
       (e) => e.data.clerkOrgId === tenantB.clerkOrgId
     );
 
-    expect(tenantAEvents.length).toBeGreaterThanOrEqual(3);
-    expect(tenantBEvents.length).toBeGreaterThanOrEqual(3);
+    const expectedRunTypes = [
+      "people",
+      "leave_records",
+      "leave_balances",
+      "approval_state_reconciliation",
+    ] satisfies RegisteredSyncRunType[];
+
+    const expectedEventNames = expectedRunTypes.map(
+      (runType) => syncEventNames[runType]
+    );
+    expect(tenantAEvents.map((event) => event.name)).toEqual(
+      expectedEventNames
+    );
+    expect(tenantBEvents.map((event) => event.name)).toEqual(
+      expectedEventNames
+    );
 
     for (const evt of tenantAEvents) {
       expect(evt.data.clerkOrgId).toBe(tenantA.clerkOrgId);
       expect(evt.data.organisationId).toBe(tenantA.organisationId);
-      expect(evt.data.xeroTenantId).toBe(tenantA.xeroTenantId);
+      expect(evt.data.xeroTenantId).toBe(tenantA.databaseTenantId);
+      expect(evt.data.xeroTenantId).not.toBe(tenantA.providerTenantId);
       expect(evt.data.triggerType).toBe("scheduled");
+    }
+    for (const runType of expectedRunTypes) {
+      const event = tenantAEvents.find(
+        (candidate) => candidate.name === syncEventNames[runType]
+      );
+      expect(event?.id).toBe(
+        getScheduledSyncEventId(tenantA.databaseTenantId, runType, now)
+      );
     }
 
     for (const evt of tenantBEvents) {
       expect(evt.data.clerkOrgId).toBe(tenantB.clerkOrgId);
       expect(evt.data.organisationId).toBe(tenantB.organisationId);
-      expect(evt.data.xeroTenantId).toBe(tenantB.xeroTenantId);
+      expect(evt.data.xeroTenantId).toBe(tenantB.databaseTenantId);
+      expect(evt.data.xeroTenantId).not.toBe(tenantB.providerTenantId);
       expect(evt.data.triggerType).toBe("scheduled");
+    }
+    for (const runType of expectedRunTypes) {
+      const event = tenantBEvents.find(
+        (candidate) => candidate.name === syncEventNames[runType]
+      );
+      expect(event?.id).toBe(
+        getScheduledSyncEventId(tenantB.databaseTenantId, runType, now)
+      );
     }
   });
 });
