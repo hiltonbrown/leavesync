@@ -255,7 +255,10 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
           },
         },
       },
-      orderBy: [{ approval_status: "asc" }, { created_at: "asc" }],
+      orderBy: [
+        { xero_approval_checked_at: { nulls: "first", sort: "asc" } },
+        { id: "asc" },
+      ],
       take: MAX_REQUESTS_PER_RUN,
       where: {
         ...scoped(context),
@@ -267,6 +270,7 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
     });
 
     const partial = records.length === MAX_REQUESTS_PER_RUN;
+    const checkedAt = new Date();
 
     const counts = {
       approved: 0,
@@ -297,7 +301,7 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
       const batch = records.slice(index, index + BATCH_SIZE);
       const results = await Promise.all(
         batch.map((record) =>
-          reconcileOne(context, run.id, xeroTenant, record, counts)
+          reconcileOne(context, run.id, xeroTenant, record, counts, checkedAt)
         )
       );
       const blanket = results.find((result) => result.blanketError);
@@ -333,7 +337,7 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
     await completeRun(context, run.id, {
       counts,
       errorSummary: partial
-        ? `Reconciliation capped at ${MAX_REQUESTS_PER_RUN} records; rerun to continue`
+        ? `Reconciliation capped at ${MAX_REQUESTS_PER_RUN} records`
         : undefined,
       recordsFetched: records.length,
       status: finalStatus,
@@ -372,7 +376,8 @@ async function reconcileRecord(
     rawPayload: unknown;
     status: XeroLeaveApplicationStatus;
     xeroLeaveApplicationId: string;
-  }
+  },
+  checkedAt: Date
 ): Promise<"approved" | "declined" | "matched" | "withdrawn"> {
   if (
     xero.status === "APPROVED" &&
@@ -387,13 +392,18 @@ async function reconcileRecord(
         approved_at: xero.approvedAt ?? new Date(),
         derived_sequence: { increment: 1 },
         failed_action: null,
+        xero_approval_checked_at: checkedAt,
         xero_write_error: null,
         xero_write_error_raw: Prisma.DbNull,
       },
       notificationType: "leave_approved",
       xeroLeaveApplicationId: xero.xeroLeaveApplicationId,
     });
-    return transitioned ? "approved" : "matched";
+    if (transitioned) {
+      return "approved";
+    }
+    await stampCheckedAt(context, record.id, checkedAt);
+    return "matched";
   }
 
   if (
@@ -409,13 +419,18 @@ async function reconcileRecord(
         approval_status: "declined",
         derived_sequence: { increment: 1 },
         failed_action: null,
+        xero_approval_checked_at: checkedAt,
         xero_write_error: null,
         xero_write_error_raw: Prisma.DbNull,
       },
       notificationType: "leave_declined",
       xeroLeaveApplicationId: xero.xeroLeaveApplicationId,
     });
-    return transitioned ? "declined" : "matched";
+    if (transitioned) {
+      return "declined";
+    }
+    await stampCheckedAt(context, record.id, checkedAt);
+    return "matched";
   }
 
   if (
@@ -432,13 +447,18 @@ async function reconcileRecord(
         derived_sequence: { increment: 1 },
         failed_action: null,
         withdrawn_at: new Date(),
+        xero_approval_checked_at: checkedAt,
         xero_write_error: null,
         xero_write_error_raw: Prisma.DbNull,
       },
       notificationType: "leave_withdrawn",
       xeroLeaveApplicationId: xero.xeroLeaveApplicationId,
     });
-    return transitioned ? "withdrawn" : "matched";
+    if (transitioned) {
+      return "withdrawn";
+    }
+    await stampCheckedAt(context, record.id, checkedAt);
+    return "matched";
   }
 
   if (
@@ -453,15 +473,21 @@ async function reconcileRecord(
         derived_sequence: { increment: 1 },
         failed_action: null,
         withdrawn_at: new Date(),
+        xero_approval_checked_at: checkedAt,
         xero_write_error: null,
         xero_write_error_raw: Prisma.DbNull,
       },
       notificationType: "leave_withdrawn",
       xeroLeaveApplicationId: xero.xeroLeaveApplicationId,
     });
-    return transitioned ? "withdrawn" : "matched";
+    if (transitioned) {
+      return "withdrawn";
+    }
+    await stampCheckedAt(context, record.id, checkedAt);
+    return "matched";
   }
 
+  await stampCheckedAt(context, record.id, checkedAt);
   return "matched";
 }
 
@@ -514,13 +540,15 @@ async function archiveMissing(
   context: ReconcileApprovalStateInput,
   runId: string,
   record: ReconciliationRecord,
-  xeroLeaveApplicationId: string
+  xeroLeaveApplicationId: string,
+  checkedAt: Date
 ) {
   await database.$transaction(async (tx) => {
     const updated = await tx.availabilityRecord.updateMany({
       data: {
         archived_at: new Date(),
         publish_status: "archived",
+        xero_approval_checked_at: checkedAt,
       },
       where: {
         ...scoped(context),
@@ -536,6 +564,10 @@ async function archiveMissing(
         organisationId: context.organisationId,
         recordId: record.id,
         snapshotApprovalStatus: record.approval_status,
+      });
+      await tx.availabilityRecord.updateMany({
+        data: { xero_approval_checked_at: checkedAt },
+        where: { ...scoped(context), id: record.id },
       });
       return;
     }
@@ -846,11 +878,13 @@ async function reconcileOne(
     failed: number;
     matched: number;
     withdrawn: number;
-  }
+  },
+  checkedAt: Date
 ): Promise<{ blanketError?: XeroWriteError }> {
   try {
     const xeroLeaveApplicationId = record.source_remote_id;
     if (!xeroLeaveApplicationId) {
+      await stampCheckedAt(context, record.id, checkedAt);
       return {};
     }
     const status = await fetchLeaveApplicationStatusForRegion(
@@ -861,6 +895,17 @@ async function reconcileOne(
       if (isBlanketFailure(status.error)) {
         return { blanketError: status.error };
       }
+      if (status.error.code === "not_found_error") {
+        await archiveMissing(
+          context,
+          runId,
+          record,
+          xeroLeaveApplicationId,
+          checkedAt
+        );
+        counts.archivedMissing += 1;
+        return {};
+      }
       await recordFailure(context, {
         error: status.error,
         rawPayload: status.error.rawPayload ?? null,
@@ -869,20 +914,23 @@ async function reconcileOne(
         runId,
         sourceRemoteId: xeroLeaveApplicationId,
       });
-      if (status.error.code === "not_found_error") {
-        await archiveMissing(context, runId, record, xeroLeaveApplicationId);
-        counts.archivedMissing += 1;
-      }
+      await stampCheckedAt(context, record.id, checkedAt);
       counts.failed += 1;
       return {};
     }
 
-    const reconciled = await reconcileRecord(context, runId, record, {
-      approvedAt: status.value.approvedAt,
-      rawPayload: status.value.rawResponse,
-      status: status.value.status,
-      xeroLeaveApplicationId,
-    });
+    const reconciled = await reconcileRecord(
+      context,
+      runId,
+      record,
+      {
+        approvedAt: status.value.approvedAt,
+        rawPayload: status.value.rawResponse,
+        status: status.value.status,
+        xeroLeaveApplicationId,
+      },
+      checkedAt
+    );
     counts[reconciled] += 1;
     return {};
   } catch (error) {
@@ -890,9 +938,21 @@ async function reconcileOne(
       error,
       recordId: record.id,
     });
+    await stampCheckedAt(context, record.id, checkedAt);
     counts.failed += 1;
     return {};
   }
+}
+
+async function stampCheckedAt(
+  context: ReconcileApprovalStateInput,
+  recordId: string,
+  checkedAt: Date
+) {
+  await database.availabilityRecord.updateMany({
+    data: { xero_approval_checked_at: checkedAt },
+    where: { ...scoped(context), id: recordId },
+  });
 }
 
 function toPrismaJsonValue(
