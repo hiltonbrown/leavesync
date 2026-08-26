@@ -279,7 +279,7 @@ export async function scheduleXeroSyncsPage(
       log.warn("Skipping Xero tenant with invalid timezone", {
         clerkOrgId: tenant.clerkOrgId,
         organisationId: tenant.organisationId,
-        xeroTenantId: tenant.xeroTenantId,
+        xeroTenantId: tenant.databaseTenantId,
       });
       continue;
     }
@@ -292,7 +292,7 @@ export async function scheduleXeroSyncsPage(
 
     for (const runType of due) {
       const eventId = getScheduledSyncEventId(
-        tenant.xeroTenantId,
+        tenant.databaseTenantId,
         runType,
         now
       );
@@ -302,7 +302,7 @@ export async function scheduleXeroSyncsPage(
           organisationId: tenant.organisationId,
           runType,
           triggerType: "scheduled",
-          xeroTenantId: tenant.xeroTenantId,
+          xeroTenantId: tenant.databaseTenantId,
         },
         { eventId }
       );
@@ -315,7 +315,7 @@ export async function scheduleXeroSyncsPage(
           error: dispatchRes.error,
           organisationId: tenant.organisationId,
           runType,
-          xeroTenantId: tenant.xeroTenantId,
+          xeroTenantId: tenant.databaseTenantId,
         });
       }
     }
