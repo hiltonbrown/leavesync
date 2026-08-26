@@ -57,6 +57,8 @@ bookkeeping. No NZ/UK requests, UI formatting, manual currency editing or FX.
 
 ## Git workflow
 
+- Base branch: `preview` (`origin/preview`), not `main`. Branch from `preview`, commit there, and land the finished work on `preview` — see `plans/README.md` § Execution policy.
+- Work directly in this working tree. No isolated git worktree is used for this repo's plan executions.
 - Branch: `feat/101-currency-balance-contract`
 - Commit: `feat(database): store currency leave balances`
 - Do not push or open a pull request unless instructed.

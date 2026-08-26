@@ -54,6 +54,8 @@ write-back or change pricing.
 
 ## Git workflow
 
+- Base branch: `preview` (`origin/preview`), not `main`. Branch from `preview`, commit there, and land the finished work on `preview` — see `plans/README.md` § Execution policy.
+- Work directly in this working tree. No isolated git worktree is used for this repo's plan executions.
 - Branch: `feat/109-activate-uk-xero`
 - Commit after live proof: `feat(xero): activate United Kingdom payroll sync`
 - Do not push/merge or publish support wording before live proof.

@@ -53,6 +53,8 @@ currency schema, presentation, OAuth/scheduling, leave orchestration or pricing.
 
 ## Git workflow
 
+- Base branch: `preview` (`origin/preview`), not `main`. Branch from `preview`, commit there, and land the finished work on `preview` — see `plans/README.md` § Execution policy.
+- Work directly in this working tree. No isolated git worktree is used for this repo's plan executions.
 - Branch: `feat/106-regional-balance-pages`
 - Commit: `feat(jobs): sync regional balance pages`
 - Do not push or open a pull request unless instructed.

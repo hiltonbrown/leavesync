@@ -70,6 +70,8 @@ At the planning commit:
 
 ## Git workflow
 
+- Base branch: `preview` (`origin/preview`), not `main`. Branch from `preview`, commit there, and land the finished work on `preview` — see `plans/README.md` § Execution policy.
+- Work directly in this working tree. No isolated git worktree is used for this repo's plan executions.
 - Branch: `advisor/059-sse-reliability`
 - Suggested commit: `fix(api): surface notification stream failures`
 - Do not push or open a PR unless instructed.

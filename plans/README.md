@@ -8,6 +8,30 @@ not be executed. All design and decomposition blockers are resolved. Only the
 two regional activation plans remain `BLOCKED`, on named live Xero environments
 and UK partner permission that repository analysis cannot supply.
 
+## Execution policy
+
+Set 2026-08-26: all plan executions land directly on `preview`
+(`origin/preview`), not `main`, and run directly in this working tree — no
+isolated git worktree. This supersedes the `improve` skill's default
+`execute` dispatch (`isolation: "worktree"`, branch off the default branch)
+for this repo only:
+
+- Every TODO/BLOCKED plan's `## Git workflow` section now opens with a "Base
+  branch: `preview`" bullet ahead of its own branch name — branch from
+  `preview`, not `main`.
+- Executors work directly in the current working tree. Uncommitted changes
+  must be checked (`git status`) and any in-progress work stashed or
+  committed before a plan's branch is checked out, per the standing git
+  safety rules.
+- The advisor's review verdict process is unchanged: re-run done criteria,
+  check scope, read the diff. **APPROVE** still means presenting the diff for
+  the user's own merge decision — the user merges into `preview` themselves;
+  the advisor and executor never merge, push, or land on `preview` without
+  that explicit go-ahead.
+- Rejected and DONE plans are historical records; this policy does not
+  retroactively change how already-merged work landed (092 and 076 merged to
+  `main`, before this policy existed).
+
 ## Verification snapshot
 
 This reconciliation was read-only outside `plans/`.

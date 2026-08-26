@@ -78,6 +78,8 @@ small, independent optimisation. Both are explicitly deferred.
 
 ## Git workflow
 
+- Base branch: `preview` (`origin/preview`), not `main`. Branch from `preview`, commit there, and land the finished work on `preview` — see `plans/README.md` § Execution policy.
+- Work directly in this working tree. No isolated git worktree is used for this repo's plan executions.
 - Branch: `perf/030-manager-dashboard-query-amplification`
 - Commit: `perf(availability): batch manager dashboard people queries`
 - Do not push or open a pull request unless instructed.
