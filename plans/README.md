@@ -48,7 +48,8 @@ This reconciliation was read-only outside `plans/`.
 | Blocked-plan cold review | 9 plans reviewed; 3 rewritten, 6 rejected and split |
 | Plan 076 execution | focused tests 15/15; full check, typecheck, unit, database integration and default build gates passed |
 | Plan 092 execution | approved at `c680fc2`, merged as `1122457`; focused test 2/2, check, typecheck, unit, live database integration, build and diff gates passed; app, web and API each returned one exact HSTS header |
-| Current indexed plans | 64: 38 TODO, 10 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 097 execution | approved at `ecd49f5`, merged as `e5ed63c`; focused mapper 21/21, focused job integration 8/8, check, typecheck, unit and live database integration gates passed; `api` build (the plan's actual consumer) passed in isolation, default monorepo `bun run build` still blocked by the pre-existing Turbopack symlink issue above |
+| Current indexed plans | 64: 37 TODO, 11 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -63,7 +64,7 @@ before starting its dependent plan.
 
 | Plan | Outcome | Priority | Depends on | Status |
 |---|---|---:|---|---|
-| [097](097-harden-returned-xero-employee-import.md) | Harden payroll import and reactivation | P1 | none | TODO |
+| [097](097-harden-returned-xero-employee-import.md) | Harden payroll import and reactivation | P1 | none | DONE |
 | [101](101-add-currency-leave-balance-contract.md) | Add currency balance schema contract | P1 | migration runner | TODO |
 | [030](030-remove-three-avoidable-round-trip-patterns.md) | Remove manager-dashboard query amplification | P2 | none | TODO |
 | [056](056-give-the-approval-reconciler-a-cursor.md) | Fair per-record approval reconciliation | P2 | integration database | TODO |
@@ -203,6 +204,12 @@ predecessor/preflight contract in its plan.
   confirmed missing-person lifecycle and Clerk access so stale payroll people
   cannot become invitation candidates. The safety rule is two observations at
   least 24 hours apart with inclusive bulk-loss guards.
+- Plan 097 is complete at `ecd49f5`, merged as `e5ed63c`. The employee page
+  mapper now isolates record-level failures instead of discarding a whole
+  page, pagination termination uses raw page length, and returning Xero
+  people reuse their existing Person and clear `archived_at` with `is_active`
+  mapped independently of archival state. Manual same-email people are
+  untouched.
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
