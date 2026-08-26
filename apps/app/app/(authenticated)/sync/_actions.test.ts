@@ -178,6 +178,142 @@ describe("sync server actions", () => {
       });
     });
 
+    it("returns sync_failed error and does not report queued/successful when handler returns failed status", async () => {
+      mocks.syncXeroPeople.mockResolvedValueOnce({
+        ok: true,
+        value: {
+          errorSummary: "Xero connection not active",
+          failed: 0,
+          fetched: 0,
+          runId: "run_failed_1",
+          skipped: 0,
+          status: "failed",
+          upserted: 0,
+        },
+      });
+
+      const result = await dispatchManualSyncAction({
+        organisationId,
+        runType: "people",
+        xeroTenantId,
+      });
+
+      expect(result.ok).toBe(false);
+      expect(result).toEqual({
+        error: {
+          code: "sync_failed",
+          message: "Xero connection not active",
+        },
+        ok: false,
+      });
+    });
+
+    it("returns sync_failed error and does not report queued/successful when handler returns cancelled status", async () => {
+      mocks.syncXeroPeople.mockResolvedValueOnce({
+        ok: true,
+        value: {
+          errorSummary: "Tenant sync is paused for this Xero connection",
+          failed: 0,
+          fetched: 0,
+          runId: "run_cancelled_1",
+          skipped: 0,
+          status: "cancelled",
+          upserted: 0,
+        },
+      });
+
+      const result = await dispatchManualSyncAction({
+        organisationId,
+        runType: "people",
+        xeroTenantId,
+      });
+
+      expect(result.ok).toBe(false);
+      expect(result).toEqual({
+        error: {
+          code: "sync_failed",
+          message: "Tenant sync is paused for this Xero connection",
+        },
+        ok: false,
+      });
+    });
+
+    it("falls back to default error message when failed status has no errorSummary", async () => {
+      mocks.syncXeroPeople.mockResolvedValueOnce({
+        ok: true,
+        value: {
+          errorSummary: null,
+          failed: 0,
+          fetched: 0,
+          runId: "run_failed_2",
+          skipped: 0,
+          status: "failed",
+          upserted: 0,
+        },
+      });
+
+      const result = await dispatchManualSyncAction({
+        organisationId,
+        runType: "people",
+        xeroTenantId,
+      });
+
+      expect(result.ok).toBe(false);
+      expect(result).toEqual({
+        error: {
+          code: "sync_failed",
+          message: "Sync run failed or was cancelled.",
+        },
+        ok: false,
+      });
+    });
+
+    it("surfaces handler error result when handler returns ok: false", async () => {
+      mocks.syncXeroPeople.mockResolvedValueOnce({
+        error: {
+          code: "validation_error",
+          message: "Invalid sync parameters.",
+        },
+        ok: false,
+      });
+
+      const result = await dispatchManualSyncAction({
+        organisationId,
+        runType: "people",
+        xeroTenantId,
+      });
+
+      expect(result.ok).toBe(false);
+      expect(result).toEqual({
+        error: {
+          code: "validation_error",
+          message: "Invalid sync parameters.",
+        },
+        ok: false,
+      });
+    });
+
+    it("surfaces sync_failed when handler throws an unexpected exception", async () => {
+      mocks.syncXeroPeople.mockRejectedValueOnce(
+        new Error("Database connection lost.")
+      );
+
+      const result = await dispatchManualSyncAction({
+        organisationId,
+        runType: "people",
+        xeroTenantId,
+      });
+
+      expect(result.ok).toBe(false);
+      expect(result).toEqual({
+        error: {
+          code: "sync_failed",
+          message: "Database connection lost.",
+        },
+        ok: false,
+      });
+    });
+
     it("exportFailedRecordsCsvAction returns CSV export data", async () => {
       const result = await exportFailedRecordsCsvAction({
         organisationId,

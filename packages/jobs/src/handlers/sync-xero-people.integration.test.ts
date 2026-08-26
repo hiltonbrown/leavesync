@@ -1,5 +1,44 @@
-import "./setup-env";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.hoisted(() => {
+  try {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const envPaths = [
+      path.resolve(process.cwd(), "packages/database/.env"),
+      path.resolve(process.cwd(), "../database/.env"),
+    ];
+    for (const envPath of envPaths) {
+      if (fs.existsSync(envPath)) {
+        const envContent = fs.readFileSync(envPath, "utf-8");
+        for (const line of envContent.split("\n")) {
+          const trimmed = line.trim();
+          if (trimmed && !trimmed.startsWith("#")) {
+            const [key, ...valueParts] = trimmed.split("=");
+            const value = valueParts.join("=");
+            if (key && value) {
+              const cleanKey = key.trim();
+              if (
+                cleanKey !== "__proto__" &&
+                cleanKey !== "constructor" &&
+                cleanKey !== "prototype"
+              ) {
+                Reflect.set(
+                  process.env,
+                  cleanKey,
+                  value.trim().replace(/^['"]|['"]$/g, "")
+                );
+              }
+            }
+          }
+        }
+        break;
+      }
+    }
+  } catch {
+    // ignore
+  }
+});
 
 vi.mock("server-only", () => ({}));
 
@@ -162,6 +201,7 @@ describe("sync-xero-people handler", () => {
       first_name: "Jane",
       is_active: true,
       last_name: "Smith",
+      person_type: "contractor",
     });
     expect(people1[1]).toMatchObject({
       email: "john.doe@example.com",
@@ -169,6 +209,7 @@ describe("sync-xero-people handler", () => {
       first_name: "John",
       is_active: true,
       last_name: "Doe",
+      person_type: "employee",
     });
 
     // Run 2 (Idempotency check)
@@ -182,9 +223,58 @@ describe("sync-xero-people handler", () => {
     }
 
     const people2 = await database.person.findMany({
+      orderBy: { first_name: "asc" },
       where: { clerk_org_id: tenantA.clerkOrgId },
     });
     expect(people2.length).toBe(2); // no duplicates
+    expect(people2[0].person_type).toBe("contractor");
+    expect(people2[1].person_type).toBe("employee");
+
+    // Run 3 (Update check - employment type changed in Xero)
+    const updatedEmployees = [
+      {
+        ...mockEmployees[0],
+        employmentType: "EMPLOYEE",
+      },
+      {
+        ...mockEmployees[1],
+        employmentType: "EMPLOYEE",
+      },
+    ];
+    mockFetchEmployeesForRegion.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        complete: true,
+        employees: updatedEmployees,
+        failures: [],
+        rawItemCount: updatedEmployees.length,
+        rawResponse: {},
+        seenEmployeeIds: updatedEmployees.map((e) => e.employeeId),
+      },
+    });
+
+    const result3 = await syncXeroPeople(input);
+    expect(result3.ok).toBe(true);
+    if (result3.ok) {
+      expect(result3.value.upserted).toBe(2);
+      expect(result3.value.status).toBe("succeeded");
+    }
+
+    const people3 = await database.person.findMany({
+      orderBy: { first_name: "asc" },
+      where: { clerk_org_id: tenantA.clerkOrgId },
+    });
+    expect(people3.length).toBe(2);
+    expect(people3[0]).toMatchObject({
+      employment_type: "employee",
+      first_name: "Jane",
+      person_type: "employee",
+    });
+    expect(people3[1]).toMatchObject({
+      employment_type: "employee",
+      first_name: "John",
+      person_type: "employee",
+    });
 
     const tenantRow = await database.xeroTenant.findFirst({
       where: { id: tenantA.xeroTenantId },
@@ -555,13 +645,25 @@ describe("sync-xero-people handler", () => {
     expect(xeroPeople).toHaveLength(3);
     expect(
       xeroPeople.find((p) => p.source_person_key === activeId)
-    ).toMatchObject({ archived_at: null, is_active: true });
+    ).toMatchObject({
+      archived_at: null,
+      is_active: true,
+      person_type: "employee",
+    });
     expect(
       xeroPeople.find((p) => p.source_person_key === inactiveId)
-    ).toMatchObject({ archived_at: null, is_active: false });
+    ).toMatchObject({
+      archived_at: null,
+      is_active: false,
+      person_type: "employee",
+    });
     expect(
       xeroPeople.find((p) => p.source_person_key === terminatedId)
-    ).toMatchObject({ archived_at: null, is_active: false });
+    ).toMatchObject({
+      archived_at: null,
+      is_active: false,
+      person_type: "employee",
+    });
 
     // The manual person sharing an email must remain untouched: same row,
     // still MANUAL, still active, unaffected by the Xero-sourced import.
@@ -572,6 +674,7 @@ describe("sync-xero-people handler", () => {
       archived_at: null,
       first_name: "Manual",
       is_active: true,
+      person_type: "employee",
       source_system: "MANUAL",
     });
   });
