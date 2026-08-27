@@ -710,4 +710,831 @@ describe("sync-xero-people handler", () => {
       "NZ payroll employee reads are not yet available."
     );
   });
+
+  describe("absence confirmation and archival lifecycle (Plan 098)", () => {
+    interface TestPerson {
+      email: string;
+      first_name: string;
+      id: string;
+      last_name: string;
+      source_person_key: string;
+      xero_employee_id: string;
+    }
+
+    function atIndex<T>(items: T[], index: number): T {
+      const item = items[index];
+      if (!item) {
+        throw new Error(`Item at index ${index} not found`);
+      }
+      return item;
+    }
+
+    async function createXeroPeople(
+      tenant: typeof tenantA,
+      count: number,
+      overrides?: (index: number) => Record<string, unknown>
+    ): Promise<TestPerson[]> {
+      const people: TestPerson[] = [];
+      for (let i = 0; i < count; i += 1) {
+        const hex = (i + 1).toString().padStart(4, "0");
+        const employeeId = `11111111-1111-4111-8111-11111111${hex}`;
+        const person = await database.person.create({
+          data: {
+            clerk_org_id: tenant.clerkOrgId,
+            display_name: `Employee ${i + 1}`,
+            email: `emp${i + 1}@example.com`,
+            employment_type: "employee",
+            first_name: `Emp${i + 1}`,
+            is_active: true,
+            last_name: "Test",
+            organisation_id: tenant.organisationId,
+            person_type: "employee",
+            source_person_key: employeeId,
+            source_system: "XERO",
+            xero_employee_id: employeeId,
+            ...(overrides ? overrides(i) : {}),
+          },
+        });
+        people.push({
+          email: person.email,
+          first_name: person.first_name,
+          id: person.id,
+          last_name: person.last_name,
+          source_person_key: employeeId,
+          xero_employee_id: employeeId,
+        });
+      }
+      return people;
+    }
+
+    it("first complete missing observation marks xero_missing_since but archives nobody", async () => {
+      await setupTenant(tenantA);
+      const people = await createXeroPeople(tenantA, 10);
+
+      // Return 9 out of 10 employees (person 10 is missing: 1/10 = 10% < 20%, count = 1 <= 5)
+      const returnedEmployees = people.slice(0, 9).map((p) => ({
+        email: p.email,
+        employeeId: p.source_person_key,
+        employmentType: "EMPLOYEE",
+        firstName: p.first_name,
+        jobTitle: "Developer",
+        lastName: p.last_name,
+        rawPayload: { id: p.source_person_key },
+        startDate: "2026-01-01",
+        status: "ACTIVE",
+      }));
+
+      mockFetchEmployeesForRegion.mockResolvedValue({
+        ok: true,
+        value: {
+          complete: true,
+          employees: returnedEmployees,
+          failures: [],
+          rawItemCount: 9,
+          rawResponse: {},
+          seenEmployeeIds: returnedEmployees.map((e) => e.employeeId),
+        },
+      });
+
+      const result = await syncXeroPeople({
+        clerkOrgId: tenantA.clerkOrgId,
+        organisationId: tenantA.organisationId,
+        triggerType: "manual",
+        xeroTenantId: tenantA.xeroTenantId,
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.status).toBe("succeeded");
+      }
+
+      const person9 = atIndex(people, 9);
+      const person0 = atIndex(people, 0);
+
+      const missingPerson = await database.person.findFirst({
+        where: { id: person9.id },
+      });
+      expect(missingPerson).toBeDefined();
+      expect(missingPerson?.xero_missing_since).not.toBeNull();
+      expect(missingPerson?.archived_at).toBeNull();
+      expect(missingPerson?.is_active).toBe(true);
+
+      const activeReturned = await database.person.findFirst({
+        where: { id: person0.id },
+      });
+      expect(activeReturned?.xero_missing_since).toBeNull();
+      expect(activeReturned?.archived_at).toBeNull();
+    });
+
+    it("leaves missing person unarchived when missing age is under 24 hours (23h 59m)", async () => {
+      await setupTenant(tenantA);
+      const missingSince = new Date(Date.now() - (23 * 3600 + 59 * 60) * 1000);
+      const people = await createXeroPeople(tenantA, 10, (i) =>
+        i === 9 ? { xero_missing_since: missingSince } : {}
+      );
+
+      const returnedEmployees = people.slice(0, 9).map((p) => ({
+        email: p.email,
+        employeeId: p.source_person_key,
+        employmentType: "EMPLOYEE",
+        firstName: p.first_name,
+        jobTitle: "Developer",
+        lastName: p.last_name,
+        rawPayload: { id: p.source_person_key },
+        startDate: "2026-01-01",
+        status: "ACTIVE",
+      }));
+
+      mockFetchEmployeesForRegion.mockResolvedValue({
+        ok: true,
+        value: {
+          complete: true,
+          employees: returnedEmployees,
+          failures: [],
+          rawItemCount: 9,
+          rawResponse: {},
+          seenEmployeeIds: returnedEmployees.map((e) => e.employeeId),
+        },
+      });
+
+      const result = await syncXeroPeople({
+        clerkOrgId: tenantA.clerkOrgId,
+        organisationId: tenantA.organisationId,
+        triggerType: "manual",
+        xeroTenantId: tenantA.xeroTenantId,
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.status).toBe("succeeded");
+      }
+
+      const person9 = atIndex(people, 9);
+      const missingPerson = await database.person.findFirst({
+        where: { id: person9.id },
+      });
+      expect(missingPerson?.archived_at).toBeNull();
+      expect(missingPerson?.is_active).toBe(true);
+      expect(missingPerson?.xero_missing_since).toEqual(missingSince);
+    });
+
+    it("archives missing person only after at least 24 continuous hours of absence (24h 01m)", async () => {
+      await setupTenant(tenantA);
+      const missingSince = new Date(Date.now() - (24 * 3600 + 60) * 1000);
+      const people = await createXeroPeople(tenantA, 10, (i) =>
+        i === 9
+          ? {
+              clerk_user_id: "user_test_missing_123",
+              xero_missing_since: missingSince,
+            }
+          : {}
+      );
+
+      const returnedEmployees = people.slice(0, 9).map((p) => ({
+        email: p.email,
+        employeeId: p.source_person_key,
+        employmentType: "EMPLOYEE",
+        firstName: p.first_name,
+        jobTitle: "Developer",
+        lastName: p.last_name,
+        rawPayload: { id: p.source_person_key },
+        startDate: "2026-01-01",
+        status: "ACTIVE",
+      }));
+
+      mockFetchEmployeesForRegion.mockResolvedValue({
+        ok: true,
+        value: {
+          complete: true,
+          employees: returnedEmployees,
+          failures: [],
+          rawItemCount: 9,
+          rawResponse: {},
+          seenEmployeeIds: returnedEmployees.map((e) => e.employeeId),
+        },
+      });
+
+      const result = await syncXeroPeople({
+        clerkOrgId: tenantA.clerkOrgId,
+        organisationId: tenantA.organisationId,
+        triggerType: "manual",
+        xeroTenantId: tenantA.xeroTenantId,
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.status).toBe("succeeded");
+      }
+
+      const person9 = atIndex(people, 9);
+      const missingPerson = await database.person.findFirst({
+        where: { id: person9.id },
+      });
+      expect(missingPerson?.archived_at).not.toBeNull();
+      expect(missingPerson?.is_active).toBe(false);
+      // Preserves clerk_user_id, source keys, and identity
+      expect(missingPerson?.clerk_user_id).toBe("user_test_missing_123");
+      expect(missingPerson?.source_person_key).toBe(person9.source_person_key);
+      expect(missingPerson?.xero_employee_id).toBe(person9.xero_employee_id);
+    });
+
+    it("returned employee clears missing marker before record validation", async () => {
+      await setupTenant(tenantA);
+      const missingSince = new Date(Date.now() - 10 * 3600 * 1000);
+      const people = await createXeroPeople(tenantA, 5, (i) =>
+        i === 0 ? { xero_missing_since: missingSince } : {}
+      );
+
+      const returnedEmployees = people.map((p) => ({
+        email: p.email,
+        employeeId: p.source_person_key,
+        employmentType: "EMPLOYEE",
+        firstName: p.first_name,
+        jobTitle: "Developer",
+        lastName: p.last_name,
+        rawPayload: { id: p.source_person_key },
+        startDate: "2026-01-01",
+        status: "ACTIVE",
+      }));
+
+      mockFetchEmployeesForRegion.mockResolvedValue({
+        ok: true,
+        value: {
+          complete: true,
+          employees: returnedEmployees,
+          failures: [],
+          rawItemCount: 5,
+          rawResponse: {},
+          seenEmployeeIds: returnedEmployees.map((e) => e.employeeId),
+        },
+      });
+
+      const result = await syncXeroPeople({
+        clerkOrgId: tenantA.clerkOrgId,
+        organisationId: tenantA.organisationId,
+        triggerType: "manual",
+        xeroTenantId: tenantA.xeroTenantId,
+      });
+
+      expect(result.ok).toBe(true);
+      const person0 = atIndex(people, 0);
+      const restored = await database.person.findFirst({
+        where: { id: person0.id },
+      });
+      expect(restored?.xero_missing_since).toBeNull();
+      expect(restored?.archived_at).toBeNull();
+    });
+
+    it("reappearance after archival reactivates person and clears both archived_at and xero_missing_since", async () => {
+      await setupTenant(tenantA);
+      const archivedPerson = await database.person.create({
+        data: {
+          archived_at: new Date(Date.now() - 48 * 3600 * 1000),
+          clerk_org_id: tenantA.clerkOrgId,
+          clerk_user_id: "user_reactivate_123",
+          display_name: "Archived Person",
+          email: "archived@example.com",
+          employment_type: "employee",
+          first_name: "Archived",
+          is_active: false,
+          last_name: "Person",
+          organisation_id: tenantA.organisationId,
+          person_type: "employee",
+          source_person_key: "11111111-1111-4111-8111-111111119999",
+          source_system: "XERO",
+          xero_employee_id: "11111111-1111-4111-8111-111111119999",
+          xero_missing_since: new Date(Date.now() - 72 * 3600 * 1000),
+        },
+      });
+
+      mockFetchEmployeesForRegion.mockResolvedValue({
+        ok: true,
+        value: {
+          complete: true,
+          employees: [
+            {
+              email: "archived@example.com",
+              employeeId: "11111111-1111-4111-8111-111111119999",
+              employmentType: "EMPLOYEE",
+              firstName: "Archived",
+              jobTitle: "Senior Developer",
+              lastName: "Person",
+              rawPayload: { id: "11111111-1111-4111-8111-111111119999" },
+              startDate: "2026-01-01",
+              status: "ACTIVE",
+            },
+          ],
+          failures: [],
+          rawItemCount: 1,
+          rawResponse: {},
+          seenEmployeeIds: ["11111111-1111-4111-8111-111111119999"],
+        },
+      });
+
+      const result = await syncXeroPeople({
+        clerkOrgId: tenantA.clerkOrgId,
+        organisationId: tenantA.organisationId,
+        triggerType: "manual",
+        xeroTenantId: tenantA.xeroTenantId,
+      });
+
+      expect(result.ok).toBe(true);
+      const reactivated = await database.person.findFirst({
+        where: { id: archivedPerson.id },
+      });
+      expect(reactivated?.id).toBe(archivedPerson.id);
+      expect(reactivated?.archived_at).toBeNull();
+      expect(reactivated?.xero_missing_since).toBeNull();
+      expect(reactivated?.is_active).toBe(true);
+      expect(reactivated?.clerk_user_id).toBe("user_reactivate_123");
+    });
+
+    it("blocks entire absence pass when snapshot is empty (guard: empty snapshot)", async () => {
+      await setupTenant(tenantA);
+      await createXeroPeople(tenantA, 10);
+
+      mockFetchEmployeesForRegion.mockResolvedValue({
+        ok: true,
+        value: {
+          complete: true,
+          employees: [],
+          failures: [],
+          rawItemCount: 0,
+          rawResponse: {},
+          seenEmployeeIds: [],
+        },
+      });
+
+      const result = await syncXeroPeople({
+        clerkOrgId: tenantA.clerkOrgId,
+        organisationId: tenantA.organisationId,
+        triggerType: "manual",
+        xeroTenantId: tenantA.xeroTenantId,
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.status).toBe("partial_success");
+      }
+
+      const run = await database.syncRun.findFirst({
+        where: { id: result.ok ? result.value.runId : "" },
+      });
+      expect(run?.status).toBe("partial_success");
+      expect(run?.error_summary).toBe(
+        "Missing person guard threshold exceeded"
+      );
+
+      // Verify no people were marked or archived
+      const dbPeople = await database.person.findMany({
+        where: { clerk_org_id: tenantA.clerkOrgId },
+      });
+      for (const p of dbPeople) {
+        expect(p.xero_missing_since).toBeNull();
+        expect(p.archived_at).toBeNull();
+        expect(p.is_active).toBe(true);
+      }
+    });
+
+    it("blocks entire absence pass when exactly 20% of people are missing (guard: >= 20%)", async () => {
+      await setupTenant(tenantA);
+      // 5 people in DB, 1 missing -> 1/5 = exactly 20%
+      const people = await createXeroPeople(tenantA, 5);
+
+      const returnedEmployees = people.slice(0, 4).map((p) => ({
+        email: p.email,
+        employeeId: p.source_person_key,
+        employmentType: "EMPLOYEE",
+        firstName: p.first_name,
+        jobTitle: "Developer",
+        lastName: p.last_name,
+        rawPayload: { id: p.source_person_key },
+        startDate: "2026-01-01",
+        status: "ACTIVE",
+      }));
+
+      mockFetchEmployeesForRegion.mockResolvedValue({
+        ok: true,
+        value: {
+          complete: true,
+          employees: returnedEmployees,
+          failures: [],
+          rawItemCount: 4,
+          rawResponse: {},
+          seenEmployeeIds: returnedEmployees.map((e) => e.employeeId),
+        },
+      });
+
+      const result = await syncXeroPeople({
+        clerkOrgId: tenantA.clerkOrgId,
+        organisationId: tenantA.organisationId,
+        triggerType: "manual",
+        xeroTenantId: tenantA.xeroTenantId,
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.status).toBe("partial_success");
+      }
+
+      const person4 = atIndex(people, 4);
+      const missingPerson = await database.person.findFirst({
+        where: { id: person4.id },
+      });
+      expect(missingPerson?.xero_missing_since).toBeNull();
+      expect(missingPerson?.archived_at).toBeNull();
+    });
+
+    it("blocks entire absence pass for one-of-two missing employees (50% >= 20%)", async () => {
+      await setupTenant(tenantA);
+      const people = await createXeroPeople(tenantA, 2);
+      const person0 = atIndex(people, 0);
+      const person1 = atIndex(people, 1);
+
+      const returnedEmployees = [
+        {
+          email: person0.email,
+          employeeId: person0.source_person_key,
+          employmentType: "EMPLOYEE",
+          firstName: person0.first_name,
+          jobTitle: "Developer",
+          lastName: person0.last_name,
+          rawPayload: { id: person0.source_person_key },
+          startDate: "2026-01-01",
+          status: "ACTIVE",
+        },
+      ];
+
+      mockFetchEmployeesForRegion.mockResolvedValue({
+        ok: true,
+        value: {
+          complete: true,
+          employees: returnedEmployees,
+          failures: [],
+          rawItemCount: 1,
+          rawResponse: {},
+          seenEmployeeIds: [person0.source_person_key],
+        },
+      });
+
+      const result = await syncXeroPeople({
+        clerkOrgId: tenantA.clerkOrgId,
+        organisationId: tenantA.organisationId,
+        triggerType: "manual",
+        xeroTenantId: tenantA.xeroTenantId,
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.status).toBe("partial_success");
+      }
+
+      const missingPerson = await database.person.findFirst({
+        where: { id: person1.id },
+      });
+      expect(missingPerson?.xero_missing_since).toBeNull();
+      expect(missingPerson?.archived_at).toBeNull();
+    });
+
+    it("allows absence pass when missing ratio is below 20% and count is <= 5 (e.g. 5 of 35 = 14.3%)", async () => {
+      await setupTenant(tenantA);
+      const people = await createXeroPeople(tenantA, 35);
+
+      // Return 30 of 35 (5 missing = 5/35 = 14.28% < 20%, count = 5 <= 5)
+      const returnedEmployees = people.slice(0, 30).map((p) => ({
+        email: p.email,
+        employeeId: p.source_person_key,
+        employmentType: "EMPLOYEE",
+        firstName: p.first_name,
+        jobTitle: "Developer",
+        lastName: p.last_name,
+        rawPayload: { id: p.source_person_key },
+        startDate: "2026-01-01",
+        status: "ACTIVE",
+      }));
+
+      mockFetchEmployeesForRegion.mockResolvedValue({
+        ok: true,
+        value: {
+          complete: true,
+          employees: returnedEmployees,
+          failures: [],
+          rawItemCount: 30,
+          rawResponse: {},
+          seenEmployeeIds: returnedEmployees.map((e) => e.employeeId),
+        },
+      });
+
+      const result = await syncXeroPeople({
+        clerkOrgId: tenantA.clerkOrgId,
+        organisationId: tenantA.organisationId,
+        triggerType: "manual",
+        xeroTenantId: tenantA.xeroTenantId,
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.status).toBe("succeeded");
+      }
+
+      const missingPeople = await database.person.findMany({
+        where: {
+          id: { in: people.slice(30, 35).map((p) => p.id) },
+        },
+      });
+      expect(missingPeople).toHaveLength(5);
+      for (const p of missingPeople) {
+        expect(p.xero_missing_since).not.toBeNull();
+        expect(p.archived_at).toBeNull();
+      }
+    });
+
+    it("blocks entire absence pass when missing count is greater than 5 (e.g. 6 of 35 = 17.1% < 20%, but count = 6 > 5)", async () => {
+      await setupTenant(tenantA);
+      const people = await createXeroPeople(tenantA, 35);
+
+      // Return 29 of 35 (6 missing = 6/35 = 17.14% < 20%, but count = 6 > 5)
+      const returnedEmployees = people.slice(0, 29).map((p) => ({
+        email: p.email,
+        employeeId: p.source_person_key,
+        employmentType: "EMPLOYEE",
+        firstName: p.first_name,
+        jobTitle: "Developer",
+        lastName: p.last_name,
+        rawPayload: { id: p.source_person_key },
+        startDate: "2026-01-01",
+        status: "ACTIVE",
+      }));
+
+      mockFetchEmployeesForRegion.mockResolvedValue({
+        ok: true,
+        value: {
+          complete: true,
+          employees: returnedEmployees,
+          failures: [],
+          rawItemCount: 29,
+          rawResponse: {},
+          seenEmployeeIds: returnedEmployees.map((e) => e.employeeId),
+        },
+      });
+
+      const result = await syncXeroPeople({
+        clerkOrgId: tenantA.clerkOrgId,
+        organisationId: tenantA.organisationId,
+        triggerType: "manual",
+        xeroTenantId: tenantA.xeroTenantId,
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.status).toBe("partial_success");
+      }
+
+      const missingPeople = await database.person.findMany({
+        where: {
+          id: { in: people.slice(29, 35).map((p) => p.id) },
+        },
+      });
+      for (const p of missingPeople) {
+        expect(p.xero_missing_since).toBeNull();
+        expect(p.archived_at).toBeNull();
+      }
+    });
+
+    it("does not run absence pass on incomplete/truncated, failed, or cancelled reads", async () => {
+      await setupTenant(tenantA);
+      const people = await createXeroPeople(tenantA, 10);
+
+      // Case 1: Incomplete snapshot (complete: false)
+      mockFetchEmployeesForRegion.mockResolvedValue({
+        ok: true,
+        value: {
+          complete: false,
+          employees: people.slice(0, 5).map((p) => ({
+            email: p.email,
+            employeeId: p.source_person_key,
+            employmentType: "EMPLOYEE",
+            firstName: p.first_name,
+            jobTitle: "Developer",
+            lastName: p.last_name,
+            rawPayload: { id: p.source_person_key },
+            startDate: "2026-01-01",
+            status: "ACTIVE",
+          })),
+          failures: [],
+          rawItemCount: 5,
+          rawResponse: {},
+          seenEmployeeIds: people.slice(0, 5).map((p) => p.source_person_key),
+        },
+      });
+
+      const resultIncomplete = await syncXeroPeople({
+        clerkOrgId: tenantA.clerkOrgId,
+        organisationId: tenantA.organisationId,
+        triggerType: "manual",
+        xeroTenantId: tenantA.xeroTenantId,
+      });
+
+      expect(resultIncomplete.ok).toBe(true);
+      // Missing candidates 5-9 must NOT be marked because snapshot was incomplete
+      const peopleAfterIncomplete = await database.person.findMany({
+        where: { clerk_org_id: tenantA.clerkOrgId },
+      });
+      for (const p of peopleAfterIncomplete) {
+        expect(p.xero_missing_since).toBeNull();
+      }
+
+      // Case 2: Failed fetch
+      mockFetchEmployeesForRegion.mockResolvedValue({
+        error: { code: "network_error", message: "Timeout" },
+        ok: false,
+      });
+
+      const resultFailed = await syncXeroPeople({
+        clerkOrgId: tenantA.clerkOrgId,
+        organisationId: tenantA.organisationId,
+        triggerType: "manual",
+        xeroTenantId: tenantA.xeroTenantId,
+      });
+      expect(resultFailed.ok).toBe(true);
+      if (resultFailed.ok) {
+        expect(resultFailed.value.status).toBe("failed");
+      }
+    });
+
+    it("clears missing marker for returned EmployeeID even if record fails downstream validation", async () => {
+      await setupTenant(tenantA);
+      const missingSince = new Date(Date.now() - 10 * 3600 * 1000);
+      const people = await createXeroPeople(tenantA, 10, (i) =>
+        i === 0 ? { xero_missing_since: missingSince } : {}
+      );
+
+      // Person 0 has invalid first name (empty string) causing handler validation failure
+      const returnedEmployees = people.map((p, i) => ({
+        email: p.email,
+        employeeId: p.source_person_key,
+        employmentType: "EMPLOYEE",
+        firstName: i === 0 ? "" : p.first_name,
+        jobTitle: "Developer",
+        lastName: p.last_name,
+        rawPayload: { id: p.source_person_key },
+        startDate: "2026-01-01",
+        status: "ACTIVE",
+      }));
+
+      mockFetchEmployeesForRegion.mockResolvedValue({
+        ok: true,
+        value: {
+          complete: true,
+          employees: returnedEmployees,
+          failures: [],
+          rawItemCount: 10,
+          rawResponse: {},
+          seenEmployeeIds: returnedEmployees.map((e) => e.employeeId),
+        },
+      });
+
+      const result = await syncXeroPeople({
+        clerkOrgId: tenantA.clerkOrgId,
+        organisationId: tenantA.organisationId,
+        triggerType: "manual",
+        xeroTenantId: tenantA.xeroTenantId,
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.failed).toBe(1);
+      }
+
+      // Person 0 failed validation, but was in seenEmployeeIds -> xero_missing_since MUST be cleared
+      const person0 = atIndex(people, 0);
+      const foundPerson0 = await database.person.findFirst({
+        where: { id: person0.id },
+      });
+      expect(foundPerson0?.xero_missing_since).toBeNull();
+      expect(foundPerson0?.archived_at).toBeNull();
+    });
+
+    it("excludes manual people from absence calculation and never marks or archives them", async () => {
+      await setupTenant(tenantA);
+      const manualPerson = await database.person.create({
+        data: {
+          clerk_org_id: tenantA.clerkOrgId,
+          display_name: "Manual User",
+          email: "manual@example.com",
+          employment_type: "employee",
+          first_name: "Manual",
+          is_active: true,
+          last_name: "User",
+          organisation_id: tenantA.organisationId,
+          person_type: "employee",
+          source_system: "MANUAL",
+        },
+      });
+
+      const people = await createXeroPeople(tenantA, 10);
+      const returnedEmployees = people.map((p) => ({
+        email: p.email,
+        employeeId: p.source_person_key,
+        employmentType: "EMPLOYEE",
+        firstName: p.first_name,
+        jobTitle: "Developer",
+        lastName: p.last_name,
+        rawPayload: { id: p.source_person_key },
+        startDate: "2026-01-01",
+        status: "ACTIVE",
+      }));
+
+      // Manual person is not returned by Xero
+      mockFetchEmployeesForRegion.mockResolvedValue({
+        ok: true,
+        value: {
+          complete: true,
+          employees: returnedEmployees,
+          failures: [],
+          rawItemCount: 10,
+          rawResponse: {},
+          seenEmployeeIds: returnedEmployees.map((e) => e.employeeId),
+        },
+      });
+
+      const result = await syncXeroPeople({
+        clerkOrgId: tenantA.clerkOrgId,
+        organisationId: tenantA.organisationId,
+        triggerType: "manual",
+        xeroTenantId: tenantA.xeroTenantId,
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.status).toBe("succeeded");
+      }
+
+      const manualAfter = await database.person.findFirst({
+        where: { id: manualPerson.id },
+      });
+      expect(manualAfter?.xero_missing_since).toBeNull();
+      expect(manualAfter?.archived_at).toBeNull();
+      expect(manualAfter?.is_active).toBe(true);
+    });
+
+    it("enforces cross-tenant isolation during absence reconciliation", async () => {
+      await setupTenant(tenantA);
+      await setupTenant(tenantB);
+
+      const peopleA = await createXeroPeople(tenantA, 10);
+      await createXeroPeople(tenantB, 10);
+
+      // Sync Tenant A: 1 person missing in Tenant A
+      const returnedEmployeesA = peopleA.slice(0, 9).map((p) => ({
+        email: p.email,
+        employeeId: p.source_person_key,
+        employmentType: "EMPLOYEE",
+        firstName: p.first_name,
+        jobTitle: "Developer",
+        lastName: p.last_name,
+        rawPayload: { id: p.source_person_key },
+        startDate: "2026-01-01",
+        status: "ACTIVE",
+      }));
+
+      mockFetchEmployeesForRegion.mockResolvedValue({
+        ok: true,
+        value: {
+          complete: true,
+          employees: returnedEmployeesA,
+          failures: [],
+          rawItemCount: 9,
+          rawResponse: {},
+          seenEmployeeIds: returnedEmployeesA.map((e) => e.employeeId),
+        },
+      });
+
+      const result = await syncXeroPeople({
+        clerkOrgId: tenantA.clerkOrgId,
+        organisationId: tenantA.organisationId,
+        triggerType: "manual",
+        xeroTenantId: tenantA.xeroTenantId,
+      });
+
+      expect(result.ok).toBe(true);
+
+      // Tenant A missing person is marked
+      const person9A = atIndex(peopleA, 9);
+      const missingA = await database.person.findFirst({
+        where: { id: person9A.id },
+      });
+      expect(missingA?.xero_missing_since).not.toBeNull();
+
+      // Tenant B people are completely untouched
+      const dbPeopleB = await database.person.findMany({
+        where: { clerk_org_id: tenantB.clerkOrgId },
+      });
+      expect(dbPeopleB).toHaveLength(10);
+      for (const p of dbPeopleB) {
+        expect(p.xero_missing_since).toBeNull();
+        expect(p.archived_at).toBeNull();
+      }
+    });
+  });
 });
