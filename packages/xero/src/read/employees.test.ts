@@ -266,5 +266,76 @@ describe("tryMapXeroEmployees record-level isolation", () => {
     expect(tryMapXeroEmployees({ Employees: "not an array" })).toEqual({
       ok: false,
     });
+    expect(tryMapXeroEmployees({ employees: "not an array" })).toEqual({
+      ok: false,
+    });
+  });
+
+  it("maps v2 lower-camel envelopes and fields", () => {
+    const result = tryMapXeroEmployees({
+      employees: [
+        {
+          email: "kia.ora@example.com",
+          employeeID: "11111111-1111-4111-8111-111111111111",
+          engagementType: "Employee",
+          firstName: "Aroha",
+          jobTitle: "Software Engineer",
+          lastName: "Tane",
+          startDate: "2026-02-01",
+          status: "Active",
+        },
+        {
+          email: "john.smith@example.co.uk",
+          employeeID: "22222222-2222-4222-8222-222222222222",
+          employmentType: "Contractor",
+          firstName: "John",
+          jobTitle: "Consultant",
+          lastName: "Smith",
+          startDate: "2026-03-01",
+          status: "Terminated",
+        },
+      ],
+      pagination: {
+        itemCount: 2,
+        page: 1,
+        pageCount: 1,
+        pageSize: 100,
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.rawItemCount).toBe(2);
+    expect(result.failures).toEqual([]);
+    expect(result.employees).toEqual([
+      {
+        email: "kia.ora@example.com",
+        employeeId: "11111111-1111-4111-8111-111111111111",
+        employmentType: "Employee",
+        firstName: "Aroha",
+        jobTitle: "Software Engineer",
+        lastName: "Tane",
+        rawPayload: expect.objectContaining({
+          employeeID: "11111111-1111-4111-8111-111111111111",
+        }),
+        startDate: "2026-02-01",
+        status: "Active",
+      },
+      {
+        email: "john.smith@example.co.uk",
+        employeeId: "22222222-2222-4222-8222-222222222222",
+        employmentType: "Contractor",
+        firstName: "John",
+        jobTitle: "Consultant",
+        lastName: "Smith",
+        rawPayload: expect.objectContaining({
+          employeeID: "22222222-2222-4222-8222-222222222222",
+        }),
+        startDate: "2026-03-01",
+        status: "Terminated",
+      },
+    ]);
   });
 });

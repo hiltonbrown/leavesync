@@ -679,12 +679,36 @@ describe("sync-xero-people handler", () => {
     });
   });
 
-  it("handles NZ/UK region stubbing without failing the run", async () => {
+  it("syncs NZ and UK regional employees through their respective adapters", async () => {
     await setupTenant(tenantA);
     // Update tenant to NZ
     await database.xeroTenant.update({
       data: { payroll_region: "NZ" },
       where: { id: tenantA.xeroTenantId },
+    });
+
+    mockFetchEmployeesForRegion.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        complete: true,
+        employees: [
+          {
+            email: "aroha@example.co.nz",
+            employeeId: "11111111-1111-4111-8111-111111111111",
+            employmentType: "Employee",
+            firstName: "Aroha",
+            jobTitle: "Software Engineer",
+            lastName: "Tane",
+            rawPayload: { employeeID: "11111111-1111-4111-8111-111111111111" },
+            startDate: "2026-01-15",
+            status: "Active",
+          },
+        ],
+        failures: [],
+        rawItemCount: 1,
+        rawResponse: {},
+        seenEmployeeIds: ["11111111-1111-4111-8111-111111111111"],
+      },
     });
 
     const result = await syncXeroPeople({
@@ -697,6 +721,55 @@ describe("sync-xero-people handler", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.status).toBe("succeeded");
+      expect(result.value.fetched).toBe(1);
+      expect(result.value.upserted).toBe(1);
+    }
+
+    expect(mockFetchEmployeesForRegion).toHaveBeenCalledWith(
+      "NZ",
+      expect.objectContaining({
+        xeroTenant: expect.objectContaining({ payroll_region: "NZ" }),
+      })
+    );
+
+    const person = await database.person.findFirst({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        source_person_key: "11111111-1111-4111-8111-111111111111",
+      },
+    });
+    expect(person).toBeDefined();
+    expect(person?.first_name).toBe("Aroha");
+    expect(person?.last_name).toBe("Tane");
+    expect(person?.email).toBe("aroha@example.co.nz");
+    expect(person?.is_active).toBe(true);
+  });
+
+  it("handles regional fetch errors by failing the sync run", async () => {
+    await setupTenant(tenantA);
+    await database.xeroTenant.update({
+      data: { payroll_region: "UK" },
+      where: { id: tenantA.xeroTenantId },
+    });
+
+    mockFetchEmployeesForRegion.mockResolvedValueOnce({
+      error: {
+        code: "auth_error",
+        message: "Xero credentials are missing or revoked.",
+      },
+      ok: false,
+    });
+
+    const result = await syncXeroPeople({
+      clerkOrgId: tenantA.clerkOrgId,
+      organisationId: tenantA.organisationId,
+      triggerType: "manual" as const,
+      xeroTenantId: tenantA.xeroTenantId,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.status).toBe("failed");
       expect(result.value.fetched).toBe(0);
       expect(result.value.upserted).toBe(0);
     }
@@ -704,11 +777,8 @@ describe("sync-xero-people handler", () => {
     const run = await database.syncRun.findFirst({
       where: { clerk_org_id: tenantA.clerkOrgId, id: result.value.runId },
     });
-    expect(run).toBeDefined();
-    expect(run?.status).toBe("succeeded");
-    expect(run?.error_summary).toContain(
-      "NZ payroll employee reads are not yet available."
-    );
+    expect(run?.status).toBe("failed");
+    expect(run?.error_summary).toBeDefined();
   });
 
   describe("absence confirmation and archival lifecycle (Plan 098)", () => {

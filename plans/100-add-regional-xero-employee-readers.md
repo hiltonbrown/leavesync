@@ -16,8 +16,8 @@
 - **Risk**: MED
 - **Depends on**: `plans/097-harden-returned-xero-employee-import.md` DONE and `plans/098-confirm-missing-xero-people-before-archival.md` DONE
 - **Category**: migration
-- **Planned at**: commit `ecd49f5`, 2026-08-24; re-stamp after dependencies
-- **Execution status**: TODO
+- **Planned at**: commit `eae601d`, 2026-08-28
+- **Execution status**: DONE
 - **Supersedes**: employee-reader slice of rejected Plan 071
 
 ## Why this matters
@@ -108,11 +108,11 @@ integration. AU regressions must remain unchanged.
 
 ## Done criteria
 
-- [ ] Three regions satisfy the same complete employee-result contract.
-- [ ] Pagination uses raw cardinality and never loses valid neighbours.
-- [ ] NZ/UK are no longer successful job no-ops.
-- [ ] No activation/support surface changed.
-- [ ] Every command in the table passes and the index row is updated.
+- [x] Three regions satisfy the same complete employee-result contract.
+- [x] Pagination uses raw cardinality and never loses valid neighbours.
+- [x] NZ/UK are no longer successful job no-ops.
+- [x] No activation/support surface changed.
+- [x] Every command in the table passes and the index row is updated.
 
 ## STOP conditions
 

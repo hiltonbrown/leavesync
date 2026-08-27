@@ -140,23 +140,6 @@ export async function syncXeroPeople(input: unknown): Promise<
 
     const counts = emptyCounts();
 
-    if (
-      xeroTenant.payroll_region === "NZ" ||
-      xeroTenant.payroll_region === "UK"
-    ) {
-      log.info(
-        `Sync people skipped for region ${xeroTenant.payroll_region} as it is not yet available.`
-      );
-      await completeRun(context, run.id, {
-        counts,
-        errorSummary: `${xeroTenant.payroll_region} payroll employee reads are not yet available.`,
-        status: "succeeded",
-      });
-      return {
-        ok: true,
-        value: { ...counts, runId: run.id, status: "succeeded" },
-      };
-    }
     const employeesResult = await fetchEmployeesForRegion(
       xeroTenant.payroll_region,
       { xeroTenant }
@@ -454,7 +437,7 @@ async function processBatch(
           email,
           employment_type: employmentType,
           first_name: employee.firstName,
-          is_active: employee.status === "ACTIVE",
+          is_active: employee.status?.toUpperCase() === "ACTIVE",
           job_title: employee.jobTitle ?? null,
           last_name: employee.lastName,
           organisation_id: context.organisationId,
@@ -474,7 +457,7 @@ async function processBatch(
           email,
           employment_type: employmentType,
           first_name: employee.firstName,
-          is_active: employee.status === "ACTIVE",
+          is_active: employee.status?.toUpperCase() === "ACTIVE",
           job_title: employee.jobTitle ?? null,
           last_name: employee.lastName,
           person_type: personType,
