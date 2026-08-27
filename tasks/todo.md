@@ -1,3 +1,26 @@
+# Plan 091: Page scheduled Xero balance sync across runs
+
+## Tasks
+
+- [x] Step 1: Add tests for first, middle, final and wraparound pages, cursor compare-and-swap, retries, tenant isolation and targeted-person refreshes
+- [x] Step 2: Query 41 active people in stable ID order after the cursor and process at most 40 (complete cycle and restart deterministically on next scheduled invocation)
+- [x] Step 3: Persist individual outcomes before conditional dual-tenant cursor update (advance on recorded employee failure, hold on blanket failure)
+- [x] Step 4: Serialise scheduled work by database XeroTenant.id; ensure targeted refreshes bypass shared cursor and cycle timestamps
+- [x] Step 5: Update PRODUCT.md and rename settings timestamp to "Latest balance page" with "Rolling refresh in progress since ..." status
+- [x] Step 6: Verify full test, check, typecheck, integration, and build gates
+
+## Review
+
+- Implemented 40-person page balance sync per scheduled run with stable ascending Person.id cursor order probing 41 rows.
+- Set up atomic compare-and-swap cursor updates on `XeroSyncCursor` (`entity_type: "leave_balances"`), with automatic cycle reset on final/wraparound pages and lost-CAS run cancellation.
+- Ensured outcome persistence precedes cursor updates, with cursor advancement on individual employee failures and hold on blanket failures.
+- Maintained targeted refresh isolation: single-person balance refreshes bypass the cursor and do not alter tenant cycle timestamps (`leave_balances_stale_since` and `last_leave_balances_sync_at`).
+- Serialised Inngest job concurrency on `event.data.xeroTenantId`.
+- Updated settings UI (`xero-client.tsx`, `_connection-view.ts`) and `PRODUCT.md` to reflect the rolling refresh model for unlimited roster support.
+- All gates verified: `bun run check` (787 files checked, 0 errors), `bun run typecheck` (19/19 packages), `bun run test` (17/17 tasks), `bun run test:integration` (5/5 tasks, 55 tests passed), `bun run build` (all 4 apps/packages built), and `git diff --check`.
+
+---
+
 # Plan: Thorough Review and Hardening of Manual Sync Functionality
 
 ## Tasks
