@@ -22,6 +22,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { SubmitConfirmationModal } from "@/components/plans/submit-confirmation-modal";
+import { formatLeaveBalance } from "@/lib/format-leave-balance";
 import {
   createRecordAction,
   type PlanActionResult,
@@ -56,6 +57,8 @@ interface EditablePlanRecord {
 
 interface RecordFormProps {
   balanceAvailable: number | null;
+  balanceCurrencyCode?: string | null;
+  balanceUnit?: string | null;
   canSelectPerson: boolean;
   closeHref: string;
   hasActiveXeroConnection: boolean;
@@ -89,6 +92,8 @@ const recordTypeDescriptions: Record<string, string> = {
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: This form coordinates record type, intent, submit-path and Xero balance state in one component; the explicit conditional rendering added by noLeakedRender pushed it just over the threshold.
 export function RecordForm({
   balanceAvailable,
+  balanceCurrencyCode,
+  balanceUnit,
   canSelectPerson,
   closeHref,
   hasActiveXeroConnection,
@@ -232,7 +237,11 @@ export function RecordForm({
           <p className="mt-2 font-medium text-foreground">
             {balanceAvailable === null
               ? "Balance has not synced yet. You can still save a draft before submitting."
-              : `Current Xero balance: ${balanceAvailable} days before this request.`}
+              : `Current Xero balance: ${formatLeaveBalance({
+                  amount: balanceAvailable,
+                  currencyCode: balanceCurrencyCode,
+                  unit: balanceUnit ?? "days",
+                })} before this request.`}
           </p>
         ) : null}
       </div>
@@ -465,6 +474,8 @@ export function RecordForm({
           }}
           record={{
             balanceAvailable,
+            balanceCurrencyCode,
+            balanceUnit,
             endsAt: confirmationRecord.endsAt,
             id: confirmationRecord.id,
             organisationId,
