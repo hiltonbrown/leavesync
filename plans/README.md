@@ -65,7 +65,8 @@ This reconciliation was read-only outside `plans/`.
 | Plan 085 execution | approved at `a26b476`; reconciled root scripts and package ownership tables across AGENTS.md, CLAUDE.md and GEMINI.md, documented billing and analytics packages, preserved forbidden-package boundary, check, typecheck, unit and live database integration gates passed |
 | Plan 086 execution | approved at `aaaf7c8`; read-only research spike, official Xero OpenAPI analysis confirming AU-only GL group semantics and unsupported manager hierarchy, findings recorded in plans/086-findings.md, check, typecheck, unit and diff gates passed |
 | Plan 098 execution | approved at `937540a`; xero_missing_since migration applied, 24h absence confirmation lifecycle, bulk-loss guards (>=20%, >5, empty/truncated), returned ID marker clearing, integration suite 22/22, check, typecheck, unit, live database integration and build gates passed |
-| Current indexed plans | 64: 21 TODO, 27 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 107 execution | approved at `6b66916`; formatLeaveBalance helper with Intl.NumberFormat NZD and unit handling, services restricted to day subtraction only, UI updated across dashboard, profile, approvals and plans, check, typecheck, unit and live database integration gates passed |
+| Current indexed plans | 64: 20 TODO, 28 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -97,7 +98,7 @@ before starting its dependent plan.
 | [085](085-correct-repository-guidance-and-package-tables.md) | Correct commands and package ownership docs | P3 | none | DONE |
 | [086](086-spike-xero-employee-group-team-mapping.md) | Decide EmployeeGroupName team mapping | P3 | none | DONE |
 | [098](098-confirm-missing-xero-people-before-archival.md) | Confirm absence before person archival | P1 | 097 | DONE |
-| [107](107-present-currency-safe-leave-balances.md) | Present balances with currency-safe formatting | P1 | 101 | TODO |
+| [107](107-present-currency-safe-leave-balances.md) | Present balances with currency-safe formatting | P1 | 101 | DONE |
 | [061](061-halve-the-work-on-the-ics-feed-read-path.md) | Resolve feed/cache once and narrow holiday reads | P2 | 057, 066 | TODO |
 | [077](077-validate-availability-route-identifiers.md) | Validate availability UUIDs before queries | P2 | 066 | TODO |
 | [079](079-cross-check-stripe-webhook-tenant-identity.md) | Cross-check Stripe customer and Clerk org | P1 | 066 | TODO |
@@ -307,6 +308,10 @@ predecessor/preflight contract in its plan.
   observation and archived only after 24 continuous hours, protected by
   whole-run guards (>=20% missing, >5 missing, empty/truncated fetch). Returned
   IDs clear markers before validation.
+- Plan 107 is complete at `6b66916`. Added `formatLeaveBalance` formatter with
+  explicit NZD currency and unit support, restricted remaining balance
+  subtraction strictly to day units across people, approval, and plan services,
+  and updated UI components across dashboard, profile, approvals, and plans.
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
