@@ -465,7 +465,7 @@ async function resolveAdminAccessContext(organisationId: string): Promise<
     Boolean(has?.({ role: "org:owner" })) ||
     Boolean(has?.({ role: "org:admin" }));
 
-  if (!isOwnerOrAdmin || !user) {
+  if (!(isOwnerOrAdmin && user)) {
     return notAuthorised();
   }
   if (!context.ok) {
