@@ -6,9 +6,11 @@ const mocks = vi.hoisted(() => ({
   availabilityRecordFindFirst: vi.fn(),
   availabilityRecordFindMany: vi.fn(),
   availabilityRecordUpdateMany: vi.fn(),
+  databaseTransaction: vi.fn(),
   ensureFreshXeroConnection: vi.fn(),
   failedRecordCreate: vi.fn(),
   feedFindMany: vi.fn(),
+  feedIdsForPeople: vi.fn(),
   fetchLeaveRecordsForRegion: vi.fn(),
   inngestSend: vi.fn(() => Promise.resolve({ ids: ["event_1"] })),
   materialiseAvailabilityPublication: vi.fn(),
@@ -40,31 +42,37 @@ vi.mock("@repo/availability", () => ({
   materialiseAvailabilityPublication: mocks.materialiseAvailabilityPublication,
   normaliseInboundLeaveRecord: mocks.normaliseInboundLeaveRecord,
 }));
-vi.mock("@repo/database", () => ({
-  database: {
-    availabilityRecord: {
-      create: mocks.availabilityRecordCreate,
-      findFirst: mocks.availabilityRecordFindFirst,
-      findMany: mocks.availabilityRecordFindMany,
-      updateMany: mocks.availabilityRecordUpdateMany,
-    },
-    failedRecord: { create: mocks.failedRecordCreate },
-    feed: { findMany: mocks.feedFindMany },
-    person: {
-      findFirst: mocks.personFindFirst,
-      findMany: mocks.personFindMany,
-    },
-    syncRun: {
-      create: mocks.syncRunCreate,
-      findFirst: mocks.syncRunFindFirst,
-      updateMany: mocks.syncRunUpdateMany,
-    },
-    xeroTenant: {
-      findFirst: mocks.xeroTenantFindFirst,
-      updateMany: mocks.xeroTenantUpdateMany,
-    },
+const databaseMock = {
+  $transaction: mocks.databaseTransaction,
+  availabilityRecord: {
+    create: mocks.availabilityRecordCreate,
+    findFirst: mocks.availabilityRecordFindFirst,
+    findMany: mocks.availabilityRecordFindMany,
+    updateMany: mocks.availabilityRecordUpdateMany,
   },
+  failedRecord: { create: mocks.failedRecordCreate },
+  feed: { findMany: mocks.feedFindMany },
+  person: {
+    findFirst: mocks.personFindFirst,
+    findMany: mocks.personFindMany,
+  },
+  syncRun: {
+    create: mocks.syncRunCreate,
+    findFirst: mocks.syncRunFindFirst,
+    updateMany: mocks.syncRunUpdateMany,
+  },
+  xeroTenant: {
+    findFirst: mocks.xeroTenantFindFirst,
+    updateMany: mocks.xeroTenantUpdateMany,
+  },
+};
+
+vi.mock("@repo/database", () => ({
+  database: databaseMock,
   scopedTo: mocks.scopedTo,
+}));
+vi.mock("@repo/feeds", () => ({
+  feedIdsForPeople: mocks.feedIdsForPeople,
 }));
 vi.mock("@repo/database/generated/client", () => ({
   Prisma: { JsonNull: "JsonNull" },
@@ -111,6 +119,16 @@ function input() {
 describe("leave records stale archival", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.databaseTransaction.mockImplementation(async (target: unknown) => {
+      if (typeof target === "function") {
+        return await target(databaseMock);
+      }
+      if (Array.isArray(target)) {
+        return await Promise.all(target);
+      }
+      return target;
+    });
+    mocks.feedIdsForPeople.mockResolvedValue([]);
     mocks.syncRunCreate.mockResolvedValue({ id: RUN_ID });
     mocks.syncRunFindFirst.mockResolvedValue(null);
     mocks.syncRunUpdateMany.mockResolvedValue({ count: 1 });
@@ -163,6 +181,7 @@ describe("leave records stale archival", () => {
         upserted: 0,
       });
     }
+    expect(mocks.databaseTransaction).not.toHaveBeenCalled();
     expect(mocks.availabilityRecordFindMany).not.toHaveBeenCalled();
     expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalled();
   });
@@ -180,14 +199,36 @@ describe("leave records stale archival", () => {
     const result = await syncXeroLeaveRecords(input());
 
     expect(result.ok).toBe(true);
+    expect(mocks.databaseTransaction).toHaveBeenCalledTimes(1);
     expect(mocks.availabilityRecordFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
+        distinct: ["person_id"],
+        select: { person_id: true },
         where: expect.objectContaining({
           archived_at: null,
           clerk_org_id: CLERK_ORG_ID,
           organisation_id: ORGANISATION_ID,
           source_remote_id: { notIn: [LEAVE_APPLICATION_ID] },
           source_type: "xero_leave",
+          updated_at: { lte: expect.any(Date) },
+        }),
+      })
+    );
+    expect(mocks.availabilityRecordUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          archived_at: expect.any(Date),
+          include_in_feed: false,
+          publish_status: "archived",
+          updated_at: expect.any(Date),
+        }),
+        where: expect.objectContaining({
+          archived_at: null,
+          clerk_org_id: CLERK_ORG_ID,
+          organisation_id: ORGANISATION_ID,
+          source_remote_id: { notIn: [LEAVE_APPLICATION_ID] },
+          source_type: "xero_leave",
+          updated_at: { lte: expect.any(Date) },
         }),
       })
     );
@@ -209,6 +250,7 @@ describe("leave records stale archival", () => {
     if (result.ok) {
       expect(result.value.archived).toBe(0);
     }
+    expect(mocks.databaseTransaction).not.toHaveBeenCalled();
     expect(mocks.availabilityRecordFindMany).toHaveBeenCalledTimes(1);
     expect(mocks.availabilityRecordFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -218,6 +260,115 @@ describe("leave records stale archival", () => {
       })
     );
     expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it("archives stale records in one transaction, deduplicates feed rebuilds, and does not materialise stale publications individually", async () => {
+    mocks.fetchLeaveRecordsForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: true,
+        leaveRecords: [
+          xeroLeaveRecord({
+            employeeId: XERO_EMPLOYEE_ID,
+            leaveApplicationId: LEAVE_APPLICATION_ID,
+          }),
+        ],
+        rawResponse: {},
+      },
+    });
+    mocks.personFindMany.mockResolvedValueOnce([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+    ]);
+    mocks.availabilityRecordFindMany
+      .mockResolvedValueOnce([]) // batch lookup
+      .mockResolvedValueOnce([
+        { person_id: PERSON_ID },
+        { person_id: PERSON_ID_2 },
+      ]); // transaction distinct person_id
+    mocks.availabilityRecordUpdateMany.mockResolvedValueOnce({ count: 3 }); // 3 stale records updated
+    mocks.feedIdsForPeople.mockResolvedValueOnce([
+      { id: "90000000-0000-4000-8000-000000000001", privacyMode: "named" },
+      { id: "90000000-0000-4000-8000-000000000001", privacyMode: "named" },
+      { id: "90000000-0000-4000-8000-000000000002", privacyMode: "named" },
+    ]);
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        archived: 3,
+        fetched: 1,
+        status: "succeeded",
+        upserted: 1,
+      });
+    }
+
+    // Single transaction for stale archival
+    expect(mocks.databaseTransaction).toHaveBeenCalledTimes(1);
+
+    // Publication materialisation is called ONCE for the applied record, ZERO times for stale records
+    expect(mocks.materialiseAvailabilityPublication).toHaveBeenCalledTimes(1);
+    expect(mocks.materialiseAvailabilityPublication).toHaveBeenCalledWith(
+      expect.objectContaining({
+        availabilityRecordId: "80000000-0000-4000-8000-000000000001",
+      })
+    );
+
+    // Canonical feed resolution called with person IDs
+    expect(mocks.feedIdsForPeople).toHaveBeenCalledWith({
+      clerkOrgId: CLERK_ORG_ID,
+      organisationId: ORGANISATION_ID,
+      personIds: expect.arrayContaining([PERSON_ID, PERSON_ID_2]),
+    });
+
+    // Feeds deduplicated before enqueue
+    expect(mocks.inngestSend).toHaveBeenCalledTimes(1);
+    expect(mocks.inngestSend).toHaveBeenCalledWith([
+      {
+        data: {
+          clerkOrgId: CLERK_ORG_ID,
+          feedId: "90000000-0000-4000-8000-000000000001",
+          organisationId: ORGANISATION_ID,
+          reason: "xero_leave_records_synced",
+        },
+        name: "rebuild-feed-cache",
+      },
+      {
+        data: {
+          clerkOrgId: CLERK_ORG_ID,
+          feedId: "90000000-0000-4000-8000-000000000002",
+          organisationId: ORGANISATION_ID,
+          reason: "xero_leave_records_synced",
+        },
+        name: "rebuild-feed-cache",
+      },
+    ]);
+  });
+
+  it("skips stale archival when sync run is cancelled", async () => {
+    mocks.fetchLeaveRecordsForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: true,
+        leaveRecords: [xeroLeaveRecord()],
+        rawResponse: {},
+      },
+    });
+    mocks.syncRunFindFirst.mockResolvedValue({
+      cancel_requested_at: new Date(),
+    });
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        archived: 0,
+        status: "cancelled",
+      });
+    }
+    expect(mocks.databaseTransaction).not.toHaveBeenCalled();
   });
 
   it("uses pre-fetched maps for create, update, and unchanged records", async () => {
@@ -239,16 +390,11 @@ describe("leave records stale archival", () => {
       ok: true,
       value: { complete: true, leaveRecords: records, rawResponse: {} },
     });
-    mocks.personFindMany
-      .mockResolvedValueOnce([
-        person(PERSON_ID, XERO_EMPLOYEE_ID),
-        person(PERSON_ID_2, XERO_EMPLOYEE_ID_2),
-        person(PERSON_ID_3, XERO_EMPLOYEE_ID_3),
-      ])
-      .mockResolvedValueOnce([
-        { id: PERSON_ID_2, team_id: null },
-        { id: PERSON_ID_3, team_id: null },
-      ]);
+    mocks.personFindMany.mockResolvedValueOnce([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+      person(PERSON_ID_2, XERO_EMPLOYEE_ID_2),
+      person(PERSON_ID_3, XERO_EMPLOYEE_ID_3),
+    ]);
     mocks.availabilityRecordFindMany
       .mockResolvedValueOnce([
         {
@@ -266,9 +412,9 @@ describe("leave records stale archival", () => {
     mocks.availabilityRecordCreate.mockResolvedValue({
       id: "80000000-0000-4000-8000-000000000003",
     });
-    mocks.feedFindMany.mockResolvedValue([
-      { id: "90000000-0000-4000-8000-000000000001" },
-      { id: "90000000-0000-4000-8000-000000000002" },
+    mocks.feedIdsForPeople.mockResolvedValue([
+      { id: "90000000-0000-4000-8000-000000000001", privacyMode: "named" },
+      { id: "90000000-0000-4000-8000-000000000002", privacyMode: "named" },
     ]);
     mocks.normaliseInboundLeaveRecord.mockImplementation((record) =>
       normalisedLeaveRecord({
@@ -293,8 +439,8 @@ describe("leave records stale archival", () => {
     }
     expect(mocks.personFindFirst).not.toHaveBeenCalled();
     expect(mocks.availabilityRecordFindFirst).not.toHaveBeenCalled();
-    expect(mocks.personFindMany).toHaveBeenNthCalledWith(
-      1,
+    expect(mocks.personFindMany).toHaveBeenCalledTimes(1);
+    expect(mocks.personFindMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
           xero_employee_id: {
@@ -320,16 +466,13 @@ describe("leave records stale archival", () => {
         }),
       })
     );
-    expect(mocks.availabilityRecordUpdateMany).toHaveBeenCalledTimes(2);
+    expect(mocks.availabilityRecordUpdateMany).toHaveBeenCalledTimes(3);
     expect(mocks.availabilityRecordCreate).toHaveBeenCalledTimes(1);
-    expect(mocks.personFindMany).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        where: expect.objectContaining({
-          id: { in: [PERSON_ID_2, PERSON_ID_3] },
-        }),
-      })
-    );
+    expect(mocks.feedIdsForPeople).toHaveBeenCalledWith({
+      clerkOrgId: CLERK_ORG_ID,
+      organisationId: ORGANISATION_ID,
+      personIds: [PERSON_ID_2, PERSON_ID_3],
+    });
     expect(mocks.inngestSend).toHaveBeenCalledTimes(1);
     expect(mocks.inngestSend).toHaveBeenCalledWith([
       {
@@ -380,7 +523,11 @@ describe("leave records stale archival", () => {
       })
     );
     expect(mocks.availabilityRecordCreate).not.toHaveBeenCalled();
-    expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalled();
+    expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: expect.any(String) }),
+      })
+    );
   });
 
   it("preserves user-owned fields when updating a Team Calendar leave", async () => {
@@ -632,7 +779,11 @@ describe("leave records stale archival", () => {
         upserted: 0,
       });
     }
-    expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalled();
+    expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: expect.any(String) }),
+      })
+    );
     expect(mocks.materialiseAvailabilityPublication).not.toHaveBeenCalled();
     expect(mocks.inngestSend).not.toHaveBeenCalled();
   });
@@ -650,7 +801,11 @@ describe("leave records stale archival", () => {
     if (result.ok) {
       expect(result.value.skipped).toBe(1);
     }
-    expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalled();
+    expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: expect.any(String) }),
+      })
+    );
   });
 
   it("skips an equal remote timestamp and hash", async () => {
@@ -670,7 +825,11 @@ describe("leave records stale archival", () => {
         upserted: 0,
       });
     }
-    expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalled();
+    expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: expect.any(String) }),
+      })
+    );
   });
 
   it("skips a null remote timestamp when the hash is unchanged", async () => {
@@ -694,7 +853,11 @@ describe("leave records stale archival", () => {
     if (result.ok) {
       expect(result.value.skipped).toBe(1);
     }
-    expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalled();
+    expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: expect.any(String) }),
+      })
+    );
   });
 
   it("retains a known timestamp when a changed hash has no remote timestamp", async () => {

@@ -143,7 +143,7 @@ describeWithDatabase("sync-xero-leave-records database flow", () => {
         organisation_id: tenantA.organisationId,
       },
     });
-    expect(publications).toHaveLength(2);
+    expect(publications).toHaveLength(1);
     expect(
       publications.find((publication) =>
         publication.published_uid.endsWith("@ical.teamcalendar.online")
@@ -414,6 +414,193 @@ describeWithDatabase("sync-xero-leave-records database flow", () => {
       approval_status: "xero_sync_failed",
       failed_action: "withdraw",
     });
+  });
+
+  it("preserves a concurrent fresh write against stale archival when updated_at is after sync started", async () => {
+    await setupTenant(tenantA);
+    await setupPerson(tenantA);
+    await setupFeed(tenantA);
+    await createStaleRecord(tenantA);
+
+    // Update the stale record with a future updated_at to simulate a concurrent write
+    const futureDate = new Date(Date.now() + 60_000);
+    await database.availabilityRecord.updateMany({
+      data: { updated_at: futureDate },
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        organisation_id: tenantA.organisationId,
+        source_remote_id: staleLeaveId(),
+      },
+    });
+
+    mockFetchLeaveRecordsForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: true,
+        leaveRecords: [xeroLeaveRecord(tenantA)],
+        rawResponse: {},
+      },
+    });
+
+    const result = await syncXeroLeaveRecords(syncInput(tenantA));
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        archived: 0,
+        failed: 0,
+        status: "succeeded",
+        upserted: 1,
+      });
+    }
+
+    const record = await database.availabilityRecord.findFirst({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        organisation_id: tenantA.organisationId,
+        source_remote_id: staleLeaveId(),
+      },
+    });
+    expect(record?.archived_at).toBeNull();
+    expect(record?.publish_status).toBe("eligible");
+  });
+
+  it("skips stale archival when fetch is incomplete or empty", async () => {
+    await setupTenant(tenantA);
+    await setupPerson(tenantA);
+    await setupFeed(tenantA);
+    await createStaleRecord(tenantA);
+
+    // Incomplete fetch
+    mockFetchLeaveRecordsForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: false,
+        leaveRecords: [xeroLeaveRecord(tenantA)],
+        rawResponse: {},
+      },
+    });
+
+    const incompleteResult = await syncXeroLeaveRecords(syncInput(tenantA));
+    expect(incompleteResult.ok).toBe(true);
+    if (incompleteResult.ok) {
+      expect(incompleteResult.value.archived).toBe(0);
+    }
+
+    let record = await database.availabilityRecord.findFirst({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        organisation_id: tenantA.organisationId,
+        source_remote_id: staleLeaveId(),
+      },
+    });
+    expect(record?.archived_at).toBeNull();
+
+    // Empty fetch
+    mockFetchLeaveRecordsForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: true,
+        leaveRecords: [],
+        rawResponse: {},
+      },
+    });
+
+    const emptyResult = await syncXeroLeaveRecords(syncInput(tenantA));
+    expect(emptyResult.ok).toBe(true);
+    if (emptyResult.ok) {
+      expect(emptyResult.value.archived).toBe(0);
+    }
+
+    record = await database.availabilityRecord.findFirst({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        organisation_id: tenantA.organisationId,
+        source_remote_id: staleLeaveId(),
+      },
+    });
+    expect(record?.archived_at).toBeNull();
+  });
+
+  it("bulk archives multiple stale records for the same person and enqueues feed rebuild once", async () => {
+    await setupTenant(tenantA);
+    await setupPerson(tenantA);
+    await setupFeed(tenantA);
+
+    // Create 3 stale records for tenantA
+    const staleIds = [
+      "50000000-0000-4000-8000-000000000091",
+      "50000000-0000-4000-8000-000000000092",
+      "50000000-0000-4000-8000-000000000093",
+    ];
+    for (const id of staleIds) {
+      await database.availabilityRecord.create({
+        data: {
+          all_day: true,
+          approval_status: "approved",
+          clerk_org_id: tenantA.clerkOrgId,
+          contactability: "unavailable",
+          derived_uid_key: `stale-${id}`,
+          ends_at: new Date("2026-05-05T00:00:00.000Z"),
+          organisation_id: tenantA.organisationId,
+          person_id: tenantA.personId,
+          privacy_mode: "named",
+          publish_status: "eligible",
+          record_type: "annual_leave",
+          source_remote_id: id,
+          source_type: "xero_leave",
+          starts_at: new Date("2026-05-04T00:00:00.000Z"),
+        },
+      });
+    }
+
+    mockFetchLeaveRecordsForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: true,
+        leaveRecords: [xeroLeaveRecord(tenantA)],
+        rawResponse: {},
+      },
+    });
+
+    const result = await syncXeroLeaveRecords(syncInput(tenantA));
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        archived: 3,
+        failed: 0,
+        status: "succeeded",
+        upserted: 1,
+      });
+    }
+
+    const archivedRecords = await database.availabilityRecord.findMany({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        organisation_id: tenantA.organisationId,
+        source_remote_id: { in: staleIds },
+      },
+    });
+    expect(archivedRecords).toHaveLength(3);
+    for (const rec of archivedRecords) {
+      expect(rec.archived_at).not.toBeNull();
+      expect(rec.publish_status).toBe("archived");
+    }
+
+    // Inngest send called with deduplicated feeds (1 event for the 1 person feed)
+    expect(mockInngestSend).toHaveBeenCalledTimes(1);
+    expect(mockInngestSend).toHaveBeenCalledWith([
+      {
+        data: {
+          clerkOrgId: tenantA.clerkOrgId,
+          feedId: "50000000-0000-4000-8000-000000000010",
+          organisationId: tenantA.organisationId,
+          reason: "xero_leave_records_synced",
+        },
+        name: "rebuild-feed-cache",
+      },
+    ]);
   });
 });
 
