@@ -676,4 +676,189 @@ describe("projectFeedEvents", () => {
     expect(holiday?.startsAt.toISOString()).toBe("2026-06-22T00:00:00.000Z");
     expect(holiday?.endsAt.toISOString()).toBe("2026-06-23T00:00:00.000Z");
   });
+
+  it("queries public holidays in a single query bounded by the horizon window and excluding archived holidays", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-20T09:00:00.000Z"));
+
+    mocks.feedFindFirst.mockResolvedValueOnce({
+      created_by_user_id: "user_1",
+      includes_public_holidays: true,
+      privacy_mode: "named",
+      scopes: [{ scope_type: "org", scope_value: null }],
+    });
+    mocks.resolvePeopleForFeed.mockResolvedValueOnce({
+      ok: true,
+      value: [
+        {
+          displayName: "Jane Smith",
+          firstName: "Jane",
+          id: "20000000-0000-4000-8000-000000000001",
+          lastName: "Smith",
+          location: {
+            countryCode: "AU",
+            id: "50000000-0000-4000-8000-000000000001",
+            name: "Brisbane",
+            regionCode: "QLD",
+            timezone: "Australia/Brisbane",
+          },
+          locationId: "50000000-0000-4000-8000-000000000001",
+          managerPersonId: null,
+          team: null,
+          teamId: null,
+        },
+      ],
+    });
+    mocks.publicHolidayFindMany.mockResolvedValueOnce([]);
+
+    await projectFeedEvents({
+      ...baseInput,
+      horizonDays: 30,
+      privacyMode: "named",
+    });
+
+    expect(mocks.publicHolidayFindMany).toHaveBeenCalledTimes(1);
+    expect(mocks.publicHolidayFindMany).toHaveBeenCalledWith({
+      orderBy: { holiday_date: "asc" },
+      select: {
+        assignments: {
+          select: {
+            archived_at: true,
+            day_classification: true,
+            scope_type: true,
+            scope_value: true,
+          },
+        },
+        country_code: true,
+        default_classification: true,
+        holiday_date: true,
+        id: true,
+        name: true,
+        region_code: true,
+      },
+      where: {
+        archived_at: null,
+        clerk_org_id: baseInput.clerkOrgId,
+        holiday_date: {
+          gte: new Date("2026-06-20T00:00:00.000Z"),
+          lte: new Date("2026-07-20T00:00:00.000Z"),
+        },
+        organisation_id: baseInput.organisationId,
+      },
+    });
+  });
+
+  it("produces deterministic output for a fixed mixed dataset", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-01T00:00:00.000Z"));
+
+    mocks.feedFindFirst.mockResolvedValueOnce({
+      created_by_user_id: "user_1",
+      includes_public_holidays: true,
+      privacy_mode: "named",
+      scopes: [{ scope_type: "org", scope_value: null }],
+    });
+    mocks.availabilityRecordFindMany.mockResolvedValueOnce([
+      {
+        all_day: true,
+        contactability: "unavailable",
+        derived_sequence: 1,
+        derived_uid_key: "leave-1@ical.teamcalendar.online",
+        ends_at: new Date("2026-05-03T00:00:00.000Z"),
+        id: "10000000-0000-4000-8000-000000000010",
+        notes_internal: null,
+        person: {
+          display_name: null,
+          first_name: "Alice",
+          last_name: "Walker",
+          location: { name: "Brisbane" },
+        },
+        publication: {
+          published_sequence: 1,
+          published_uid: "pub-leave-1@ical.teamcalendar.online",
+        },
+        record_type: "annual_leave",
+        starts_at: new Date("2026-05-02T00:00:00.000Z"),
+        title: null,
+      },
+    ]);
+    mocks.resolvePeopleForFeed.mockResolvedValueOnce({
+      ok: true,
+      value: [
+        {
+          displayName: "Alice Walker",
+          firstName: "Alice",
+          id: "20000000-0000-4000-8000-000000000010",
+          lastName: "Walker",
+          location: {
+            countryCode: "AU",
+            id: "50000000-0000-4000-8000-000000000001",
+            name: "Brisbane",
+            regionCode: "QLD",
+            timezone: "Australia/Brisbane",
+          },
+          locationId: "50000000-0000-4000-8000-000000000001",
+          managerPersonId: null,
+          team: null,
+          teamId: null,
+        },
+      ],
+    });
+    mocks.publicHolidayFindMany.mockResolvedValueOnce([
+      {
+        archived_at: null,
+        assignments: [],
+        country_code: "AU",
+        default_classification: "non_working",
+        holiday_date: new Date("2026-05-04T00:00:00.000Z"),
+        id: "60000000-0000-4000-8000-000000000020",
+        name: "Labour Day",
+        region_code: "QLD",
+      },
+    ]);
+
+    const result = await projectFeedEvents({
+      ...baseInput,
+      horizonDays: 30,
+      privacyMode: "named",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value).toEqual([
+      {
+        allDay: true,
+        contactabilityStatus: "unavailable",
+        description: null,
+        displayName: "Alice Walker",
+        endsAt: new Date("2026-05-04T00:00:00.000Z"),
+        isPublicHoliday: false,
+        location: "Brisbane",
+        publishedSequence: 1,
+        publishedUid: "pub-leave-1@ical.teamcalendar.online",
+        recordType: "annual_leave",
+        sourceRecordId: "10000000-0000-4000-8000-000000000010",
+        startsAt: new Date("2026-05-02T00:00:00.000Z"),
+        summary: "Alice Walker: Annual Leave",
+      },
+      {
+        allDay: true,
+        contactabilityStatus: null,
+        description: null,
+        displayName: "Public holiday: Labour Day",
+        endsAt: new Date("2026-05-05T00:00:00.000Z"),
+        isPublicHoliday: true,
+        location: null,
+        publishedSequence: 0,
+        publishedUid:
+          "60000000-0000-4000-8000-000000000020@ical.teamcalendar.online",
+        recordType: "public_holiday",
+        sourceRecordId: "60000000-0000-4000-8000-000000000020",
+        startsAt: new Date("2026-05-04T00:00:00.000Z"),
+        summary: "Public holiday: Labour Day",
+      },
+    ]);
+  });
 });
