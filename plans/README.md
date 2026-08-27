@@ -62,7 +62,8 @@ This reconciliation was read-only outside `plans/`.
 | Plan 039 execution | approved at `d3733fe`; deleted unused HTML feed prototype (render-html.ts and render-html.test.ts), 0 remaining references, build, check, typecheck, unit and live database integration gates passed |
 | Plan 078 execution | approved at `365d8ef`; deleted unused feed token helpers (createInitialToken, listTokens, getActiveTokenHint) and dead private mapping schemas, preserved transactional createInitialTokenWithClient, check, typecheck, unit and live database integration gates passed |
 | Plan 084 execution | approved at `800f1bb`; removed redundant root ws override while preserving @repo/database safe floor constraint, clean lockfile resolution, check, typecheck, unit and live database integration gates passed |
-| Current indexed plans | 64: 24 TODO, 24 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 085 execution | approved at `a26b476`; reconciled root scripts and package ownership tables across AGENTS.md, CLAUDE.md and GEMINI.md, documented billing and analytics packages, preserved forbidden-package boundary, check, typecheck, unit and live database integration gates passed |
+| Current indexed plans | 64: 23 TODO, 25 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -91,7 +92,7 @@ before starting its dependent plan.
 | [039](039-decide-what-to-do-with-the-html-feed-renderer.md) | Delete the out-of-scope HTML feed prototype | P3 | none | DONE |
 | [078](078-delete-dead-feed-token-helpers.md) | Delete unused token service surface | P3 | none | DONE |
 | [084](084-remove-the-production-workspaces-override.md) | Remove redundant root `ws` override | P3 | none | DONE |
-| [085](085-correct-repository-guidance-and-package-tables.md) | Correct commands and package ownership docs | P3 | none | TODO |
+| [085](085-correct-repository-guidance-and-package-tables.md) | Correct commands and package ownership docs | P3 | none | DONE |
 | [086](086-spike-xero-employee-group-team-mapping.md) | Decide EmployeeGroupName team mapping | P3 | none | TODO |
 | [098](098-confirm-missing-xero-people-before-archival.md) | Confirm absence before person archival | P1 | 097 | TODO |
 | [107](107-present-currency-safe-leave-balances.md) | Present balances with currency-safe formatting | P1 | 101 | TODO |
@@ -290,6 +291,10 @@ predecessor/preflight contract in its plan.
 - Plan 084 is complete at `800f1bb`. Removed redundant root `ws` override in
   `package.json`, preserving `@repo/database` direct dependency constraint and
   resolving lockfile without churn.
+- Plan 085 is complete at `a26b476`. Reconciled root scripts (`preflight`) and
+  added `@repo/billing` and `@repo/analytics` to Infrastructure package tables
+  across `AGENTS.md`, `CLAUDE.md`, and `GEMINI.md`, while preserving forbidden
+  package warnings.
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
