@@ -7,6 +7,11 @@
 > valid page neighbours, and a Person that returns from Xero after being
 > archived (e.g. following a destructive disconnect) is reactivated in place
 > rather than left archived.
+>
+> Updated by Plan 098 to confirm missing Xero people across complete snapshots:
+> missing people are marked with `xero_missing_since` on first observation and
+> archived only after at least 24 continuous hours of absence, guarded by
+> whole-run bulk loss thresholds.
 
 ## Overview
 
@@ -14,7 +19,7 @@ This document details how people records are synchronised between **Xero Payroll
 1. The end-to-end sync workflow and execution lifecycle.
 2. Ingestion rules, field mappings, and filtering (who is synced vs who is not).
 3. The fate of users existing in Xero but not in Team Calendar.
-4. The fate of users existing in Team Calendar but not in Xero (manual people, terminated employees, and disconnected connections).
+4. The fate of users existing in Team Calendar but not in Xero (manual people, terminated employees, missing employees, and disconnected connections).
 
 ---
 
@@ -45,6 +50,10 @@ This document details how people records are synchronised between **Xero Payroll
   └─ NZ / UK: Stubbed read adapter (Graceful success with notice)
              │
              ▼
+[Clear Missing Markers for Returned IDs]
+  └─ Any non-empty seen EmployeeID clears xero_missing_since before record validation
+             │
+             ▼
 [Process in Batches of 50 (150ms delay)]
   ├─ Check cancel_requested_at
   ├─ Record mapping failures up front (mapping_error, source: raw EmployeeID or "unknown")
@@ -56,9 +65,21 @@ This document details how people records are synchronised between **Xero Payroll
        ├─ Map employment_type (employee, contractor, director, offshore)
        ├─ Map person_type (contractor → contractor, else employee; directors/offshore → employee)
        ├─ Set is_active = (Status == 'ACTIVE')
+       ├─ Clear xero_missing_since (null)
        └─ Clear archived_at (reactivate) — the employee was returned by Xero
           in this run, so any prior archival no longer applies; is_active is
           mapped independently and does not gate reactivation
+             │
+             ▼
+[Post-Batch Cancellation Check & Complete-Snapshot Absence Reconciliation]
+  ├─ If cancelled / incomplete / failed fetch ──► [Skip absence pass]
+  └─ If complete snapshot:
+       ├─ Calculate unarchived Xero people (denominator) and absent candidates
+       ├─ Whole-run guards: empty snapshot, missing ratio >= 20%, or missing count > 5
+       │    └─ Guard triggered ──► Block marking & archival, status: 'partial_success'
+       └─ If guards pass:
+            ├─ First observation ──► Mark xero_missing_since = now() (archive nobody)
+            └─ Mature observation (>= 24h absence) ──► Archive (archived_at = now(), is_active = false)
              │
              ▼
 [Finalise Run & Timestamp]
@@ -72,7 +93,7 @@ This document details how people records are synchronised between **Xero Payroll
 - **Trigger Layer**: [`apps/app/app/(authenticated)/sync/_actions.ts`](file:///home/hilton/Documents/teamcalendar/apps/app/app/(authenticated)/sync/_actions.ts)
   - `dispatchManualSyncAction`: Validates caller permissions via Clerk (`org:admin` or `org:owner`) and resolves the organisation scope before dispatching.
 - **Job Handler Layer**: [`packages/jobs/src/handlers/sync-xero-people.ts`](file:///home/hilton/Documents/teamcalendar/packages/jobs/src/handlers/sync-xero-people.ts)
-  - Coordinates sync lifecycle, concurrency control (30-minute stale run window), batch processing (50 records per batch with 150ms pauses), and per-record failure containment.
+  - Coordinates sync lifecycle, concurrency control (30-minute stale run window), batch processing (50 records per batch with 150ms pauses), absence reconciliation with 24-hour persistent confirmation, and per-record failure containment.
 - **API & Rate-Limiting Layer**: [`packages/xero`](file:///home/hilton/Documents/teamcalendar/packages/xero)
   - `fetchEmployeesForRegion` (`src/read/dispatch.ts`): Dispatches region-specific reads.
   - `fetchEmployees` (`src/au/read.ts`): Paginated HTTP GET requests using `xeroFetch` conforming to Xero's rate limits (60 calls/minute, 5,000 calls/day, 5 concurrent calls per organisation).
@@ -86,14 +107,15 @@ This document details how people records are synchronised between **Xero Payroll
 
 | Category | Synced? | Status in Team Calendar | Behaviour / Rules |
 |---|:---:|---|---|
-| **Active Xero AU Employees** | ✅ Yes | `is_active: true` | Upserted/updated with full identity and job details. |
-| **Terminated / Inactive Xero AU Employees** | ✅ Yes | `is_active: false` | Preserved for historical reporting and audit integrity; marked inactive. |
+| **Active Xero AU Employees** | ✅ Yes | `is_active: true` | Upserted/updated with full identity and job details; `xero_missing_since` cleared. |
+| **Terminated / Inactive Xero AU Employees** | ✅ Yes | `is_active: false` | Preserved for historical reporting and audit integrity; marked inactive; `xero_missing_since` cleared. |
 | **Employees without an Email in Xero** | ✅ Yes | `is_active: (status == 'ACTIVE')` | Assigned deterministic fallback email: `${firstName}.${lastName}@noemail.teamcalendar.online`. |
 | **Contractors / Directors / Offshore** | ✅ Yes | Mapped `employment_type` + `person_type` | `employment_type`: `employee`, `contractor`, `director`, `offshore` (default: `employee`); `person_type`: `contractor` if employment_type is contractor else `employee` (directors/offshore → `employee`). |
-| **Employee Records That Do Not Parse (wrong shape, or malformed/missing EmployeeID)** | ❌ No | Logged to `failed_records` | Isolated at the page-mapping stage (`mapping_error`); does not block other records on the same page — one malformed employee no longer discards an otherwise usable page. |
-| **Employees with Missing / Malformed UUID (parses, fails handler check)** | ❌ No | Logged to `failed_records` | Fails the handler's UUID check (`validation_error`); does not block other employees. |
-| **Employees with Missing First or Last Name** | ❌ No | Logged to `failed_records` | Fails the handler's non-empty string check (`validation_error`). This is a Team Calendar import requirement, not an assertion the page mapper makes. |
-| **Previously Archived Employees That Return in Xero** | ✅ Yes | `archived_at: null` (reactivated) | The existing Person row is reused (same Person ID, history preserved) and unarchived; `is_active` is mapped independently from Xero's employment status. |
+| **Employee Records That Do Not Parse (wrong shape, or malformed/missing EmployeeID)** | ❌ No | Logged to `failed_records` | Isolated at the page-mapping stage (`mapping_error`); does not block other records on the same page. If raw EmployeeID is present, clears missing marker. |
+| **Employees with Missing / Malformed UUID (parses, fails handler check)** | ❌ No | Logged to `failed_records` | Fails the handler's UUID check (`validation_error`); does not block other employees. If raw EmployeeID is present, clears missing marker. |
+| **Employees with Missing First or Last Name** | ❌ No | Logged to `failed_records` | Fails the handler's non-empty string check (`validation_error`). If raw EmployeeID is present, clears missing marker. |
+| **Previously Archived Employees That Return in Xero** | ✅ Yes | `archived_at: null` (reactivated) | The existing Person row is reused (same Person ID, history preserved), unarchived, and `xero_missing_since` cleared; `is_active` is mapped independently from Xero's employment status. |
+| **Missing Employees (Absent from Complete Snapshot)** | ⏳ Evaluated | `xero_missing_since` marked / `archived_at` set | Evaluated only on complete snapshots. First observation sets `xero_missing_since`. Archival occurs only after at least 24 continuous hours of absence, guarded by whole-run bulk loss thresholds. |
 | **NZ & UK Payroll Employees** | ⏳ Pending | N/A | Region employee read adapters are currently stubbed in the adapter layer. |
 | **Paused / Revoked Tenants** | ❌ No | N/A | Run aborted early (`status: "cancelled"` or `"failed"`). |
 
@@ -118,16 +140,23 @@ This document details how people records are synchronised between **Xero Payroll
 1. **Manually Created People (`source_system = 'MANUAL'`)**:
    - Added directly via the Team Calendar UI.
    - **Completely isolated from Xero syncs**: The `sync-xero-people` job operates strictly on the composite key `(organisation_id, source_system='XERO', source_person_key)`.
-   - Manual people are never deleted, overwritten, or modified by inbound Xero syncs.
+   - Manual people are never deleted, overwritten, marked missing, or modified by inbound Xero syncs.
    - All fields remain 100% owned by `team-calendar`.
 
 2. **Employees Terminated or Made Inactive in Xero**:
    - Because Xero AU's `/Employees` endpoint returns all employees regardless of status, terminated employees are received during the sync.
-   - Team Calendar updates their record to `is_active: false`.
+   - Team Calendar updates their record to `is_active: false` and clears any missing marker.
    - Existing leave records, availability history, and calendar publications are preserved.
 
 3. **Employees Removed / Missing from Xero API Payload**:
-   - Inbound sync is **additive and idempotent**. If an employee record is omitted or deleted in Xero, Team Calendar does not automatically delete the local `Person` row.
+   - Absence is inferred strictly from **complete snapshots** (`complete: true`). If a sync is cancelled, failed, or truncated, no absence reconciliation is performed.
+   - Any returned non-empty `EmployeeID` from `seenEmployeeIds` clears its `xero_missing_since` marker before record-level validation.
+   - **Whole-run guards**: If the snapshot is empty (`rawItemCount === 0`), the missing ratio is `>= 20%` (e.g. 1 of 5, 1 of 2), or the missing count is `> 5`, the whole absence pass is blocked, and the run finishes as `partial_success` for manual review. No candidates are marked or archived when a guard fires.
+   - **Two-phase absence confirmation**:
+     - **First observation**: Missing candidates have `xero_missing_since` set to `now()`. Nobody is archived on a single missing observation.
+     - **Mature observation (>= 24 hours)**: Candidates that have been continuously missing for at least 24 hours (`now - xero_missing_since >= 24h`) are archived (`archived_at = now()`, `is_active = false`).
+     - Person ID, source keys (`source_person_key`, `xero_employee_id`), `clerk_user_id`, and availability/leave history are preserved on archival.
+     - If an archived person reappears in a subsequent Xero sync, they are reactivated (`archived_at: null`, `xero_missing_since: null`).
 
 4. **Destructive Xero Disconnection**:
    - If an administrator triggers a destructive disconnect of the Xero integration ([`disconnectXeroOAuthConnection`](file:///home/hilton/Documents/teamcalendar/packages/xero/src/oauth/service.ts)):
@@ -135,4 +164,4 @@ This document details how people records are synchronised between **Xero Payroll
      - Synced `xero_employee_id` references are cleared (`null`).
      - Synced leave records and balances are archived/removed.
      - Manually created people (`source_system = "MANUAL"`) and manual availability entries remain unaffected.
-   - If the Xero connection is later reconnected and the same EmployeeID is returned by a subsequent people sync, the existing (organisation_id, source_system, source_person_key) Person row is reused and reactivated (`archived_at: null`) rather than replaced. Person ID and historical records are preserved; `xero_employee_id` and Xero-owned fields are re-populated from the returned record.
+   - If the Xero connection is later reconnected and the same EmployeeID is returned by a subsequent people sync, the existing (organisation_id, source_system, source_person_key) Person row is reused and reactivated (`archived_at: null`, `xero_missing_since: null`) rather than replaced. Person ID and historical records are preserved; `xero_employee_id` and Xero-owned fields are re-populated from the returned record.

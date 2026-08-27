@@ -129,11 +129,11 @@ malformed-but-present, manual rows and cross-tenant isolation.
 
 ## Done criteria
 
-- [ ] No person is archived on one missing observation.
-- [ ] Bulk-loss guards are inclusive and all-or-nothing.
-- [ ] Returned IDs clear markers before validation.
-- [ ] Reactivation preserves identity and history.
-- [ ] Migration, integration and all repository gates pass.
+- [x] No person is archived on one missing observation.
+- [x] Bulk-loss guards are inclusive and all-or-nothing.
+- [x] Returned IDs clear markers before validation.
+- [x] Reactivation preserves identity and history.
+- [x] Migration, integration and all repository gates pass.
 
 ## STOP conditions
 
