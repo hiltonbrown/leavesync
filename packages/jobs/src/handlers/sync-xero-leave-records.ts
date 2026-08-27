@@ -9,6 +9,7 @@ import {
 import type { Result } from "@repo/core";
 import { database, scopedTo as scoped } from "@repo/database";
 import { Prisma } from "@repo/database/generated/client";
+import { feedIdsForPeople } from "@repo/feeds";
 import { publishOrganisationNotificationEvent } from "@repo/notifications";
 import { log } from "@repo/observability/log";
 import {
@@ -263,7 +264,8 @@ export async function syncXeroLeaveRecords(
     const stale = complete
       ? await archiveStaleRecords(
           context,
-          fetched.map((record) => record.leaveApplicationId).filter(Boolean)
+          fetched.map((record) => record.leaveApplicationId).filter(Boolean),
+          startedAt
         )
       : { archived: 0, personIds: [] };
     if (!complete) {
@@ -828,58 +830,44 @@ function decideRemoteSnapshot(
 
 async function archiveStaleRecords(
   context: SyncXeroLeaveRecordsInput,
-  fetchedRemoteIds: string[]
+  fetchedRemoteIds: string[],
+  startedAt: Date
 ): Promise<{ archived: number; personIds: string[] }> {
   if (fetchedRemoteIds.length === 0) {
     return { archived: 0, personIds: [] };
   }
 
-  const stale = await database.availabilityRecord.findMany({
-    select: { id: true, person_id: true },
-    where: {
-      ...scoped(context),
-      archived_at: null,
-      source_remote_id: { notIn: fetchedRemoteIds },
-      source_type: "xero_leave",
-    },
-  });
-  if (stale.length === 0) {
-    return { archived: 0, personIds: [] };
-  }
+  const stalePredicate = {
+    ...scoped(context),
+    archived_at: null,
+    source_remote_id: { notIn: fetchedRemoteIds },
+    source_type: "xero_leave" as const,
+    updated_at: { lte: startedAt },
+  };
 
-  await database.availabilityRecord.updateMany({
-    data: {
-      archived_at: new Date(),
-      include_in_feed: false,
-      publish_status: "archived",
-      updated_at: new Date(),
-    },
-    where: {
-      ...scoped(context),
-      id: { in: stale.map((record) => record.id) },
-    },
-  });
-
-  // Materialise publications one record at a time. A single failure here must not
-  // abort the whole sync run (record-level inbound failures are tolerated); the
-  // record is already archived, the failure is logged below, and the publication
-  // is corrected on the next successful materialisation for the record.
-  for (const record of stale) {
-    try {
-      await materialiseSyncedPublication(context, record.id);
-    } catch (error) {
-      log.error("Failed to materialise publication for archived leave record", {
-        availabilityRecordId: record.id,
-        clerkOrgId: context.clerkOrgId,
-        error,
-        organisationId: context.organisationId,
+  const [stalePeople, updateResult] = await database.$transaction(
+    async (tx) => {
+      const people = await tx.availabilityRecord.findMany({
+        distinct: ["person_id"],
+        select: { person_id: true },
+        where: stalePredicate,
       });
+      const updated = await tx.availabilityRecord.updateMany({
+        data: {
+          archived_at: new Date(),
+          include_in_feed: false,
+          publish_status: "archived",
+          updated_at: new Date(),
+        },
+        where: stalePredicate,
+      });
+      return [people, updated] as const;
     }
-  }
+  );
 
   return {
-    archived: stale.length,
-    personIds: [...new Set(stale.map((record) => record.person_id))],
+    archived: updateResult.count,
+    personIds: stalePeople.map((record) => record.person_id),
   };
 }
 
@@ -908,44 +896,22 @@ async function enqueueFeedRebuilds(
     return;
   }
 
-  const people = await database.person.findMany({
-    select: { id: true, team_id: true },
-    where: { ...scoped(context), id: { in: personIds } },
-  });
-  const teamIds = people
-    .map((person) => person.team_id)
-    .filter((teamId): teamId is string => Boolean(teamId));
-  const feeds = await database.feed.findMany({
-    select: { id: true },
-    where: {
-      ...scoped(context),
-      archived_at: null,
-      scopes: {
-        some: {
-          clerk_org_id: context.clerkOrgId,
-          OR: [
-            { scope_type: "org" },
-            { scope_type: "person", scope_value: { in: personIds } },
-            ...(teamIds.length > 0
-              ? [{ scope_type: "team" as const, scope_value: { in: teamIds } }]
-              : []),
-          ],
-          organisation_id: context.organisationId,
-        },
-      },
-      status: "active",
-    },
+  const feeds = await feedIdsForPeople({
+    clerkOrgId: context.clerkOrgId,
+    organisationId: context.organisationId,
+    personIds,
   });
 
-  if (feeds.length === 0) {
+  const uniqueFeedIds = [...new Set(feeds.map((feed) => feed.id))];
+  if (uniqueFeedIds.length === 0) {
     return;
   }
 
   await inngest.send(
-    feeds.map((feed) => ({
+    uniqueFeedIds.map((feedId) => ({
       data: {
         clerkOrgId: context.clerkOrgId,
-        feedId: feed.id,
+        feedId,
         organisationId: context.organisationId,
         reason: "xero_leave_records_synced",
       },
