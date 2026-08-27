@@ -67,7 +67,8 @@ This reconciliation was read-only outside `plans/`.
 | Plan 098 execution | approved at `937540a`; xero_missing_since migration applied, 24h absence confirmation lifecycle, bulk-loss guards (>=20%, >5, empty/truncated), returned ID marker clearing, integration suite 22/22, check, typecheck, unit, live database integration and build gates passed |
 | Plan 107 execution | approved at `6b66916`; formatLeaveBalance helper with Intl.NumberFormat NZD and unit handling, services restricted to day subtraction only, UI updated across dashboard, profile, approvals and plans, check, typecheck, unit and live database integration gates passed |
 | Plan 079 execution | approved at `5cabfe8`; getSubscriptionForStripeCustomer dual lookup, cross-checked customer and organisation bindings in payments webhook, conflict test suite 16/16, billing integration suite 7/7, check, typecheck, unit and live database integration gates passed |
-| Current indexed plans | 64: 19 TODO, 29 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 099 execution | approved at `c024e58`; clerkAccessService 1-to-1 account linking, guarded bulk invitation dispatch (<=10/batch, <=50/hour), admin authorization and audit logging, people directory review UI, integration suite 4/4, actions suite 11/11, client suite 12/12, check, typecheck, unit, live database integration and build gates passed |
+| Current indexed plans | 64: 18 TODO, 30 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -106,7 +107,7 @@ before starting its dependent plan.
 | [081](081-minimise-and-delimit-support-issue-data.md) | Minimise/delimit support issue data | P2 | 066 | TODO |
 | [091](091-page-scheduled-xero-balance-sync.md) | Page scheduled balance sync across runs | P2 | 076 | TODO |
 | [093](093-observe-a-nonce-ready-csp.md) | Observe a privacy-safe nonce CSP | P2 | 057 | TODO |
-| [099](099-reconcile-clerk-access-and-invitations.md) | Link active people and guard Clerk invitations | P1 | 097, 098 | TODO |
+| [099](099-reconcile-clerk-access-and-invitations.md) | Link active people and guard Clerk invitations | P1 | 097, 098 | DONE |
 | [100](100-add-regional-xero-employee-readers.md) | Add NZ/UK employee readers | P1 | 097, 098 | TODO |
 | [088](088-publish-explicit-database-package-subpaths.md) | Publish database subpaths, remove `/src/` imports | P2 | 066, 079 | TODO |
 | [094](094-enforce-the-observed-csp.md) | Enforce the observed nonce CSP | P2 | 093 plus observation evidence | TODO |
@@ -317,6 +318,11 @@ predecessor/preflight contract in its plan.
   query and cross-checked Stripe customer ID and Clerk organisation ID in the
   payments webhook handler, preventing misattribution and rejecting tenant
   conflicts with 409 retryable errors without recording processed events.
+- Plan 099 is complete at `c024e58`. Implemented `clerkAccessService` for
+  idempotent 1-to-1 linking of active unlinked payroll people to Clerk user IDs,
+  guarded bulk invitations with strict <=10 batching and <=50/hour rate limit
+  respect, admin permissions (`org:sys_memberships:manage`), audit logging, and
+  a people directory review UI.
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
