@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   constructEvent: vi.fn(),
   getFirstActiveOrganisationIdForClerkOrg: vi.fn(),
+  getSubscriptionForOrg: vi.fn(),
+  getSubscriptionForStripeCustomer: vi.fn(),
   inngestSend: vi.fn(() => Promise.resolve()),
   isStripeEventProcessed: vi.fn(),
   logError: vi.fn(),
@@ -20,6 +22,8 @@ vi.mock("@repo/billing", () => ({
 vi.mock("@repo/database", () => ({
   getFirstActiveOrganisationIdForClerkOrg:
     mocks.getFirstActiveOrganisationIdForClerkOrg,
+  getSubscriptionForOrg: mocks.getSubscriptionForOrg,
+  getSubscriptionForStripeCustomer: mocks.getSubscriptionForStripeCustomer,
   isStripeEventProcessed: mocks.isStripeEventProcessed,
   recordStripeEvent: mocks.recordStripeEvent,
   upsertSubscriptionFromWebhook: mocks.upsertSubscriptionFromWebhook,
@@ -70,6 +74,8 @@ describe("Stripe payments webhook", () => {
     mocks.getFirstActiveOrganisationIdForClerkOrg.mockResolvedValue(
       "30000000-0000-4000-8000-000000000001"
     );
+    mocks.getSubscriptionForOrg.mockResolvedValue(null);
+    mocks.getSubscriptionForStripeCustomer.mockResolvedValue(null);
     mocks.isStripeEventProcessed.mockResolvedValue(false);
     mocks.resolvePlanKey.mockReturnValue({ ok: true, value: "basic" });
   });
@@ -141,6 +147,182 @@ describe("Stripe payments webhook", () => {
       mocks.upsertSubscriptionFromWebhook.mock.invocationCallOrder;
     const [recordOrder] = mocks.recordStripeEvent.mock.invocationCallOrder;
     expect(recordOrder).toBeGreaterThan(mirrorOrder);
+  });
+
+  it("rejects with a non-2xx retryable response when metadata org is already bound to a different customer", async () => {
+    mocks.constructEvent.mockReturnValue({
+      ok: true,
+      value: subscriptionEvent({
+        customer: "cus_different",
+        metadata: { clerk_org_id: "org_1" },
+      }),
+    });
+    mocks.getSubscriptionForOrg.mockResolvedValue({
+      cancel_at_period_end: false,
+      clerk_org_id: "org_1",
+      current_period_end: null,
+      ended_at: null,
+      plan_key: "basic",
+      status: "active",
+      stripe_customer_id: "cus_existing",
+      stripe_subscription_id: "sub_existing",
+    });
+
+    const response = await POST(webhookRequest());
+
+    expect(response.status).toBe(409);
+    expect(mocks.upsertSubscriptionFromWebhook).not.toHaveBeenCalled();
+    expect(mocks.inngestSend).not.toHaveBeenCalled();
+    expect(mocks.recordStripeEvent).not.toHaveBeenCalled();
+    expect(mocks.logError).toHaveBeenCalledWith(
+      "Stripe subscription tenant cross-check conflict detected.",
+      expect.objectContaining({
+        clerkOrgId: "org_1",
+        orgBoundCustomerId: "cus_existing",
+        stripeCustomerId: "cus_different",
+      })
+    );
+  });
+
+  it("rejects with a non-2xx retryable response when event customer is already bound to a different org", async () => {
+    mocks.constructEvent.mockReturnValue({
+      ok: true,
+      value: subscriptionEvent({
+        customer: "cus_1",
+        metadata: { clerk_org_id: "org_different" },
+      }),
+    });
+    mocks.getSubscriptionForStripeCustomer.mockResolvedValue({
+      cancel_at_period_end: false,
+      clerk_org_id: "org_bound_to_cus_1",
+      current_period_end: null,
+      ended_at: null,
+      plan_key: "basic",
+      status: "active",
+      stripe_customer_id: "cus_1",
+      stripe_subscription_id: "sub_bound",
+    });
+
+    const response = await POST(webhookRequest());
+
+    expect(response.status).toBe(409);
+    expect(mocks.upsertSubscriptionFromWebhook).not.toHaveBeenCalled();
+    expect(mocks.inngestSend).not.toHaveBeenCalled();
+    expect(mocks.recordStripeEvent).not.toHaveBeenCalled();
+    expect(mocks.logError).toHaveBeenCalledWith(
+      "Stripe subscription tenant cross-check conflict detected.",
+      expect.objectContaining({
+        clerkOrgId: "org_different",
+        customerBoundOrgId: "org_bound_to_cus_1",
+        stripeCustomerId: "cus_1",
+      })
+    );
+  });
+
+  it("succeeds when org and customer bindings match existing records", async () => {
+    mocks.constructEvent.mockReturnValue({
+      ok: true,
+      value: subscriptionEvent({
+        customer: "cus_1",
+        metadata: { clerk_org_id: "org_1" },
+      }),
+    });
+    mocks.getSubscriptionForOrg.mockResolvedValue({
+      cancel_at_period_end: false,
+      clerk_org_id: "org_1",
+      current_period_end: null,
+      ended_at: null,
+      plan_key: "basic",
+      status: "active",
+      stripe_customer_id: "cus_1",
+      stripe_subscription_id: "sub_1",
+    });
+    mocks.getSubscriptionForStripeCustomer.mockResolvedValue({
+      cancel_at_period_end: false,
+      clerk_org_id: "org_1",
+      current_period_end: null,
+      ended_at: null,
+      plan_key: "basic",
+      status: "active",
+      stripe_customer_id: "cus_1",
+      stripe_subscription_id: "sub_1",
+    });
+
+    const response = await POST(webhookRequest());
+
+    expect(response.status).toBe(200);
+    expect(mocks.upsertSubscriptionFromWebhook).toHaveBeenCalledTimes(1);
+    expect(mocks.inngestSend).toHaveBeenCalledTimes(1);
+    expect(mocks.recordStripeEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it("succeeds when org exists with null stripe_customer_id and customer is unbound", async () => {
+    mocks.constructEvent.mockReturnValue({
+      ok: true,
+      value: subscriptionEvent({
+        customer: "cus_1",
+        metadata: { clerk_org_id: "org_1" },
+      }),
+    });
+    mocks.getSubscriptionForOrg.mockResolvedValue({
+      cancel_at_period_end: false,
+      clerk_org_id: "org_1",
+      current_period_end: null,
+      ended_at: null,
+      plan_key: "basic",
+      status: "active",
+      stripe_customer_id: null,
+      stripe_subscription_id: null,
+    });
+    mocks.getSubscriptionForStripeCustomer.mockResolvedValue(null);
+
+    const response = await POST(webhookRequest());
+
+    expect(response.status).toBe(200);
+    expect(mocks.upsertSubscriptionFromWebhook).toHaveBeenCalledTimes(1);
+    expect(mocks.inngestSend).toHaveBeenCalledTimes(1);
+    expect(mocks.recordStripeEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects with a non-2xx retryable response when invoice event has a tenant/customer conflict", async () => {
+    mocks.constructEvent.mockReturnValue({
+      ok: true,
+      value: {
+        created: 1_700_000_100,
+        data: {
+          object: {
+            subscription: {
+              cancel_at_period_end: false,
+              current_period_end: 1_700_000_000,
+              customer: "cus_1",
+              id: "sub_1",
+              items: { data: [{ price: { id: "price_basic" } }] },
+              metadata: { clerk_org_id: "org_conflict" },
+              status: "active",
+            },
+          },
+        },
+        id: "evt_inv_1",
+        type: "invoice.paid",
+      },
+    });
+    mocks.getSubscriptionForStripeCustomer.mockResolvedValue({
+      cancel_at_period_end: false,
+      clerk_org_id: "org_other",
+      current_period_end: null,
+      ended_at: null,
+      plan_key: "basic",
+      status: "active",
+      stripe_customer_id: "cus_1",
+      stripe_subscription_id: "sub_other",
+    });
+
+    const response = await POST(webhookRequest());
+
+    expect(response.status).toBe(409);
+    expect(mocks.upsertSubscriptionFromWebhook).not.toHaveBeenCalled();
+    expect(mocks.inngestSend).not.toHaveBeenCalled();
+    expect(mocks.recordStripeEvent).not.toHaveBeenCalled();
   });
 
   it("does not mirror when the price maps to no known plan", async () => {

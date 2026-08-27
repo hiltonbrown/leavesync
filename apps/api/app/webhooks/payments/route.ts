@@ -1,6 +1,8 @@
 import { constructEvent, resolvePlanKey } from "@repo/billing";
 import {
   getFirstActiveOrganisationIdForClerkOrg,
+  getSubscriptionForOrg,
+  getSubscriptionForStripeCustomer,
   isStripeEventProcessed,
   recordStripeEvent,
   upsertSubscriptionFromWebhook,
@@ -43,16 +45,22 @@ const objectId = (value: string | { id: string } | null | undefined) =>
 const dateFromSeconds = (value: number | null | undefined) =>
   value ? new Date(value * 1000) : null;
 
+interface MirrorResult {
+  error?: string;
+  ok: boolean;
+  status?: number;
+}
+
 async function mirrorSubscription(
   data: z.infer<typeof SubscriptionSchema>,
   eventCreatedAt: Date
-) {
+): Promise<MirrorResult> {
   const clerkOrgId = data.metadata?.clerk_org_id;
   if (!clerkOrgId) {
     log.error("Stripe subscription event missing clerk_org_id metadata.", {
       stripeSubscriptionId: data.id,
     });
-    return;
+    return { ok: true };
   }
   const priceId = data.items.data[0]?.price.id;
   const plan = resolvePlanKey(priceId);
@@ -61,8 +69,42 @@ async function mirrorSubscription(
       priceId,
       stripeSubscriptionId: data.id,
     });
-    return;
+    return { ok: true };
   }
+
+  const stripeCustomerId = objectId(data.customer);
+  const [orgBinding, customerBinding] = await Promise.all([
+    getSubscriptionForOrg(clerkOrgId),
+    stripeCustomerId
+      ? getSubscriptionForStripeCustomer(stripeCustomerId)
+      : Promise.resolve(null),
+  ]);
+
+  const orgBoundToDifferentCustomer = Boolean(
+    orgBinding?.stripe_customer_id &&
+      stripeCustomerId &&
+      orgBinding.stripe_customer_id !== stripeCustomerId
+  );
+
+  const customerBoundToDifferentOrg = Boolean(
+    customerBinding?.clerk_org_id && customerBinding.clerk_org_id !== clerkOrgId
+  );
+
+  if (orgBoundToDifferentCustomer || customerBoundToDifferentOrg) {
+    log.error("Stripe subscription tenant cross-check conflict detected.", {
+      clerkOrgId,
+      customerBoundOrgId: customerBinding?.clerk_org_id ?? null,
+      orgBoundCustomerId: orgBinding?.stripe_customer_id ?? null,
+      stripeCustomerId,
+      stripeSubscriptionId: data.id,
+    });
+    return {
+      error: "Stripe customer and organisation identity conflict",
+      ok: false,
+      status: 409,
+    };
+  }
+
   await upsertSubscriptionFromWebhook({
     cancelAtPeriodEnd: data.cancel_at_period_end,
     clerkOrgId,
@@ -70,7 +112,7 @@ async function mirrorSubscription(
     endedAt: dateFromSeconds(data.ended_at),
     planKey: plan.value,
     status: data.status,
-    stripeCustomerId: objectId(data.customer),
+    stripeCustomerId,
     stripeEventCreatedAt: eventCreatedAt,
     stripeSubscriptionId: data.id,
   });
@@ -84,7 +126,7 @@ async function mirrorSubscription(
         stripeSubscriptionId: data.id,
       }
     );
-    return;
+    return { ok: true };
   }
   await inngest.send({
     data: {
@@ -93,6 +135,7 @@ async function mirrorSubscription(
     },
     name: "recount-usage",
   });
+  return { ok: true };
 }
 
 const SUBSCRIPTION_EVENT_TYPES = new Set([
@@ -111,23 +154,27 @@ interface StripeEventLike {
   type: string;
 }
 
-async function handleSubscriptionEvent(event: StripeEventLike) {
+async function handleSubscriptionEvent(
+  event: StripeEventLike
+): Promise<MirrorResult> {
   const parsed = SubscriptionSchema.safeParse(event.data.object);
   if (parsed.success) {
-    await mirrorSubscription(
+    return await mirrorSubscription(
       parsed.data,
       dateFromSeconds(event.created) ?? new Date()
     );
-    return;
   }
   log.error("Stripe subscription event failed validation and was skipped.", {
     eventId: event.id,
     eventType: event.type,
     issues: parsed.error.issues,
   });
+  return { ok: true };
 }
 
-async function handleInvoiceEvent(event: StripeEventLike) {
+async function handleInvoiceEvent(
+  event: StripeEventLike
+): Promise<MirrorResult> {
   const parsed = InvoiceSchema.safeParse(event.data.object);
   if (!parsed.success) {
     log.error("Stripe invoice event failed validation and was skipped.", {
@@ -135,20 +182,22 @@ async function handleInvoiceEvent(event: StripeEventLike) {
       eventType: event.type,
       issues: parsed.error.issues,
     });
-    return;
+    return { ok: true };
   }
   const { subscription } = parsed.data;
   if (subscription && typeof subscription !== "string") {
-    await mirrorSubscription(
+    return await mirrorSubscription(
       subscription,
       dateFromSeconds(event.created) ?? new Date()
     );
-  } else if (subscription) {
+  }
+  if (subscription) {
     log.info(
       "Stripe invoice event carried no expanded subscription and was skipped.",
       { eventId: event.id, eventType: event.type }
     );
   }
+  return { ok: true };
 }
 
 function checkCheckoutSessionMetadata(event: StripeEventLike) {
@@ -158,19 +207,24 @@ function checkCheckoutSessionMetadata(event: StripeEventLike) {
   }
 }
 
-async function processStripeEvent(event: StripeEventLike) {
+async function processStripeEvent(
+  event: StripeEventLike
+): Promise<MirrorResult> {
   if (event.type === "checkout.session.completed") {
     checkCheckoutSessionMetadata(event);
-  } else if (SUBSCRIPTION_EVENT_TYPES.has(event.type)) {
-    await handleSubscriptionEvent(event);
-  } else if (INVOICE_EVENT_TYPES.has(event.type)) {
-    await handleInvoiceEvent(event);
-  } else {
-    log.info("Stripe event type not handled.", {
-      eventId: event.id,
-      eventType: event.type,
-    });
+    return { ok: true };
   }
+  if (SUBSCRIPTION_EVENT_TYPES.has(event.type)) {
+    return await handleSubscriptionEvent(event);
+  }
+  if (INVOICE_EVENT_TYPES.has(event.type)) {
+    return await handleInvoiceEvent(event);
+  }
+  log.info("Stripe event type not handled.", {
+    eventId: event.id,
+    eventType: event.type,
+  });
+  return { ok: true };
 }
 
 export async function POST(request: Request) {
@@ -194,7 +248,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true });
   }
 
-  await processStripeEvent(event);
+  const result = await processStripeEvent(event);
+  if (!result.ok) {
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status ?? 409 }
+    );
+  }
 
   await recordStripeEvent(event.id, event.type);
   return NextResponse.json({ received: true });

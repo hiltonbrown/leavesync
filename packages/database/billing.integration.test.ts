@@ -8,6 +8,7 @@ vi.mock("server-only", () => ({}));
 const { database } = await import("./index.js");
 const {
   getSubscriptionForOrg,
+  getSubscriptionForStripeCustomer,
   isStripeEventProcessed,
   recordStripeEvent,
   upsertSubscriptionFromWebhook,
@@ -226,5 +227,53 @@ describe("billing queries integration", () => {
     await recordStripeEvent(eventId, "invoice.paid");
 
     expect(await isStripeEventProcessed(eventId)).toBe(true);
+  });
+
+  test("getSubscriptionForStripeCustomer returns null when customer is unbound", async () => {
+    const nonExistent =
+      await getSubscriptionForStripeCustomer("cus_non_existent");
+    expect(nonExistent).toBeNull();
+  });
+
+  test("getSubscriptionForStripeCustomer resolves subscription by stripe customer id across organisations", async () => {
+    await upsertSubscriptionFromWebhook({
+      cancelAtPeriodEnd: false,
+      clerkOrgId: testClerkOrgIdA,
+      currentPeriodEnd: new Date("2026-09-20T12:00:00.000Z"),
+      endedAt: null,
+      planKey: "basic",
+      status: "active",
+      stripeCustomerId: "cus_test_org_a",
+      stripeEventCreatedAt: new Date("2026-08-20T12:00:00.000Z"),
+      stripeSubscriptionId: "sub_test_org_a",
+    });
+
+    await upsertSubscriptionFromWebhook({
+      cancelAtPeriodEnd: false,
+      clerkOrgId: testClerkOrgIdB,
+      currentPeriodEnd: new Date("2026-09-20T12:00:00.000Z"),
+      endedAt: null,
+      planKey: "premium",
+      status: "active",
+      stripeCustomerId: "cus_test_org_b",
+      stripeEventCreatedAt: new Date("2026-08-20T12:00:00.000Z"),
+      stripeSubscriptionId: "sub_test_org_b",
+    });
+
+    const subA = await getSubscriptionForStripeCustomer("cus_test_org_a");
+    expect(subA).toMatchObject({
+      clerk_org_id: testClerkOrgIdA,
+      plan_key: "basic",
+      stripe_customer_id: "cus_test_org_a",
+      stripe_subscription_id: "sub_test_org_a",
+    });
+
+    const subB = await getSubscriptionForStripeCustomer("cus_test_org_b");
+    expect(subB).toMatchObject({
+      clerk_org_id: testClerkOrgIdB,
+      plan_key: "premium",
+      stripe_customer_id: "cus_test_org_b",
+      stripe_subscription_id: "sub_test_org_b",
+    });
   });
 });
