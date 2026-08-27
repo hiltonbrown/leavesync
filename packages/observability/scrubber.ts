@@ -28,8 +28,16 @@ const SENSITIVE_PATTERNS = [
 
 const NON_SECRET_OPERATIONAL_KEYS = new Set([
   "actingClerkOrgId",
+  "blockedOrigin",
   "clerkOrgId",
+  "columnNumber",
+  "disposition",
+  "documentOrigin",
+  "effectiveDirective",
   "errorCode",
+  "lineNumber",
+  "sourceOrigin",
+  "statusCode",
   "stripeSubscriptionId",
   "xeroWriteSucceeded",
 ]);

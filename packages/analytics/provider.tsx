@@ -5,16 +5,20 @@ import { keys } from "./keys";
 
 interface AnalyticsProviderProps {
   readonly children: ReactNode;
+  readonly nonce?: string;
 }
 
 const { NEXT_PUBLIC_GA_MEASUREMENT_ID } = keys();
 
-export const AnalyticsProvider = ({ children }: AnalyticsProviderProps) => (
+export const AnalyticsProvider = ({
+  children,
+  nonce,
+}: AnalyticsProviderProps) => (
   <>
     {children}
     <VercelAnalytics />
     {NEXT_PUBLIC_GA_MEASUREMENT_ID ? (
-      <GoogleAnalytics gaId={NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+      <GoogleAnalytics gaId={NEXT_PUBLIC_GA_MEASUREMENT_ID} nonce={nonce} />
     ) : null}
   </>
 );

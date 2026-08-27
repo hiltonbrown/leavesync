@@ -31,6 +31,10 @@
       "types": "./next-config.ts",
       "default": "./next-config.ts"
     },
+    "./scrubber": {
+      "types": "./scrubber.ts",
+      "default": "./scrubber.ts"
+    },
     "./server": {
       "types": "./server.ts",
       "default": "./server.ts"
