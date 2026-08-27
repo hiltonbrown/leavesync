@@ -16,7 +16,7 @@
 - **Depends on**: `plans/097-harden-returned-xero-employee-import.md` DONE and `plans/098-confirm-missing-xero-people-before-archival.md` DONE
 - **Category**: security
 - **Planned at**: commit `ecd49f5`, 2026-08-24; re-stamp after dependencies
-- **Execution status**: TODO
+- **Execution status**: DONE
 - **Supersedes**: Clerk half of rejected Plan 072
 
 ## Clerk contract

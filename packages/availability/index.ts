@@ -114,6 +114,7 @@ export {
   updateAlternativeContact,
 } from "./src/people/alternative-contact-service";
 export * from "./src/people/balance-refresh";
+export * from "./src/people/clerk-access-service";
 export * from "./src/people/current-status";
 export {
   type CurrentStatus,
