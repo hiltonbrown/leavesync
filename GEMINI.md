@@ -126,12 +126,13 @@ Task Management
 | `packages/xero` | Xero OAuth, tenant sync, AU/NZ/UK region handling, rate limiting, leave-type mapping |
 | `packages/availability` | Canonical person model, availability records, privacy rules, contactability, feed eligibility |
 | `packages/feeds` | ICS generation, stable UID strategy, feed token validation, Vercel KV caching |
+| `packages/notifications` | In-app notification creation, SSE delivery, notification preferences, email dispatch via Resend |
 | `packages/jobs` | Inngest job definitions (sync scheduling, feed rebuilds, reconciliation) |
 | `packages/core` | Result type, branded IDs, shared enums, date/timezone utilities, error types |
 
 ### Infrastructure packages
 
-`packages/database`, `packages/auth`, `packages/design-system`, `packages/email`, `packages/observability`, `packages/next-config`, `packages/seo`, `packages/typescript-config`.
+`packages/database`, `packages/auth`, `packages/billing`, `packages/analytics`, `packages/design-system`, `packages/email`, `packages/observability`, `packages/next-config`, `packages/seo`, `packages/typescript-config`.
 
 ### Not in use
 
@@ -209,6 +210,7 @@ const tenant = await db.xeroTenant.findFirst({
 - All database access through `packages/database`. Never import Prisma client directly in apps.
 - All Xero logic in `packages/xero`. Canonical domain logic never depends on Xero payload shapes.
 - All ICS logic in `packages/feeds`.
+- All notification logic in `packages/notifications`.
 - Shared UI in `packages/design-system`. Do not redefine base components in apps.
 
 ### Database conventions
@@ -314,6 +316,7 @@ bun run migrate:deploy
 bun run db:push
 bun run analyze
 bun run clean
+bun run preflight
 ```
 
 `typecheck` and `test:integration` are both CI gates. A change is not verified until `bun run check`, `bun run typecheck`, `bun run test` and `bun run test:integration` all pass.

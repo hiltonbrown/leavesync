@@ -138,6 +138,7 @@ bun run migrate:deploy     # Generate + migrate deploy (production)
 bun run db:push            # Push schema without migration (dev only)
 bun run analyze            # Bundle analysis
 bun run clean              # Remove git-ignored files
+bun run preflight          # Production environment preflight check
 ```
 
 ---
@@ -246,6 +247,8 @@ async function listPeople(organisationId: OrganisationId) {
 |---|---|
 | `packages/database` | Prisma schema, migrations, generated client, query helpers |
 | `packages/auth` | `requireOrg()`, `requireRole()`, `getOrgId()`, re-exported Clerk hooks |
+| `packages/billing` | Stripe billing integration, checkout and customer portal sessions, webhook handling |
+| `packages/analytics` | PostHog and Vercel analytics, client and server instrumentation |
 | `packages/design-system` | Shared React components, Tailwind CSS, shadcn/ui |
 | `packages/email` | React Email templates + Resend transport |
 | `packages/observability` | Sentry error tracking, structured logging |
