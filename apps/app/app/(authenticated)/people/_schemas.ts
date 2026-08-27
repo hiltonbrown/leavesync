@@ -137,6 +137,15 @@ export const SetManualBalanceActionSchema = z.object({
     .optional(),
 });
 
+export const LoadClerkAccessCandidatesSchema = z.object({
+  organisationId: z.string().uuid(),
+});
+
+export const InviteClerkAccessCandidatesSchema = z.object({
+  candidatePersonIds: z.array(z.string().uuid()).optional(),
+  organisationId: z.string().uuid(),
+});
+
 export type AddAlternativeContactActionInput = z.infer<
   typeof AddAlternativeContactActionSchema
 >;
@@ -154,4 +163,10 @@ export type RefreshBalancesActionInput = z.infer<
 >;
 export type SetManualBalanceActionInput = z.infer<
   typeof SetManualBalanceActionSchema
+>;
+export type LoadClerkAccessCandidatesInput = z.infer<
+  typeof LoadClerkAccessCandidatesSchema
+>;
+export type InviteClerkAccessCandidatesInput = z.infer<
+  typeof InviteClerkAccessCandidatesSchema
 >;

@@ -1,8 +1,21 @@
 "use client";
 
-import type { PersonListItem } from "@repo/availability";
+import type {
+  ClerkAccessReviewResult,
+  ClerkAccessState,
+  ClerkInvitationDispatchResult,
+  PersonListItem,
+} from "@repo/availability";
 import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@repo/design-system/components/ui/dialog";
 import { Input } from "@repo/design-system/components/ui/input";
 import { Label } from "@repo/design-system/components/ui/label";
 import {
@@ -22,14 +35,23 @@ import {
 } from "@repo/design-system/components/ui/table";
 import { useNotificationEvents } from "@repo/notifications/components/provider";
 import {
+  AlertCircleIcon,
   AlertTriangleIcon,
+  CheckCircle2Icon,
   LeafIcon,
+  Loader2Icon,
   PencilIcon,
   SearchIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from "react";
 import { dispatchManualSyncAction } from "@/app/(authenticated)/sync/_actions";
 import {
   statusToneClasses,
@@ -38,6 +60,10 @@ import {
 import { EmptyState } from "@/components/states/empty-state";
 import { withOrg } from "@/lib/navigation/org-url";
 import { useFilterParams } from "@/lib/url-state/use-filter-params";
+import {
+  inviteClerkAccessCandidatesAction,
+  loadClerkAccessCandidatesAction,
+} from "./_actions";
 import { type PeopleFilterInput, PeopleFilterSchema } from "./_schemas";
 
 interface FilterOption {
@@ -47,6 +73,7 @@ interface FilterOption {
 
 interface PeopleClientProps {
   canIncludeArchived: boolean;
+  canManageClerkAccess?: boolean;
   filters: PeopleFilterInput;
   hasActiveXeroConnection: boolean;
   locations: FilterOption[];
@@ -133,6 +160,7 @@ function renderEmptyState({
 
 export function PeopleClient({
   canIncludeArchived,
+  canManageClerkAccess = canIncludeArchived,
   filters,
   hasActiveXeroConnection,
   locations,
@@ -149,6 +177,7 @@ export function PeopleClient({
   const [, setFilterParams] = useFilterParams(PeopleFilterSchema);
   const [search, setSearch] = useState(filters.search ?? "");
   const [isSyncPending, startSyncTransition] = useTransition();
+  const [isAccessDialogOpen, setIsAccessDialogOpen] = useState(false);
   const [syncMessage, setSyncMessage] = useState<{
     text: string;
     tone: "error" | "status";
@@ -294,6 +323,16 @@ export function PeopleClient({
                 variant="default"
               >
                 Sync from Xero
+              </Button>
+            ) : null}
+            {canManageClerkAccess ? (
+              <Button
+                onClick={() => setIsAccessDialogOpen(true)}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                Reconcile Clerk access
               </Button>
             ) : null}
             {canIncludeArchived ? (
@@ -547,8 +586,337 @@ export function PeopleClient({
           </Button>
         </div>
       ) : null}
+
+      {canManageClerkAccess ? (
+        <ClerkAccessReviewDialog
+          isOpen={isAccessDialogOpen}
+          onClose={() => setIsAccessDialogOpen(false)}
+          organisationId={organisationId}
+        />
+      ) : null}
     </section>
   );
+}
+
+export function ClerkAccessReviewDialog({
+  isOpen,
+  onClose,
+  organisationId,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  organisationId: string;
+}) {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [reviewData, setReviewData] = useState<ClerkAccessReviewResult | null>(
+    null
+  );
+  const [resultData, setResultData] =
+    useState<ClerkInvitationDispatchResult | null>(null);
+
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await loadClerkAccessCandidatesAction({ organisationId });
+      if (res.ok) {
+        setReviewData(res.value);
+      } else {
+        setError(res.error.message);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to load Clerk access review."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [organisationId]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setResultData(null);
+      loadData();
+    }
+  }, [isOpen, loadData]);
+
+  const handleInviteAndLink = async () => {
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      const res = await inviteClerkAccessCandidatesAction({ organisationId });
+      if (res.ok) {
+        setResultData(res.value);
+      } else {
+        setError(res.error.message);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to invite candidates."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDone = () => {
+    onClose();
+    router.refresh();
+  };
+
+  return (
+    <Dialog onOpenChange={(open) => !open && onClose()} open={isOpen}>
+      <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Reconcile Clerk access</DialogTitle>
+          <DialogDescription>
+            Link existing members and invite eligible payroll employees.
+          </DialogDescription>
+        </DialogHeader>
+
+        <ReviewDialogBody
+          error={error}
+          isLoading={isLoading}
+          resultData={resultData}
+          reviewData={reviewData}
+        />
+
+        <DialogFooter className="gap-2 sm:justify-between">
+          {resultData ? (
+            <Button className="w-full sm:w-auto" onClick={handleDone}>
+              Done
+            </Button>
+          ) : (
+            <>
+              <Button
+                disabled={isSubmitting}
+                onClick={onClose}
+                type="button"
+                variant="outline"
+              >
+                Cancel
+              </Button>
+              {reviewData && !isLoading && !error ? (
+                <Button
+                  disabled={
+                    isSubmitting ||
+                    (reviewData.linkableCount === 0 &&
+                      reviewData.invitableCount === 0)
+                  }
+                  onClick={handleInviteAndLink}
+                  type="button"
+                  variant="default"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2Icon className="mr-2 size-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Send invitations & link"
+                  )}
+                </Button>
+              ) : null}
+            </>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ReviewDialogBody({
+  error,
+  isLoading,
+  resultData,
+  reviewData,
+}: {
+  error: string | null;
+  isLoading: boolean;
+  resultData: ClerkInvitationDispatchResult | null;
+  reviewData: ClerkAccessReviewResult | null;
+}) {
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <Loader2Icon className="size-8 animate-spin text-muted-foreground" />
+        <p className="mt-4 text-muted-foreground text-sm">
+          Loading member and invitation states...
+        </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-destructive text-sm">
+        <div className="flex items-center gap-2 font-medium">
+          <AlertCircleIcon className="size-4" />
+          <span>Error</span>
+        </div>
+        <p className="mt-1">{error}</p>
+      </div>
+    );
+  }
+
+  if (resultData) {
+    return (
+      <div className="flex flex-col gap-4 py-4">
+        <div className="rounded-xl bg-emerald-500/10 p-4 text-emerald-800 dark:text-emerald-300">
+          <div className="flex items-center gap-2 font-semibold">
+            <CheckCircle2Icon className="size-5" />
+            <span>Reconciliation completed</span>
+          </div>
+          <ul className="mt-3 list-inside list-disc space-y-1 text-sm">
+            <li>{resultData.linkedCount} existing accounts linked</li>
+            <li>{resultData.succeededCount} invitations sent</li>
+            {resultData.failedCount > 0 ? (
+              <li className="font-medium text-destructive">
+                {resultData.failedCount} invitations failed
+              </li>
+            ) : null}
+          </ul>
+        </div>
+      </div>
+    );
+  }
+
+  if (reviewData) {
+    return (
+      <div className="flex flex-col gap-4 py-2">
+        <ReviewStatChips reviewData={reviewData} />
+        <div className="rounded-xl bg-muted/60 p-3 text-muted-foreground text-xs">
+          Invitations grant the{" "}
+          <span className="font-medium text-foreground">viewer</span> role.
+          One-to-one email matches will be linked to their Clerk account.
+          Fallback addresses and conflicting emails are excluded.
+        </div>
+        <ReviewCandidateTable candidates={reviewData.candidates} />
+      </div>
+    );
+  }
+
+  return null;
+}
+
+function ReviewStatChips({
+  reviewData,
+}: {
+  reviewData: ClerkAccessReviewResult;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+      <div className="rounded-xl bg-muted p-3 text-center">
+        <p className="font-semibold text-foreground text-lg">
+          {reviewData.linkableCount}
+        </p>
+        <p className="text-muted-foreground text-xs">Linkable</p>
+      </div>
+      <div className="rounded-xl bg-muted p-3 text-center">
+        <p className="font-semibold text-foreground text-lg">
+          {reviewData.invitableCount}
+        </p>
+        <p className="text-muted-foreground text-xs">Invitable</p>
+      </div>
+      <div className="rounded-xl bg-muted p-3 text-center">
+        <p className="font-semibold text-foreground text-lg">
+          {reviewData.alreadyInvitedCount}
+        </p>
+        <p className="text-muted-foreground text-xs">Invited</p>
+      </div>
+      <div className="rounded-xl bg-muted p-3 text-center">
+        <p className="font-semibold text-foreground text-lg">
+          {reviewData.memberCount}
+        </p>
+        <p className="text-muted-foreground text-xs">Members</p>
+      </div>
+      <div className="rounded-xl bg-muted p-3 text-center">
+        <p className="font-semibold text-foreground text-lg">
+          {reviewData.conflictCount}
+        </p>
+        <p className="text-muted-foreground text-xs">Conflicts</p>
+      </div>
+    </div>
+  );
+}
+
+function ReviewCandidateTable({
+  candidates,
+}: {
+  candidates: ClerkAccessReviewResult["candidates"];
+}) {
+  return (
+    <div className="max-h-60 overflow-y-auto rounded-xl border border-border/50">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Person</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>State</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {candidates.length === 0 ? (
+            <TableRow>
+              <TableCell
+                className="text-center text-muted-foreground"
+                colSpan={3}
+              >
+                No candidates found.
+              </TableCell>
+            </TableRow>
+          ) : (
+            candidates.map((c) => (
+              <TableRow key={c.id}>
+                <TableCell className="font-medium">{c.name}</TableCell>
+                <TableCell className="text-muted-foreground text-xs">
+                  {c.email ?? "—"}
+                </TableCell>
+                <TableCell>
+                  <CandidateStateBadge
+                    conflictReason={c.conflictReason}
+                    state={c.state}
+                  />
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+function CandidateStateBadge({
+  conflictReason,
+  state,
+}: {
+  conflictReason: string | null;
+  state: ClerkAccessState;
+}) {
+  switch (state) {
+    case "linkable":
+      return <Badge variant="secondary">Linkable</Badge>;
+    case "invitable":
+      return <Badge variant="default">Invitable</Badge>;
+    case "already_invited":
+      return <Badge variant="outline">Invited</Badge>;
+    case "member":
+      return <Badge variant="secondary">Member</Badge>;
+    case "conflict":
+      return (
+        <Badge variant="destructive">
+          {conflictReason ? conflictReason.replace(/_/g, " ") : "Conflict"}
+        </Badge>
+      );
+    default:
+      return null;
+  }
 }
 
 function FilterField({
