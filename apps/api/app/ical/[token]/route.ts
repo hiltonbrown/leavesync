@@ -1,4 +1,4 @@
-import { cachedEtagForToken, renderFeedForToken } from "@repo/feeds";
+import { renderFeedForToken } from "@repo/feeds";
 import { log } from "@repo/observability/log";
 
 const weakEtagPrefixPattern = /^W\//;
@@ -34,21 +34,7 @@ export async function GET(
     ? tokenParam.slice(0, -".ics".length)
     : tokenParam;
 
-  const ifNoneMatch = request.headers.get("if-none-match");
-  if (ifNoneMatch) {
-    const cachedEtag = await cachedEtagForToken(token);
-    if (cachedEtag && etagMatches(ifNoneMatch, `"${cachedEtag}"`)) {
-      return new Response(null, {
-        headers: {
-          "Cache-Control": "max-age=3600, must-revalidate",
-          ETag: `"${cachedEtag}"`,
-        },
-        status: 304,
-      });
-    }
-  }
-
-  // Render the feed for this token
+  // Render or retrieve cached feed for this token in a single resolution step
   const feedResult = await renderFeedForToken(token);
 
   if (!feedResult.ok) {
@@ -69,6 +55,7 @@ export async function GET(
     return new Response("Gone", { status: 410 });
   }
 
+  const ifNoneMatch = request.headers.get("if-none-match");
   const quotedEtag = `"${etag}"`;
   if (ifNoneMatch && etagMatches(ifNoneMatch, quotedEtag)) {
     return new Response(null, {
