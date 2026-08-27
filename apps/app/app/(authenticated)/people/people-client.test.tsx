@@ -17,6 +17,8 @@ interface TestNotificationEvent {
 
 const mocks = vi.hoisted(() => ({
   dispatchManualSyncAction: vi.fn(),
+  inviteClerkAccessCandidatesAction: vi.fn(),
+  loadClerkAccessCandidatesAction: vi.fn(),
   push: vi.fn(),
   refresh: vi.fn(),
   setFilterParams: vi.fn(),
@@ -40,6 +42,13 @@ vi.mock("@/lib/url-state/use-filter-params", () => ({
 vi.mock("@/app/(authenticated)/sync/_actions", () => ({
   dispatchManualSyncAction: (input: unknown) =>
     mocks.dispatchManualSyncAction(input),
+}));
+
+vi.mock("./_actions", () => ({
+  inviteClerkAccessCandidatesAction: (input: unknown) =>
+    mocks.inviteClerkAccessCandidatesAction(input),
+  loadClerkAccessCandidatesAction: (input: unknown) =>
+    mocks.loadClerkAccessCandidatesAction(input),
 }));
 
 const organisationId = "00000000-0000-4000-8000-000000000001";
@@ -489,6 +498,126 @@ describe("PeopleClient", () => {
           xeroTenantId,
         });
       });
+    });
+  });
+
+  describe("clerk access reconciliation modal", () => {
+    it("opens dialog, loads candidate review, and sends invitations upon confirmation", async () => {
+      mocks.loadClerkAccessCandidatesAction.mockResolvedValue({
+        ok: true,
+        value: {
+          alreadyInvitedCount: 1,
+          candidateCount: 5,
+          candidates: [
+            {
+              conflictReason: null,
+              email: "alice@example.com",
+              id: "p_1",
+              name: "Alice Smith",
+              state: "linkable",
+            },
+            {
+              conflictReason: null,
+              email: "bob@example.com",
+              id: "p_2",
+              name: "Bob Jones",
+              state: "invitable",
+            },
+            {
+              conflictReason: null,
+              email: "carol@example.com",
+              id: "p_3",
+              name: "Carol White",
+              state: "already_invited",
+            },
+            {
+              conflictReason: null,
+              email: "dave@example.com",
+              id: "p_4",
+              name: "Dave Black",
+              state: "member",
+            },
+            {
+              conflictReason: "duplicate_email",
+              email: "eve@example.com",
+              id: "p_5",
+              name: "Eve Green",
+              state: "conflict",
+            },
+          ],
+          conflictCount: 1,
+          invitableCount: 1,
+          linkableCount: 1,
+          memberCount: 1,
+        },
+      });
+
+      mocks.inviteClerkAccessCandidatesAction.mockResolvedValue({
+        ok: true,
+        value: {
+          alreadyInvitedCount: 1,
+          candidateCount: 5,
+          conflictCount: 1,
+          failedCount: 0,
+          linkedCount: 1,
+          succeededCount: 1,
+        },
+      });
+
+      render(
+        <PeopleClient
+          canIncludeArchived={true}
+          canManageClerkAccess={true}
+          filters={defaultFilters}
+          hasActiveXeroConnection={true}
+          locations={[]}
+          nextCursor={null}
+          organisationId={organisationId}
+          orgQueryValue={organisationId}
+          people={[samplePerson]}
+          teams={[]}
+          totalCount={1}
+          xeroTenantId={xeroTenantId}
+        />
+      );
+
+      const reconcileBtn = screen.getByRole("button", {
+        name: "Reconcile Clerk access",
+      });
+      fireEvent.click(reconcileBtn);
+
+      await waitFor(() => {
+        expect(mocks.loadClerkAccessCandidatesAction).toHaveBeenCalledWith({
+          organisationId,
+        });
+      });
+
+      expect(
+        await screen.findByRole("heading", { name: "Reconcile Clerk access" })
+      ).toBeDefined();
+      expect(screen.getByText("Alice Smith")).toBeDefined();
+      expect(screen.getByText("Bob Jones")).toBeDefined();
+      expect(screen.getByText("duplicate email")).toBeDefined();
+
+      const sendBtn = screen.getByRole("button", {
+        name: "Send invitations & link",
+      });
+      fireEvent.click(sendBtn);
+
+      await waitFor(() => {
+        expect(mocks.inviteClerkAccessCandidatesAction).toHaveBeenCalledWith({
+          organisationId,
+        });
+      });
+
+      expect(await screen.findByText("Reconciliation completed")).toBeDefined();
+      expect(screen.getByText("1 existing accounts linked")).toBeDefined();
+      expect(screen.getByText("1 invitations sent")).toBeDefined();
+
+      const doneBtn = screen.getByRole("button", { name: "Done" });
+      fireEvent.click(doneBtn);
+
+      expect(mocks.refresh).toHaveBeenCalled();
     });
   });
 });
