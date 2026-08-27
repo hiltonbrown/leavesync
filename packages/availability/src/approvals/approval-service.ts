@@ -81,6 +81,7 @@ export interface ApprovalListItem {
   balanceSnapshot: {
     balanceAvailable: number | null;
     balanceRemainingAfterApproval: number | null;
+    currencyCode: string | null;
     leaveBalanceUpdatedAt: Date | null;
     unit: string | null;
   } | null;
@@ -198,6 +199,7 @@ type LoadedApprovalRecord = NonNullable<Awaited<ReturnType<typeof loadRecord>>>;
 interface BalanceSnapshotRow {
   balance: unknown;
   balance_unit: string | null;
+  currency_code: string | null;
   updated_at: Date;
 }
 interface ApprovalListContext {
@@ -1340,6 +1342,7 @@ async function loadApprovalListContext(
           select: {
             balance: true,
             balance_unit: true,
+            currency_code: true,
             person_id: true,
             record_type: true,
             updated_at: true,
@@ -1361,6 +1364,7 @@ async function loadApprovalListContext(
       balanceByPersonAndRecordType.set(key, {
         balance: balance.balance,
         balance_unit: balance.balance_unit,
+        currency_code: balance.currency_code,
         updated_at: balance.updated_at,
       });
     }
@@ -1478,6 +1482,7 @@ async function loadBalanceSnapshot(
         select: {
           balance: true,
           balance_unit: true,
+          currency_code: true,
           updated_at: true,
         },
         where: {
@@ -1493,6 +1498,7 @@ async function loadBalanceSnapshot(
     return {
       balanceAvailable: null,
       balanceRemainingAfterApproval: null,
+      currencyCode: null,
       leaveBalanceUpdatedAt: null,
       unit: null,
     };
@@ -1501,7 +1507,10 @@ async function loadBalanceSnapshot(
   return {
     balanceAvailable,
     balanceRemainingAfterApproval:
-      duration === null ? null : balanceAvailable - duration,
+      balance.balance_unit === "days" && duration !== null
+        ? balanceAvailable - duration
+        : null,
+    currencyCode: balance.currency_code ?? null,
     leaveBalanceUpdatedAt: balance.updated_at,
     unit: balance.balance_unit,
   };

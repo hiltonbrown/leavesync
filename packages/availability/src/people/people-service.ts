@@ -91,6 +91,7 @@ export interface AvailabilityRecordSummary {
 
 export interface BalanceRow {
   balanceUnits: number;
+  currencyCode: string | null;
   id: string;
   leaveTypeName: string | null;
   leaveTypeXeroId: string;
@@ -757,6 +758,7 @@ const availabilityRecordSelect = {
 const leaveBalanceProfileSelect = {
   balance: true,
   balance_unit: true,
+  currency_code: true,
   id: true,
   last_fetched_at: true,
   leave_type_name: true,
@@ -775,6 +777,7 @@ type LeaveBalanceProfileRow = Prisma.LeaveBalanceGetPayload<{
 export function toBalanceRow(balance: LeaveBalanceProfileRow): BalanceRow {
   return {
     balanceUnits: Number(balance.balance),
+    currencyCode: balance.currency_code,
     id: balance.id,
     leaveTypeName: balance.leave_type_name,
     leaveTypeXeroId: balance.leave_type_xero_id,

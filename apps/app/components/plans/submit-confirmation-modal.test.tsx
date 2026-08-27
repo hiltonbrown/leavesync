@@ -66,6 +66,56 @@ describe("SubmitConfirmationModal", () => {
     expect(screen.getByText(APPROVAL_QUEUE_COPY)).toBeDefined();
   });
 
+  it("renders available balance for hours and currency without performing remaining-balance subtraction", () => {
+    const { rerender } = render(
+      <SubmitConfirmationModal
+        mode="submit"
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+        record={{
+          ...record,
+          balanceAvailable: 40,
+          balanceUnit: "hours",
+          workingDays: 5,
+        }}
+      />
+    );
+
+    expect(screen.getByText("40 hours available")).toBeDefined();
+
+    rerender(
+      <SubmitConfirmationModal
+        mode="submit"
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+        record={{
+          ...record,
+          balanceAvailable: 1200,
+          balanceCurrencyCode: "NZD",
+          balanceUnit: "currency",
+          workingDays: 5,
+        }}
+      />
+    );
+
+    expect(screen.getByText("$1,200.00 available")).toBeDefined();
+
+    rerender(
+      <SubmitConfirmationModal
+        mode="submit"
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+        record={{
+          ...record,
+          balanceAvailable: null,
+          workingDays: 5,
+        }}
+      />
+    );
+
+    expect(screen.getByText("Balance unavailable")).toBeDefined();
+  });
+
   it("closes through the shared dialog close control", () => {
     const onClose = vi.fn();
 
