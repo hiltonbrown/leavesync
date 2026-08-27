@@ -13,11 +13,16 @@ import { getOrganisationById } from "@repo/database/src/queries/organisations";
 import { log } from "@repo/observability/log";
 import { z } from "zod";
 
+const RouteParamsSchema = z.object({
+  recordId: z.string().uuid(),
+});
+
 const UpdateAvailabilitySchema = z.object({
   allDay: z.boolean().optional(),
   contactability: z.enum(["contactable", "limited", "unavailable"]).optional(),
   endsAt: z.string().datetime().optional(),
   notesInternal: z.string().optional().nullable(),
+  organisationId: z.string().uuid(),
   preferredContactMethod: z.string().optional().nullable(),
   recordType: z
     .enum(["leave", "wfh", "travel", "training", "client_site"])
@@ -27,12 +32,31 @@ const UpdateAvailabilitySchema = z.object({
   workingLocation: z.string().optional().nullable(),
 });
 
+const DeleteAvailabilitySchema = z.object({
+  organisationId: z.string().uuid(),
+});
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ recordId: string }> }
 ): Promise<Response> {
   try {
-    const { recordId } = await params;
+    const rawParams = await params;
+    const parsedParams = RouteParamsSchema.safeParse(rawParams);
+
+    if (!parsedParams.success) {
+      return Response.json(
+        {
+          error: {
+            code: "invalid",
+            details: parsedParams.error.issues,
+            message: "Invalid route parameters",
+          },
+          ok: false,
+        },
+        { status: 400 }
+      );
+    }
 
     // Get authenticated user and organisation
     let clerkOrgId: string;
@@ -62,23 +86,31 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const organisationId = body.organisationId as string | undefined;
+    const parseResult = UpdateAvailabilitySchema.safeParse(body);
 
-    if (!organisationId) {
+    if (!parseResult.success) {
       return Response.json(
         {
-          error: { code: "invalid", message: "organisationId is required" },
+          error: {
+            code: "invalid",
+            details: parseResult.error.issues,
+            message: "Invalid request body",
+          },
           ok: false,
         },
         { status: 400 }
       );
     }
 
+    const { data } = parseResult;
+
+    // Safe branded cast: clerkOrgId is verified by Clerk requireOrg(), organisationId and recordId are validated by Zod UUID schemas
+    const scopedClerkOrgId = clerkOrgId as ClerkOrgId;
+    const scopedOrgId = data.organisationId as OrganisationId;
+    const scopedRecordId = parsedParams.data.recordId as AvailabilityRecordId;
+
     // Validate organisation exists
-    const orgResult = await getOrganisationById(
-      clerkOrgId as ClerkOrgId,
-      organisationId as OrganisationId
-    );
+    const orgResult = await getOrganisationById(scopedClerkOrgId, scopedOrgId);
 
     if (!orgResult.ok) {
       return Response.json(
@@ -89,9 +121,9 @@ export async function PATCH(
 
     // Get record to verify it's editable
     const recordResult = await getAvailabilityRecordById(
-      clerkOrgId as ClerkOrgId,
-      organisationId as OrganisationId,
-      recordId as AvailabilityRecordId
+      scopedClerkOrgId,
+      scopedOrgId,
+      scopedRecordId
     );
 
     if (!recordResult.ok) {
@@ -117,32 +149,15 @@ export async function PATCH(
       );
     }
 
-    const parseResult = UpdateAvailabilitySchema.safeParse(body);
-
-    if (!parseResult.success) {
-      return Response.json(
-        {
-          error: {
-            code: "invalid",
-            details: parseResult.error.issues,
-            message: "Invalid request body",
-          },
-          ok: false,
-        },
-        { status: 400 }
-      );
-    }
-
-    const { data } = parseResult;
     const authResult = await auth();
 
     // Call availability service to update record
     const updateResult = await updateManualAvailability(
       {
-        clerkOrgId: clerkOrgId as ClerkOrgId,
-        organisationId: organisationId as OrganisationId,
+        clerkOrgId: scopedClerkOrgId,
+        organisationId: scopedOrgId,
       },
-      recordId as AvailabilityRecordId,
+      scopedRecordId,
       {
         allDay: data.allDay,
         contactability: data.contactability,
@@ -187,7 +202,22 @@ export async function DELETE(
   { params }: { params: Promise<{ recordId: string }> }
 ): Promise<Response> {
   try {
-    const { recordId } = await params;
+    const rawParams = await params;
+    const parsedParams = RouteParamsSchema.safeParse(rawParams);
+
+    if (!parsedParams.success) {
+      return Response.json(
+        {
+          error: {
+            code: "invalid",
+            details: parsedParams.error.issues,
+            message: "Invalid route parameters",
+          },
+          ok: false,
+        },
+        { status: 400 }
+      );
+    }
 
     // Get authenticated user and organisation
     let clerkOrgId: string;
@@ -217,23 +247,31 @@ export async function DELETE(
     }
 
     const body = await request.json();
-    const organisationId = body.organisationId as string | undefined;
+    const parseResult = DeleteAvailabilitySchema.safeParse(body);
 
-    if (!organisationId) {
+    if (!parseResult.success) {
       return Response.json(
         {
-          error: { code: "invalid", message: "organisationId is required" },
+          error: {
+            code: "invalid",
+            details: parseResult.error.issues,
+            message: "Invalid request body",
+          },
           ok: false,
         },
         { status: 400 }
       );
     }
 
+    const { data } = parseResult;
+
+    // Safe branded cast: clerkOrgId is verified by Clerk requireOrg(), organisationId and recordId are validated by Zod UUID schemas
+    const scopedClerkOrgId = clerkOrgId as ClerkOrgId;
+    const scopedOrgId = data.organisationId as OrganisationId;
+    const scopedRecordId = parsedParams.data.recordId as AvailabilityRecordId;
+
     // Validate organisation exists
-    const orgResult = await getOrganisationById(
-      clerkOrgId as ClerkOrgId,
-      organisationId as OrganisationId
-    );
+    const orgResult = await getOrganisationById(scopedClerkOrgId, scopedOrgId);
 
     if (!orgResult.ok) {
       return Response.json(
@@ -244,9 +282,9 @@ export async function DELETE(
 
     // Get record to verify it exists and is editable
     const recordResult = await getAvailabilityRecordById(
-      clerkOrgId as ClerkOrgId,
-      organisationId as OrganisationId,
-      recordId as AvailabilityRecordId
+      scopedClerkOrgId,
+      scopedOrgId,
+      scopedRecordId
     );
 
     if (!recordResult.ok) {
@@ -276,10 +314,10 @@ export async function DELETE(
     // Call availability service to archive record (soft delete)
     const deleteResult = await archiveManualAvailability(
       {
-        clerkOrgId: clerkOrgId as ClerkOrgId,
-        organisationId: organisationId as OrganisationId,
+        clerkOrgId: scopedClerkOrgId,
+        organisationId: scopedOrgId,
       },
-      recordId as AvailabilityRecordId,
+      scopedRecordId,
       { orgRole: authResult.orgRole, userId: user.id }
     );
 

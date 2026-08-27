@@ -148,7 +148,32 @@ describe("Availability Collection Route (POST)", () => {
     expect(response.status).toBe(400);
     const body = await response.json();
     expect(body.error.code).toBe("invalid");
-    expect(body.error.message).toBe("organisationId is required");
+    expect(getOrganisationById).not.toHaveBeenCalled();
+    expect(createManualAvailability).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when organisationId is not a valid UUID", async () => {
+    vi.mocked(requireOrg).mockResolvedValue("org_clerk_123");
+    vi.mocked(currentUser).mockResolvedValue({ id: "user_123" } as any);
+
+    const invalidPayload = {
+      ...validPostPayload,
+      organisationId: "not-a-valid-uuid",
+    };
+
+    const response = await POST(
+      new Request("http://localhost/api/availability", {
+        body: JSON.stringify(invalidPayload),
+        headers: { "content-type": "application/json" },
+        method: "POST",
+      })
+    );
+
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error.code).toBe("invalid");
+    expect(getOrganisationById).not.toHaveBeenCalled();
+    expect(createManualAvailability).not.toHaveBeenCalled();
   });
 
   it("returns 404 when getOrganisationById returns not_found", async () => {
@@ -375,6 +400,67 @@ describe("Availability Single Record Route (PATCH)", () => {
     );
 
     expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error.code).toBe("invalid");
+    expect(getOrganisationById).not.toHaveBeenCalled();
+    expect(getAvailabilityRecordById).not.toHaveBeenCalled();
+    expect(updateManualAvailability).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when organisationId is not a valid UUID", async () => {
+    vi.mocked(requireOrg).mockResolvedValue("org_clerk_123");
+    vi.mocked(currentUser).mockResolvedValue({ id: "user_123" } as any);
+
+    const response = await PATCH(
+      new Request(
+        "http://localhost/api/availability/33333333-3333-4333-a333-333333333333",
+        {
+          body: JSON.stringify({
+            ...validPatchPayload,
+            organisationId: "not-a-valid-uuid",
+          }),
+          headers: { "content-type": "application/json" },
+          method: "PATCH",
+        }
+      ),
+      {
+        params: Promise.resolve({
+          recordId: "33333333-3333-4333-a333-333333333333",
+        }),
+      }
+    );
+
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error.code).toBe("invalid");
+    expect(getOrganisationById).not.toHaveBeenCalled();
+    expect(getAvailabilityRecordById).not.toHaveBeenCalled();
+    expect(updateManualAvailability).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when recordId route parameter is not a valid UUID", async () => {
+    vi.mocked(requireOrg).mockResolvedValue("org_clerk_123");
+    vi.mocked(currentUser).mockResolvedValue({ id: "user_123" } as any);
+
+    const response = await PATCH(
+      new Request("http://localhost/api/availability/not-a-valid-uuid", {
+        body: JSON.stringify(validPatchPayload),
+        headers: { "content-type": "application/json" },
+        method: "PATCH",
+      }),
+      {
+        params: Promise.resolve({
+          recordId: "not-a-valid-uuid",
+        }),
+      }
+    );
+
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error.code).toBe("invalid");
+    expect(getOrganisationById).not.toHaveBeenCalled();
+    expect(getAvailabilityRecordById).not.toHaveBeenCalled();
+    expect(updateManualAvailability).not.toHaveBeenCalled();
   });
 
   it("returns 404 when organisation not found", async () => {
@@ -627,6 +713,68 @@ describe("Availability Single Record Route (DELETE)", () => {
     );
 
     expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error.code).toBe("invalid");
+    expect(getOrganisationById).not.toHaveBeenCalled();
+    expect(getAvailabilityRecordById).not.toHaveBeenCalled();
+    expect(archiveManualAvailability).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when organisationId is not a valid UUID", async () => {
+    vi.mocked(requireOrg).mockResolvedValue("org_clerk_123");
+    vi.mocked(currentUser).mockResolvedValue({ id: "user_123" } as any);
+
+    const response = await DELETE(
+      new Request(
+        "http://localhost/api/availability/33333333-3333-4333-a333-333333333333",
+        {
+          body: JSON.stringify({
+            organisationId: "not-a-valid-uuid",
+          }),
+          headers: { "content-type": "application/json" },
+          method: "DELETE",
+        }
+      ),
+      {
+        params: Promise.resolve({
+          recordId: "33333333-3333-4333-a333-333333333333",
+        }),
+      }
+    );
+
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error.code).toBe("invalid");
+    expect(getOrganisationById).not.toHaveBeenCalled();
+    expect(getAvailabilityRecordById).not.toHaveBeenCalled();
+    expect(archiveManualAvailability).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when recordId route parameter is not a valid UUID", async () => {
+    vi.mocked(requireOrg).mockResolvedValue("org_clerk_123");
+    vi.mocked(currentUser).mockResolvedValue({ id: "user_123" } as any);
+
+    const response = await DELETE(
+      new Request("http://localhost/api/availability/not-a-valid-uuid", {
+        body: JSON.stringify({
+          organisationId: "22222222-2222-4222-a222-222222222222",
+        }),
+        headers: { "content-type": "application/json" },
+        method: "DELETE",
+      }),
+      {
+        params: Promise.resolve({
+          recordId: "not-a-valid-uuid",
+        }),
+      }
+    );
+
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error.code).toBe("invalid");
+    expect(getOrganisationById).not.toHaveBeenCalled();
+    expect(getAvailabilityRecordById).not.toHaveBeenCalled();
+    expect(archiveManualAvailability).not.toHaveBeenCalled();
   });
 
   it("returns 403 when record is not manual", async () => {

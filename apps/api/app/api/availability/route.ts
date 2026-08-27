@@ -11,6 +11,7 @@ const CreateAvailabilitySchema = z.object({
   contactability: z.enum(["contactable", "limited", "unavailable"]).optional(),
   endsAt: z.string().datetime(),
   notesInternal: z.string().optional().nullable(),
+  organisationId: z.string().uuid(),
   personId: z.string().uuid(),
   preferredContactMethod: z.string().optional().nullable(),
   recordType: z.enum(["leave", "wfh", "travel", "training", "client_site"]),
@@ -66,23 +67,13 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const { data } = parseResult;
-    const organisationId = body.organisationId as string | undefined;
 
-    if (!organisationId) {
-      return Response.json(
-        {
-          error: { code: "invalid", message: "organisationId is required" },
-          ok: false,
-        },
-        { status: 400 }
-      );
-    }
+    // Safe branded cast: clerkOrgId is verified by Clerk requireOrg(), organisationId is validated by Zod UUID schema
+    const scopedClerkOrgId = clerkOrgId as ClerkOrgId;
+    const scopedOrgId = data.organisationId as OrganisationId;
 
     // Validate organisation exists and is in scope
-    const orgResult = await getOrganisationById(
-      clerkOrgId as ClerkOrgId,
-      organisationId as OrganisationId
-    );
+    const orgResult = await getOrganisationById(scopedClerkOrgId, scopedOrgId);
 
     if (!orgResult.ok) {
       return Response.json(
@@ -93,8 +84,8 @@ export async function POST(request: Request): Promise<Response> {
 
     // Validate person exists in organisation
     const peopleResult = await listPeopleForOrganisation(
-      clerkOrgId as ClerkOrgId,
-      organisationId as OrganisationId
+      scopedClerkOrgId,
+      scopedOrgId
     );
 
     if (!peopleResult.ok) {
@@ -121,8 +112,8 @@ export async function POST(request: Request): Promise<Response> {
     // Call availability service to create record
     const createResult = await createManualAvailability(
       {
-        clerkOrgId: clerkOrgId as ClerkOrgId,
-        organisationId: organisationId as OrganisationId,
+        clerkOrgId: scopedClerkOrgId,
+        organisationId: scopedOrgId,
       },
       {
         allDay: data.allDay,
