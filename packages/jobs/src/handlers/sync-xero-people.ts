@@ -184,7 +184,7 @@ export async function syncXeroPeople(input: unknown): Promise<
       };
     }
 
-    const { complete, employees, failures, rawItemCount } =
+    const { complete, employees, failures, rawItemCount, seenEmployeeIds } =
       employeesResult.value;
     // fetched reflects every raw item Xero returned for this run, including
     // ones that could not be mapped, so the run's accounting is never
@@ -197,6 +197,30 @@ export async function syncXeroPeople(input: unknown): Promise<
         xeroTenantId: context.xeroTenantId,
       });
     }
+
+    const returnedEmployeeIds = seenEmployeeIds
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0);
+
+    // Any returned non-empty EmployeeID clears its missing marker before
+    // record-level validation so a record that fails downstream parsing is
+    // still accounted for as seen.
+    if (returnedEmployeeIds.length > 0) {
+      await database.person.updateMany({
+        data: {
+          updated_at: new Date(),
+          xero_missing_since: null,
+        },
+        where: {
+          clerk_org_id: context.clerkOrgId,
+          organisation_id: context.organisationId,
+          source_person_key: { in: returnedEmployeeIds },
+          source_system: "XERO",
+          xero_missing_since: { not: null },
+        },
+      });
+    }
+
     await recordMappingFailures(context, run.id, failures, counts);
 
     for (let index = 0; index < employees.length; index += BATCH_SIZE) {
@@ -223,6 +247,132 @@ export async function syncXeroPeople(input: unknown): Promise<
       }
     }
 
+    const postBatchRunState = await database.syncRun.findFirst({
+      select: { cancel_requested_at: true },
+      where: { ...scoped(context), id: run.id },
+    });
+    if (postBatchRunState?.cancel_requested_at) {
+      await completeRun(context, run.id, {
+        counts,
+        status: "cancelled",
+      });
+      return {
+        ok: true,
+        value: { ...counts, runId: run.id, status: "cancelled" },
+      };
+    }
+
+    let guardBlocked = false;
+
+    // Absence is inferred only from a complete snapshot.
+    if (complete) {
+      const unarchivedXeroPeople = await database.person.findMany({
+        select: {
+          id: true,
+          source_person_key: true,
+          xero_missing_since: true,
+        },
+        where: {
+          archived_at: null,
+          clerk_org_id: context.clerkOrgId,
+          organisation_id: context.organisationId,
+          source_person_key: { not: null },
+          source_system: "XERO",
+        },
+      });
+
+      const denominator = unarchivedXeroPeople.length;
+      if (denominator > 0) {
+        const returnedSet = new Set(returnedEmployeeIds);
+        const missingPeople = unarchivedXeroPeople.filter(
+          (person) =>
+            person.source_person_key &&
+            !returnedSet.has(person.source_person_key)
+        );
+        const missingCount = missingPeople.length;
+
+        if (missingCount > 0) {
+          const isEmptySnapshot = rawItemCount === 0;
+          const isRatioExceeded = missingCount / denominator >= 0.2;
+          const isCountExceeded = missingCount > 5;
+
+          if (isEmptySnapshot || isRatioExceeded || isCountExceeded) {
+            guardBlocked = true;
+            log.warn("Sync people absence guard triggered", {
+              archived: 0,
+              clerkOrgId: context.clerkOrgId,
+              guardBlocked: true,
+              missing: missingCount,
+              newlyMarked: 0,
+              organisationId: context.organisationId,
+              xeroTenantId: context.xeroTenantId,
+            });
+          } else {
+            const now = new Date();
+            const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+            const toMarkIds: string[] = [];
+            const toArchiveIds: string[] = [];
+
+            for (const person of missingPeople) {
+              if (person.xero_missing_since) {
+                const missingSinceMs = new Date(
+                  person.xero_missing_since
+                ).getTime();
+                const ageMs = now.getTime() - missingSinceMs;
+                if (ageMs >= TWENTY_FOUR_HOURS_MS) {
+                  toArchiveIds.push(person.id);
+                }
+              } else {
+                toMarkIds.push(person.id);
+              }
+            }
+
+            if (toMarkIds.length > 0 || toArchiveIds.length > 0) {
+              await database.$transaction(async (tx) => {
+                if (toMarkIds.length > 0) {
+                  await tx.person.updateMany({
+                    data: {
+                      updated_at: now,
+                      xero_missing_since: now,
+                    },
+                    where: {
+                      clerk_org_id: context.clerkOrgId,
+                      id: { in: toMarkIds },
+                      organisation_id: context.organisationId,
+                    },
+                  });
+                }
+                if (toArchiveIds.length > 0) {
+                  await tx.person.updateMany({
+                    data: {
+                      archived_at: now,
+                      is_active: false,
+                      updated_at: now,
+                    },
+                    where: {
+                      clerk_org_id: context.clerkOrgId,
+                      id: { in: toArchiveIds },
+                      organisation_id: context.organisationId,
+                    },
+                  });
+                }
+              });
+            }
+
+            log.info("Sync people absence check completed", {
+              archived: toArchiveIds.length,
+              clerkOrgId: context.clerkOrgId,
+              guardBlocked: false,
+              missing: missingCount,
+              newlyMarked: toMarkIds.length,
+              organisationId: context.organisationId,
+              xeroTenantId: context.xeroTenantId,
+            });
+          }
+        }
+      }
+    }
+
     await database.xeroTenant.updateMany({
       data: {
         last_people_sync_at: new Date(),
@@ -233,9 +383,15 @@ export async function syncXeroPeople(input: unknown): Promise<
       where: { ...scoped(context), id: context.xeroTenantId },
     });
 
-    const finalStatus = counts.failed > 0 ? "partial_success" : "succeeded";
+    const finalStatus =
+      guardBlocked || counts.failed > 0 ? "partial_success" : "succeeded";
+    const errorSummary = guardBlocked
+      ? "Missing person guard threshold exceeded"
+      : undefined;
+
     await completeRun(context, run.id, {
       counts,
+      errorSummary,
       status: finalStatus,
     });
 
@@ -325,6 +481,7 @@ async function processBatch(
           start_date: employee.startDate ? new Date(employee.startDate) : null,
           updated_at: new Date(),
           xero_employee_id: employee.employeeId,
+          xero_missing_since: null,
         },
         where: {
           organisation_id_source_system_source_person_key: {
