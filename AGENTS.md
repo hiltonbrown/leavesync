@@ -125,6 +125,7 @@ Task Management
 | `packages/xero` | Xero OAuth, tenant sync, AU/NZ/UK region handling, rate limiting, leave-type mapping |
 | `packages/availability` | Canonical person model, availability records, privacy rules, contactability, feed eligibility |
 | `packages/feeds` | ICS generation (ical-generator), stable UID strategy, feed token validation, Vercel KV caching |
+| `packages/notifications` | In-app notification creation, SSE delivery, notification preferences, email dispatch via Resend |
 | `packages/jobs` | Inngest job definitions: sync scheduling, feed rebuilds, reconciliation |
 | `packages/core` | Result type, branded IDs, shared enums, date/timezone utilities, error types |
 
@@ -134,6 +135,8 @@ Task Management
 |---|---|
 | `packages/database` | Prisma schema, migrations, generated client |
 | `packages/auth` | `requireOrg()`, `requireRole()`, `getOrgId()`, re-exported Clerk hooks |
+| `packages/billing` | Stripe billing integration, checkout and customer portal sessions, webhook handling |
+| `packages/analytics` | PostHog and Vercel analytics, client and server instrumentation |
 | `packages/design-system` | Shared React components, Tailwind CSS, shadcn/ui |
 | `packages/email` | React Email templates + Resend transport |
 | `packages/observability` | Sentry, structured logging |
@@ -201,6 +204,7 @@ Roles are custom roles in the Clerk dashboard. Permission checks use `auth().has
 - All database access through `packages/database`. Never import Prisma client directly in apps.
 - All Xero-specific logic in `packages/xero`. Canonical domain logic in `packages/availability` never depends on Xero payload shapes.
 - All ICS generation logic in `packages/feeds`.
+- All notification logic in `packages/notifications`.
 - Shared UI components in `packages/design-system`. Do not redefine base components in apps.
 
 ### Core entity
@@ -374,6 +378,7 @@ bun run migrate:deploy
 bun run db:push
 bun run analyze
 bun run clean
+bun run preflight
 ```
 
 `typecheck` and `test:integration` are both CI gates. A change is not verified until `bun run check`, `bun run typecheck`, `bun run test` and `bun run test:integration` all pass.
