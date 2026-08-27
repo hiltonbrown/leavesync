@@ -2,7 +2,11 @@ import { log } from "@repo/observability/log";
 import { keys } from "../../keys";
 import { tryDecryptXeroToken } from "../crypto/tokens";
 import { orgRateLimitKey, xeroFetch } from "../rate-limit/xero-fetch";
-import type { XeroEmployee, XeroEmployeeMapFailure } from "../read/employees";
+import type {
+  XeroEmployee,
+  XeroEmployeeMapFailure,
+  XeroEmployeesFetchResult,
+} from "../read/employees";
 import { tryMapXeroEmployees } from "../read/employees";
 import {
   type FetchLeaveApplicationStatusInput,
@@ -38,14 +42,7 @@ export interface XeroLeaveBalanceFetchFailure {
   error: XeroWriteError;
 }
 
-export interface XeroEmployeesFetchResult {
-  complete: boolean;
-  employees: XeroEmployee[];
-  failures: XeroEmployeeMapFailure[];
-  rawItemCount: number;
-  rawResponse: unknown;
-  seenEmployeeIds: string[];
-}
+export type { XeroEmployeesFetchResult } from "../read/employees";
 
 export async function fetchEmployees(input: {
   xeroTenant: XeroTenantForWrite;

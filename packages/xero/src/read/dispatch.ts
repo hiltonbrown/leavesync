@@ -8,8 +8,14 @@ import {
   fetchLeaveBalances as fetchAuLeaveBalances,
   fetchLeaveRecords as fetchAuLeaveRecords,
 } from "../au/read";
-import { fetchLeaveApplicationStatus as fetchNzLeaveApplicationStatus } from "../nz/read";
-import { fetchLeaveApplicationStatus as fetchUkLeaveApplicationStatus } from "../uk/read";
+import {
+  fetchEmployees as fetchNzEmployees,
+  fetchLeaveApplicationStatus as fetchNzLeaveApplicationStatus,
+} from "../nz/read";
+import {
+  fetchEmployees as fetchUkEmployees,
+  fetchLeaveApplicationStatus as fetchUkLeaveApplicationStatus,
+} from "../uk/read";
 import type {
   PayrollRegion,
   XeroTenantForWrite,
@@ -52,21 +58,9 @@ export async function fetchEmployeesForRegion(
     case "AU":
       return await fetchAuEmployees(input);
     case "NZ":
-      return {
-        error: {
-          code: "unknown_error",
-          message: "NZ payroll employee reads are not yet available.",
-        },
-        ok: false,
-      };
+      return await fetchNzEmployees(input);
     case "UK":
-      return {
-        error: {
-          code: "unknown_error",
-          message: "UK payroll employee reads are not yet available.",
-        },
-        ok: false,
-      };
+      return await fetchUkEmployees(input);
     default:
       return {
         error: {
