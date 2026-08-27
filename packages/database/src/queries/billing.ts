@@ -38,6 +38,22 @@ export const getSubscriptionForOrg = async (
   return rows[0] ?? null;
 };
 
+export const getSubscriptionForStripeCustomer = async (
+  stripeCustomerId: string
+): Promise<BillingSubscriptionRow | null> => {
+  const rows = await database.$queryRaw<BillingSubscriptionRow[]>`
+    SELECT clerk_org_id, plan_key, status, current_period_end, stripe_customer_id,
+      stripe_subscription_id, cancel_at_period_end, ended_at
+    FROM clerk_org_subscriptions
+    WHERE stripe_customer_id = ${stripeCustomerId}
+    LIMIT 1
+  `;
+  return rows[0] ?? null;
+};
+
+export const getSubscriptionByStripeCustomerId =
+  getSubscriptionForStripeCustomer;
+
 export const getFirstActiveOrganisationIdForClerkOrg = async (
   clerkOrgId: string
 ): Promise<string | null> => {
