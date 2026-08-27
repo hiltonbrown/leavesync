@@ -59,7 +59,8 @@ This reconciliation was read-only outside `plans/`.
 | Plan 089 execution | approved at `6fb72b2`; narrow Prisma select allowlist, serialisable XeroPersonMatchView mapper, matches client tests 6/6, check, typecheck, unit and live database integration gates passed |
 | Plan 090 execution | approved at `6ae18c6`; single-transaction stale leave archival with updated_at guard, per-stale-record publication materialisation removed, canonical feedIdsForPeople resolution and deduped invalidation, check, typecheck, unit and live database integration gates passed |
 | Plan 037 execution | approved at `a7e7289`; read-only research spike, official NZ/UK OpenAPI analysis, findings and decision matrix recorded in plans/037-nz-uk-write-back-findings.md, check, typecheck, unit and diff gates passed |
-| Current indexed plans | 64: 27 TODO, 21 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 039 execution | approved at `d3733fe`; deleted unused HTML feed prototype (render-html.ts and render-html.test.ts), 0 remaining references, build, check, typecheck, unit and live database integration gates passed |
+| Current indexed plans | 64: 26 TODO, 22 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -85,7 +86,7 @@ before starting its dependent plan.
 | [089](089-map-xero-matches-to-a-client-view-model.md) | Map Xero matches to a browser-safe view model | P2 | none | DONE |
 | [090](090-bulk-stale-xero-leave-archival.md) | Bulk stale leave archival and feed invalidation | P2 | none | DONE |
 | [037](037-spike-nz-and-uk-payroll-write-back.md) | Decide NZ/UK write-back capability from primary sources | P3 | none | DONE |
-| [039](039-decide-what-to-do-with-the-html-feed-renderer.md) | Delete the out-of-scope HTML feed prototype | P3 | none | TODO |
+| [039](039-decide-what-to-do-with-the-html-feed-renderer.md) | Delete the out-of-scope HTML feed prototype | P3 | none | DONE |
 | [078](078-delete-dead-feed-token-helpers.md) | Delete unused token service surface | P3 | none | TODO |
 | [084](084-remove-the-production-workspaces-override.md) | Remove redundant root `ws` override | P3 | none | TODO |
 | [085](085-correct-repository-guidance-and-package-tables.md) | Correct commands and package ownership docs | P3 | none | TODO |
@@ -278,6 +279,9 @@ predecessor/preflight contract in its plan.
   not support two-stage leave approval (`SUBMITTED` -> `APPROVED`/`REJECTED`) or
   action endpoints. Recommends maintaining NZ/UK as Read-Only Sync regions (per
   Plans 100–109) and deferring multi-region write-back architecture.
+- Plan 039 is complete at `d3733fe`. Deleted unused internal HTML feed prototype
+  `packages/feeds/src/render/render-html.ts` and its test, confirming zero callers
+  or exports.
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
