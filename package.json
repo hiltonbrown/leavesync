@@ -49,8 +49,7 @@
     "parse5": "^7.2.1",
     "protobufjs": "7.6.5",
     "require-in-the-middle": "8.0.1",
-    "vite": "8.0.16",
-    "ws": "8.21.0"
+    "vite": "8.0.16"
   },
   "type": "module",
   "workspaces": [
