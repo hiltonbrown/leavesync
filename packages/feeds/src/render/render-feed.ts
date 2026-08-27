@@ -2,6 +2,7 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 import type { Result } from "@repo/core";
+import type { Prisma } from "@repo/database";
 import { database } from "@repo/database";
 import type { availability_privacy_mode } from "@repo/database/generated/enums";
 import { log } from "@repo/observability/log";
@@ -13,6 +14,24 @@ import {
 } from "../cache/feed-cache";
 import { projectFeedEvents } from "../projection/feed-projection";
 import { hashFeedToken } from "../tokens/token-service";
+
+const feedTokenSelect = {
+  clerk_org_id: true,
+  expires_at: true,
+  feed: {
+    select: {
+      id: true,
+      name: true,
+      privacy_mode: true,
+      status: true,
+    },
+  },
+  feed_id: true,
+  id: true,
+  last_used_at: true,
+  organisation_id: true,
+  status: true,
+} satisfies Prisma.FeedTokenSelect;
 
 // last_used_at is telemetry, not a correctness input. Writing it on every
 // calendar-client poll produces one row update per subscriber every few
@@ -105,7 +124,7 @@ export async function cachedEtagForToken(
   token: string
 ): Promise<null | string> {
   const feedToken = await database.feedToken.findUnique({
-    include: { feed: true },
+    select: feedTokenSelect,
     where: { token_hash: hashFeedToken(token) },
   });
 
@@ -133,7 +152,7 @@ export async function renderFeedForToken(
   token: string
 ): Promise<Result<RenderedFeed, FeedRenderError>> {
   const feedToken = await database.feedToken.findUnique({
-    include: { feed: true },
+    select: feedTokenSelect,
     where: { token_hash: hashFeedToken(token) },
   });
 

@@ -600,4 +600,71 @@ describe("cachedEtagForToken", () => {
     });
     expect(await cachedEtagForToken("token")).toBe("hash123");
   });
+
+  it("documents previous double lookup pattern when cachedEtagForToken and renderFeedForToken are called in succession", async () => {
+    mocks.feedTokenFindUnique.mockResolvedValue(feedTokenFixture());
+    mocks.getCachedFeedBody.mockResolvedValue({ ok: true, value: null });
+
+    const cachedEtag = await cachedEtagForToken("plaintext-token");
+    expect(cachedEtag).toBeNull();
+    const result = await renderFeedForToken("plaintext-token");
+    expect(result.ok).toBe(true);
+
+    expect(mocks.feedTokenFindUnique).toHaveBeenCalledTimes(2);
+    expect(mocks.getCachedFeedBody).toHaveBeenCalledTimes(2);
+  });
+
+  it("performs exactly one feed-token lookup and one KV read on a cache miss", async () => {
+    mocks.feedTokenFindUnique.mockResolvedValue(feedTokenFixture());
+    mocks.getCachedFeedBody.mockResolvedValue({ ok: true, value: null });
+
+    const result = await renderFeedForToken("plaintext-token");
+
+    expect(result.ok).toBe(true);
+    expect(mocks.feedTokenFindUnique).toHaveBeenCalledTimes(1);
+    expect(mocks.getCachedFeedBody).toHaveBeenCalledTimes(1);
+  });
+
+  it("performs exactly one feed-token lookup and one KV read on a cache hit", async () => {
+    mocks.feedTokenFindUnique.mockResolvedValue(feedTokenFixture());
+    mocks.getCachedFeedBody.mockResolvedValue({
+      ok: true,
+      value: { body: "cached-ics", etag: "cached-etag" },
+    });
+
+    const result = await renderFeedForToken("plaintext-token");
+
+    expect(result.ok).toBe(true);
+    expect(mocks.feedTokenFindUnique).toHaveBeenCalledTimes(1);
+    expect(mocks.getCachedFeedBody).toHaveBeenCalledTimes(1);
+    expect(mocks.projectFeedEvents).not.toHaveBeenCalled();
+  });
+
+  it("queries feedToken using narrowed select instead of include feed true", async () => {
+    mocks.feedTokenFindUnique.mockResolvedValue(feedTokenFixture());
+    mocks.getCachedFeedBody.mockResolvedValue({ ok: true, value: null });
+
+    await renderFeedForToken("plaintext-token");
+
+    expect(mocks.feedTokenFindUnique).toHaveBeenCalledWith({
+      select: {
+        clerk_org_id: true,
+        expires_at: true,
+        feed: {
+          select: {
+            id: true,
+            name: true,
+            privacy_mode: true,
+            status: true,
+          },
+        },
+        feed_id: true,
+        id: true,
+        last_used_at: true,
+        organisation_id: true,
+        status: true,
+      },
+      where: { token_hash: expect.any(String) },
+    });
+  });
 });
