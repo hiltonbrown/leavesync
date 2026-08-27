@@ -71,7 +71,8 @@ This reconciliation was read-only outside `plans/`.
 | Plan 100 execution | approved at `6d5c415`; NZ and UK v2 paginated employee readers, regional employee dispatch, case-insensitive active status mapping, sync-xero-people integration suite 22/22, check, typecheck, unit, live database integration and build gates passed |
 | Plan 061 execution | approved at `cc2d3fa`; unified feed token and KV resolution (1 token lookup, 1 KV read on cache miss/hit), narrowed feedTokenSelect, horizon-scoped public holiday findMany query omitting jurisdiction relation, check, typecheck, unit, live database integration and build gates passed |
 | Plan 077 execution | approved at `9fc4fb6`; validated UUID parameters on POST/PATCH/DELETE availability routes, early 400 rejection without database access, route suite 27/27, check, typecheck, unit and live database integration gates passed |
-| Current indexed plans | 64: 15 TODO, 33 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 081 execution | approved at `a045ddb`; pure support issue payload builder with dynamic code fences, control character stripping, PII reduction (opaque IDs only), support suite 18/18, payload suite 22/22, check, typecheck, unit and live database integration gates passed |
+| Current indexed plans | 64: 14 TODO, 34 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -107,7 +108,7 @@ before starting its dependent plan.
 | [061](061-halve-the-work-on-the-ics-feed-read-path.md) | Resolve feed/cache once and narrow holiday reads | P2 | 057, 066 | DONE |
 | [077](077-validate-availability-route-identifiers.md) | Validate availability UUIDs before queries | P2 | 066 | DONE |
 | [079](079-cross-check-stripe-webhook-tenant-identity.md) | Cross-check Stripe customer and Clerk org | P1 | 066 | DONE |
-| [081](081-minimise-and-delimit-support-issue-data.md) | Minimise/delimit support issue data | P2 | 066 | TODO |
+| [081](081-minimise-and-delimit-support-issue-data.md) | Minimise/delimit support issue data | P2 | 066 | DONE |
 | [091](091-page-scheduled-xero-balance-sync.md) | Page scheduled balance sync across runs | P2 | 076 | TODO |
 | [093](093-observe-a-nonce-ready-csp.md) | Observe a privacy-safe nonce CSP | P2 | 057 | TODO |
 | [099](099-reconcile-clerk-access-and-invitations.md) | Link active people and guard Clerk invitations | P1 | 097, 098 | DONE |
@@ -337,6 +338,10 @@ predecessor/preflight contract in its plan.
 - Plan 077 is complete at `9fc4fb6`. Validated all external organisation IDs and
   record IDs as UUIDs with Zod on the availability API routes before any database
   or service calls, returning HTTP 400 for malformed parameters.
+- Plan 081 is complete at `a045ddb`. Extracted a pure GitHub support issue
+  payload builder with dynamic backtick code fences, title control character
+  stripping, string length bounds, and PII reduction (metadata limited to opaque
+  IDs without plain text names/emails).
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
