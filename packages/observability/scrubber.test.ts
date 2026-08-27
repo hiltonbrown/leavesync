@@ -5,8 +5,16 @@ describe("observability scrubber", () => {
   it("allows the exact operational keys", () => {
     for (const key of [
       "actingClerkOrgId",
+      "blockedOrigin",
       "clerkOrgId",
+      "columnNumber",
+      "disposition",
+      "documentOrigin",
+      "effectiveDirective",
       "errorCode",
+      "lineNumber",
+      "sourceOrigin",
+      "statusCode",
       "stripeSubscriptionId",
       "xeroWriteSucceeded",
     ]) {
