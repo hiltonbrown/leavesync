@@ -69,7 +69,8 @@ This reconciliation was read-only outside `plans/`.
 | Plan 079 execution | approved at `5cabfe8`; getSubscriptionForStripeCustomer dual lookup, cross-checked customer and organisation bindings in payments webhook, conflict test suite 16/16, billing integration suite 7/7, check, typecheck, unit and live database integration gates passed |
 | Plan 099 execution | approved at `c024e58`; clerkAccessService 1-to-1 account linking, guarded bulk invitation dispatch (<=10/batch, <=50/hour), admin authorization and audit logging, people directory review UI, integration suite 4/4, actions suite 11/11, client suite 12/12, check, typecheck, unit, live database integration and build gates passed |
 | Plan 100 execution | approved at `6d5c415`; NZ and UK v2 paginated employee readers, regional employee dispatch, case-insensitive active status mapping, sync-xero-people integration suite 22/22, check, typecheck, unit, live database integration and build gates passed |
-| Current indexed plans | 64: 17 TODO, 31 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 061 execution | approved at `cc2d3fa`; unified feed token and KV resolution (1 token lookup, 1 KV read on cache miss/hit), narrowed feedTokenSelect, horizon-scoped public holiday findMany query omitting jurisdiction relation, check, typecheck, unit, live database integration and build gates passed |
+| Current indexed plans | 64: 16 TODO, 32 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -102,7 +103,7 @@ before starting its dependent plan.
 | [086](086-spike-xero-employee-group-team-mapping.md) | Decide EmployeeGroupName team mapping | P3 | none | DONE |
 | [098](098-confirm-missing-xero-people-before-archival.md) | Confirm absence before person archival | P1 | 097 | DONE |
 | [107](107-present-currency-safe-leave-balances.md) | Present balances with currency-safe formatting | P1 | 101 | DONE |
-| [061](061-halve-the-work-on-the-ics-feed-read-path.md) | Resolve feed/cache once and narrow holiday reads | P2 | 057, 066 | TODO |
+| [061](061-halve-the-work-on-the-ics-feed-read-path.md) | Resolve feed/cache once and narrow holiday reads | P2 | 057, 066 | DONE |
 | [077](077-validate-availability-route-identifiers.md) | Validate availability UUIDs before queries | P2 | 066 | TODO |
 | [079](079-cross-check-stripe-webhook-tenant-identity.md) | Cross-check Stripe customer and Clerk org | P1 | 066 | DONE |
 | [081](081-minimise-and-delimit-support-issue-data.md) | Minimise/delimit support issue data | P2 | 066 | TODO |
@@ -328,6 +329,10 @@ predecessor/preflight contract in its plan.
   employee readers in `packages/xero`, wired regional employee dispatch, and
   enabled multi-region employee sync in `packages/jobs` with case-insensitive
   active status handling.
+- Plan 061 is complete at `cc2d3fa`. Unified feed token lookups and cache
+  resolution into a single operation (1 token lookup and 1 KV read on both
+  hit and miss paths), narrowed feedTokenSelect, and replaced per-year holiday
+  queries with a single horizon-bounded SQL query omitting jurisdiction.
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
