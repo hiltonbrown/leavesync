@@ -56,6 +56,7 @@ import { useState, useTransition } from "react";
 import { statusToneClasses } from "@/components/availability/availability-status";
 import { SubmitConfirmationModal } from "@/components/plans/submit-confirmation-modal";
 import { XeroSyncFailedState } from "@/components/states/xero-sync-failed-state";
+import { formatLeaveBalance } from "@/lib/format-leave-balance";
 import { withOrg } from "@/lib/navigation/org-url";
 import {
   archiveRecordAction,
@@ -92,7 +93,9 @@ type RowAction = Exclude<EditableAction, "view">;
 interface BalanceChip {
   balanceAvailable: number | null;
   balanceUnavailableReason: "local_only" | "not_synced" | "not_xero_leave";
+  currencyCode?: string | null;
   leaveBalanceUpdatedAt: string | Date | null;
+  unit?: string | null;
 }
 
 export interface PlansClientRecord {
@@ -440,6 +443,9 @@ export function PlansClient({
           record={{
             balanceAvailable:
               submissionModal.record.balanceChip?.balanceAvailable ?? null,
+            balanceCurrencyCode:
+              submissionModal.record.balanceChip?.currencyCode ?? null,
+            balanceUnit: submissionModal.record.balanceChip?.unit ?? null,
             endsAt: submissionModal.record.endsAt,
             id: submissionModal.record.id,
             organisationId,
@@ -712,11 +718,19 @@ function renderBalance(record: PlansClientRecord): string {
   if (record.balanceChip.balanceAvailable === null) {
     return balanceUnavailableCopy(record.balanceChip.balanceUnavailableReason);
   }
-  const remaining =
-    record.workingDays === null
-      ? record.balanceChip.balanceAvailable
-      : record.balanceChip.balanceAvailable - record.workingDays;
-  return `${remaining} days left if approved`;
+  const unit = record.balanceChip.unit ?? "days";
+  if (unit === "days") {
+    const remaining =
+      record.workingDays === null
+        ? record.balanceChip.balanceAvailable
+        : record.balanceChip.balanceAvailable - record.workingDays;
+    return `${formatLeaveBalance({ amount: remaining, unit: "days" })} left if approved`;
+  }
+  return `${formatLeaveBalance({
+    amount: record.balanceChip.balanceAvailable,
+    currencyCode: record.balanceChip.currencyCode,
+    unit,
+  })} available`;
 }
 
 function balanceUnavailableCopy(

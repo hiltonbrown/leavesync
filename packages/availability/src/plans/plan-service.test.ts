@@ -29,6 +29,7 @@ const mocks = vi.hoisted(() => {
     availabilityCreate,
     availabilityFindFirst,
     hasActiveXeroConnection: vi.fn(),
+    leaveBalanceFindFirst: vi.fn(),
     materialiseAvailabilityPublication: vi.fn(() =>
       Promise.resolve({ ok: true, value: undefined })
     ),
@@ -58,6 +59,7 @@ vi.mock("@repo/database", () => ({
         },
       }),
     availabilityRecord: { findFirst: mocks.availabilityFindFirst },
+    leaveBalance: { findFirst: mocks.leaveBalanceFindFirst },
     person: { findFirst: mocks.personFindFirst },
   },
   scopedQuery: mocks.scopedQuery,
@@ -70,7 +72,7 @@ vi.mock("@repo/feeds", () => ({
   materialiseAvailabilityPublication: mocks.materialiseAvailabilityPublication,
 }));
 
-const { archiveRecord, createRecord, updateRecord } = await import(
+const { archiveRecord, createRecord, getRecord, updateRecord } = await import(
   "./plan-service"
 );
 
@@ -237,5 +239,60 @@ describe("plan-service", () => {
     });
 
     expect(result).toMatchObject({ ok: true });
+  });
+
+  it("projects unit, currencyCode, and balance amount on balanceChip", async () => {
+    mocks.hasActiveXeroConnection.mockResolvedValue(true);
+    mocks.availabilityFindFirst.mockResolvedValue({
+      ...scopedRecordFixture({ managerPersonId: null }),
+      all_day: true,
+      approval_note: null,
+      approval_status: "draft",
+      approved_at: null,
+      archived_at: null,
+      clerk_org_id: baseInput.clerkOrgId,
+      contactability: "contactable",
+      created_at: new Date("2026-01-01T00:00:00.000Z"),
+      created_by_user_id: "user_1",
+      derived_sequence: 0,
+      derived_uid_key: "uid-key",
+      ends_at: baseInput.endsAt,
+      failed_action: null,
+      id: actionInput.recordId,
+      notes_internal: null,
+      organisation_id: baseInput.organisationId,
+      person_id: baseInput.personId,
+      privacy_mode: "named",
+      record_type: "annual_leave",
+      source_remote_id: null,
+      source_type: "team_calendar_leave",
+      starts_at: baseInput.startsAt,
+      submitted_at: null,
+      updated_at: new Date("2026-01-01T00:00:00.000Z"),
+      xero_write_error: null,
+    });
+    mocks.leaveBalanceFindFirst.mockResolvedValue({
+      balance: 1200.5,
+      balance_unit: "currency",
+      currency_code: "NZD",
+      updated_at: new Date("2026-04-01T00:00:00.000Z"),
+    });
+
+    const result = await getRecord({
+      ...actionInput,
+      actingOrgRole: "org:admin",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.balanceChip).toEqual({
+      balanceAvailable: 1200.5,
+      balanceUnavailableReason: "not_synced",
+      currencyCode: "NZD",
+      leaveBalanceUpdatedAt: new Date("2026-04-01T00:00:00.000Z"),
+      unit: "currency",
+    });
   });
 });

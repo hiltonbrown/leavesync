@@ -29,6 +29,7 @@ import {
   setManualBalanceAction,
 } from "@/app/(authenticated)/people/_actions";
 import { XeroSyncFailedState } from "@/components/states/xero-sync-failed-state";
+import { formatLeaveBalance } from "@/lib/format-leave-balance";
 import { withOrg } from "@/lib/navigation/org-url";
 import { AlternativeContactsPanel } from "./alternative-contacts-panel";
 
@@ -498,7 +499,11 @@ function BalancesPanel({
             <TableRow key={row.id}>
               <TableCell>{row.leaveTypeName ?? row.leaveTypeXeroId}</TableCell>
               <TableCell className="text-right">
-                {row.balanceUnits.toLocaleString("en-AU")} {row.unitType ?? ""}
+                {formatLeaveBalance({
+                  amount: row.balanceUnits,
+                  currencyCode: row.currencyCode,
+                  unit: row.unitType,
+                })}
               </TableCell>
               {showManualEditor && (
                 <TableCell className="text-right">

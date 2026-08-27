@@ -17,9 +17,12 @@ import {
   submitForApprovalAction,
 } from "@/app/(authenticated)/plans/_actions";
 import { XeroSyncFailedState } from "@/components/states/xero-sync-failed-state";
+import { formatLeaveBalance } from "@/lib/format-leave-balance";
 
 interface SubmitConfirmationRecord {
   balanceAvailable: number | null;
+  balanceCurrencyCode?: string | null;
+  balanceUnit?: string | null;
   endsAt: string;
   id: string;
   organisationId: string;
@@ -129,7 +132,7 @@ export function SubmitConfirmationModal({
               : `${record.workingDays} working days`}
           </SummaryRow>
           <SummaryRow label="Balance impact">
-            {balanceImpact(record.balanceAvailable, record.workingDays)}
+            {balanceImpact(record)}
           </SummaryRow>
         </dl>
       </div>
@@ -174,7 +177,7 @@ export function SubmitConfirmationModal({
           {isPending ? (
             <Loader2Icon className="mr-2 size-4 animate-spin" />
           ) : null}
-          {mode === "retry" ? "Retry Xero sync" : "Send to Xero"}
+          {mode === "retry" ? "Retry submission" : "Send to Xero"}
         </Button>
       </DialogFooter>
     </div>
@@ -213,14 +216,23 @@ function SummaryRow({
   );
 }
 
-function balanceImpact(
-  balanceAvailable: number | null,
-  workingDays: number | null
-) {
-  if (balanceAvailable === null || workingDays === null) {
+function balanceImpact(record: SubmitConfirmationRecord): string {
+  if (record.balanceAvailable === null) {
     return "Balance unavailable";
   }
-  return `${balanceAvailable - workingDays} days remaining after this submission`;
+  const unit = record.balanceUnit ?? "days";
+  if (unit === "days") {
+    if (record.workingDays === null) {
+      return "Balance unavailable";
+    }
+    const remaining = record.balanceAvailable - record.workingDays;
+    return `${formatLeaveBalance({ amount: remaining, unit: "days" })} remaining after this submission`;
+  }
+  return `${formatLeaveBalance({
+    amount: record.balanceAvailable,
+    currencyCode: record.balanceCurrencyCode,
+    unit,
+  })} available`;
 }
 
 function formatDateRange(startsAt: string, endsAt: string): string {

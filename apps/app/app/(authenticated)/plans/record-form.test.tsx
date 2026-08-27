@@ -85,4 +85,76 @@ describe("RecordForm", () => {
     expect(document.activeElement).toBe(alert);
     expect(notes.value).toBe("Keep this note");
   });
+
+  it("renders formatted balance according to balanceUnit and balanceCurrencyCode", () => {
+    const { rerender } = render(
+      <RecordForm
+        balanceAvailable={15}
+        balanceUnit="days"
+        canSelectPerson
+        closeHref="/plans"
+        hasActiveXeroConnection={true}
+        mode="create"
+        organisationId="00000000-0000-4000-8000-000000000001"
+        people={[
+          {
+            email: "alex@example.com",
+            id: "00000000-0000-4000-8000-000000000002",
+            label: "Alex Morgan",
+          },
+        ]}
+      />
+    );
+
+    expect(
+      screen.getByText("Current Xero balance: 15 days before this request.")
+    ).toBeDefined();
+
+    rerender(
+      <RecordForm
+        balanceAvailable={37.5}
+        balanceUnit="hours"
+        canSelectPerson
+        closeHref="/plans"
+        hasActiveXeroConnection={true}
+        mode="create"
+        organisationId="00000000-0000-4000-8000-000000000001"
+        people={[
+          {
+            email: "alex@example.com",
+            id: "00000000-0000-4000-8000-000000000002",
+            label: "Alex Morgan",
+          },
+        ]}
+      />
+    );
+
+    expect(
+      screen.getByText("Current Xero balance: 37.5 hours before this request.")
+    ).toBeDefined();
+
+    rerender(
+      <RecordForm
+        balanceAvailable={1200}
+        balanceCurrencyCode="NZD"
+        balanceUnit="currency"
+        canSelectPerson
+        closeHref="/plans"
+        hasActiveXeroConnection={true}
+        mode="create"
+        organisationId="00000000-0000-4000-8000-000000000001"
+        people={[
+          {
+            email: "alex@example.com",
+            id: "00000000-0000-4000-8000-000000000002",
+            label: "Alex Morgan",
+          },
+        ]}
+      />
+    );
+
+    expect(
+      screen.getByText("Current Xero balance: $1,200.00 before this request.")
+    ).toBeDefined();
+  });
 });

@@ -44,6 +44,7 @@ import { DeclineModal } from "@/components/approvals/decline-modal";
 import { RequestInfoModal } from "@/components/approvals/request-info-modal";
 import { EmptyState } from "@/components/states/empty-state";
 import { XeroSyncFailedState } from "@/components/states/xero-sync-failed-state";
+import { formatLeaveBalance } from "@/lib/format-leave-balance";
 import { useFilterParams } from "@/lib/url-state/use-filter-params";
 
 // Radix Select rejects empty-string item values, so the "no filter" option
@@ -67,6 +68,7 @@ interface ApprovalItem {
   balanceSnapshot: {
     balanceAvailable: number | null;
     balanceRemainingAfterApproval: number | null;
+    currencyCode?: string | null;
     leaveBalanceUpdatedAt: string | Date | null;
     unit: string | null;
   } | null;
@@ -684,8 +686,11 @@ function StatusBadge({ status }: { status: string }) {
 
 function modalRecord(record: ApprovalItem): ApprovalModalRecord {
   return {
+    balanceAvailable: record.balanceSnapshot?.balanceAvailable ?? null,
+    balanceCurrencyCode: record.balanceSnapshot?.currencyCode ?? null,
     balanceRemainingAfterApproval:
       record.balanceSnapshot?.balanceRemainingAfterApproval ?? null,
+    balanceUnit: record.balanceSnapshot?.unit ?? null,
     durationWorkingDays: record.durationWorkingDays,
     employeeName: personName(record),
     endsAt: record.endsAt,
@@ -696,12 +701,22 @@ function modalRecord(record: ApprovalItem): ApprovalModalRecord {
   };
 }
 
-function balanceLabel(record: ApprovalItem) {
-  const remaining = record.balanceSnapshot?.balanceRemainingAfterApproval;
-  if (remaining === null || remaining === undefined) {
+function balanceLabel(record: ApprovalItem): string {
+  const snapshot = record.balanceSnapshot;
+  if (!snapshot) {
     return "Balance unavailable";
   }
-  return `${remaining} days remaining after approval`;
+  if (snapshot.balanceRemainingAfterApproval !== null) {
+    return `${formatLeaveBalance({ amount: snapshot.balanceRemainingAfterApproval, unit: "days" })} remaining after approval`;
+  }
+  if (snapshot.balanceAvailable !== null) {
+    return `${formatLeaveBalance({
+      amount: snapshot.balanceAvailable,
+      currencyCode: snapshot.currencyCode,
+      unit: snapshot.unit,
+    })} available`;
+  }
+  return "Balance unavailable";
 }
 
 function submittedLabel(value: string | Date | null) {

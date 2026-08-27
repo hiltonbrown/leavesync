@@ -325,6 +325,7 @@ function balanceRowInput(
   return {
     balance: new Prisma.Decimal("12.5"),
     balance_unit: "hours",
+    currency_code: null,
     id: "00000000-0000-4000-8000-0000000000aa",
     last_fetched_at: new Date("2026-01-01T00:00:00.000Z"),
     leave_type_name: "Annual Leave",
@@ -342,13 +343,20 @@ describe("toBalanceRow", () => {
     expect(row.leaveTypeName).toBeNull();
     expect(row.leaveTypeXeroId).toBe("annual-leave-id");
     expect(row.balanceUnits).toBe(12.5);
+    expect(row.currencyCode).toBeNull();
   });
 
-  it("preserves a stored leave type name", () => {
+  it("preserves a stored leave type name and currency code", () => {
     const row = toBalanceRow(
-      balanceRowInput({ leave_type_name: "Annual Leave" })
+      balanceRowInput({
+        balance_unit: "currency",
+        currency_code: "NZD",
+        leave_type_name: "Holiday Pay",
+      })
     );
 
-    expect(row.leaveTypeName).toBe("Annual Leave");
+    expect(row.leaveTypeName).toBe("Holiday Pay");
+    expect(row.unitType).toBe("currency");
+    expect(row.currencyCode).toBe("NZD");
   });
 });
