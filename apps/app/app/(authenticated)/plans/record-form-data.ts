@@ -130,7 +130,11 @@ export async function loadPlanFormData({
     balancePersonId && isXeroLeaveType(balanceRecordType)
       ? await database.leaveBalance.findFirst({
           orderBy: { updated_at: "desc" },
-          select: { balance: true },
+          select: {
+            balance: true,
+            balance_unit: true,
+            currency_code: true,
+          },
           where: {
             ...scopedQuery(clerkOrgId, organisationId),
             person_id: balancePersonId,
@@ -141,6 +145,8 @@ export async function loadPlanFormData({
 
   return {
     balanceAvailable: balance ? Number(balance.balance) : null,
+    balanceCurrencyCode: balance?.currency_code ?? null,
+    balanceUnit: balance?.balance_unit ?? null,
     canSelectPerson,
     closeHref: withOrg("/plans", orgQueryValue),
     hasActiveXeroConnection: hasXero,

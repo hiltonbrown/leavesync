@@ -127,4 +127,58 @@ describe("approval modals", () => {
       expect(onSuccess).toHaveBeenCalledTimes(1);
     });
   });
+
+  it("renders remaining balance for days and available balance for hours/currency", () => {
+    const { rerender } = render(
+      <ApproveConfirmationModal
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+        record={record}
+      />
+    );
+
+    expect(screen.getByText("8 days remaining after approval")).toBeDefined();
+
+    rerender(
+      <ApproveConfirmationModal
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+        record={{
+          ...record,
+          balanceAvailable: 40,
+          balanceRemainingAfterApproval: null,
+          balanceUnit: "hours",
+        }}
+      />
+    );
+    expect(screen.getByText("40 hours available")).toBeDefined();
+
+    rerender(
+      <ApproveConfirmationModal
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+        record={{
+          ...record,
+          balanceAvailable: 1500,
+          balanceCurrencyCode: "NZD",
+          balanceRemainingAfterApproval: null,
+          balanceUnit: "currency",
+        }}
+      />
+    );
+    expect(screen.getByText("$1,500.00 available")).toBeDefined();
+
+    rerender(
+      <ApproveConfirmationModal
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+        record={{
+          ...record,
+          balanceAvailable: null,
+          balanceRemainingAfterApproval: null,
+        }}
+      />
+    );
+    expect(screen.getByText("Balance unavailable")).toBeDefined();
+  });
 });

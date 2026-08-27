@@ -10,6 +10,7 @@ import type {
   availability_privacy_mode,
   availability_record_type,
   availability_source_type,
+  leave_balance_unit,
 } from "@repo/database/generated/enums";
 import { materialiseAvailabilityPublication } from "@repo/feeds";
 import { log } from "@repo/observability/log";
@@ -87,7 +88,9 @@ export interface PlanRecord {
 export interface BalanceChip {
   balanceAvailable: number | null;
   balanceUnavailableReason: "local_only" | "not_synced" | "not_xero_leave";
+  currencyCode: string | null;
   leaveBalanceUpdatedAt: Date | null;
+  unit: leave_balance_unit | null;
 }
 
 export interface RecordListItem extends PlanRecord {
@@ -886,7 +889,9 @@ async function balanceChipForRecord(
     return {
       balanceAvailable: null,
       balanceUnavailableReason: "not_xero_leave",
+      currencyCode: null,
       leaveBalanceUpdatedAt: null,
+      unit: null,
     };
   }
 
@@ -894,6 +899,8 @@ async function balanceChipForRecord(
     orderBy: { updated_at: "desc" },
     select: {
       balance: true,
+      balance_unit: true,
+      currency_code: true,
       updated_at: true,
     },
     where: {
@@ -910,14 +917,18 @@ async function balanceChipForRecord(
     return {
       balanceAvailable: null,
       balanceUnavailableReason: "not_synced",
+      currencyCode: null,
       leaveBalanceUpdatedAt: null,
+      unit: null,
     };
   }
 
   return {
     balanceAvailable: Number(balance.balance),
     balanceUnavailableReason: "not_synced",
+    currencyCode: balance.currency_code,
     leaveBalanceUpdatedAt: balance.updated_at,
+    unit: balance.balance_unit,
   };
 }
 

@@ -1,6 +1,7 @@
 import type { EmployeeDashboardView } from "@repo/availability";
 import type { ReactNode } from "react";
 import { EmptyState } from "@/components/states/empty-state";
+import { formatLeaveBalance } from "@/lib/format-leave-balance";
 import { DashboardCardError, DashboardCardShell } from "./dashboard-card-shell";
 import { formatDateTime } from "./dashboard-format";
 
@@ -59,7 +60,11 @@ export function BalancesCard({
           <div className="flex items-center justify-between gap-4" key={row.id}>
             <span>{row.leaveTypeName ?? row.recordType ?? "Leave"}</span>
             <span className="font-medium">
-              {row.balanceUnits} {row.unitType ?? ""}
+              {formatLeaveBalance({
+                amount: row.balanceUnits,
+                currencyCode: row.currencyCode,
+                unit: row.unitType,
+              })}
             </span>
           </div>
         ))}

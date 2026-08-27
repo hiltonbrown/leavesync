@@ -11,9 +11,13 @@ import {
 } from "@/app/(authenticated)/leave-approvals/_actions";
 import { InterceptingModalShell } from "@/components/modals/intercepting-modal-shell";
 import { XeroSyncFailedState } from "@/components/states/xero-sync-failed-state";
+import { formatLeaveBalance } from "@/lib/format-leave-balance";
 
 export interface ApprovalModalRecord {
+  balanceAvailable?: number | null;
+  balanceCurrencyCode?: string | null;
   balanceRemainingAfterApproval: number | null;
+  balanceUnit?: string | null;
   durationWorkingDays: number | null;
   employeeName: string;
   endsAt: string | Date;
@@ -161,14 +165,27 @@ export function SummaryBlock({ record }: { record: ApprovalModalRecord }) {
             ? "Duration unavailable"
             : `${record.durationWorkingDays} working days`}
         </SummaryRow>
-        <SummaryRow label="Balance impact">
-          {record.balanceRemainingAfterApproval === null
-            ? "Balance unavailable"
-            : `${record.balanceRemainingAfterApproval} days remaining after approval`}
-        </SummaryRow>
+        <SummaryRow label="Balance impact">{balanceImpact(record)}</SummaryRow>
       </dl>
     </div>
   );
+}
+
+function balanceImpact(record: ApprovalModalRecord): string {
+  if (record.balanceRemainingAfterApproval !== null) {
+    return `${formatLeaveBalance({ amount: record.balanceRemainingAfterApproval, unit: "days" })} remaining after approval`;
+  }
+  if (
+    record.balanceAvailable !== null &&
+    record.balanceAvailable !== undefined
+  ) {
+    return `${formatLeaveBalance({
+      amount: record.balanceAvailable,
+      currencyCode: record.balanceCurrencyCode,
+      unit: record.balanceUnit,
+    })} available`;
+  }
+  return "Balance unavailable";
 }
 
 function SummaryRow({

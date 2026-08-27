@@ -1015,11 +1015,88 @@ describe("approval-service", () => {
     expect(result.value.items[0]?.balanceSnapshot).toMatchObject({
       balanceAvailable: 10,
       balanceRemainingAfterApproval: 8,
+      currencyCode: null,
+      unit: "days",
     });
     expect(result.value.items[1]?.durationWorkingDays).toBe(1);
     expect(result.value.items[1]?.balanceSnapshot).toMatchObject({
       balanceAvailable: 4,
       balanceRemainingAfterApproval: 3,
+      currencyCode: null,
+      unit: "days",
+    });
+  });
+
+  it("does not compute remaining balance for hours or currency leave balances", async () => {
+    const locationId = "00000000-0000-4000-8000-000000000301";
+    const secondRecord = {
+      ...record,
+      id: "00000000-0000-4000-8000-000000000098",
+      person: {
+        ...record.person,
+        id: "00000000-0000-4000-8000-000000000022",
+        location_id: locationId,
+      },
+      person_id: "00000000-0000-4000-8000-000000000022",
+      record_type: "sick_leave",
+    };
+    mocks.availabilityFindMany.mockResolvedValue([
+      {
+        ...record,
+        person: { ...record.person, location_id: locationId },
+      },
+      secondRecord,
+    ]);
+    mocks.locationFindMany.mockResolvedValue([
+      {
+        country_code: "AU",
+        id: locationId,
+        region_code: "QLD",
+        timezone: "Australia/Brisbane",
+      },
+    ]);
+    mocks.computeWorkingDaysFromReferenceData
+      .mockReturnValueOnce({ ok: true, value: 2 })
+      .mockReturnValueOnce({ ok: true, value: 1 });
+    mocks.leaveBalanceFindMany.mockResolvedValue([
+      {
+        balance: 40,
+        balance_unit: "hours",
+        currency_code: null,
+        person_id: record.person_id,
+        record_type: record.record_type,
+        updated_at: new Date("2026-04-01T00:00:00.000Z"),
+      },
+      {
+        balance: 1500,
+        balance_unit: "currency",
+        currency_code: "NZD",
+        person_id: secondRecord.person_id,
+        record_type: secondRecord.record_type,
+        updated_at: new Date("2026-04-02T00:00:00.000Z"),
+      },
+    ]);
+
+    const result = await listForApprover({
+      ...input,
+      filters: { status: ["submitted"] },
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.items[0]?.balanceSnapshot).toMatchObject({
+      balanceAvailable: 40,
+      balanceRemainingAfterApproval: null,
+      currencyCode: null,
+      unit: "hours",
+    });
+    expect(result.value.items[1]?.balanceSnapshot).toMatchObject({
+      balanceAvailable: 1500,
+      balanceRemainingAfterApproval: null,
+      currencyCode: "NZD",
+      unit: "currency",
     });
   });
 

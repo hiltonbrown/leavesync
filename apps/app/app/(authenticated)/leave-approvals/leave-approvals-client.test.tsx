@@ -108,6 +108,113 @@ describe("LeaveApprovalsClient", () => {
       );
     });
   });
+
+  it("renders balance labels appropriately for days, hours, and currency", () => {
+    const { rerender } = renderClient();
+    expect(
+      screen.getAllByText("8 days remaining after approval").length
+    ).toBeGreaterThan(0);
+
+    rerender(
+      <LeaveApprovalsClient
+        canDispatchReconciliation={true}
+        filters={{ includeFailed: false }}
+        items={[
+          {
+            approvalNote: null,
+            approvalStatus: "submitted",
+            approvedAt: null,
+            availableActions: ["approve", "decline", "request_more_info"],
+            balanceSnapshot: {
+              balanceAvailable: 40,
+              balanceRemainingAfterApproval: null,
+              currencyCode: null,
+              leaveBalanceUpdatedAt: "2026-04-14T00:00:00.000Z",
+              unit: "hours",
+            },
+            durationWorkingDays: 2,
+            endsAt: "2026-04-16T23:59:59.999Z",
+            failedAction: null,
+            id: recordId,
+            mutedActionNote: null,
+            notesInternal: "Coverage arranged.",
+            organisationId,
+            person: {
+              email: "ari@example.com",
+              firstName: "Ari",
+              id: "00000000-0000-4000-8000-000000000011",
+              lastName: "Report",
+              teamName: "Operations",
+            },
+            recordType: "annual_leave",
+            startsAt: "2026-04-15T00:00:00.000Z",
+            submittedAt: "2026-04-10T00:00:00.000Z",
+            xeroWriteError: null,
+          },
+        ]}
+        nextCursor={null}
+        organisationId={organisationId}
+        summary={{
+          approvedThisMonth: 2,
+          declinedThisMonth: 1,
+          failedSync: 0,
+          pending: 1,
+        }}
+      />
+    );
+    expect(screen.getAllByText("40 hours available").length).toBeGreaterThan(0);
+
+    rerender(
+      <LeaveApprovalsClient
+        canDispatchReconciliation={true}
+        filters={{ includeFailed: false }}
+        items={[
+          {
+            approvalNote: null,
+            approvalStatus: "submitted",
+            approvedAt: null,
+            availableActions: ["approve", "decline", "request_more_info"],
+            balanceSnapshot: {
+              balanceAvailable: 1500,
+              balanceRemainingAfterApproval: null,
+              currencyCode: "NZD",
+              leaveBalanceUpdatedAt: "2026-04-14T00:00:00.000Z",
+              unit: "currency",
+            },
+            durationWorkingDays: 2,
+            endsAt: "2026-04-16T23:59:59.999Z",
+            failedAction: null,
+            id: recordId,
+            mutedActionNote: null,
+            notesInternal: "Coverage arranged.",
+            organisationId,
+            person: {
+              email: "ari@example.com",
+              firstName: "Ari",
+              id: "00000000-0000-4000-8000-000000000011",
+              lastName: "Report",
+              teamName: "Operations",
+            },
+            recordType: "annual_leave",
+            startsAt: "2026-04-15T00:00:00.000Z",
+            submittedAt: "2026-04-10T00:00:00.000Z",
+            xeroWriteError: null,
+          },
+        ]}
+        nextCursor={null}
+        organisationId={organisationId}
+        summary={{
+          approvedThisMonth: 2,
+          declinedThisMonth: 1,
+          failedSync: 0,
+          pending: 1,
+        }}
+      />
+    );
+    expect(screen.getAllByText("$1,500.00 available").length).toBeGreaterThan(
+      0
+    );
+  });
 });
 
 function renderClient() {
