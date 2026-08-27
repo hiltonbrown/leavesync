@@ -47,11 +47,9 @@ vi.mock("../cache/feed-cache", () => ({
 }));
 
 const {
-  createInitialToken,
+  createInitialTokenWithClient,
   generateFeedTokenPlaintext,
-  getActiveTokenHint,
   hashFeedToken,
-  listTokens,
   revokeAllFeedTokens,
   revokeToken,
   rotateToken,
@@ -115,7 +113,10 @@ describe("feed token pure functions", () => {
 
 describe("feed token lifecycle with a mocked database", () => {
   it("creates the initial token with a stored hash and one-time plaintext disclosure", async () => {
-    const result = await createInitialToken(baseInput);
+    const tx = mockDatabase() as unknown as Parameters<
+      typeof createInitialTokenWithClient
+    >[0];
+    const result = await createInitialTokenWithClient(tx, baseInput);
 
     expect(result.ok).toBe(true);
     if (!result.ok) {
@@ -296,93 +297,6 @@ describe("feed token lifecycle with a mocked database", () => {
     });
 
     expect(mocks.logError).not.toHaveBeenCalled();
-  });
-
-  it("lists token history and scopes the feed and token queries", async () => {
-    const createdAt = new Date("2026-06-12T09:00:00.000Z");
-    const lastUsedAt = new Date("2026-06-12T10:00:00.000Z");
-    const revokedAt = new Date("2026-06-12T11:00:00.000Z");
-    mocks.feedTokenFindMany.mockResolvedValue([
-      {
-        created_at: createdAt,
-        id: "71000000-0000-4000-8000-000000000030",
-        last_used_at: lastUsedAt,
-        revoked_at: revokedAt,
-        rotated_from_token_id: "71000000-0000-4000-8000-000000000029",
-        status: "revoked",
-      },
-    ]);
-
-    const result = await listTokens({
-      clerkOrgId: baseInput.clerkOrgId,
-      feedId: baseInput.feedId,
-      includeRevoked: true,
-      organisationId: baseInput.organisationId,
-    });
-
-    expect(result).toEqual({
-      ok: true,
-      value: [
-        {
-          createdAt,
-          id: "71000000-0000-4000-8000-000000000030",
-          lastUsedAt,
-          revokedAt,
-          rotatedFromTokenId: "71000000-0000-4000-8000-000000000029",
-          status: "revoked",
-        },
-      ],
-    });
-    expect(mocks.feedFindFirst).toHaveBeenCalledWith({
-      select: { id: true },
-      where: scopedFeed(),
-    });
-    expect(mocks.feedTokenFindMany).toHaveBeenCalledWith({
-      orderBy: { created_at: "desc" },
-      select: expect.any(Object),
-      where: scopedTokenByFeed(),
-    });
-  });
-
-  it("returns the active token hint with scoped queries", async () => {
-    const createdAt = new Date("2026-06-12T09:00:00.000Z");
-    const lastUsedAt = new Date("2026-06-12T10:00:00.000Z");
-    mocks.feedTokenFindFirst.mockResolvedValue({
-      created_at: createdAt,
-      id: "71000000-0000-4000-8000-000000000040",
-      last_used_at: lastUsedAt,
-      token_hint: "Wxyz",
-    });
-
-    const result = await getActiveTokenHint({
-      clerkOrgId: baseInput.clerkOrgId,
-      feedId: baseInput.feedId,
-      organisationId: baseInput.organisationId,
-    });
-
-    expect(result).toEqual({
-      ok: true,
-      value: {
-        createdAt,
-        hint: "Wxyz",
-        lastUsedAt,
-        tokenId: "71000000-0000-4000-8000-000000000040",
-      },
-    });
-    expect(mocks.feedFindFirst).toHaveBeenCalledWith({
-      select: { id: true },
-      where: scopedFeed(),
-    });
-    expect(mocks.feedTokenFindFirst).toHaveBeenCalledWith({
-      orderBy: { created_at: "desc" },
-      select: {
-        created_at: true,
-        id: true,
-        last_used_at: true,
-        token_hint: true,
-      },
-      where: { ...scopedTokenByFeed(), status: "active" },
-    });
   });
 
   it("revokes all active tokens with both tenant identifiers", async () => {

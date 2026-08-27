@@ -64,17 +64,6 @@ const RevokeTokenInputSchema = z.object({
   organisationId: z.string().uuid(),
   tokenId: z.string().uuid(),
 });
-const ListTokensInputSchema = z.object({
-  clerkOrgId: z.string().min(1),
-  feedId: z.string().uuid(),
-  includeRevoked: z.boolean().default(false),
-  organisationId: z.string().uuid(),
-});
-const ActiveTokenInputSchema = z.object({
-  clerkOrgId: z.string().min(1),
-  feedId: z.string().uuid(),
-  organisationId: z.string().uuid(),
-});
 
 type InitialTokenInput = z.infer<typeof InitialTokenInputSchema>;
 
@@ -83,24 +72,6 @@ export const generateFeedTokenPlaintext = (): string =>
 
 export const hashFeedToken = (plaintext: string): string =>
   createHash("sha256").update(plaintext).digest("hex");
-
-export async function createInitialToken(
-  input: unknown
-): Promise<Result<TokenDisclosure, TokenServiceError>> {
-  const parsed = InitialTokenInputSchema.safeParse(input);
-  if (!parsed.success) {
-    return validationError(parsed.error);
-  }
-
-  try {
-    const token = await database.$transaction((tx) =>
-      createInitialTokenWithClient(tx, parsed.data)
-    );
-    return token;
-  } catch {
-    return unknownError("Failed to create feed token.");
-  }
-}
 
 export async function createInitialTokenWithClient(
   tx: Prisma.TransactionClient,
@@ -311,89 +282,6 @@ export async function revokeToken(
   }
 }
 
-export async function listTokens(
-  input: unknown
-): Promise<Result<TokenHistoryItem[], TokenServiceError>> {
-  const parsed = ListTokensInputSchema.safeParse(input);
-  if (!parsed.success) {
-    return validationError(parsed.error);
-  }
-
-  try {
-    const feed = await database.feed.findFirst({
-      select: { id: true },
-      where: scopedFeed(parsed.data),
-    });
-    if (!feed) {
-      return await feedNotFound(database, parsed.data);
-    }
-
-    const tokens = await database.feedToken.findMany({
-      orderBy: { created_at: "desc" },
-      select: tokenHistorySelect,
-      where: {
-        clerk_org_id: parsed.data.clerkOrgId,
-        feed_id: parsed.data.feedId,
-        organisation_id: parsed.data.organisationId,
-        ...(parsed.data.includeRevoked ? {} : { status: "active" as const }),
-      },
-    });
-
-    return { ok: true, value: tokens.map(toTokenHistoryItem) };
-  } catch {
-    return unknownError("Failed to list feed tokens.");
-  }
-}
-
-export async function getActiveTokenHint(
-  input: unknown
-): Promise<Result<ActiveTokenHint | null, TokenServiceError>> {
-  const parsed = ActiveTokenInputSchema.safeParse(input);
-  if (!parsed.success) {
-    return validationError(parsed.error);
-  }
-
-  try {
-    const feed = await database.feed.findFirst({
-      select: { id: true },
-      where: scopedFeed(parsed.data),
-    });
-    if (!feed) {
-      return await feedNotFound(database, parsed.data);
-    }
-
-    const token = await database.feedToken.findFirst({
-      orderBy: { created_at: "desc" },
-      select: {
-        created_at: true,
-        id: true,
-        last_used_at: true,
-        token_hint: true,
-      },
-      where: {
-        clerk_org_id: parsed.data.clerkOrgId,
-        feed_id: parsed.data.feedId,
-        organisation_id: parsed.data.organisationId,
-        status: "active",
-      },
-    });
-
-    return {
-      ok: true,
-      value: token
-        ? {
-            createdAt: token.created_at,
-            hint: token.token_hint,
-            lastUsedAt: token.last_used_at,
-            tokenId: token.id,
-          }
-        : null,
-    };
-  } catch {
-    return unknownError("Failed to load active token hint.");
-  }
-}
-
 export async function revokeAllFeedTokens(input: {
   clerkOrgId: string;
   organisationId: string;
@@ -424,7 +312,7 @@ export async function revokeAllFeedTokens(input: {
 }
 
 async function feedNotFound(
-  client: Prisma.TransactionClient | typeof database,
+  client: Prisma.TransactionClient,
   input: { clerkOrgId: string; feedId: string; organisationId: string }
 ): Promise<Result<never, TokenServiceError>> {
   const exists = await client.feed.findFirst({
@@ -493,33 +381,6 @@ function auditToken(
       resource_type: "feed_token",
     },
   });
-}
-
-const tokenHistorySelect = {
-  created_at: true,
-  id: true,
-  last_used_at: true,
-  revoked_at: true,
-  rotated_from_token_id: true,
-  status: true,
-} as const;
-
-function toTokenHistoryItem(token: {
-  created_at: Date;
-  id: string;
-  last_used_at: Date | null;
-  revoked_at: Date | null;
-  rotated_from_token_id: string | null;
-  status: "active" | "expired" | "revoked";
-}): TokenHistoryItem {
-  return {
-    createdAt: token.created_at,
-    id: token.id,
-    lastUsedAt: token.last_used_at,
-    revokedAt: token.revoked_at,
-    rotatedFromTokenId: token.rotated_from_token_id,
-    status: token.status,
-  };
 }
 
 function isAdminOrOwner(role: string): boolean {
