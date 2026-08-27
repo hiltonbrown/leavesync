@@ -3,15 +3,19 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   addAlternativeContact: vi.fn(),
   auth: vi.fn(),
+  clerkClient: vi.fn(),
   currentUser: vi.fn(),
   database: {
     alternativeContact: { findFirst: vi.fn() },
+    auditEvent: { create: vi.fn() },
     person: { findFirst: vi.fn() },
     xeroTenant: { findFirst: vi.fn() },
   },
   deleteAlternativeContact: vi.fn(),
   dispatchBalanceRefresh: vi.fn(),
   getActiveOrgContext: vi.fn(),
+  inviteClerkAccessCandidates: vi.fn(),
+  loadClerkAccessReview: vi.fn(),
   reorderAlternativeContacts: vi.fn(),
   revalidatePath: vi.fn(),
   setManualLeaveBalance: vi.fn(),
@@ -21,6 +25,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@repo/auth/server", () => ({
   auth: mocks.auth,
+  clerkClient: mocks.clerkClient,
   currentUser: mocks.currentUser,
 }));
 vi.mock("@repo/jobs", () => ({
@@ -30,6 +35,8 @@ vi.mock("@repo/availability", () => ({
   addAlternativeContact: mocks.addAlternativeContact,
   deleteAlternativeContact: mocks.deleteAlternativeContact,
   dispatchBalanceRefresh: mocks.dispatchBalanceRefresh,
+  inviteClerkAccessCandidates: mocks.inviteClerkAccessCandidates,
+  loadClerkAccessReview: mocks.loadClerkAccessReview,
   reorderAlternativeContacts: mocks.reorderAlternativeContacts,
   setManualLeaveBalance: mocks.setManualLeaveBalance,
   updateAlternativeContact: mocks.updateAlternativeContact,
@@ -51,6 +58,8 @@ vi.mock("@/lib/server/get-active-org-context", () => ({
 const {
   addAlternativeContactAction,
   deleteAlternativeContactAction,
+  inviteClerkAccessCandidates,
+  loadClerkAccessCandidates,
   refreshBalancesAction,
   reorderAlternativeContactsAction,
   setManualBalanceAction,
@@ -261,6 +270,122 @@ describe("people server actions", () => {
           personId,
         })
       );
+    });
+
+    it("loadClerkAccessCandidates requires owner or admin role", async () => {
+      mocks.auth.mockResolvedValue({
+        has: vi.fn().mockReturnValue(false),
+        orgRole: "org:viewer",
+      });
+
+      const resWrongRole = await loadClerkAccessCandidates({ organisationId });
+      expect(resWrongRole).toEqual({
+        error: {
+          code: "not_authorised",
+          message: "You do not have permission to manage people.",
+        },
+        ok: false,
+      });
+    });
+
+    it("loadClerkAccessCandidates calls service and records audit event", async () => {
+      const mockOrganizations = {
+        createOrganizationInvitationBulk: vi.fn(),
+        getOrganizationInvitationList: vi.fn(),
+        getOrganizationMembershipList: vi.fn(),
+      };
+      mocks.auth.mockResolvedValue({
+        has: vi.fn().mockReturnValue(true),
+        orgRole: "org:admin",
+      });
+      mocks.clerkClient.mockResolvedValue({ organizations: mockOrganizations });
+      mocks.loadClerkAccessReview.mockResolvedValue({
+        ok: true,
+        value: {
+          alreadyInvitedCount: 1,
+          candidateCount: 5,
+          candidates: [],
+          conflictCount: 1,
+          invitableCount: 2,
+          linkableCount: 1,
+          memberCount: 0,
+        },
+      });
+
+      const result = await loadClerkAccessCandidates({ organisationId });
+      expect(result.ok).toBe(true);
+      expect(mocks.loadClerkAccessReview).toHaveBeenCalledWith({
+        clerkOrganizations: mockOrganizations,
+        clerkOrgId,
+        organisationId,
+      });
+      expect(mocks.database.auditEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          action: "people.clerk_access_reviewed",
+          actor_user_id: userId,
+          clerk_org_id: clerkOrgId,
+          entity_id: organisationId,
+          metadata: {
+            alreadyInvitedCount: 1,
+            candidateCount: 5,
+            conflictCount: 1,
+            invitableCount: 2,
+            inviterId: userId,
+            linkableCount: 1,
+            memberCount: 0,
+            organisationId,
+          },
+        }),
+      });
+    });
+
+    it("inviteClerkAccessCandidates validates auth, calls service, records audit event, and revalidates", async () => {
+      const mockOrganizations = {
+        createOrganizationInvitationBulk: vi.fn(),
+        getOrganizationInvitationList: vi.fn(),
+        getOrganizationMembershipList: vi.fn(),
+      };
+      mocks.auth.mockResolvedValue({
+        has: vi.fn().mockReturnValue(true),
+        orgRole: "org:owner",
+      });
+      mocks.clerkClient.mockResolvedValue({ organizations: mockOrganizations });
+      mocks.inviteClerkAccessCandidates.mockResolvedValue({
+        ok: true,
+        value: {
+          alreadyInvitedCount: 0,
+          candidateCount: 2,
+          conflictCount: 0,
+          failedCount: 0,
+          linkedCount: 1,
+          succeededCount: 1,
+        },
+      });
+
+      const result = await inviteClerkAccessCandidates({ organisationId });
+      expect(result.ok).toBe(true);
+      expect(mocks.inviteClerkAccessCandidates).toHaveBeenCalledWith({
+        candidatePersonIds: undefined,
+        clerkOrganizations: mockOrganizations,
+        clerkOrgId,
+        inviterUserId: userId,
+        organisationId,
+      });
+      expect(mocks.database.auditEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          action: "people.clerk_invitations_sent",
+          actor_user_id: userId,
+          clerk_org_id: clerkOrgId,
+          metadata: {
+            candidateCount: 2,
+            failedCount: 0,
+            inviterId: userId,
+            organisationId,
+            succeededCount: 1,
+          },
+        }),
+      });
+      expect(mocks.revalidatePath).toHaveBeenCalledWith("/people");
     });
   });
 });

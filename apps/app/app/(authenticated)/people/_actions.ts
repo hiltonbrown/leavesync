@@ -1,15 +1,20 @@
 "use server";
 
-import { auth, currentUser } from "@repo/auth/server";
+import { auth, clerkClient, currentUser } from "@repo/auth/server";
 import {
   type AlternativeContactServiceError,
   addAlternativeContact,
   type BalanceRefreshError,
+  type ClerkAccessReviewResult,
+  type ClerkAccessServiceError,
+  type ClerkInvitationDispatchResult,
   deleteAlternativeContact,
   dispatchBalanceRefresh,
+  loadClerkAccessReview,
   type ManualBalanceServiceError,
   type PeopleRole,
   reorderAlternativeContacts,
+  inviteClerkAccessCandidates as serviceInviteClerkAccessCandidates,
   setManualLeaveBalance,
   updateAlternativeContact,
 } from "@repo/availability";
@@ -23,6 +28,10 @@ import {
   AddAlternativeContactActionSchema,
   type DeleteAlternativeContactActionInput,
   DeleteAlternativeContactActionSchema,
+  type InviteClerkAccessCandidatesInput,
+  InviteClerkAccessCandidatesSchema,
+  type LoadClerkAccessCandidatesInput,
+  LoadClerkAccessCandidatesSchema,
   type RefreshBalancesActionInput,
   RefreshBalancesActionSchema,
   type ReorderAlternativeContactsActionInput,
@@ -36,6 +45,7 @@ import {
 export type PeopleActionError =
   | AlternativeContactServiceError
   | BalanceRefreshError
+  | ClerkAccessServiceError
   | ManualBalanceServiceError
   | { code: "not_authorised"; message: string }
   | { code: "validation_error"; message: string };
@@ -332,6 +342,144 @@ function effectiveRole(role: string | null | undefined): PeopleRole | null {
 function revalidatePeoplePaths(personId: string) {
   revalidatePath("/people");
   revalidatePath(`/people/${personId}`);
+}
+
+export async function loadClerkAccessCandidates(
+  input: LoadClerkAccessCandidatesInput
+): Promise<PeopleActionResult<ClerkAccessReviewResult>> {
+  const parsed = LoadClerkAccessCandidatesSchema.safeParse(input);
+  if (!parsed.success) {
+    return validationError(parsed.error.issues[0]?.message);
+  }
+  const context = await resolveAdminAccessContext(parsed.data.organisationId);
+  if (!context.ok) {
+    return context;
+  }
+
+  const clerk = await clerkClient();
+  const reviewResult = await loadClerkAccessReview({
+    clerkOrganizations: clerk.organizations,
+    clerkOrgId: context.value.clerkOrgId,
+    organisationId: context.value.organisationId,
+  });
+  if (!reviewResult.ok) {
+    return reviewResult;
+  }
+
+  await database.auditEvent.create({
+    data: {
+      action: "people.clerk_access_reviewed",
+      actor_user_id: context.value.actingUserId,
+      clerk_org_id: context.value.clerkOrgId,
+      entity_id: context.value.organisationId,
+      entity_type: "people",
+      metadata: {
+        alreadyInvitedCount: reviewResult.value.alreadyInvitedCount,
+        candidateCount: reviewResult.value.candidateCount,
+        conflictCount: reviewResult.value.conflictCount,
+        invitableCount: reviewResult.value.invitableCount,
+        inviterId: context.value.actingUserId,
+        linkableCount: reviewResult.value.linkableCount,
+        memberCount: reviewResult.value.memberCount,
+        organisationId: context.value.organisationId,
+      },
+      organisation_id: context.value.organisationId,
+      resource_id: context.value.organisationId,
+      resource_type: "people",
+    },
+  });
+
+  return reviewResult;
+}
+
+export const loadClerkAccessCandidatesAction = loadClerkAccessCandidates;
+
+export async function inviteClerkAccessCandidates(
+  input: InviteClerkAccessCandidatesInput
+): Promise<PeopleActionResult<ClerkInvitationDispatchResult>> {
+  const parsed = InviteClerkAccessCandidatesSchema.safeParse(input);
+  if (!parsed.success) {
+    return validationError(parsed.error.issues[0]?.message);
+  }
+  const context = await resolveAdminAccessContext(parsed.data.organisationId);
+  if (!context.ok) {
+    return context;
+  }
+
+  const clerk = await clerkClient();
+  const inviteResult = await serviceInviteClerkAccessCandidates({
+    candidatePersonIds: parsed.data.candidatePersonIds,
+    clerkOrganizations: clerk.organizations,
+    clerkOrgId: context.value.clerkOrgId,
+    inviterUserId: context.value.actingUserId,
+    organisationId: context.value.organisationId,
+  });
+  if (!inviteResult.ok) {
+    return inviteResult;
+  }
+
+  await database.auditEvent.create({
+    data: {
+      action: "people.clerk_invitations_sent",
+      actor_user_id: context.value.actingUserId,
+      clerk_org_id: context.value.clerkOrgId,
+      entity_id: context.value.organisationId,
+      entity_type: "people",
+      metadata: {
+        candidateCount: inviteResult.value.candidateCount,
+        failedCount: inviteResult.value.failedCount,
+        inviterId: context.value.actingUserId,
+        organisationId: context.value.organisationId,
+        ...(inviteResult.value.providerRequestId
+          ? { providerRequestId: inviteResult.value.providerRequestId }
+          : {}),
+        succeededCount: inviteResult.value.succeededCount,
+      },
+      organisation_id: context.value.organisationId,
+      resource_id: context.value.organisationId,
+      resource_type: "people",
+    },
+  });
+
+  revalidatePath("/people");
+  return inviteResult;
+}
+
+export const inviteClerkAccessCandidatesAction = inviteClerkAccessCandidates;
+
+async function resolveAdminAccessContext(organisationId: string): Promise<
+  PeopleActionResult<{
+    actingUserId: string;
+    clerkOrgId: ClerkOrgId;
+    organisationId: OrganisationId;
+  }>
+> {
+  const [{ has, orgRole }, user, context] = await Promise.all([
+    auth(),
+    currentUser(),
+    getActiveOrgContext(organisationId),
+  ]);
+  const isOwnerOrAdmin =
+    orgRole === "org:owner" ||
+    orgRole === "org:admin" ||
+    Boolean(has?.({ role: "org:owner" })) ||
+    Boolean(has?.({ role: "org:admin" }));
+
+  if (!isOwnerOrAdmin || !user) {
+    return notAuthorised();
+  }
+  if (!context.ok) {
+    return notAuthorised(context.error.message);
+  }
+
+  return {
+    ok: true,
+    value: {
+      actingUserId: user.id,
+      clerkOrgId: context.value.clerkOrgId,
+      organisationId: context.value.organisationId,
+    },
+  };
 }
 
 function notAuthorised(message?: string): PeopleActionResult<never> {
