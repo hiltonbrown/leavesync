@@ -63,6 +63,8 @@ type SyncXeroLeaveBalancesResult = Result<
 type XeroTenant = NonNullable<Awaited<ReturnType<typeof loadXeroTenant>>>;
 
 const UUID_REGEX = /^[0-9a-fA-F-]{36}$/;
+const BALANCE_PAGE_SIZE = 40;
+const PROBE_PAGE_SIZE = BALANCE_PAGE_SIZE + 1;
 const BALANCE_BATCH_SIZE = 50;
 // A running balance sync is treated as abandoned once its last heartbeat is this
 // old. Balance fetches read one employee per second, so a live run keeps
@@ -81,6 +83,10 @@ export const syncXeroLeaveBalancesFunction: InngestFunction.Any =
           if: "async.data.runId == event.data.runId",
         },
       ],
+      concurrency: {
+        key: "event.data.xeroTenantId",
+        limit: 1,
+      },
       id: "sync-xero-leave-balances",
       triggers: { event: "sync-xero-leave-balances" },
     },
@@ -90,6 +96,7 @@ export const syncXeroLeaveBalancesFunction: InngestFunction.Any =
       )
   );
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: This handler coordinates balance sync paging, cursor compare-and-swap, and lifecycle updates.
 export async function syncXeroLeaveBalances(
   input: unknown
 ): Promise<SyncXeroLeaveBalancesResult> {
@@ -129,20 +136,59 @@ export async function syncXeroLeaveBalances(
       return skippedRegion;
     }
 
-    const people = await database.person.findMany({
-      select: { id: true, xero_employee_id: true },
-      where: {
-        ...scoped(context),
-        archived_at: null,
-        ...(context.personId ? { id: context.personId } : {}),
-        xero_employee_id: { not: null },
-      },
-    });
-    const employeeIds = people
+    const isTargetedPerson = Boolean(context.personId);
+    let peopleToProcess: Array<{ id: string; xero_employee_id: string | null }>;
+    let isLastPage = true;
+    let cursorRecord: { cursor_value: string | null; id: string } | null = null;
+    let initialCursorValue: string | null = null;
+    let nextCursorValue: string | null = null;
+
+    if (isTargetedPerson) {
+      peopleToProcess = await database.person.findMany({
+        select: { id: true, xero_employee_id: true },
+        where: {
+          ...scoped(context),
+          archived_at: null,
+          id: context.personId,
+          xero_employee_id: { not: null },
+        },
+      });
+    } else {
+      cursorRecord = await database.xeroSyncCursor.findFirst({
+        select: { cursor_value: true, id: true },
+        where: {
+          ...scoped(context),
+          entity_type: "leave_balances",
+          xero_tenant_id: context.xeroTenantId,
+        },
+      });
+      initialCursorValue = cursorRecord?.cursor_value ?? null;
+
+      const candidatePeople = await database.person.findMany({
+        orderBy: { id: "asc" },
+        select: { id: true, xero_employee_id: true },
+        take: PROBE_PAGE_SIZE,
+        where: {
+          ...scoped(context),
+          archived_at: null,
+          ...(initialCursorValue ? { id: { gt: initialCursorValue } } : {}),
+          xero_employee_id: { not: null },
+        },
+      });
+
+      const hasMoreAfterPage = candidatePeople.length > BALANCE_PAGE_SIZE;
+      peopleToProcess = candidatePeople.slice(0, BALANCE_PAGE_SIZE);
+      isLastPage = !hasMoreAfterPage;
+      nextCursorValue = hasMoreAfterPage
+        ? (peopleToProcess[BALANCE_PAGE_SIZE - 1]?.id ?? null)
+        : null;
+    }
+
+    const employeeIds = peopleToProcess
       .map((person) => person.xero_employee_id)
       .filter((employeeId): employeeId is string => Boolean(employeeId));
     const personIdByEmployeeId = new Map<string, string>();
-    for (const person of people) {
+    for (const person of peopleToProcess) {
       if (person.xero_employee_id) {
         personIdByEmployeeId.set(person.xero_employee_id, person.id);
       }
@@ -190,15 +236,43 @@ export async function syncXeroLeaveBalances(
       };
     }
 
-    await database.xeroTenant.updateMany({
-      data: {
-        last_leave_balances_sync_at: new Date(),
-        last_sync_error_code: null,
-        last_sync_error_message: null,
-        leave_balances_stale_since: null,
-      },
-      where: { ...scoped(context), id: context.xeroTenantId },
-    });
+    if (!isTargetedPerson) {
+      const casSuccess = await advanceCursor({
+        context,
+        cursorRecord,
+        initialCursorValue,
+        nextCursorValue,
+      });
+      if (!casSuccess) {
+        await completeRun(context, run.id, {
+          counts,
+          errorSummary:
+            "Cursor update lost compare-and-swap race; run superseded",
+          status: "cancelled",
+        });
+        return {
+          ok: true,
+          value: { ...counts, runId: run.id, status: "cancelled" },
+        };
+      }
+
+      let staleSinceData: { leave_balances_stale_since?: Date | null } = {};
+      if (isLastPage) {
+        staleSinceData = { leave_balances_stale_since: null };
+      } else if (!xeroTenant.leave_balances_stale_since) {
+        staleSinceData = { leave_balances_stale_since: startedAt };
+      }
+
+      await database.xeroTenant.updateMany({
+        data: {
+          last_leave_balances_sync_at: new Date(),
+          last_sync_error_code: null,
+          last_sync_error_message: null,
+          ...staleSinceData,
+        },
+        where: { ...scoped(context), id: context.xeroTenantId },
+      });
+    }
 
     const finalStatus = counts.failed > 0 ? "partial_success" : "succeeded";
     await completeRun(context, run.id, {
@@ -645,6 +719,60 @@ function loadXeroTenant(context: SyncXeroLeaveBalancesInput) {
       organisation_id: context.organisationId,
     },
   });
+}
+
+async function advanceCursor(params: {
+  context: SyncXeroLeaveBalancesInput;
+  cursorRecord: { cursor_value: string | null; id: string } | null;
+  initialCursorValue: string | null;
+  nextCursorValue: string | null;
+}): Promise<boolean> {
+  const { context, cursorRecord, initialCursorValue, nextCursorValue } = params;
+
+  if (cursorRecord) {
+    const updated = await database.xeroSyncCursor.updateMany({
+      data: {
+        cursor_value: nextCursorValue,
+        updated_at: new Date(),
+      },
+      where: {
+        ...scoped(context),
+        cursor_value: initialCursorValue,
+        entity_type: "leave_balances",
+        id: cursorRecord.id,
+        xero_tenant_id: context.xeroTenantId,
+      },
+    });
+    return updated.count > 0;
+  }
+
+  try {
+    await database.xeroSyncCursor.create({
+      data: {
+        ...scoped(context),
+        cursor_value: nextCursorValue,
+        entity_type: "leave_balances",
+        xero_tenant_id: context.xeroTenantId,
+      },
+    });
+    return true;
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return false;
+    }
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
+      return false;
+    }
+    throw error;
+  }
 }
 
 function emptyCounts(): Counts {
