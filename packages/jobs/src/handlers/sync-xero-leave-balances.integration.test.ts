@@ -277,6 +277,284 @@ describeWithDatabase("sync-xero-leave-balances database flow", () => {
       source_id: "99999999-9999-4999-8999-999999999999",
     });
   });
+
+  it("pages scheduled balance sync across runs with cursor and stale_since lifecycle", async () => {
+    await setupTenant(tenantA);
+
+    // Create 45 active people
+    const peopleData = Array.from({ length: 45 }, (_, i) => ({
+      clerk_org_id: tenantA.clerkOrgId,
+      email: `emp${i + 1}@example.com`,
+      employment_type: "employee" as const,
+      first_name: "Employee",
+      id: `70000000-0000-4000-8000-${String(i + 10).padStart(12, "0")}`,
+      last_name: String(i + 1),
+      organisation_id: tenantA.organisationId,
+      source_person_key: `emp_key_${i + 1}`,
+      source_system: "XERO" as const,
+      xero_employee_id: `70000000-0000-4000-8000-${String(i + 10).padStart(12, "0")}`,
+    }));
+    await database.person.createMany({ data: peopleData });
+
+    mockFetchLeaveBalancesForRegion.mockImplementation(
+      (_region, fetchInput) => {
+        const balances = (fetchInput.employeeIds as string[]).map((empId) => ({
+          balance: 38,
+          currencyCode: null,
+          employeeId: empId,
+          leaveTypeId: "annual",
+          leaveTypeName: "Annual Leave",
+          rawPayload: { LeaveTypeID: "annual" },
+          unitType: "hours" as const,
+        }));
+        return Promise.resolve({
+          ok: true,
+          value: { failures: [], leaveBalances: balances, rawResponses: [] },
+        });
+      }
+    );
+
+    // Run 1: First page (40 of 45 people)
+    const run1 = await syncXeroLeaveBalances({
+      ...syncInput(tenantA),
+      triggerType: "scheduled",
+    });
+    expect(run1.ok).toBe(true);
+    if (run1.ok) {
+      expect(run1.value.upserted).toBe(40);
+      expect(run1.value.status).toBe("succeeded");
+    }
+
+    // Check cursor after Run 1
+    const cursor1 = await database.xeroSyncCursor.findFirst({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        entity_type: "leave_balances",
+        organisation_id: tenantA.organisationId,
+        xero_tenant_id: tenantA.xeroTenantId,
+      },
+    });
+    expect(cursor1?.cursor_value).toBe(peopleData[39]?.id);
+
+    // Check tenant state after Run 1: stale_since set, last_leave_balances_sync_at set
+    const tenantAfterRun1 = await database.xeroTenant.findFirst({
+      where: { id: tenantA.xeroTenantId },
+    });
+    expect(tenantAfterRun1?.leave_balances_stale_since).not.toBeNull();
+    expect(tenantAfterRun1?.last_leave_balances_sync_at).not.toBeNull();
+
+    // Run 2: Final page (remaining 5 people)
+    const run2 = await syncXeroLeaveBalances({
+      ...syncInput(tenantA),
+      triggerType: "scheduled",
+    });
+    expect(run2.ok).toBe(true);
+    if (run2.ok) {
+      expect(run2.value.upserted).toBe(5);
+      expect(run2.value.status).toBe("succeeded");
+    }
+
+    // Check cursor after Run 2: cleared to null
+    const cursor2 = await database.xeroSyncCursor.findFirst({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        entity_type: "leave_balances",
+        organisation_id: tenantA.organisationId,
+        xero_tenant_id: tenantA.xeroTenantId,
+      },
+    });
+    expect(cursor2?.cursor_value).toBeNull();
+
+    // Check tenant state after Run 2: stale_since cleared to null
+    const tenantAfterRun2 = await database.xeroTenant.findFirst({
+      where: { id: tenantA.xeroTenantId },
+    });
+    expect(tenantAfterRun2?.leave_balances_stale_since).toBeNull();
+
+    // Total 45 balances in DB
+    const totalBalances = await database.leaveBalance.count({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        organisation_id: tenantA.organisationId,
+      },
+    });
+    expect(totalBalances).toBe(45);
+  });
+
+  it("persists individual outcomes before conditional cursor update and does not advance on blanket failure", async () => {
+    await setupTenant(tenantA);
+    await setupPerson(tenantA);
+
+    // 1. Blanket failure
+    mockFetchLeaveBalancesForRegion.mockResolvedValueOnce({
+      error: {
+        code: "rate_limit_error",
+        httpStatus: 429,
+        message: "Rate limited",
+      },
+      ok: false,
+    });
+
+    const failedRun = await syncXeroLeaveBalances({
+      ...syncInput(tenantA),
+      triggerType: "scheduled",
+    });
+    expect(failedRun.ok).toBe(true);
+    if (failedRun.ok) {
+      expect(failedRun.value.status).toBe("failed");
+    }
+
+    const cursorAfterFailure = await database.xeroSyncCursor.findFirst({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        entity_type: "leave_balances",
+        xero_tenant_id: tenantA.xeroTenantId,
+      },
+    });
+    expect(cursorAfterFailure).toBeNull();
+
+    // 2. Success with employee failure: outcome is recorded, cursor is advanced
+    mockFetchLeaveBalancesForRegion.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        failures: [
+          {
+            employeeId: tenantA.xeroEmployeeId,
+            error: {
+              code: "employee_not_active",
+              httpStatus: 400,
+              message: "Employee not active",
+            },
+          },
+        ],
+        leaveBalances: [],
+        rawResponses: [],
+      },
+    });
+
+    const partialRun = await syncXeroLeaveBalances({
+      ...syncInput(tenantA),
+      triggerType: "scheduled",
+    });
+    expect(partialRun.ok).toBe(true);
+    if (partialRun.ok) {
+      expect(partialRun.value.status).toBe("partial_success");
+      expect(partialRun.value.failed).toBe(1);
+    }
+
+    // Failed record was persisted in DB
+    const failedRecord = await database.failedRecord.findFirst({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        organisation_id: tenantA.organisationId,
+      },
+    });
+    expect(failedRecord).not.toBeNull();
+    expect(failedRecord?.error_code).toBe("employee_not_active");
+
+    // Single page completed so cursor was cleared to null (final page)
+    const cursorAfterPartial = await database.xeroSyncCursor.findFirst({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        entity_type: "leave_balances",
+        xero_tenant_id: tenantA.xeroTenantId,
+      },
+    });
+    expect(cursorAfterPartial?.cursor_value).toBeNull();
+  });
+
+  it("targeted person refresh bypasses cursor and does not change tenant cycle timestamps", async () => {
+    await setupTenant(tenantA);
+    await setupPerson(tenantA);
+
+    mockFetchLeaveBalancesForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        failures: [],
+        leaveBalances: [xeroBalance(tenantA, 100)],
+        rawResponses: [],
+      },
+    });
+
+    const targetedResult = await syncXeroLeaveBalances({
+      ...syncInput(tenantA),
+      personId: tenantA.personId,
+      triggerType: "manual",
+    });
+    expect(targetedResult.ok).toBe(true);
+
+    // Verify balance is saved
+    const balance = await database.leaveBalance.findFirst({
+      where: {
+        person_id: tenantA.personId,
+      },
+    });
+    expect(Number(balance?.balance)).toBe(100);
+
+    // Verify no cursor was created
+    const cursor = await database.xeroSyncCursor.findFirst({
+      where: {
+        xero_tenant_id: tenantA.xeroTenantId,
+      },
+    });
+    expect(cursor).toBeNull();
+
+    // Verify tenant cycle timestamps were not changed
+    const tenant = await database.xeroTenant.findFirst({
+      where: { id: tenantA.xeroTenantId },
+    });
+    expect(tenant?.last_leave_balances_sync_at).toBeNull();
+    expect(tenant?.leave_balances_stale_since).toBeNull();
+  });
+
+  it("maintains strict cross-tenant cursor isolation", async () => {
+    await setupTenant(tenantA);
+    await setupTenant(tenantB);
+    await setupPerson(tenantA);
+    await setupPerson(tenantB);
+
+    mockFetchLeaveBalancesForRegion.mockImplementation(
+      (_region, fetchInput) => {
+        const balances = (fetchInput.employeeIds as string[]).map((empId) => ({
+          balance: 50,
+          currencyCode: null,
+          employeeId: empId,
+          leaveTypeId: "annual",
+          leaveTypeName: "Annual Leave",
+          rawPayload: { LeaveTypeID: "annual" },
+          unitType: "hours" as const,
+        }));
+        return Promise.resolve({
+          ok: true,
+          value: { failures: [], leaveBalances: balances, rawResponses: [] },
+        });
+      }
+    );
+
+    // Sync Tenant A
+    await syncXeroLeaveBalances({
+      ...syncInput(tenantA),
+      triggerType: "scheduled",
+    });
+
+    // Check Tenant A has cursor row
+    const cursorA = await database.xeroSyncCursor.findFirst({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        xero_tenant_id: tenantA.xeroTenantId,
+      },
+    });
+    expect(cursorA).not.toBeNull();
+
+    // Tenant B cursor does not exist
+    const cursorB = await database.xeroSyncCursor.findFirst({
+      where: {
+        clerk_org_id: tenantB.clerkOrgId,
+        xero_tenant_id: tenantB.xeroTenantId,
+      },
+    });
+    expect(cursorB).toBeNull();
+  });
 });
 
 async function setupTenant(tenant: typeof tenantA | typeof tenantB) {
@@ -336,6 +614,7 @@ async function cleanTestData() {
   await database.failedRecord.deleteMany({ where: scope });
   await database.syncRun.deleteMany({ where: scope });
   await database.leaveBalance.deleteMany({ where: scope });
+  await database.xeroSyncCursor.deleteMany({ where: scope });
   await database.person.deleteMany({ where: scope });
   await database.xeroTenant.deleteMany({ where: scope });
   await database.xeroConnection.deleteMany({ where: scope });

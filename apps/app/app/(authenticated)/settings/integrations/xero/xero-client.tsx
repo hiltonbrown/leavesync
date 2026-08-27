@@ -129,6 +129,7 @@ export const XeroClient = ({ organisations }: XeroClientProps) => {
         title="Xero Payroll"
       />
 
+      {/* biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Organisation card renders status, stats, sync actions, and disconnect confirmation */}
       {organisations.map((organisation) => {
         const connection = organisation.xero_connection;
         const tenant = connection?.xero_tenant ?? null;
@@ -170,7 +171,7 @@ export const XeroClient = ({ organisations }: XeroClientProps) => {
                   )}
                 />
                 <Stat
-                  label="Balance sync"
+                  label="Latest balance page"
                   value={formatTimestamp(
                     tenant?.last_leave_balances_sync_at ?? null
                   )}
@@ -182,6 +183,13 @@ export const XeroClient = ({ organisations }: XeroClientProps) => {
                   )}
                 />
               </div>
+
+              {tenant?.leave_balances_stale_since ? (
+                <p className="text-muted-foreground text-xs">
+                  Rolling refresh in progress since{" "}
+                  {formatTimestamp(tenant.leave_balances_stale_since)}
+                </p>
+              ) : null}
 
               <div className="flex flex-wrap gap-3">
                 <Button

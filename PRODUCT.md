@@ -581,7 +581,7 @@ All write operations are synchronous. Failures are surfaced inline to the acting
 ### Sync scheduling
 
 - Incremental inbound syncs (people, leave records): every 15 minutes during business hours (07:00 through 18:59 local time on weekdays, Monday–Friday), every 60 minutes outside (weekends and 19:00 through 06:59 local time).
-- Leave balance sync: every 60 minutes at all times.
+- Leave balance sync: every 60 minutes at all times. The scheduler processes one ordered page of 40 active people per run to support an unlimited employee roster. Roster balance refreshes are rolling best-effort across scheduled pages rather than fixed whole-roster batch completions.
 - Nightly reconciliation: full re-sync, approval state reconciliation (dispatched once per local night between 01:00 and 02:59 local time), and stale record detection.
 - Manual re-sync: available from the UI for admin users.
 
