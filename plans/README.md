@@ -64,7 +64,8 @@ This reconciliation was read-only outside `plans/`.
 | Plan 084 execution | approved at `800f1bb`; removed redundant root ws override while preserving @repo/database safe floor constraint, clean lockfile resolution, check, typecheck, unit and live database integration gates passed |
 | Plan 085 execution | approved at `a26b476`; reconciled root scripts and package ownership tables across AGENTS.md, CLAUDE.md and GEMINI.md, documented billing and analytics packages, preserved forbidden-package boundary, check, typecheck, unit and live database integration gates passed |
 | Plan 086 execution | approved at `aaaf7c8`; read-only research spike, official Xero OpenAPI analysis confirming AU-only GL group semantics and unsupported manager hierarchy, findings recorded in plans/086-findings.md, check, typecheck, unit and diff gates passed |
-| Current indexed plans | 64: 22 TODO, 26 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 098 execution | approved at `937540a`; xero_missing_since migration applied, 24h absence confirmation lifecycle, bulk-loss guards (>=20%, >5, empty/truncated), returned ID marker clearing, integration suite 22/22, check, typecheck, unit, live database integration and build gates passed |
+| Current indexed plans | 64: 21 TODO, 27 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -95,7 +96,7 @@ before starting its dependent plan.
 | [084](084-remove-the-production-workspaces-override.md) | Remove redundant root `ws` override | P3 | none | DONE |
 | [085](085-correct-repository-guidance-and-package-tables.md) | Correct commands and package ownership docs | P3 | none | DONE |
 | [086](086-spike-xero-employee-group-team-mapping.md) | Decide EmployeeGroupName team mapping | P3 | none | DONE |
-| [098](098-confirm-missing-xero-people-before-archival.md) | Confirm absence before person archival | P1 | 097 | TODO |
+| [098](098-confirm-missing-xero-people-before-archival.md) | Confirm absence before person archival | P1 | 097 | DONE |
 | [107](107-present-currency-safe-leave-balances.md) | Present balances with currency-safe formatting | P1 | 101 | TODO |
 | [061](061-halve-the-work-on-the-ics-feed-read-path.md) | Resolve feed/cache once and narrow holiday reads | P2 | 057, 066 | TODO |
 | [077](077-validate-availability-route-identifiers.md) | Validate availability UUIDs before queries | P2 | 066 | TODO |
@@ -301,6 +302,11 @@ predecessor/preflight contract in its plan.
   tracking categories rather than operational teams, is absent from NZ and UK
   Payroll APIs, lacks stable IDs, and supervisor/manager hierarchy is
   unsupported by Xero. Recommends complete Team Calendar ownership for teams.
+- Plan 098 is complete at `937540a`. Added `xero_missing_since` column to
+  `Person` via migration. People absence is marked on first complete missing
+  observation and archived only after 24 continuous hours, protected by
+  whole-run guards (>=20% missing, >5 missing, empty/truncated fetch). Returned
+  IDs clear markers before validation.
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
