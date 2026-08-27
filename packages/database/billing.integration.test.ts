@@ -230,7 +230,8 @@ describe("billing queries integration", () => {
   });
 
   test("getSubscriptionForStripeCustomer returns null when customer is unbound", async () => {
-    const nonExistent = await getSubscriptionForStripeCustomer("cus_non_existent");
+    const nonExistent =
+      await getSubscriptionForStripeCustomer("cus_non_existent");
     expect(nonExistent).toBeNull();
   });
 

@@ -87,8 +87,7 @@ async function mirrorSubscription(
   );
 
   const customerBoundToDifferentOrg = Boolean(
-    customerBinding?.clerk_org_id &&
-      customerBinding.clerk_org_id !== clerkOrgId
+    customerBinding?.clerk_org_id && customerBinding.clerk_org_id !== clerkOrgId
   );
 
   if (orgBoundToDifferentCustomer || customerBoundToDifferentOrg) {
