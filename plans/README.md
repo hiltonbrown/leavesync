@@ -66,7 +66,8 @@ This reconciliation was read-only outside `plans/`.
 | Plan 086 execution | approved at `aaaf7c8`; read-only research spike, official Xero OpenAPI analysis confirming AU-only GL group semantics and unsupported manager hierarchy, findings recorded in plans/086-findings.md, check, typecheck, unit and diff gates passed |
 | Plan 098 execution | approved at `937540a`; xero_missing_since migration applied, 24h absence confirmation lifecycle, bulk-loss guards (>=20%, >5, empty/truncated), returned ID marker clearing, integration suite 22/22, check, typecheck, unit, live database integration and build gates passed |
 | Plan 107 execution | approved at `6b66916`; formatLeaveBalance helper with Intl.NumberFormat NZD and unit handling, services restricted to day subtraction only, UI updated across dashboard, profile, approvals and plans, check, typecheck, unit and live database integration gates passed |
-| Current indexed plans | 64: 20 TODO, 28 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 079 execution | approved at `5cabfe8`; getSubscriptionForStripeCustomer dual lookup, cross-checked customer and organisation bindings in payments webhook, conflict test suite 16/16, billing integration suite 7/7, check, typecheck, unit and live database integration gates passed |
+| Current indexed plans | 64: 19 TODO, 29 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -101,7 +102,7 @@ before starting its dependent plan.
 | [107](107-present-currency-safe-leave-balances.md) | Present balances with currency-safe formatting | P1 | 101 | DONE |
 | [061](061-halve-the-work-on-the-ics-feed-read-path.md) | Resolve feed/cache once and narrow holiday reads | P2 | 057, 066 | TODO |
 | [077](077-validate-availability-route-identifiers.md) | Validate availability UUIDs before queries | P2 | 066 | TODO |
-| [079](079-cross-check-stripe-webhook-tenant-identity.md) | Cross-check Stripe customer and Clerk org | P1 | 066 | TODO |
+| [079](079-cross-check-stripe-webhook-tenant-identity.md) | Cross-check Stripe customer and Clerk org | P1 | 066 | DONE |
 | [081](081-minimise-and-delimit-support-issue-data.md) | Minimise/delimit support issue data | P2 | 066 | TODO |
 | [091](091-page-scheduled-xero-balance-sync.md) | Page scheduled balance sync across runs | P2 | 076 | TODO |
 | [093](093-observe-a-nonce-ready-csp.md) | Observe a privacy-safe nonce CSP | P2 | 057 | TODO |
@@ -312,6 +313,10 @@ predecessor/preflight contract in its plan.
   explicit NZD currency and unit support, restricted remaining balance
   subtraction strictly to day units across people, approval, and plan services,
   and updated UI components across dashboard, profile, approvals, and plans.
+- Plan 079 is complete at `5cabfe8`. Added `getSubscriptionForStripeCustomer`
+  query and cross-checked Stripe customer ID and Clerk organisation ID in the
+  payments webhook handler, preventing misattribution and rejecting tenant
+  conflicts with 409 retryable errors without recording processed events.
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
