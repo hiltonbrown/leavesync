@@ -195,10 +195,19 @@ describe("buildSupportIssueTitle", () => {
       })
     ).toBe("[Feedback] Improve post-save feedback");
   });
+
+  it("normalises control characters and whitespace in title", () => {
+    expect(
+      buildSupportIssueTitle({
+        category: "support",
+        subject: "Line 1\r\nLine 2\t\x00Done",
+      })
+    ).toBe("[Support] Line 1 Line 2 Done");
+  });
 });
 
 describe("buildSupportIssueMarkdownBody", () => {
-  it("builds a deterministic markdown body", () => {
+  it("builds a deterministic markdown body with safe fences and untrusted markers", () => {
     const body = buildSupportIssueMarkdownBody(
       SupportSubmissionIssueInputSchema.parse({
         actual_outcome: "The saved plan does not refresh.",
@@ -222,36 +231,45 @@ describe("buildSupportIssueMarkdownBody", () => {
       })
     );
 
-    expect(body).toBe(`## Summary
-**Subject:** Saved plan does not refresh
-
-A saved plan is not visible until a hard refresh.
-
-## Metadata
+    expect(body).toBe(`## Metadata
 - Category: Support
 - Priority: High
-- Page URL: https://app.teamcalendar.test/plans
-- Email override: help@example.com
-- Current route: /plans
 - Clerk organisation ID: org_123
 - Organisation ID: 00000000-0000-4000-8000-000000000001
-- Organisation name: Team Calendar Dev Organisation
 - User ID: user_123
-- User email: user@example.com
-- User name: Alex Example
+- Current route: /plans
+- Page URL: https://app.teamcalendar.test/plans
 - Environment: production
 - App version: 2026.04.22
 
-## Reproduction steps
+## Untrusted user content
+
+### Subject (untrusted)
+\`\`\`untrusted-user-text
+Saved plan does not refresh
+\`\`\`
+
+### Message (untrusted)
+\`\`\`untrusted-user-text
+A saved plan is not visible until a hard refresh.
+\`\`\`
+
+### Reproduction steps (untrusted)
+\`\`\`untrusted-user-text
 1. Open Plans
 2. Edit a plan
 3. Save changes
+\`\`\`
 
-## Expected outcome
+### Expected outcome (untrusted)
+\`\`\`untrusted-user-text
 The updated plan should appear immediately.
+\`\`\`
 
-## Actual outcome
+### Actual outcome (untrusted)
+\`\`\`untrusted-user-text
 The saved plan does not refresh.
+\`\`\`
 
 ## Internal notes
 Submitted from Team Calendar support form.
@@ -259,28 +277,40 @@ Submitted from Team Calendar support form.
 Complete triage notes here.`);
   });
 
-  it("omits empty optional sections while keeping required sections", () => {
+  it("omits empty optional sections while keeping required sections and excludes direct PII", () => {
     const body = buildSupportIssueMarkdownBody(
       SupportSubmissionIssueInputSchema.parse({
         category: "feedback",
+        email_override: "override@example.com",
         message: "The navigation could be clearer for new users.",
+        organisation_name: "Acme Org",
         page_url: "https://app.teamcalendar.test/dashboard",
         priority: "normal",
         subject: "Clarify navigation labels",
+        user_email: "alex@example.com",
+        user_name: "Alex",
       })
     );
 
-    expect(body).toContain("## Summary");
     expect(body).toContain("## Metadata");
+    expect(body).toContain("## Untrusted user content");
+    expect(body).toContain("### Subject (untrusted)");
+    expect(body).toContain("### Message (untrusted)");
     expect(body).toContain("## Internal notes");
-    expect(body).not.toContain("## Reproduction steps");
-    expect(body).not.toContain("## Expected outcome");
-    expect(body).not.toContain("## Actual outcome");
+    expect(body).not.toContain("### Reproduction steps");
+    expect(body).not.toContain("### Expected outcome");
+    expect(body).not.toContain("### Actual outcome");
     expect(body).toContain("- Category: Feedback");
     expect(body).toContain("- Priority: Normal");
     expect(body).toContain(
       "- Page URL: https://app.teamcalendar.test/dashboard"
     );
+
+    // Direct PII excluded
+    expect(body).not.toContain("override@example.com");
+    expect(body).not.toContain("alex@example.com");
+    expect(body).not.toContain("Alex");
+    expect(body).not.toContain("Acme Org");
   });
 });
 
