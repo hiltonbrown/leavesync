@@ -26,6 +26,7 @@ export const organisationWithConnectionSelect = {
           last_leave_balances_sync_at: true,
           last_leave_records_sync_at: true,
           last_people_sync_at: true,
+          leave_balances_stale_since: true,
           payroll_region: true,
           tenant_name: true,
           xero_tenant_id: true,
