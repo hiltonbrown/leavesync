@@ -107,7 +107,6 @@ describe("support GitHub issue route", () => {
         "/support?org=00000000-0000-4000-8000-000000000001&tab=form",
       environment: "test",
       organisation_id: "00000000-0000-4000-8000-000000000001",
-      organisation_name: "Team Calendar Dev Organisation",
       payload: {
         category: "support",
         message: "The calendar is missing one leave entry.",
@@ -116,9 +115,7 @@ describe("support GitHub issue route", () => {
         priority: "normal",
         subject: "Missing leave entry",
       },
-      user_email: "alex@example.com",
       user_id: "user_123",
-      user_name: "Alex Example",
     });
     expect(mocks.persistSupportSubmissionAudit).toHaveBeenCalledWith({
       category: "support",
@@ -369,7 +366,6 @@ describe("support GitHub issue route", () => {
       current_route: "/support",
       environment: "test",
       organisation_id: undefined,
-      organisation_name: undefined,
       payload: {
         category: "feedback",
         message: "This flow could be clearer.",
@@ -377,9 +373,7 @@ describe("support GitHub issue route", () => {
         priority: "high",
         subject: "Clarify save feedback",
       },
-      user_email: "alex@example.com",
       user_id: "user_123",
-      user_name: "Alex Example",
     });
     expect(mocks.persistSupportSubmissionAudit).not.toHaveBeenCalled();
   });

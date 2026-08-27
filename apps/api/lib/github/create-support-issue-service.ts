@@ -1,15 +1,13 @@
 import "server-only";
 
+import { log } from "@repo/observability/log";
+import { z } from "zod";
 import {
-  buildSupportIssueMarkdownBody,
-  buildSupportIssueTitle,
-  getSupportIssueLabels,
+  buildSupportIssuePayload,
   type Result,
   type SupportSubmissionContext,
   SupportSubmissionIssueInputSchema,
-} from "@repo/core";
-import { log } from "@repo/observability/log";
-import { z } from "zod";
+} from "./build-support-issue-payload";
 import { keys } from "./keys";
 
 const GITHUB_API_ORIGIN = "https://api.github.com";
@@ -69,9 +67,7 @@ export async function createSupportGitHubIssue(
     };
   }
 
-  const title = buildSupportIssueTitle(parsedInput.data);
-  const body = buildSupportIssueMarkdownBody(parsedInput.data);
-  const labels = [...getSupportIssueLabels(parsedInput.data)];
+  const { title, body, labels } = buildSupportIssuePayload(parsedInput.data);
 
   try {
     const issueResult = await createIssue(config.value, { body, title });
@@ -83,7 +79,7 @@ export async function createSupportGitHubIssue(
       config.value,
       {
         issueNumber: issueResult.value.issueNumber,
-        labels,
+        labels: [...labels],
       }
     );
 
@@ -157,10 +153,7 @@ function mergePayloadWithContext(
     current_route: input.current_route,
     environment: input.environment,
     organisation_id: input.organisation_id,
-    organisation_name: input.organisation_name,
-    user_email: input.user_email,
     user_id: input.user_id,
-    user_name: input.user_name,
   };
 }
 

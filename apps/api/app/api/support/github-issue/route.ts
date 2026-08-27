@@ -69,11 +69,8 @@ export async function POST(request: Request): Promise<Response> {
       current_route: `${pageUrl.pathname}${pageUrl.search}`,
       environment: getRuntimeEnvironment(),
       organisation_id: organisationContext.value?.organisationId,
-      organisation_name: organisationContext.value?.organisationName,
       payload: parsedBody.data,
-      user_email: getPrimaryEmail(user),
       user_id: user.id,
-      user_name: getUserName(user),
     });
 
     if (!result.ok) {
@@ -141,7 +138,6 @@ async function resolveOrganisationContext(
       value:
         | {
             organisationId: string;
-            organisationName: string;
           }
         | undefined;
     }
@@ -199,22 +195,8 @@ async function resolveOrganisationContext(
     ok: true,
     value: {
       organisationId: organisationResult.value.id,
-      organisationName: organisationResult.value.name,
     },
   };
-}
-
-function getPrimaryEmail(
-  user: Awaited<ReturnType<typeof currentUser>>
-): string | undefined {
-  return user?.emailAddresses[0]?.emailAddress;
-}
-
-function getUserName(
-  user: NonNullable<Awaited<ReturnType<typeof currentUser>>>
-): string | undefined {
-  const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
-  return fullName || user.fullName || getPrimaryEmail(user);
 }
 
 function getRuntimeEnvironment(): string | undefined {
