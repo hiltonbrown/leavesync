@@ -88,20 +88,23 @@ describe("createSupportGitHubIssue", () => {
       },
     });
 
+    const createdBody = buildSupportIssueMarkdownBody({
+      ...payload,
+      clerk_org_id: "org_123",
+      organisation_id: "00000000-0000-4000-8000-000000000001",
+      user_id: "user_123",
+    });
+
+    expect(createdBody).not.toContain("person@example.com");
+    expect(createdBody).not.toContain("Alex Example");
+    expect(createdBody).not.toContain("Team Calendar Dev Organisation");
+
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
       "https://api.github.com/repos/team-calendar/app/issues",
       {
         body: JSON.stringify({
-          body: buildSupportIssueMarkdownBody({
-            ...payload,
-            clerk_org_id: "org_123",
-            organisation_id: "00000000-0000-4000-8000-000000000001",
-            organisation_name: "Team Calendar Dev Organisation",
-            user_email: "person@example.com",
-            user_id: "user_123",
-            user_name: "Alex Example",
-          }),
+          body: createdBody,
           title: buildSupportIssueTitle(payload),
         }),
         headers: {

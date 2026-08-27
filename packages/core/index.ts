@@ -77,6 +77,7 @@ export type {
   WithdrawLeaveInput,
 } from "./src/ports/external-write-port";
 export type {
+  SupportIssuePayload,
   SupportSubmissionCategory,
   SupportSubmissionContext,
   SupportSubmissionIssueInput,
@@ -85,11 +86,21 @@ export type {
 } from "./src/support-submission";
 export {
   buildSupportIssueMarkdownBody,
+  buildSupportIssuePayload,
   buildSupportIssueTitle,
+  createDynamicCodeFence,
   getSupportIssueLabels,
+  MAX_ACTUAL_OUTCOME_LENGTH,
+  MAX_EXPECTED_OUTCOME_LENGTH,
+  MAX_ISSUE_TITLE_LENGTH,
+  MAX_MESSAGE_LENGTH,
+  MAX_REPRODUCTION_STEPS_LENGTH,
+  MAX_SUBJECT_LENGTH,
   SupportSubmissionCategorySchema,
   SupportSubmissionContextSchema,
   SupportSubmissionIssueInputSchema,
   SupportSubmissionPayloadSchema,
   SupportSubmissionPrioritySchema,
+  sanitizeTitleText,
+  wrapUntrustedContent,
 } from "./src/support-submission";
