@@ -1,5 +1,6 @@
 "use client";
 
+import { getAvailabilityRecordLabel } from "@repo/core";
 import {
   type ChartConfig,
   ChartContainer,
@@ -77,8 +78,5 @@ function labelForRecordType(recordType: string): string {
   if (recordType === "wfh") {
     return "WFH";
   }
-  return recordType
-    .split("_")
-    .map((part) => `${part.slice(0, 1).toUpperCase()}${part.slice(1)}`)
-    .join(" ");
+  return getAvailabilityRecordLabel(recordType);
 }

@@ -67,6 +67,14 @@ export const formatDateRangeLabel = (startsAt: Date, endsAt: Date): string => {
   return start === end ? start : `${start} to ${end}`;
 };
 
+export type { AvailabilityRecordType } from "./src/availability-record-label";
+export {
+  AVAILABILITY_RECORD_TYPE_LABELS,
+  AVAILABILITY_RECORD_TYPES,
+  formatAvailabilityRecordType,
+  getAvailabilityRecordLabel,
+} from "./src/availability-record-label";
+
 export type {
   HolidayApplicabilityHoliday,
   HolidayApplicabilityInput,

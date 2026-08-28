@@ -28,28 +28,7 @@ const LIMITED_AVAILABILITY_RECORD_TYPES = new Set([
   "other",
 ]);
 
-const RECORD_TYPE_LABELS: Record<string, string> = {
-  alternative_contact: "Alternative Contact",
-  annual_leave: "Annual Leave",
-  another_office: "Another Office",
-  client_site: "Client Site",
-  contractor_unavailable: "Contractor Unavailable",
-  holiday: "Holiday",
-  leave: "Leave",
-  leave_request: "Leave Request",
-  limited_availability: "Limited Availability",
-  long_service_leave: "Long Service Leave",
-  offsite_meeting: "Offsite Meeting",
-  other: "Other",
-  personal_leave: "Personal Leave",
-  public_holiday: "Public Holiday",
-  sick_leave: "Sick Leave",
-  training: "Training",
-  travel: "Travel",
-  travelling: "Travelling",
-  unpaid_leave: "Unpaid Leave",
-  wfh: "Work From Home",
-};
+export { getAvailabilityRecordLabel } from "@repo/core";
 
 export type PersonStatus =
   | "in-office"
@@ -65,16 +44,6 @@ export type LeaveApprovalCategory =
   | "wfh"
   | "travelling"
   | "custom";
-
-export function getAvailabilityRecordLabel(recordType: string): string {
-  return (
-    RECORD_TYPE_LABELS[recordType] ??
-    recordType
-      .split("_")
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(" ")
-  );
-}
 
 export function isLeaveRecordType(recordType: string): boolean {
   return LEAVE_RECORD_TYPES.has(recordType);
