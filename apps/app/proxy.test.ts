@@ -75,17 +75,20 @@ describe("Proxy nonce and CSP generation", () => {
     expect(csp).toContain("report-to csp-endpoint");
   });
 
-  it("sets consistent nonce and report-only CSP on request and response headers", () => {
+  it("sets consistent nonce and enforcing CSP on request and response headers", () => {
     const request = new NextRequest("http://localhost:3000/calendar");
     const response = handleProxyWithNonce(request);
 
     // Response headers
-    const responseCsp = response.headers.get(
+    const responseCsp = response.headers.get("content-security-policy");
+    const reportOnlyCsp = response.headers.get(
       "content-security-policy-report-only"
     );
     const reportingEndpoints = response.headers.get("reporting-endpoints");
 
+    // Exactly one enforcing CSP header, zero report-only headers
     expect(responseCsp).toBeTruthy();
+    expect(reportOnlyCsp).toBeNull();
     expect(reportingEndpoints).toBe(REPORTING_ENDPOINTS_HEADER);
 
     // Extract nonce from response CSP
@@ -95,9 +98,7 @@ describe("Proxy nonce and CSP generation", () => {
 
     // Let's verify through proxy behavior that nonce appears identically in CSP
     expect(responseCsp).toContain(`'nonce-${extractedNonce}'`);
-    expect(response.headers.get("content-security-policy-report-only")).toBe(
-      responseCsp
-    );
+    expect(response.headers.get("content-security-policy")).toBe(responseCsp);
   });
 
   it("records dynamic rendering trade-off for nonce-based CSP", () => {
@@ -108,9 +109,11 @@ describe("Proxy nonce and CSP generation", () => {
     const res1 = handleProxyWithNonce(req1);
     const res2 = handleProxyWithNonce(req2);
 
-    const csp1 = res1.headers.get("content-security-policy-report-only");
-    const csp2 = res2.headers.get("content-security-policy-report-only");
+    const csp1 = res1.headers.get("content-security-policy");
+    const csp2 = res2.headers.get("content-security-policy");
 
+    expect(csp1).toBeTruthy();
+    expect(csp2).toBeTruthy();
     expect(csp1).not.toBe(csp2);
   });
 });

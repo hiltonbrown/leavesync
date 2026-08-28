@@ -77,7 +77,7 @@ export function handleProxyWithNonce(request: NextRequest): NextResponse {
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
-  requestHeaders.set("Content-Security-Policy-Report-Only", csp);
+  requestHeaders.set("Content-Security-Policy", csp);
 
   const response = NextResponse.next({
     request: {
@@ -85,7 +85,7 @@ export function handleProxyWithNonce(request: NextRequest): NextResponse {
     },
   });
 
-  response.headers.set("Content-Security-Policy-Report-Only", csp);
+  response.headers.set("Content-Security-Policy", csp);
   response.headers.set("Reporting-Endpoints", REPORTING_ENDPOINTS_HEADER);
 
   return response;
