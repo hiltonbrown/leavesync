@@ -1,6 +1,11 @@
 import "server-only";
 
-import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
+import {
+  type ClerkOrgId,
+  holidayIsNonWorking,
+  type OrganisationId,
+  type Result,
+} from "@repo/core";
 import { database, scopedQuery } from "@repo/database";
 import type {
   availability_approval_status,
@@ -741,7 +746,9 @@ async function buildEmployeeView(
         async () =>
           await loadPublicHolidayCard({
             clerkOrgId: input.clerkOrgId,
+            locationCountryCode: profile.header.location?.countryCode ?? null,
             locationId: profile.header.location?.id ?? null,
+            locationRegionCode: profile.header.location?.regionCode ?? null,
             organisationId: input.organisationId,
             personId: input.personId,
             teamId: profile.header.team?.id ?? null,
@@ -963,7 +970,9 @@ async function loadUpcomingCard(
 
 async function loadPublicHolidayCard(input: {
   clerkOrgId: string;
+  locationCountryCode?: string | null;
   locationId: string | null;
+  locationRegionCode?: string | null;
   organisationId: string;
   personId: string;
   teamId: string | null;
@@ -976,16 +985,53 @@ async function loadPublicHolidayCard(input: {
     return errorSection(holidayResult.error.message);
   }
 
+  let countryCode = input.locationCountryCode ?? null;
+  let regionCode = input.locationRegionCode ?? null;
+  if (!countryCode) {
+    const org = await database.organisation.findFirst({
+      select: { country_code: true },
+      where: {
+        archived_at: null,
+        clerk_org_id: input.clerkOrgId,
+        id: input.organisationId,
+      },
+    });
+    countryCode = org?.country_code ?? null;
+    regionCode = null;
+  }
+
   const today = startOfDay(new Date());
   const next =
     holidayResult.value.find((holiday) => {
-      if (holiday.archived_at) {
+      if (holiday.archived_at !== null) {
         return false;
       }
       if (startOfDay(holiday.holiday_date) < today) {
         return false;
       }
-      return holidayAppliesToActor(holiday, input);
+      const locationAssignments = (holiday.assignments ?? [])
+        .filter((assignment) => assignment.scope_type === "location")
+        .map((assignment) => ({
+          archivedAt: assignment.archived_at ?? null,
+          classification: assignment.day_classification,
+          locationId: assignment.scope_value,
+        }));
+
+      return holidayIsNonWorking({
+        holiday: {
+          archivedAt: holiday.archived_at,
+          countryCode: holiday.country_code,
+          defaultClassification:
+            holiday.default_classification ?? "non_working",
+          locationAssignments,
+          regionCode: holiday.region_code ?? null,
+        },
+        subject: {
+          countryCode,
+          locationId: input.locationId,
+          regionCode,
+        },
+      });
     }) ?? null;
 
   return readySection({
@@ -1449,43 +1495,6 @@ function buildOrgWideXeroSyncFailedCard(records: ApprovalListItem[]) {
     count: failed.length,
     ctaUrl: "/people?xeroSyncFailedOnly=true",
   };
-}
-
-function holidayAppliesToActor(
-  holiday: HolidayRow,
-  input: {
-    locationId: string | null;
-    personId: string;
-    teamId: string | null;
-  }
-) {
-  const activeAssignments = holiday.assignments.filter(
-    (assignment) => assignment.archived_at === null
-  );
-  if (activeAssignments.length === 0) {
-    return true;
-  }
-
-  const matchingAssignments = activeAssignments.filter(
-    (assignment) =>
-      assignment.scope_type === "organisation" ||
-      (assignment.scope_type === "location" &&
-        input.locationId !== null &&
-        assignment.scope_value === input.locationId) ||
-      (assignment.scope_type === "person" &&
-        assignment.scope_value === input.personId) ||
-      (assignment.scope_type === "team" &&
-        input.teamId !== null &&
-        assignment.scope_value === input.teamId)
-  );
-
-  if (matchingAssignments.length === 0) {
-    return false;
-  }
-
-  return matchingAssignments.some(
-    (assignment) => assignment.day_classification === "non_working"
-  );
 }
 
 function approvalRole(role: DashboardRole): ApprovalRole {
