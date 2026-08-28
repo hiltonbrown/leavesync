@@ -1,3 +1,5 @@
+import { executeRedisRestCommand } from "@repo/core";
+import { keys } from "../../keys";
 import type { NotificationSseEvent } from "./broker";
 
 const STREAM_MAX_LENGTH = 100;
@@ -24,15 +26,14 @@ export function getNotificationSseStreamClient(): NotificationSseStreamClient | 
     return streamClient;
   }
 
-  const url = process.env.KV_REST_API_URL;
-  const token = process.env.KV_REST_API_TOKEN;
-  if (Boolean(url) !== Boolean(token)) {
-    throw new Error(
-      "KV_REST_API_URL and KV_REST_API_TOKEN must both be set or both omitted to configure notification SSE."
-    );
-  }
-
-  streamClient = url && token ? createRestStreamClient({ token, url }) : null;
+  const { KV_REST_API_TOKEN, KV_REST_API_URL } = keys();
+  streamClient =
+    KV_REST_API_URL && KV_REST_API_TOKEN
+      ? createRestStreamClient({
+          token: KV_REST_API_TOKEN,
+          url: KV_REST_API_URL,
+        })
+      : null;
   streamClientResolved = true;
   return streamClient;
 }
@@ -48,20 +49,16 @@ function createRestStreamClient(input: {
   token: string;
   url: string;
 }): NotificationSseStreamClient {
-  const command = async <T>(parts: string[]): Promise<T> => {
-    const response = await fetch(input.url, {
-      body: JSON.stringify(parts),
-      headers: {
-        Authorization: `Bearer ${input.token}`,
-        "Content-Type": "application/json",
-      },
-      method: "POST",
+  const command = async <T>(parts: unknown[]): Promise<T> => {
+    const result = await executeRedisRestCommand<T>({
+      command: parts,
+      token: input.token,
+      url: input.url,
     });
-    if (!response.ok) {
+    if (!result.ok) {
       throw new Error("Notification SSE stream command failed");
     }
-    const payload = (await response.json()) as { result: T };
-    return payload.result;
+    return result.value;
   };
 
   return {

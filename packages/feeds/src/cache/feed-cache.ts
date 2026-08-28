@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { Result } from "@repo/core";
+import { executeRedisRestCommand, type Result } from "@repo/core";
 import { keys } from "../../keys";
 
 export interface FeedCacheError {
@@ -130,19 +130,15 @@ function createRestCacheClient(input: {
   url: string;
 }): FeedCacheClient {
   const command = async <T>(parts: unknown[]): Promise<T> => {
-    const response = await fetch(input.url, {
-      body: JSON.stringify(parts),
-      headers: {
-        Authorization: `Bearer ${input.token}`,
-        "Content-Type": "application/json",
-      },
-      method: "POST",
+    const result = await executeRedisRestCommand<T>({
+      command: parts,
+      token: input.token,
+      url: input.url,
     });
-    if (!response.ok) {
+    if (!result.ok) {
       throw new Error("KV command failed");
     }
-    const payload = (await response.json()) as { result: T };
-    return payload.result;
+    return result.value;
   };
   return {
     del: (...cacheKeys) => command(["del", ...cacheKeys]),

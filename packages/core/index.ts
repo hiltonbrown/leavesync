@@ -92,6 +92,13 @@ export type {
   WithdrawLeaveInput,
 } from "./src/ports/external-write-port";
 export type {
+  ExecuteRedisRestCommandInput,
+  RedisRestEnvelope,
+  RedisRestTransportError,
+  RedisRestTransportErrorCode,
+} from "./src/redis-rest-transport";
+export { executeRedisRestCommand } from "./src/redis-rest-transport";
+export type {
   SupportIssuePayload,
   SupportSubmissionCategory,
   SupportSubmissionContext,
