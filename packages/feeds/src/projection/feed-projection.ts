@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { Result } from "@repo/core";
+import { holidayIsNonWorking } from "@repo/core";
 import { database } from "@repo/database";
 import type { Prisma } from "@repo/database/generated/client";
 import type {
@@ -258,8 +259,31 @@ async function projectPublicHolidays(input: {
   const events: PreviewEvent[] = [];
   const seen = new Set<string>();
   for (const holiday of holidays) {
+    const locationAssignments = holiday.assignments
+      .filter((assignment) => assignment.scope_type === "location")
+      .map((assignment) => ({
+        archivedAt: assignment.archived_at,
+        classification: assignment.day_classification,
+        locationId: assignment.scope_value,
+      }));
+
     if (
-      !locations.some((location) => holidayAppliesToLocation(holiday, location))
+      !locations.some((location) =>
+        holidayIsNonWorking({
+          holiday: {
+            archivedAt: null,
+            countryCode: holiday.country_code,
+            defaultClassification: holiday.default_classification,
+            locationAssignments,
+            regionCode: holiday.region_code,
+          },
+          subject: {
+            countryCode: location.countryCode,
+            locationId: location.id,
+            regionCode: location.regionCode,
+          },
+        })
+      )
     ) {
       continue;
     }
@@ -296,38 +320,6 @@ async function projectPublicHolidays(input: {
     });
   }
   return events;
-}
-
-function holidayAppliesToLocation(
-  holiday: HolidayRow,
-  location: {
-    countryCode: string | null;
-    id: string;
-    regionCode: string | null;
-  }
-): boolean {
-  const locationAssignment = holiday.assignments.find(
-    (assignment) =>
-      assignment.archived_at === null &&
-      assignment.scope_type === "location" &&
-      assignment.scope_value === location.id
-  );
-  if (locationAssignment) {
-    return locationAssignment.day_classification === "non_working";
-  }
-  if (holiday.default_classification !== "non_working") {
-    return false;
-  }
-  if (
-    holiday.country_code !== "CUSTOM" &&
-    location.countryCode !== holiday.country_code
-  ) {
-    return false;
-  }
-  if (holiday.region_code && holiday.region_code !== location.regionCode) {
-    return false;
-  }
-  return true;
 }
 
 export function displayNameForPrivacy(
@@ -418,7 +410,3 @@ const holidaySelect = {
   name: true,
   region_code: true,
 } satisfies Prisma.PublicHolidaySelect;
-
-type HolidayRow = Prisma.PublicHolidayGetPayload<{
-  select: typeof holidaySelect;
-}>;

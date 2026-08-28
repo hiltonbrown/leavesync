@@ -68,6 +68,13 @@ export const formatDateRangeLabel = (startsAt: Date, endsAt: Date): string => {
 };
 
 export type {
+  HolidayApplicabilityHoliday,
+  HolidayApplicabilityInput,
+  HolidayApplicabilityLocationAssignment,
+  HolidayApplicabilitySubject,
+} from "./src/holiday-applicability";
+export { holidayIsNonWorking } from "./src/holiday-applicability";
+export type {
   ApproveLeaveInput,
   DeclineLeaveInput,
   ExternalWritePort,

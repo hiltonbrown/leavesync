@@ -174,6 +174,68 @@ describe("leave reports service", () => {
       expect("source_payload_json" in queryCall.select).toBe(false);
       expect("xero_write_error_raw" in queryCall.select).toBe(false);
     });
+
+    it("deducts public holidays according to centralised applicability rules", async () => {
+      mocks.holidayList.mockResolvedValue({
+        ok: true,
+        value: [
+          {
+            archived_at: null,
+            assignments: [
+              {
+                archived_at: null,
+                day_classification: "non_working",
+                scope_type: "location",
+                scope_value: "00000000-0000-4000-8000-000000000201",
+              },
+            ],
+            country_code: "AU",
+            default_classification: "working",
+            holiday_date: new Date("2026-05-05T00:00:00.000Z"),
+            name: "Location Override Holiday",
+            region_code: "NSW",
+          },
+          {
+            archived_at: null,
+            assignments: [],
+            country_code: "CUSTOM",
+            default_classification: "non_working",
+            holiday_date: new Date("2026-05-06T00:00:00.000Z"),
+            name: "Custom Day",
+            region_code: null,
+          },
+          {
+            archived_at: null,
+            assignments: [],
+            country_code: "AU",
+            default_classification: "non_working",
+            holiday_date: new Date("2026-05-07T00:00:00.000Z"),
+            name: "Mismatched Region Holiday",
+            region_code: "WA",
+          },
+        ],
+      });
+
+      const result = await aggregateLeaveReports({
+        actingUserId: "user_1",
+        clerkOrgId: "org_1",
+        dateRange: {
+          end: new Date("2026-05-09T00:00:00.000Z"),
+          label: "May",
+          start: new Date("2026-05-04T00:00:00.000Z"),
+        },
+        filters: { includeArchivedPeople: false, personType: "all" },
+        includePublicHolidays: true,
+        organisationId: "00000000-0000-4000-8000-000000000001",
+        role: "admin",
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        // 5 total days minus 2 applicable holidays (Location Override Holiday and Custom Day) = 3 days
+        expect(result.value.summaryStats.totalLeaveDays).toBe(3);
+      }
+    });
   });
 
   describe("listLeaveReportRecordsForDrilldown", () => {

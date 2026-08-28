@@ -424,7 +424,11 @@ Fetched from Xero per person per leave type during normal operation, or managed 
 
 ### `public_holidays`
 
-Sourced from Nager.Date API or entered manually. `location_id = null` means the holiday applies to all locations in the Organisation. Unique on `(organisation_id, source, source_remote_id)`.
+Sourced from Nager.Date API or entered manually. Carries `country_code`, optional `region_code`, and `default_classification` (`non_working` | `working`). `country_code = "CUSTOM"` bypasses country matching and applies across all jurisdictions unless restricted by a region. Unique on `(organisation_id, source, source_remote_id)`.
+
+### `public_holiday_assignments`
+
+Explicit holiday classification overrides scoped by location (`scope_type = "location"`, `scope_value = location_id`). A matching active location assignment overrides the holiday's `default_classification` (e.g. marking a working day non-working for a specific office or vice versa), even when the holiday jurisdiction differs from the location. Unique on `(public_holiday_id, scope_type, scope_value)`. Other schema scopes (`organisation`, `team`, `person`, `feed`) and `include_in_feeds` remain dormant and inert until a supported writer and UI productise them.
 
 ### `notifications`
 
