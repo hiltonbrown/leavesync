@@ -79,7 +79,8 @@ This reconciliation was read-only outside `plans/`.
 | Plan 095 execution | approved at `ba296bc`; centralised holiday applicability helper in @repo/core (holidayIsNonWorking), unified across feeds, calendar, analytics and working-days duration, core matrix 24/24, check, typecheck, unit, live database integration and build gates passed |
 | Plan 082 execution | approved at `dbc0356`; centralised availability record label mapping and helpers in @repo/core (getAvailabilityRecordLabel, getAvailabilityRecordTypeOptions), replaced ad-hoc string formatting across availability, feeds and apps, core suite 74/74, check, typecheck, unit and live database integration gates passed |
 | Plan 083 execution | approved at `dd7847b`; shared Redis REST transport in @repo/core (executeRedisCommand, executeRedisPipeline) with credential redaction, notifications env key schema in keys.ts, check, typecheck, unit and live database integration gates passed |
-| Current indexed plans | 64: 7 TODO, 41 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 102 execution | approved at `5b0dbe0`; low-level New Zealand leave, balance and application status readers (fetchNzLeaveForEmployee, fetchNzLeaveBalancesForEmployee, fetchNzLeaveApplicationStatus), explicit NZD currency mapping, permission vs auth distinction, NZ test suite 24/24, check, typecheck, unit, live database integration and build gates passed |
+| Current indexed plans | 64: 6 TODO, 42 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -125,7 +126,7 @@ before starting its dependent plan.
 | [095](095-centralise-the-supported-holiday-rule.md) | Centralise the supported holiday rule | P2 | 061 | DONE |
 | [082](082-centralise-availability-record-labels.md) | Centralise record labels only | P3 | 060, 061 | DONE |
 | [083](083-share-redis-rest-transport-and-notification-keys.md) | Share Redis transport and declare notification keys | P3 | 059, 061 | DONE |
-| [102](102-add-new-zealand-xero-read-adapters.md) | Add NZ leave/balance/status adapters | P1 | 100, 101 | TODO |
+| [102](102-add-new-zealand-xero-read-adapters.md) | Add NZ leave/balance/status adapters | P1 | 100, 101 | DONE |
 | [080](080-rate-limit-public-feed-token-probes.md) | Rate-limit public feed probes | P2 | 061, 066, 083 plus operator limits | TODO |
 | [096](096-align-current-status-holiday-consumers.md) | Align status/dashboard holiday consumers | P2 | 095 | TODO |
 | [103](103-add-united-kingdom-xero-read-adapters.md) | Add UK leave/balance/status adapters | P1 | 102 | TODO |
@@ -376,6 +377,10 @@ predecessor/preflight contract in its plan.
   in `@repo/core` (`executeRedisCommand`, `executeRedisPipeline`) with safe
   credential redaction and added schema-validated keys in
   `packages/notifications/keys.ts`.
+- Plan 102 is complete at `5b0dbe0`. Implemented low-level New Zealand leave,
+  balance, and application status readers (`fetchNzLeaveForEmployee`,
+  `fetchNzLeaveBalancesForEmployee`, `fetchNzLeaveApplicationStatus`) with Zod
+  envelopes, currency/NZD mapping, and permission error handling.
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
