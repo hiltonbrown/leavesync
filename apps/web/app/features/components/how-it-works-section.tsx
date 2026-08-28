@@ -36,6 +36,7 @@ export const HowItWorksSection = () => (
       <div className="fmkt-how__steps">
         {steps.map((step) => (
           <div className="fmkt-how__item" key={step.number}>
+            <span aria-hidden="true" className="fmkt-how__node" />
             <h3 className="fmkt-how__title">{step.title}</h3>
             <p className="fmkt-how__copy">{step.copy}</p>
           </div>

@@ -268,7 +268,7 @@ const FeaturesFlow = () => (
 
 // ---- Coverage matrix ---------------------------------------------------------
 
-type MarkKind = "mute" | "purple" | "sage";
+type MarkKind = "mute" | "neutral" | "purple" | "sage";
 
 const Mark = ({
   kind = "sage",
@@ -328,8 +328,8 @@ const matrixRows: MatrixRow[] = [
     sub: "Routed with team availability in view",
   },
   {
-    contractors: <Mark kind="sage" label="Yes" />,
-    directors: <Mark kind="sage" label="Yes" />,
+    contractors: <Mark kind="neutral" label="Yes" />,
+    directors: <Mark kind="neutral" label="Yes" />,
     employees: <Mark kind="sage" label="Yes" />,
     label: "Published to Outlook / Google / Apple",
     sub: "Live .ics feed per person and per team",
@@ -342,8 +342,8 @@ const matrixRows: MatrixRow[] = [
     sub: "Drawn from Xero Payroll where applicable",
   },
   {
-    contractors: <Mark kind="sage" label="Yes" />,
-    directors: <Mark kind="sage" label="Yes" />,
+    contractors: <Mark kind="neutral" label="Yes" />,
+    directors: <Mark kind="neutral" label="Yes" />,
     employees: <Mark kind="sage" label="Yes" />,
     label: "Visible to the whole team",
     sub: "On the calendar everyone already uses",
@@ -359,7 +359,12 @@ const FeaturesMatrix = () => (
         The short version: everyone gets calendar presence. Only payroll people
         get balances and the Xero round-trip.
       </p>
-      <div className="ft-matrix">
+      <section
+        aria-label="Coverage matrix, scroll for more columns"
+        className="ft-matrix"
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: labelled focusable scroll region per DESIGN.md's narrow-table pattern; tabIndex is required for keyboard users to reach the horizontal scroll
+        tabIndex={0}
+      >
         <table className="ft-matrix__table">
           <thead>
             <tr>
@@ -395,7 +400,7 @@ const FeaturesMatrix = () => (
             ))}
           </tbody>
         </table>
-      </div>
+      </section>
     </div>
   </section>
 );
