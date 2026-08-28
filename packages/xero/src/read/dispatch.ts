@@ -1,7 +1,4 @@
-import type {
-  XeroEmployeesFetchResult,
-  XeroLeaveBalanceFetchFailure,
-} from "../au/read";
+import type { XeroEmployeesFetchResult } from "../au/read";
 import {
   fetchEmployees as fetchAuEmployees,
   fetchLeaveApplicationStatus as fetchAuLeaveApplicationStatus,
@@ -25,7 +22,10 @@ import type {
   FetchLeaveApplicationStatusInput,
   XeroLeaveApplicationStatusResult,
 } from "./leave-application-status";
-import type { XeroLeaveBalance } from "./leave-balances";
+import type {
+  XeroLeaveBalance,
+  XeroLeaveBalanceFetchFailure,
+} from "./leave-balances";
 import type { XeroLeaveRecord } from "./leave-records";
 
 export async function fetchLeaveApplicationStatusForRegion(

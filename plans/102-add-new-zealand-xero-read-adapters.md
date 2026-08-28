@@ -15,7 +15,7 @@
 - **Depends on**: `plans/100-add-regional-xero-employee-readers.md` DONE and `plans/101-add-currency-leave-balance-contract.md` DONE
 - **Category**: migration
 - **Planned at**: commit `ecd49f5`, 2026-08-24; re-stamp after dependencies
-- **Execution status**: TODO
+- **Execution status**: DONE
 - **Supersedes**: NZ adapter slice of rejected Plan 071
 
 ## Why this matters
@@ -100,11 +100,11 @@ permission vs auth, empty complete response and AU compatibility.
 
 ## Done criteria
 
-- [ ] Three low-level NZ functions return validated canonical results.
-- [ ] The balance reader returns explicit currency/NZD without persistence.
-- [ ] 403 permission is distinct from 401 authentication.
-- [ ] Shared failure/status contracts retain AU behaviour.
-- [ ] Every command passes; no job or rollout code changed.
+- [x] Three low-level NZ functions return validated canonical results.
+- [x] The balance reader returns explicit currency/NZD without persistence.
+- [x] 403 permission is distinct from 401 authentication.
+- [x] Shared failure/status contracts retain AU behaviour.
+- [x] Every command passes; no job or rollout code changed.
 
 ## STOP conditions
 

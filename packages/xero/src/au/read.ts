@@ -15,7 +15,10 @@ import {
   readXeroPayload,
   type XeroLeaveApplicationStatusResult,
 } from "../read/leave-application-status";
-import type { XeroLeaveBalance } from "../read/leave-balances";
+import type {
+  XeroLeaveBalance,
+  XeroLeaveBalanceFetchFailure,
+} from "../read/leave-balances";
 import { mapXeroLeaveBalances } from "../read/leave-balances";
 import type { XeroLeaveRecord } from "../read/leave-records";
 import { tryMapXeroLeaveRecords } from "../read/leave-records";
@@ -37,12 +40,8 @@ const LEAVE_BALANCE_READ_INTERVAL_MS = Math.ceil(
   60_000 / XERO_CALLS_PER_MINUTE
 );
 
-export interface XeroLeaveBalanceFetchFailure {
-  employeeId: string;
-  error: XeroWriteError;
-}
-
 export type { XeroEmployeesFetchResult } from "../read/employees";
+export type { XeroLeaveBalanceFetchFailure } from "../read/leave-balances";
 
 export async function fetchEmployees(input: {
   xeroTenant: XeroTenantForWrite;

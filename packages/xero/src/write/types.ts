@@ -5,6 +5,7 @@ export type XeroWriteError =
   | XeroWriteErrorVariant<"conflict_error">
   | XeroWriteErrorVariant<"network_error">
   | XeroWriteErrorVariant<"not_found_error">
+  | XeroWriteErrorVariant<"permission_error">
   | XeroWriteErrorVariant<"rate_limit_error">
   | XeroWriteErrorVariant<"region_not_supported_error">
   | XeroWriteErrorVariant<"unknown_error">
@@ -79,6 +80,8 @@ export function toPlainLanguageMessage(error: XeroWriteError): string {
       return "Could not reach Xero. Check your internet connection and try again.";
     case "not_found_error":
       return "This employee or leave type is not yet set up in Xero. Ask your administrator to check the Xero configuration.";
+    case "permission_error":
+      return "Your Xero organisation does not have permission to access this payroll feature. Check your Xero subscription and permissions.";
     case "rate_limit_error":
       return "Xero is temporarily rate-limited. Try again in a few minutes.";
     case "region_not_supported_error":
