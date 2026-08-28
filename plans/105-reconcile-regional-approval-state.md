@@ -15,7 +15,7 @@
 - **Depends on**: `plans/056-give-the-approval-reconciler-a-cursor.md` DONE, `plans/102-add-new-zealand-xero-read-adapters.md` DONE and `plans/103-add-united-kingdom-xero-read-adapters.md` DONE
 - **Category**: bug
 - **Planned at**: commit `ecd49f5`, 2026-08-24; re-stamp after dependencies
-- **Execution status**: TODO
+- **Execution status**: DONE
 - **Supersedes**: approval-state slice of rejected Plan 071
 
 ## Why this matters
@@ -95,10 +95,10 @@ cancellation, cap/cursor/CAS, record failure and both tenant boundaries.
 
 ## Done criteria
 
-- [ ] NZ/UK status calls always carry employee and leave identity.
-- [ ] Permission/auth failures never become approval states.
-- [ ] Plan 056 fairness/cursor contracts remain intact.
-- [ ] Every command passes; no write-back surface changed.
+- [x] NZ/UK status calls always carry employee and leave identity.
+- [x] Permission/auth failures never become approval states.
+- [x] Plan 056 fairness/cursor contracts remain intact.
+- [x] Every command passes; no write-back surface changed.
 
 ## STOP conditions
 

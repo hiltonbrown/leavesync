@@ -283,45 +283,145 @@ describe("regional stubs for leave balances", () => {
       );
     }
   });
+});
 
-  it("dispatches leave application status for all regions", async () => {
+describe("fetchLeaveApplicationStatusForRegion dispatch", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("dispatches to AU reader for AU region", async () => {
+    const auTenant = buildTenant("AU");
     mocks.fetchAuLeaveApplicationStatus.mockResolvedValueOnce({
       ok: true,
-      value: { approvedAt: null, rawResponse: {}, status: "APPROVED" },
+      value: {
+        approvedAt: new Date("2026-06-10T00:00:00.000Z"),
+        rawResponse: {},
+        status: "APPROVED",
+      },
     });
 
+    const result = await fetchLeaveApplicationStatusForRegion("AU", {
+      xeroEmployeeId: "emp-au-1",
+      xeroLeaveApplicationId: "app-au-1",
+      xeroTenant: auTenant,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(mocks.fetchAuLeaveApplicationStatus).toHaveBeenCalledWith({
+      xeroEmployeeId: "emp-au-1",
+      xeroLeaveApplicationId: "app-au-1",
+      xeroTenant: auTenant,
+    });
+  });
+
+  it("dispatches to NZ reader for NZ region with employee and leave IDs", async () => {
+    const nzTenant = buildTenant("NZ");
     mocks.fetchNzLeaveApplicationStatus.mockResolvedValueOnce({
-      error: {
-        code: "unknown_error",
-        message: "NZ payroll approval-state reads are not yet available.",
+      ok: true,
+      value: {
+        approvedAt: null,
+        rawResponse: {},
+        status: "REJECTED",
       },
-      ok: false,
     });
 
+    const result = await fetchLeaveApplicationStatusForRegion("NZ", {
+      xeroEmployeeId: "emp-nz-1",
+      xeroLeaveApplicationId: "app-nz-1",
+      xeroTenant: nzTenant,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(mocks.fetchNzLeaveApplicationStatus).toHaveBeenCalledWith({
+      xeroEmployeeId: "emp-nz-1",
+      xeroLeaveApplicationId: "app-nz-1",
+      xeroTenant: nzTenant,
+    });
+  });
+
+  it("dispatches to UK reader for UK region with employee and leave IDs", async () => {
+    const ukTenant = buildTenant("UK");
     mocks.fetchUkLeaveApplicationStatus.mockResolvedValueOnce({
-      error: {
-        code: "unknown_error",
-        message: "UK payroll approval-state reads are not yet available.",
+      ok: true,
+      value: {
+        approvedAt: null,
+        rawResponse: {},
+        status: "WITHDRAWN",
       },
-      ok: false,
     });
 
-    await fetchLeaveApplicationStatusForRegion("AU", {
+    const result = await fetchLeaveApplicationStatusForRegion("UK", {
+      xeroEmployeeId: "emp-uk-1",
+      xeroLeaveApplicationId: "app-uk-1",
+      xeroTenant: ukTenant,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(mocks.fetchUkLeaveApplicationStatus).toHaveBeenCalledWith({
+      xeroEmployeeId: "emp-uk-1",
+      xeroLeaveApplicationId: "app-uk-1",
+      xeroTenant: ukTenant,
+    });
+  });
+
+  it("returns unsupported payroll region error for unknown regions", async () => {
+    const result = await fetchLeaveApplicationStatusForRegion("US", {
+      xeroEmployeeId: "emp-1",
       xeroLeaveApplicationId: "app-1",
       xeroTenant: buildTenant("AU"),
     });
-    expect(mocks.fetchAuLeaveApplicationStatus).toHaveBeenCalledTimes(1);
 
-    await fetchLeaveApplicationStatusForRegion("NZ", {
-      xeroLeaveApplicationId: "app-1",
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("unknown_error");
+      expect(result.error.message).toBe("Unsupported payroll region.");
+    }
+  });
+
+  it("propagates permission_error (403) from regional readers", async () => {
+    mocks.fetchNzLeaveApplicationStatus.mockResolvedValueOnce({
+      error: {
+        code: "permission_error",
+        httpStatus: 403,
+        message: "Forbidden",
+      },
+      ok: false,
+    });
+
+    const result = await fetchLeaveApplicationStatusForRegion("NZ", {
+      xeroEmployeeId: "emp-nz-1",
+      xeroLeaveApplicationId: "app-nz-1",
       xeroTenant: buildTenant("NZ"),
     });
-    expect(mocks.fetchNzLeaveApplicationStatus).toHaveBeenCalledTimes(1);
 
-    await fetchLeaveApplicationStatusForRegion("UK", {
-      xeroLeaveApplicationId: "app-1",
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("permission_error");
+      expect(result.error.httpStatus).toBe(403);
+    }
+  });
+
+  it("propagates not_found_error (404) from regional readers", async () => {
+    mocks.fetchUkLeaveApplicationStatus.mockResolvedValueOnce({
+      error: {
+        code: "not_found_error",
+        httpStatus: 404,
+        message: "Not found",
+      },
+      ok: false,
+    });
+
+    const result = await fetchLeaveApplicationStatusForRegion("UK", {
+      xeroEmployeeId: "emp-uk-1",
+      xeroLeaveApplicationId: "app-uk-1",
       xeroTenant: buildTenant("UK"),
     });
-    expect(mocks.fetchUkLeaveApplicationStatus).toHaveBeenCalledTimes(1);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("not_found_error");
+      expect(result.error.httpStatus).toBe(404);
+    }
   });
 });

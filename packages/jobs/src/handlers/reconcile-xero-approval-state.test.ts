@@ -105,6 +105,7 @@ function record() {
       first_name: "Ada",
       id: "70000000-0000-4000-8000-000000000001",
       last_name: "Lovelace",
+      xero_employee_id: "xero-employee-1",
     },
     record_type: "annual_leave",
     source_remote_id: "xero-leave-application-1",
@@ -762,5 +763,219 @@ describe("reconcile Xero approval state bounding", () => {
         }),
       })
     );
+  });
+});
+
+describe("regional approval state reconciliation (Plan 105)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.syncRunCreate.mockResolvedValue({ id: RUN_ID });
+    mocks.syncRunFindFirst.mockResolvedValue(null);
+    mocks.syncRunUpdateMany.mockResolvedValue({ count: 1 });
+    mocks.xeroTenantFindFirst.mockResolvedValue({
+      id: XERO_TENANT_ID,
+      payroll_region: "NZ",
+      sync_paused_at: null,
+      xero_connection_id: XERO_CONNECTION_ID,
+    });
+    mocks.ensureFreshXeroConnection.mockResolvedValue({
+      ok: true,
+      value: { refreshed: false },
+    });
+    mocks.availabilityRecordFindMany.mockResolvedValue([record()]);
+    mocks.availabilityRecordUpdateMany.mockResolvedValue({ count: 1 });
+    mocks.auditEventCreate.mockResolvedValue({});
+    mocks.dispatchNotification.mockResolvedValue({});
+    mocks.failedRecordCreate.mockResolvedValue({});
+    mocks.toPlainLanguageMessage.mockReturnValue(
+      "Your Xero organisation does not have permission to access this payroll feature. Check your Xero subscription and permissions."
+    );
+  });
+
+  it("selects xero_employee_id on person and passes it to dispatch for NZ region", async () => {
+    mocks.fetchLeaveApplicationStatusForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        approvedAt: new Date("2026-06-10T00:00:00.000Z"),
+        rawResponse: {},
+        status: "APPROVED",
+      },
+    });
+
+    const result = await reconcileXeroApprovalState(input());
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: { approved: 1, failed: 0, status: "succeeded" },
+    });
+
+    expect(mocks.availabilityRecordFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        include: {
+          person: {
+            select: {
+              clerk_user_id: true,
+              first_name: true,
+              id: true,
+              last_name: true,
+              manager: { select: { clerk_user_id: true, id: true } },
+              xero_employee_id: true,
+            },
+          },
+        },
+      })
+    );
+
+    expect(mocks.fetchLeaveApplicationStatusForRegion).toHaveBeenCalledWith(
+      "NZ",
+      expect.objectContaining({
+        xeroEmployeeId: "xero-employee-1",
+        xeroLeaveApplicationId: "xero-leave-application-1",
+        xeroTenant: expect.objectContaining({
+          id: XERO_TENANT_ID,
+          payroll_region: "NZ",
+        }),
+      })
+    );
+  });
+
+  it("selects xero_employee_id on person and passes it to dispatch for UK region", async () => {
+    mocks.xeroTenantFindFirst.mockResolvedValue({
+      id: XERO_TENANT_ID,
+      payroll_region: "UK",
+      sync_paused_at: null,
+      xero_connection_id: XERO_CONNECTION_ID,
+    });
+    mocks.fetchLeaveApplicationStatusForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        approvedAt: null,
+        rawResponse: {},
+        status: "REJECTED",
+      },
+    });
+
+    const result = await reconcileXeroApprovalState(input());
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: { declined: 1, failed: 0, status: "succeeded" },
+    });
+
+    expect(mocks.fetchLeaveApplicationStatusForRegion).toHaveBeenCalledWith(
+      "UK",
+      expect.objectContaining({
+        xeroEmployeeId: "xero-employee-1",
+        xeroLeaveApplicationId: "xero-leave-application-1",
+        xeroTenant: expect.objectContaining({
+          id: XERO_TENANT_ID,
+          payroll_region: "UK",
+        }),
+      })
+    );
+  });
+
+  it("treats missing employee ID as a record failure that advances fairly without a raw provider call", async () => {
+    mocks.availabilityRecordFindMany.mockResolvedValue([
+      {
+        ...record(),
+        person: {
+          ...record().person,
+          xero_employee_id: null,
+        },
+      },
+    ]);
+    mocks.fetchLeaveApplicationStatusForRegion.mockResolvedValue({
+      error: {
+        code: "validation_error",
+        message: "NZ payroll approval-state read requires xeroEmployeeId.",
+        rawPayload: null,
+      },
+      ok: false,
+    });
+
+    const result = await reconcileXeroApprovalState(input());
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        failed: 1,
+        status: "partial_success",
+      },
+    });
+
+    expect(mocks.fetchLeaveApplicationStatusForRegion).toHaveBeenCalledWith(
+      "NZ",
+      expect.objectContaining({
+        xeroEmployeeId: undefined,
+        xeroLeaveApplicationId: "xero-leave-application-1",
+      })
+    );
+
+    expect(mocks.failedRecordCreate).toHaveBeenCalledTimes(1);
+    expect(mocks.failedRecordCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          error_code: "validation_error",
+          error_message: expect.any(String),
+          source_remote_id: "xero-leave-application-1",
+        }),
+      })
+    );
+
+    expect(mocks.availabilityRecordUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          xero_approval_checked_at: expect.any(Date),
+        }),
+        where: expect.objectContaining({
+          clerk_org_id: CLERK_ORG_ID,
+          id: RECORD_ID,
+          organisation_id: ORGANISATION_ID,
+        }),
+      })
+    );
+  });
+
+  it("treats a 403 permission_error as a blanket run failure rather than a business status or not found", async () => {
+    mocks.fetchLeaveApplicationStatusForRegion.mockResolvedValue({
+      error: {
+        code: "permission_error",
+        httpStatus: 403,
+        message: "Forbidden",
+        rawPayload: { Message: "Forbidden" },
+      },
+      ok: false,
+    });
+
+    const result = await reconcileXeroApprovalState(input());
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        approved: 0,
+        archivedMissing: 0,
+        declined: 0,
+        failed: 0,
+        status: "failed",
+        withdrawn: 0,
+      },
+    });
+
+    expect(mocks.syncRunUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          error_summary:
+            "Your Xero organisation does not have permission to access this payroll feature. Check your Xero subscription and permissions.",
+          records_failed: 0,
+          records_synced: 0,
+          status: "failed",
+        }),
+      })
+    );
+
+    expect(mocks.failedRecordCreate).not.toHaveBeenCalled();
+    expect(mocks.auditEventCreate).not.toHaveBeenCalled();
+    expect(mocks.dispatchNotification).not.toHaveBeenCalled();
   });
 });
