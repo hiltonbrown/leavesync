@@ -14,15 +14,15 @@ vi.mock("@repo/availability", () => ({
   updateManualAvailability: vi.fn(),
 }));
 
-vi.mock("@repo/database/src/queries/organisations", () => ({
+vi.mock("@repo/database/queries/organisations", () => ({
   getOrganisationById: vi.fn(),
 }));
 
-vi.mock("@repo/database/src/queries/people", () => ({
+vi.mock("@repo/database/queries/people", () => ({
   listPeopleForOrganisation: vi.fn(),
 }));
 
-vi.mock("@repo/database/src/queries/availability-records", () => ({
+vi.mock("@repo/database/queries/availability-records", () => ({
   getAvailabilityRecordById: vi.fn(),
 }));
 
@@ -41,13 +41,13 @@ const {
   updateManualAvailability,
 } = await import("@repo/availability");
 const { getOrganisationById } = await import(
-  "@repo/database/src/queries/organisations"
+  "@repo/database/queries/organisations"
 );
 const { listPeopleForOrganisation } = await import(
-  "@repo/database/src/queries/people"
+  "@repo/database/queries/people"
 );
 const { getAvailabilityRecordById } = await import(
-  "@repo/database/src/queries/availability-records"
+  "@repo/database/queries/availability-records"
 );
 
 const { POST } = await import("../app/api/availability/route");

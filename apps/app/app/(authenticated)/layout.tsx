@@ -1,7 +1,7 @@
 import { requireOrg } from "@repo/auth/helpers";
 import { auth, currentUser } from "@repo/auth/server";
 import type { ClerkOrgId } from "@repo/core";
-import { listOrganisationsByClerkOrg } from "@repo/database/src/queries/organisations";
+import { listOrganisationsByClerkOrg } from "@repo/database/queries/organisations";
 import {
   SidebarInset,
   SidebarProvider,

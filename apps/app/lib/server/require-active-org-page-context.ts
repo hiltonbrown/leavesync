@@ -2,7 +2,7 @@ import "server-only";
 
 import { requireOrg } from "@repo/auth/helpers";
 import type { ClerkOrgId, OrganisationId } from "@repo/core";
-import { listOrganisationsByClerkOrg } from "@repo/database/src/queries/organisations";
+import { listOrganisationsByClerkOrg } from "@repo/database/queries/organisations";
 import { notFound } from "next/navigation";
 import { ensureDefaultOrganisation } from "./ensure-default-organisation";
 import { getActiveOrgContext } from "./get-active-org-context";

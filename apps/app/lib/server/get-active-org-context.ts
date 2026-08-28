@@ -3,7 +3,7 @@ import "server-only";
 import { requireOrg } from "@repo/auth/helpers";
 import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
 import { appError } from "@repo/core";
-import { getOrganisationById } from "@repo/database/src/queries/organisations";
+import { getOrganisationById } from "@repo/database/queries/organisations";
 
 /**
  * Resolves the active organisation context from Clerk auth and validated params.

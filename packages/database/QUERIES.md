@@ -181,7 +181,7 @@ import {
   listPeopleForOrganisation,
   getPersonProfile,
   listAvailabilityForCalendar,
-} from "@repo/database/src/queries/people";
+} from "@repo/database/queries/people";
 import { getOrgId } from "@repo/auth";
 
 export default async function TeamPage() {
@@ -280,7 +280,7 @@ export default function AuthLayout() {
 "use client";
 import { useContext } from "react";
 import { OrganisationContext } from "./context";
-import { listPeopleForOrganisation } from "@repo/database/src/queries/people";
+import { listPeopleForOrganisation } from "@repo/database/queries/people";
 
 export default function PeoplePage() {
   const { clerkOrgId, organisationId } = useContext(OrganisationContext);

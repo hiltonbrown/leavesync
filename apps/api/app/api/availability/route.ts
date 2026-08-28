@@ -1,8 +1,8 @@
 import { auth, currentUser, requireOrg } from "@repo/auth/helpers";
 import { createManualAvailability } from "@repo/availability";
 import type { ClerkOrgId, OrganisationId } from "@repo/core";
-import { getOrganisationById } from "@repo/database/src/queries/organisations";
-import { listPeopleForOrganisation } from "@repo/database/src/queries/people";
+import { getOrganisationById } from "@repo/database/queries/organisations";
+import { listPeopleForOrganisation } from "@repo/database/queries/people";
 import { log } from "@repo/observability/log";
 import { z } from "zod";
 
