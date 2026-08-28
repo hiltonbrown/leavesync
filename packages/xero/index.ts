@@ -31,6 +31,7 @@ export type {
 export type {
   FetchLeaveApplicationStatusInput,
   FetchNzLeaveApplicationStatusInput,
+  FetchUkLeaveApplicationStatusInput,
   XeroLeaveApplicationStatus,
   XeroLeaveApplicationStatusResult,
 } from "./src/read/leave-application-status";
