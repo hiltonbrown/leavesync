@@ -1,7 +1,10 @@
 import "server-only";
 
-import type { Result } from "@repo/core";
-import { holidayIsNonWorking } from "@repo/core";
+import {
+  getAvailabilityRecordLabel,
+  holidayIsNonWorking,
+  type Result,
+} from "@repo/core";
 import { database } from "@repo/database";
 import type { Prisma } from "@repo/database/generated/client";
 import type {
@@ -342,10 +345,7 @@ export function labelForRecordType(
   if (title?.trim()) {
     return title.trim();
   }
-  return recordType
-    .split("_")
-    .map((part) => part.slice(0, 1).toUpperCase() + part.slice(1))
-    .join(" ");
+  return getAvailabilityRecordLabel(recordType);
 }
 
 const feedProjectionSelect = {

@@ -1,6 +1,11 @@
 import "server-only";
 
-import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
+import {
+  type ClerkOrgId,
+  getAvailabilityRecordLabel,
+  type OrganisationId,
+  type Result,
+} from "@repo/core";
 import { database, scopedQuery } from "@repo/database";
 import type { Prisma } from "@repo/database/generated/client";
 import type { availability_record_type } from "@repo/database/generated/enums";
@@ -524,7 +529,7 @@ function donut(
   return [...daysByType.entries()]
     .map(([recordType, days]) => ({
       days,
-      label: labelForRecordType(recordType),
+      label: getAvailabilityRecordLabel(recordType),
       percentage: totalDays === 0 ? 0 : round((days / totalDays) * 100),
       recordType,
     }))
@@ -658,13 +663,6 @@ function toDayOfWeek(value: number): 0 | 1 | 2 | 3 | 4 | 5 | 6 {
 function toDayOfWeekIndex(date: Date): 0 | 1 | 2 | 3 | 4 | 5 | 6 {
   const day = date.getUTCDay();
   return toDayOfWeek((day + 6) % 7);
-}
-
-function labelForRecordType(recordType: availability_record_type): string {
-  return recordType
-    .split("_")
-    .map((part) => `${part.slice(0, 1).toUpperCase()}${part.slice(1)}`)
-    .join(" ");
 }
 
 function sum(values: readonly number[]): number {
