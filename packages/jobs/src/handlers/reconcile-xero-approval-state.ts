@@ -102,6 +102,7 @@ interface ReconciliationRecord {
     first_name: string;
     id: string;
     last_name: string;
+    xero_employee_id: string | null;
   };
   record_type: string;
   source_remote_id: string | null;
@@ -252,6 +253,7 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
             id: true,
             last_name: true,
             manager: { select: { clerk_user_id: true, id: true } },
+            xero_employee_id: true,
           },
         },
       },
@@ -773,7 +775,11 @@ function loadXeroTenant(context: ReconcileApprovalStateInput) {
 }
 
 function isBlanketFailure(error: XeroWriteError): boolean {
-  return error.code === "auth_error" || error.code === "rate_limit_error";
+  return (
+    error.code === "auth_error" ||
+    error.code === "permission_error" ||
+    error.code === "rate_limit_error"
+  );
 }
 
 async function publishRunStatusChanged(
@@ -887,9 +893,14 @@ async function reconcileOne(
       await stampCheckedAt(context, record.id, checkedAt);
       return {};
     }
+    const xeroEmployeeId = record.person.xero_employee_id ?? undefined;
     const status = await fetchLeaveApplicationStatusForRegion(
       xeroTenant.payroll_region,
-      { xeroLeaveApplicationId, xeroTenant }
+      {
+        xeroEmployeeId,
+        xeroLeaveApplicationId,
+        xeroTenant,
+      }
     );
     if (!status.ok) {
       if (isBlanketFailure(status.error)) {
