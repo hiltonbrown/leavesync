@@ -74,7 +74,8 @@ This reconciliation was read-only outside `plans/`.
 | Plan 081 execution | approved at `a045ddb`; pure support issue payload builder with dynamic code fences, control character stripping, PII reduction (opaque IDs only), support suite 18/18, payload suite 22/22, check, typecheck, unit and live database integration gates passed |
 | Plan 091 execution | approved at `ad8bdcd`; 40-person page scheduled balance sync, compare-and-swap cursor pagination, cycle completion reset, targeted refresh cursor/timestamp isolation, unit suite 16/16, integration suite 55/55, check, typecheck, unit, live database integration and build gates passed |
 | Plan 093 execution | approved at `28b559f`; observed nonce-ready report-only CSP with first-party scrubbed report sink (/api/csp-report), proxy nonce composition, layout provider threading, 7-day observation evidence (plans/093-csp-observation.md), check, typecheck, unit, live database integration and build gates passed |
-| Current indexed plans | 64: 12 TODO, 36 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 088 execution | approved at `0c5f42f`; explicit database package exports map, public query adapters, elimination of all private @repo/database/src/* imports, boundary tests 4/4, check, typecheck, unit, live database integration and build gates passed |
+| Current indexed plans | 64: 11 TODO, 37 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -115,7 +116,7 @@ before starting its dependent plan.
 | [093](093-observe-a-nonce-ready-csp.md) | Observe a privacy-safe nonce CSP | P2 | 057 | DONE |
 | [099](099-reconcile-clerk-access-and-invitations.md) | Link active people and guard Clerk invitations | P1 | 097, 098 | DONE |
 | [100](100-add-regional-xero-employee-readers.md) | Add NZ/UK employee readers | P1 | 097, 098 | DONE |
-| [088](088-publish-explicit-database-package-subpaths.md) | Publish database subpaths, remove `/src/` imports | P2 | 066, 079 | TODO |
+| [088](088-publish-explicit-database-package-subpaths.md) | Publish database subpaths, remove `/src/` imports | P2 | 066, 079 | DONE |
 | [094](094-enforce-the-observed-csp.md) | Enforce the observed nonce CSP | P2 | 093 plus observation evidence | TODO |
 | [095](095-centralise-the-supported-holiday-rule.md) | Centralise the supported holiday rule | P2 | 061 | TODO |
 | [082](082-centralise-availability-record-labels.md) | Centralise record labels only | P3 | 060, 061 | TODO |
@@ -352,6 +353,10 @@ predecessor/preflight contract in its plan.
   CSP with a first-party scrubbed report sink (`/api/csp-report`), dynamic nonce
   generation composed in `apps/app/proxy.ts`, layout provider threading, and 7-day
   observation evidence logged in `plans/093-csp-observation.md`.
+- Plan 088 is complete at `0c5f42f`. Added explicit `exports` map to
+  `packages/database/package.json` with public query adapter entry points,
+  rewrote all `@repo/database/src/*` callers, and added boundary enforcement
+  tests verifying package encapsulation.
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
