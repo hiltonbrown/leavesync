@@ -82,7 +82,8 @@ This reconciliation was read-only outside `plans/`.
 | Plan 102 execution | approved at `5b0dbe0`; low-level New Zealand leave, balance and application status readers (fetchNzLeaveForEmployee, fetchNzLeaveBalancesForEmployee, fetchNzLeaveApplicationStatus), explicit NZD currency mapping, permission vs auth distinction, NZ test suite 24/24, check, typecheck, unit, live database integration and build gates passed |
 | Plan 080 execution | approved at `bd75375`; rate limited public feed endpoint /ical/:token.ics (60 req/min per client IP, 120 req/min per token digest), rejection before token resolution/render, fail-open Redis outage policy, route tests 14/14, check, typecheck, unit and live database integration gates passed |
 | Plan 096 execution | approved at `04e0c40`; aligned single status, batched status, and dashboard next-holiday cards with @repo/core holidayIsNonWorking helper, active location assignment overrides, single/batch parity suite 40/40, check, typecheck, unit, live database integration and build gates passed |
-| Current indexed plans | 64: 4 TODO, 44 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 103 execution | approved at `0d5b502`; low-level United Kingdom leave, balance and application status readers (fetchUkLeaveForEmployee, fetchUkLeaveBalancesForEmployee, fetchUkLeaveApplicationStatus), ordinary hour/day null currency, fail-closed unmapped monetary units, typed permission_error, UK test suite 29/29, check, typecheck, unit, live database integration and build gates passed |
+| Current indexed plans | 64: 3 TODO, 45 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -131,7 +132,7 @@ before starting its dependent plan.
 | [102](102-add-new-zealand-xero-read-adapters.md) | Add NZ leave/balance/status adapters | P1 | 100, 101 | DONE |
 | [080](080-rate-limit-public-feed-token-probes.md) | Rate-limit public feed probes | P2 | 061, 066, 083 plus operator limits | DONE |
 | [096](096-align-current-status-holiday-consumers.md) | Align status/dashboard holiday consumers | P2 | 095 | DONE |
-| [103](103-add-united-kingdom-xero-read-adapters.md) | Add UK leave/balance/status adapters | P1 | 102 | TODO |
+| [103](103-add-united-kingdom-xero-read-adapters.md) | Add UK leave/balance/status adapters | P1 | 102 | DONE |
 | [104](104-orchestrate-regional-leave-sync.md) | Page and reconcile regional leave | P1 | 090, 102, 103 | TODO |
 | [105](105-reconcile-regional-approval-state.md) | Reconcile regional approval state | P1 | 056, 102, 103 | TODO |
 | [106](106-orchestrate-regional-balance-sync.md) | Orchestrate regional balance pages | P1 | 091, 101, 102, 103 | TODO |
@@ -390,6 +391,11 @@ predecessor/preflight contract in its plan.
 - Plan 096 is complete at `04e0c40`. Aligned single-person and batched
   `current-status.ts` and dashboard upcoming holiday calculations to use the
   canonical `@repo/core` `holidayIsNonWorking` predicate, ensuring status parity.
+- Plan 103 is complete at `0d5b502`. Implemented low-level United Kingdom leave,
+  balance, and application status readers (`fetchUkLeaveForEmployee`,
+  `fetchUkLeaveBalancesForEmployee`, `fetchUkLeaveApplicationStatus`) with
+  ordinary hour/day null currency, fail-closed unmapped monetary units, and
+  permission error discrimination.
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
