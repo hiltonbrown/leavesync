@@ -295,6 +295,90 @@ describe("calendar-service", () => {
 
     expect(result.ok).toBe(true);
   });
+
+  it("applies centralised holiday applicability rules to calendar holiday cells", async () => {
+    mocks.listForOrganisation.mockResolvedValue({
+      ok: true,
+      value: [
+        {
+          archived_at: null,
+          assignments: [
+            {
+              archived_at: null,
+              day_classification: "non_working",
+              scope_type: "location",
+              scope_value: "00000000-0000-4000-8000-000000000200",
+            },
+          ],
+          country_code: "AU",
+          default_classification: "working",
+          holiday_date: new Date("2026-04-14T00:00:00.000Z"),
+          name: "Location Override Picnic Day",
+          region_code: "NSW",
+        },
+        {
+          archived_at: null,
+          assignments: [
+            {
+              archived_at: null,
+              day_classification: "working",
+              scope_type: "location",
+              scope_value: "00000000-0000-4000-8000-000000000200",
+            },
+          ],
+          country_code: "AU",
+          default_classification: "non_working",
+          holiday_date: new Date("2026-04-15T00:00:00.000Z"),
+          name: "Excluded by Override",
+          region_code: "QLD",
+        },
+        {
+          archived_at: null,
+          assignments: [],
+          country_code: "CUSTOM",
+          default_classification: "non_working",
+          holiday_date: new Date("2026-04-16T00:00:00.000Z"),
+          name: "Custom Org Day",
+          region_code: null,
+        },
+        {
+          archived_at: null,
+          assignments: [],
+          country_code: "AU",
+          default_classification: "non_working",
+          holiday_date: new Date("2026-04-17T00:00:00.000Z"),
+          name: "Mismatched Region Holiday",
+          region_code: "WA",
+        },
+        {
+          archived_at: new Date("2026-01-01T00:00:00.000Z"),
+          assignments: [],
+          country_code: "AU",
+          default_classification: "non_working",
+          holiday_date: new Date("2026-04-18T00:00:00.000Z"),
+          name: "Archived Holiday",
+          region_code: "QLD",
+        },
+      ],
+    });
+
+    const result = await getCalendarRange(baseInput);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    const holidayNames = result.value.days.flatMap((day) =>
+      day.publicHolidays.map((h) => h.name)
+    );
+
+    expect(holidayNames).toContain("Location Override Picnic Day");
+    expect(holidayNames).toContain("Custom Org Day");
+    expect(holidayNames).not.toContain("Excluded by Override");
+    expect(holidayNames).not.toContain("Mismatched Region Holiday");
+    expect(holidayNames).not.toContain("Archived Holiday");
+  });
 });
 
 function detailInput() {

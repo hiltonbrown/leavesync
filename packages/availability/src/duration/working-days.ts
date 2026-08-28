@@ -1,6 +1,11 @@
 import "server-only";
 
-import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
+import {
+  type ClerkOrgId,
+  holidayIsNonWorking,
+  type OrganisationId,
+  type Result,
+} from "@repo/core";
 import { database, scopedQuery } from "@repo/database";
 import { listForOrganisation } from "../holidays/holiday-service";
 
@@ -326,65 +331,32 @@ function addExcludedHolidayDate({
   location: DurationLocation;
   locationId: string | null;
 }) {
+  const locationAssignments = holiday.assignments
+    .filter((assignment) => assignment.scope_type === "location")
+    .map((assignment) => ({
+      archivedAt: assignment.archived_at,
+      classification: assignment.day_classification,
+      locationId: assignment.scope_value,
+    }));
+
   if (
-    shouldExcludeHoliday({
-      countryCode: location.country_code,
-      holiday,
-      locationId,
-      regionCode: location.region_code,
+    holidayIsNonWorking({
+      holiday: {
+        archivedAt: holiday.archived_at,
+        countryCode: holiday.country_code,
+        defaultClassification: holiday.default_classification,
+        locationAssignments,
+        regionCode: holiday.region_code,
+      },
+      subject: {
+        countryCode: location.country_code,
+        locationId,
+        regionCode: location.region_code,
+      },
     })
   ) {
     holidayDates.add(getStoredWallClockParts(holiday.holiday_date).dateOnly);
   }
-}
-
-function shouldExcludeHoliday({
-  countryCode,
-  holiday,
-  locationId,
-  regionCode,
-}: {
-  countryCode: string | null;
-  holiday: HolidayForDuration;
-  locationId: string | null;
-  regionCode: string | null;
-}): boolean {
-  if (holiday.archived_at) {
-    return false;
-  }
-
-  const locationAssignment = holiday.assignments.find(
-    (assignment) =>
-      assignment.archived_at === null &&
-      assignment.scope_type === "location" &&
-      assignment.scope_value === locationId
-  );
-
-  if (locationAssignment) {
-    return locationAssignment.day_classification === "non_working";
-  }
-
-  if (holiday.default_classification !== "non_working") {
-    return false;
-  }
-
-  if (holiday.country_code === "CUSTOM") {
-    return true;
-  }
-
-  if (countryCode && holiday.country_code !== countryCode) {
-    return false;
-  }
-
-  if (holiday.region_code && regionCode && holiday.region_code !== regionCode) {
-    return false;
-  }
-
-  if (holiday.region_code && !regionCode) {
-    return false;
-  }
-
-  return true;
 }
 
 function fractionalWorkingDay(
