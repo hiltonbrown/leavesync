@@ -7,8 +7,10 @@ const mocks = vi.hoisted(() => ({
   fetchAuLeaveRecords: vi.fn(),
   fetchNzEmployees: vi.fn(),
   fetchNzLeaveApplicationStatus: vi.fn(),
+  fetchNzLeaveForEmployee: vi.fn(),
   fetchUkEmployees: vi.fn(),
   fetchUkLeaveApplicationStatus: vi.fn(),
+  fetchUkLeaveForEmployee: vi.fn(),
 }));
 
 vi.mock("../au/read", () => ({
@@ -21,17 +23,20 @@ vi.mock("../au/read", () => ({
 vi.mock("../nz/read", () => ({
   fetchEmployees: mocks.fetchNzEmployees,
   fetchLeaveApplicationStatus: mocks.fetchNzLeaveApplicationStatus,
+  fetchLeaveForEmployee: mocks.fetchNzLeaveForEmployee,
 }));
 
 vi.mock("../uk/read", () => ({
   fetchEmployees: mocks.fetchUkEmployees,
   fetchLeaveApplicationStatus: mocks.fetchUkLeaveApplicationStatus,
+  fetchLeaveForEmployee: mocks.fetchUkLeaveForEmployee,
 }));
 
 import {
   fetchEmployeesForRegion,
   fetchLeaveApplicationStatusForRegion,
   fetchLeaveBalancesForRegion,
+  fetchLeaveForEmployeeForRegion,
   fetchLeaveRecordsForRegion,
 } from "./dispatch";
 
@@ -128,31 +133,131 @@ describe("fetchEmployeesForRegion dispatch", () => {
   });
 });
 
-describe("regional stubs for leave records and balances", () => {
-  it("returns not available for NZ leave records", async () => {
+describe("fetchLeaveRecordsForRegion dispatch", () => {
+  it("dispatches to AU reader for AU region", async () => {
+    mocks.fetchAuLeaveRecords.mockResolvedValueOnce({
+      ok: true,
+      value: { complete: true, leaveRecords: [], rawResponse: {} },
+    });
+
+    const tenant = buildTenant("AU");
+    const result = await fetchLeaveRecordsForRegion("AU", {
+      xeroTenant: tenant,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(mocks.fetchAuLeaveRecords).toHaveBeenCalledWith({
+      xeroTenant: tenant,
+    });
+  });
+
+  it("returns per-employee requirement error for NZ leave records", async () => {
     const result = await fetchLeaveRecordsForRegion("NZ", {
       xeroTenant: buildTenant("NZ"),
     });
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.message).toContain(
-        "NZ payroll leave reads are not yet available."
+        "NZ payroll requires per-employee leave reads."
       );
     }
   });
 
-  it("returns not available for UK leave records", async () => {
+  it("returns per-employee requirement error for UK leave records", async () => {
     const result = await fetchLeaveRecordsForRegion("UK", {
       xeroTenant: buildTenant("UK"),
     });
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.message).toContain(
-        "UK payroll leave reads are not yet available."
+        "UK payroll requires per-employee leave reads."
       );
     }
   });
 
+  it("returns unsupported payroll region error for unknown regions", async () => {
+    const result = await fetchLeaveRecordsForRegion("US", {
+      xeroTenant: buildTenant("AU"),
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("unknown_error");
+      expect(result.error.message).toBe("Unsupported payroll region.");
+    }
+  });
+});
+
+describe("fetchLeaveForEmployeeForRegion dispatch", () => {
+  it("dispatches to NZ reader for NZ region", async () => {
+    mocks.fetchNzLeaveForEmployee.mockResolvedValueOnce({
+      ok: true,
+      value: { complete: true, leaveRecords: [], rawResponse: {} },
+    });
+
+    const tenant = buildTenant("NZ");
+    const result = await fetchLeaveForEmployeeForRegion("NZ", {
+      xeroEmployeeId: "emp-nz-1",
+      xeroTenant: tenant,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(mocks.fetchNzLeaveForEmployee).toHaveBeenCalledWith({
+      xeroEmployeeId: "emp-nz-1",
+      xeroTenant: tenant,
+    });
+  });
+
+  it("dispatches to UK reader for UK region", async () => {
+    mocks.fetchUkLeaveForEmployee.mockResolvedValueOnce({
+      ok: true,
+      value: { complete: true, leaveRecords: [], rawResponse: {} },
+    });
+
+    const tenant = buildTenant("UK");
+    const result = await fetchLeaveForEmployeeForRegion("UK", {
+      xeroEmployeeId: "emp-uk-1",
+      xeroTenant: tenant,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(mocks.fetchUkLeaveForEmployee).toHaveBeenCalledWith({
+      xeroEmployeeId: "emp-uk-1",
+      xeroTenant: tenant,
+    });
+  });
+
+  it("returns unsupported for AU per-employee leave reads", async () => {
+    const tenant = buildTenant("AU");
+    const result = await fetchLeaveForEmployeeForRegion("AU", {
+      xeroEmployeeId: "emp-au-1",
+      xeroTenant: tenant,
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("unknown_error");
+      expect(result.error.message).toContain(
+        "AU payroll does not support per-employee leave reads."
+      );
+    }
+  });
+
+  it("returns unsupported payroll region error for unknown regions", async () => {
+    const tenant = buildTenant("AU");
+    const result = await fetchLeaveForEmployeeForRegion("US", {
+      xeroEmployeeId: "emp-1",
+      xeroTenant: tenant,
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("unknown_error");
+      expect(result.error.message).toBe("Unsupported payroll region.");
+    }
+  });
+});
+
+describe("regional stubs for leave balances", () => {
   it("returns not available for NZ leave balances", async () => {
     const result = await fetchLeaveBalancesForRegion("NZ", {
       employeeIds: ["emp-1"],

@@ -2,6 +2,7 @@ import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
+const mockFetchLeaveForEmployeeForRegion = vi.fn();
 const mockFetchLeaveRecordsForRegion = vi.fn();
 const mockInngestSend = vi.fn(async () => ({ ids: ["event_1"] }));
 const ICAL_UID_SUFFIX_REGEX = /@ical.teamcalendar.online$/;
@@ -17,6 +18,8 @@ vi.mock("@repo/xero", async (importOriginal) => {
   const original = await importOriginal<typeof import("@repo/xero")>();
   return {
     ...original,
+    fetchLeaveForEmployeeForRegion: (...args: unknown[]) =>
+      mockFetchLeaveForEmployeeForRegion(...args),
     fetchLeaveRecordsForRegion: (...args: unknown[]) =>
       mockFetchLeaveRecordsForRegion(...args),
   };
@@ -602,13 +605,322 @@ describeWithDatabase("sync-xero-leave-records database flow", () => {
       },
     ]);
   });
+
+  it("pages regional NZ leave in 20-person batches with cursor advancement and reset in database", async () => {
+    await setupTenant(tenantA, "NZ");
+
+    // Create 21 people in one batch
+    const peopleData = Array.from({ length: 21 }, (_, i) => ({
+      clerk_org_id: tenantA.clerkOrgId,
+      email: `person${i + 1}@example.com`,
+      employment_type: "employee" as const,
+      first_name: "Person",
+      id: `50000000-0000-4000-8000-${String(i + 1).padStart(12, "0")}`,
+      last_name: String(i + 1),
+      organisation_id: tenantA.organisationId,
+      source_person_key: `60000000-0000-4000-8000-${String(i + 1).padStart(12, "0")}`,
+      source_system: "XERO" as const,
+      xero_employee_id: `60000000-0000-4000-8000-${String(i + 1).padStart(12, "0")}`,
+    }));
+    await database.person.createMany({ data: peopleData });
+
+    mockFetchLeaveForEmployeeForRegion.mockImplementation(
+      async (_region, empInput: { xeroEmployeeId: string }) => ({
+        ok: true,
+        value: {
+          complete: true,
+          leaveRecords: [
+            {
+              employeeId: empInput.xeroEmployeeId,
+              endDate: "2026-05-08",
+              leaveApplicationId: `50000000-0000-4000-8000-${empInput.xeroEmployeeId.slice(-12)}`,
+              leaveTypeId: "annual",
+              leaveTypeName: "Annual Leave",
+              rawPayload: {
+                LeaveApplicationID: `50000000-0000-4000-8000-${empInput.xeroEmployeeId.slice(-12)}`,
+              },
+              startDate: "2026-05-07",
+              status: "APPROVED" as const,
+              title: "Annual leave",
+              units: 8,
+              updatedDateUtc: "2026-05-01T00:00:00.000Z",
+            },
+          ],
+          rawResponse: {},
+        },
+      })
+    );
+
+    const input = syncInput(tenantA);
+
+    // First page: processes 20 people
+    const firstRun = await syncXeroLeaveRecords(input);
+    expect(firstRun.ok).toBe(true);
+    if (firstRun.ok) {
+      expect(firstRun.value).toMatchObject({
+        failed: 0,
+        fetched: 20,
+        status: "succeeded",
+        upserted: 20,
+      });
+    }
+
+    const cursor1 = await database.xeroSyncCursor.findFirst({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        entity_type: "leave_records",
+        organisation_id: tenantA.organisationId,
+        xero_tenant_id: tenantA.xeroTenantId,
+      },
+    });
+    expect(cursor1?.cursor_value).toBe(peopleData[19]?.id);
+
+    const tenantAfterPage1 = await database.xeroTenant.findUnique({
+      where: { id: tenantA.xeroTenantId },
+    });
+    expect(tenantAfterPage1?.leave_records_stale_since).not.toBeNull();
+
+    // Second page: processes remaining 1 person
+    const secondRun = await syncXeroLeaveRecords(input);
+    expect(secondRun.ok).toBe(true);
+    if (secondRun.ok) {
+      expect(secondRun.value).toMatchObject({
+        failed: 0,
+        fetched: 1,
+        status: "succeeded",
+        upserted: 1,
+      });
+    }
+
+    const cursor2 = await database.xeroSyncCursor.findFirst({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        entity_type: "leave_records",
+        organisation_id: tenantA.organisationId,
+        xero_tenant_id: tenantA.xeroTenantId,
+      },
+    });
+    expect(cursor2?.cursor_value).toBeNull();
+
+    const tenantAfterPage2 = await database.xeroTenant.findUnique({
+      where: { id: tenantA.xeroTenantId },
+    });
+    expect(tenantAfterPage2?.leave_records_stale_since).toBeNull();
+  }, 20_000);
+
+  it("isolates person-scoped stale archival between Person A and Person B in NZ regional sync", async () => {
+    await setupTenant(tenantA, "NZ");
+    await setupPerson(tenantA);
+
+    const personBId = "50000000-0000-4000-8000-000000000088";
+    const employeeBId = "60000000-0000-4000-8000-000000000088";
+    await database.person.create({
+      data: {
+        clerk_org_id: tenantA.clerkOrgId,
+        email: "personb@example.com",
+        employment_type: "employee",
+        first_name: "Person",
+        id: personBId,
+        last_name: "B",
+        organisation_id: tenantA.organisationId,
+        source_person_key: employeeBId,
+        source_system: "XERO",
+        xero_employee_id: employeeBId,
+      },
+    });
+
+    // Create stale record for Person A
+    const staleAId = "50000000-0000-4000-8000-000000000091";
+    await database.availabilityRecord.create({
+      data: {
+        all_day: true,
+        approval_status: "approved",
+        clerk_org_id: tenantA.clerkOrgId,
+        contactability: "unavailable",
+        derived_uid_key: `stale-${staleAId}`,
+        ends_at: new Date("2026-05-05T00:00:00.000Z"),
+        organisation_id: tenantA.organisationId,
+        person_id: tenantA.personId,
+        privacy_mode: "named",
+        publish_status: "eligible",
+        record_type: "annual_leave",
+        source_remote_id: staleAId,
+        source_type: "xero_leave",
+        starts_at: new Date("2026-05-04T00:00:00.000Z"),
+      },
+    });
+
+    // Create stale record for Person B
+    const staleBId = "50000000-0000-4000-8000-000000000092";
+    await database.availabilityRecord.create({
+      data: {
+        all_day: true,
+        approval_status: "approved",
+        clerk_org_id: tenantA.clerkOrgId,
+        contactability: "unavailable",
+        derived_uid_key: `stale-${staleBId}`,
+        ends_at: new Date("2026-05-05T00:00:00.000Z"),
+        organisation_id: tenantA.organisationId,
+        person_id: personBId,
+        privacy_mode: "named",
+        publish_status: "eligible",
+        record_type: "annual_leave",
+        source_remote_id: staleBId,
+        source_type: "xero_leave",
+        starts_at: new Date("2026-05-04T00:00:00.000Z"),
+      },
+    });
+
+    // Person A has a new active leave in Xero, stale record is omitted
+    mockFetchLeaveForEmployeeForRegion.mockImplementation(
+      async (_region, input: { xeroEmployeeId: string }) => ({
+        ok: true,
+        value: {
+          complete: true,
+          leaveRecords: [
+            {
+              employeeId: input.xeroEmployeeId,
+              endDate: "2026-05-08",
+              leaveApplicationId: leaveId(),
+              leaveTypeId: "annual",
+              leaveTypeName: "Annual Leave",
+              rawPayload: { LeaveApplicationID: leaveId() },
+              startDate: "2026-05-07",
+              status: "APPROVED" as const,
+              title: "Annual leave",
+              units: 8,
+              updatedDateUtc: "2026-05-01T00:00:00.000Z",
+            },
+          ],
+          rawResponse: {},
+        },
+      })
+    );
+
+    // Run targeted sync for Person A only
+    const result = await syncXeroLeaveRecords({
+      ...syncInput(tenantA),
+      personId: tenantA.personId,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        archived: 1,
+        failed: 0,
+        status: "succeeded",
+        upserted: 1,
+      });
+    }
+
+    // Person A's stale record is archived
+    const recordA = await database.availabilityRecord.findFirst({
+      where: { source_remote_id: staleAId },
+    });
+    expect(recordA?.archived_at).not.toBeNull();
+    expect(recordA?.publish_status).toBe("archived");
+
+    // Person B's stale record MUST REMAIN ACTIVE (untouched)
+    const recordB = await database.availabilityRecord.findFirst({
+      where: { source_remote_id: staleBId },
+    });
+    expect(recordB?.archived_at).toBeNull();
+    expect(recordB?.publish_status).toBe("eligible");
+  });
+
+  it("handles CAS race condition in database when cursor is modified concurrently", async () => {
+    await setupTenant(tenantA, "NZ");
+    await setupPerson(tenantA);
+
+    const initialCursor = "50000000-0000-4000-8000-000000000001";
+    const modifiedCursor = "50000000-0000-4000-8000-000000000099";
+
+    await database.xeroSyncCursor.create({
+      data: {
+        clerk_org_id: tenantA.clerkOrgId,
+        cursor_value: initialCursor,
+        entity_type: "leave_records",
+        organisation_id: tenantA.organisationId,
+        xero_tenant_id: tenantA.xeroTenantId,
+      },
+    });
+
+    mockFetchLeaveForEmployeeForRegion.mockImplementation(async () => {
+      // Modify cursor concurrently in the database
+      await database.xeroSyncCursor.updateMany({
+        data: { cursor_value: modifiedCursor },
+        where: {
+          clerk_org_id: tenantA.clerkOrgId,
+          entity_type: "leave_records",
+          organisation_id: tenantA.organisationId,
+          xero_tenant_id: tenantA.xeroTenantId,
+        },
+      });
+      return {
+        ok: true,
+        value: {
+          complete: true,
+          leaveRecords: [],
+          rawResponse: {},
+        },
+      };
+    });
+
+    const result = await syncXeroLeaveRecords(syncInput(tenantA));
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.status).toBe("cancelled");
+    }
+
+    // Ensure cursor value was NOT overwritten with next value
+    const cursor = await database.xeroSyncCursor.findFirst({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        entity_type: "leave_records",
+        organisation_id: tenantA.organisationId,
+        xero_tenant_id: tenantA.xeroTenantId,
+      },
+    });
+    expect(cursor?.cursor_value).toBe(modifiedCursor);
+  });
+
+  it("does not advance cursor in database when blanket failure occurs", async () => {
+    await setupTenant(tenantA, "NZ");
+    await setupPerson(tenantA);
+
+    mockFetchLeaveForEmployeeForRegion.mockResolvedValueOnce({
+      error: { code: "auth_error", message: "Token expired or invalid" },
+      ok: false,
+    });
+
+    const result = await syncXeroLeaveRecords(syncInput(tenantA));
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.status).toBe("failed");
+    }
+
+    const cursor = await database.xeroSyncCursor.findFirst({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        entity_type: "leave_records",
+        organisation_id: tenantA.organisationId,
+        xero_tenant_id: tenantA.xeroTenantId,
+      },
+    });
+    expect(cursor).toBeNull();
+  });
 });
 
-async function setupTenant(tenant: typeof tenantA | typeof tenantB) {
+async function setupTenant(
+  tenant: typeof tenantA | typeof tenantB,
+  payrollRegion: "AU" | "NZ" | "UK" = "AU"
+) {
   await database.organisation.create({
     data: {
       clerk_org_id: tenant.clerkOrgId,
-      country_code: "AU",
+      country_code: payrollRegion === "UK" ? "GB" : payrollRegion,
       id: tenant.organisationId,
       name: `Test Org ${tenant.clerkOrgId}`,
     },
@@ -630,7 +942,7 @@ async function setupTenant(tenant: typeof tenantA | typeof tenantB) {
       clerk_org_id: tenant.clerkOrgId,
       id: tenant.xeroTenantId,
       organisation_id: tenant.organisationId,
-      payroll_region: "AU",
+      payroll_region: payrollRegion,
       tenant_name: "Xero Tenant",
       xero_connection_id: tenant.xeroConnectionId,
       xero_tenant_id: `xero-${tenant.xeroTenantId}`,
@@ -739,6 +1051,7 @@ async function createExistingRecord(
 async function cleanTestData() {
   const scope = { clerk_org_id: { in: [...testClerkOrgIds] } };
   await database.failedRecord.deleteMany({ where: scope });
+  await database.xeroSyncCursor.deleteMany({ where: scope });
   await database.syncRun.deleteMany({ where: scope });
   await database.availabilityPublication.deleteMany({ where: scope });
   await database.availabilityRecord.deleteMany({ where: scope });

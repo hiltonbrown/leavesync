@@ -22,6 +22,7 @@ export {
   fetchEmployeesForRegion,
   fetchLeaveApplicationStatusForRegion,
   fetchLeaveBalancesForRegion,
+  fetchLeaveForEmployeeForRegion,
   fetchLeaveRecordsForRegion,
 } from "./src/read/dispatch";
 export type {
