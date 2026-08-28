@@ -1,5 +1,10 @@
 import { renderFeedForToken } from "@repo/feeds";
 import { log } from "@repo/observability/log";
+import {
+  checkFeedRateLimit,
+  extractClientIp,
+  hashToken,
+} from "../../../lib/rate-limit/feed-rate-limit";
 
 const weakEtagPrefixPattern = /^W\//;
 
@@ -23,6 +28,7 @@ function etagMatches(
  * - 304 Not Modified: ETag matches If-None-Match
  * - 410 Gone: Expired or revoked token
  * - 404 Not Found: Token not found or feed inactive
+ * - 429 Too Many Requests: Rate limit exceeded for client IP or token probe
  * - 503 Service Unavailable: Transient render/projection failure (retryable)
  */
 export async function GET(
@@ -33,6 +39,22 @@ export async function GET(
   const token = tokenParam.endsWith(".ics")
     ? tokenParam.slice(0, -".ics".length)
     : tokenParam;
+
+  const clientIp = extractClientIp(request);
+  const tokenDigest = hashToken(token);
+  const rateLimitResult = await checkFeedRateLimit({
+    clientIp,
+    tokenDigest,
+  });
+
+  if (!rateLimitResult.allowed) {
+    return new Response("Too Many Requests", {
+      headers: {
+        "Retry-After": String(rateLimitResult.retryAfter ?? 60),
+      },
+      status: 429,
+    });
+  }
 
   // Render or retrieve cached feed for this token in a single resolution step
   const feedResult = await renderFeedForToken(token);
