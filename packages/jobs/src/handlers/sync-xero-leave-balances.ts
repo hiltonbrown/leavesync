@@ -126,15 +126,6 @@ export async function syncXeroLeaveBalances(
     const { xeroTenant } = tenantReadiness;
 
     const counts = emptyCounts();
-    const skippedRegion = await skipUnsupportedRegion(
-      context,
-      run.id,
-      xeroTenant,
-      counts
-    );
-    if (skippedRegion) {
-      return skippedRegion;
-    }
 
     const isTargetedPerson = Boolean(context.personId);
     let peopleToProcess: Array<{ id: string; xero_employee_id: string | null }>;
@@ -588,33 +579,6 @@ async function ensureTenantReady(
   return { ready: true, xeroTenant };
 }
 
-async function skipUnsupportedRegion(
-  context: SyncXeroLeaveBalancesInput,
-  runId: string,
-  xeroTenant: XeroTenant,
-  counts: Counts
-): Promise<SyncXeroLeaveBalancesResult | null> {
-  if (
-    xeroTenant.payroll_region !== "NZ" &&
-    xeroTenant.payroll_region !== "UK"
-  ) {
-    return null;
-  }
-
-  log.info(
-    `Sync leave balances skipped for region ${xeroTenant.payroll_region} as it is not yet available.`
-  );
-  await completeRun(context, runId, {
-    counts,
-    errorSummary: `${xeroTenant.payroll_region} payroll leave balance reads are not yet available.`,
-    status: "succeeded",
-  });
-  return {
-    ok: true,
-    value: { ...counts, runId, status: "succeeded" },
-  };
-}
-
 function validateBalance(
   balance: XeroLeaveBalance
 ): { valid: true } | { message: string; valid: false } {
@@ -808,6 +772,8 @@ function isBlanketFailure(error: XeroWriteError): boolean {
   return (
     error.code === "auth_error" ||
     error.code === "rate_limit_error" ||
+    error.code === "permission_error" ||
+    error.code === "network_error" ||
     error.code === "validation_error"
   );
 }
