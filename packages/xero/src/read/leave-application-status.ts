@@ -29,6 +29,11 @@ export interface FetchNzLeaveApplicationStatusInput
   xeroEmployeeId: string;
 }
 
+export interface FetchUkLeaveApplicationStatusInput
+  extends FetchLeaveApplicationStatusInput {
+  xeroEmployeeId: string;
+}
+
 export function mapLeaveApplicationStatus(
   payload: unknown
 ): XeroLeaveApplicationStatusResult {
