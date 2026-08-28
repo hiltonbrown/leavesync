@@ -54,7 +54,7 @@ export const ScrollReveal = ({
 
   return (
     <div
-      className={className}
+      className={`ft-scroll-reveal ${className}`.trim()}
       ref={ref}
       style={{
         opacity: isVisible ? 1 : 0,
@@ -62,6 +62,15 @@ export const ScrollReveal = ({
         transition: `opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delayMs}ms, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delayMs}ms`,
       }}
     >
+      {/* Without JS the reveal never fires and the inline opacity/transform
+          above would hide this section forever; force it visible instead. */}
+      <noscript>
+        <style>
+          {
+            ".ft-scroll-reveal { opacity: 1 !important; transform: none !important; }"
+          }
+        </style>
+      </noscript>
       {children}
     </div>
   );

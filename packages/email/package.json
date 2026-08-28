@@ -12,14 +12,14 @@
     "@t3-oss/env-nextjs": "^0.13.11",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "resend": "^6.18.1",
+    "resend": "^6.24.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
-    "@types/node": "26.1.2",
+    "@types/node": "26.4.0",
     "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.4",
+    "@types/react-dom": "19.2.5",
     "typescript": "^7.0.2"
   }
 }

@@ -13,6 +13,7 @@
   --marketing-secondary-container: var(--secondary);
   --marketing-on-secondary-container: var(--secondary-foreground);
   --marketing-tertiary: var(--tertiary);
+  --marketing-editorial-accent: var(--editorial-accent);
   --marketing-surface: var(--background);
   --marketing-surface-lowest: var(--surface-container-lowest);
   --marketing-surface-low: var(--surface-container-low);

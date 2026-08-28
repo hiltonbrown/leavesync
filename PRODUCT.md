@@ -1,5 +1,11 @@
 # Team Calendar Product Specification
 
+<!-- impeccable:product-schema 1 -->
+
+## Platform
+
+web
+
 ## Companion documents
 
 | Document | Purpose |

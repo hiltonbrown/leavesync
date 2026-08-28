@@ -167,6 +167,20 @@ interface SelectedBlockState {
   teammateId: string;
 }
 
+const getSyncMetaLabel = (
+  state: "approved" | "pending",
+  isPayroll: boolean
+) => {
+  if (isPayroll) {
+    return state === "pending"
+      ? "Sync writes back to Xero Payroll"
+      : "Two-way Xero synchronization active";
+  }
+  return state === "pending"
+    ? "Publishes to synced calendars on approval"
+    : "Published to synced calendars";
+};
+
 const getSyncStatusText = (lastSync: number) => {
   const elapsed = Date.now() - lastSync;
   if (elapsed < 10_000) {
@@ -653,6 +667,9 @@ const TimelineDetailStrip = ({
     );
   }
 
+  const teammate = TEAMMATES.find((t) => t.id === selectedBlock.teammateId);
+  const isPayroll = teammate?.type === "employee";
+
   return (
     <div
       className="tl-detail"
@@ -670,8 +687,7 @@ const TimelineDetailStrip = ({
       </div>
       <div className="tl-detail-content">
         <div className="tl-detail-title">
-          {TEAMMATES.find((t) => t.id === selectedBlock.teammateId)?.name} ·{" "}
-          {selectedBlock.label}{" "}
+          {teammate?.name} · {selectedBlock.label}{" "}
           <span
             className={`ml-1.5 rounded px-1.5 py-0.5 font-semibold text-label-sm ${
               selectedBlock.state === "pending"
@@ -695,11 +711,7 @@ const TimelineDetailStrip = ({
           <span aria-hidden="true" className="mx-1">
             ·
           </span>
-          <span>
-            {selectedBlock.state === "pending"
-              ? "Sync writes back to Xero Payroll"
-              : "Two-way Xero synchronization active"}
-          </span>
+          <span>{getSyncMetaLabel(selectedBlock.state, isPayroll)}</span>
         </div>
       </div>
       <div className="tl-detail-side flex items-center gap-2">
@@ -710,7 +722,7 @@ const TimelineDetailStrip = ({
               onClick={handleApprove}
               type="button"
             >
-              Approve Sync
+              {isPayroll ? "Approve Sync" : "Approve & Publish"}
             </button>
             <button
               className="min-h-11 cursor-pointer rounded-lg border border-border/10 bg-transparent px-3.5 py-1.5 font-medium text-muted-foreground text-xs transition-colors hover:bg-muted"
@@ -997,6 +1009,9 @@ export const InteractiveHeroSection = () => {
               </p>
 
               {/* Grid Timeline - Using authentic tl-card styles */}
+              <p aria-hidden="true" className="tl-scrollhint">
+                Swipe to see the full week
+              </p>
               <div className="tl-card">
                 <div className="tl-toolbar">
                   <div className="tl-week-meta" style={{ padding: 0 }}>
@@ -1064,7 +1079,9 @@ export const InteractiveHeroSection = () => {
 
                 <div
                   className="tl-grid"
-                  style={{ gridTemplateColumns: "160px 1fr" }}
+                  style={{
+                    gridTemplateColumns: "var(--tl-sidebar-w, 160px) 1fr",
+                  }}
                 >
                   <div className="tl-corner">Team</div>
 
@@ -1156,7 +1173,7 @@ export const InteractiveHeroSection = () => {
           ) : (
             <div
               aria-labelledby="feature-demo-tab-ics"
-              className="ft-sandbox-content flex h-[380px] flex-col justify-between p-4"
+              className="ft-sandbox-content flex min-h-[380px] flex-col justify-between p-4"
               id="feature-demo-panel-ics"
               role="tabpanel"
             >
@@ -1202,7 +1219,7 @@ export const InteractiveHeroSection = () => {
                 <span className="mb-2.5 block font-semibold text-label-sm text-muted-foreground uppercase tracking-wider">
                   How to add to your calendar:
                 </span>
-                <div className="grid grid-cols-3 gap-3 text-left">
+                <div className="grid grid-cols-1 gap-3 text-left sm:grid-cols-3">
                   <div>
                     <div className="mb-1.5 flex items-center gap-1 font-medium text-foreground text-xs">
                       <GCalIcon />

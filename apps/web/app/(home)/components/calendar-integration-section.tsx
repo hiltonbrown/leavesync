@@ -2,9 +2,19 @@ import Link from "next/link";
 import { MarketingIcon } from "./marketing-icons";
 
 const integrationPoints = [
-  "Connect Xero Payroll Australia. New Zealand and United Kingdom support is planned.",
-  "Publish secure feeds for Outlook, Google Calendar, and Apple Calendar.",
-  "Keep approved leave and manual availability in one calendar view.",
+  { status: "shipped" as const, text: "Connect Xero Payroll Australia." },
+  {
+    status: "planned" as const,
+    text: "New Zealand and United Kingdom Xero Payroll support.",
+  },
+  {
+    status: "shipped" as const,
+    text: "Publish secure feeds for Outlook, Google Calendar, and Apple Calendar.",
+  },
+  {
+    status: "shipped" as const,
+    text: "Keep approved leave and manual availability in one calendar view.",
+  },
 ];
 
 export const CalendarIntegrationSection = () => (
@@ -23,9 +33,15 @@ export const CalendarIntegrationSection = () => (
       <div className="fmkt-integration-bridge__panel">
         <ul>
           {integrationPoints.map((point) => (
-            <li key={point}>
-              <MarketingIcon id="check" size={16} />
-              <span>{point}</span>
+            <li data-status={point.status} key={point.text}>
+              {point.status === "shipped" ? (
+                <MarketingIcon id="check" size={16} />
+              ) : (
+                <span className="fmkt-integration-bridge__badge">
+                  Coming soon
+                </span>
+              )}
+              <span>{point.text}</span>
             </li>
           ))}
         </ul>

@@ -96,6 +96,13 @@
   border-radius: 16px;
 }
 
+/* The sandbox's timeline grid sits inside a narrower hero column than the
+   home page's full-width equivalent, so it steps down its own sidebar width
+   at this file's breakpoints rather than reusing home.css's tuned values. */
+.ft-sandbox-card .tl-grid {
+  --tl-sidebar-w: 160px;
+}
+
 /* Dark theme overrides for sandbox */
 :where(.dark, [data-theme="dark"]) .ft-sandbox-card {
   background: var(--marketing-surface-container);
@@ -408,7 +415,7 @@
 }
 
 .ft-persona__source--purple .ft-persona__source__dot {
-  background: var(--accent, #5e4f99);
+  background: var(--marketing-editorial-accent);
 }
 
 /* ============ Capabilities ============ */
@@ -462,7 +469,7 @@
 /* Accent cap modifier: after base */
 
 .ft-cap--accent .ft-cap__icon {
-  color: var(--accent, #5e4f99);
+  color: var(--marketing-editorial-accent);
 }
 
 /* ============ Sync flow ============ */
@@ -567,7 +574,7 @@
 }
 
 .ft-flow__icon--accent {
-  color: var(--editorial-accent);
+  color: var(--marketing-editorial-accent);
 }
 
 /* ============ Coverage matrix ============ */
@@ -678,6 +685,14 @@
   color: var(--marketing-on-surface-variant);
 }
 
+/* A genuine "Yes" that isn't Xero-synced provenance: keeps the check icon
+   (unlike --mute's dash, which means "doesn't apply") but drops the sage/
+   purple source colour, since the capability is true for everyone equally. */
+.ft-mark--neutral .ft-mark__dot {
+  color: var(--marketing-on-surface-variant);
+  background: var(--marketing-surface-container);
+}
+
 /* ============ FAQ ============ */
 
 .ft-faq {
@@ -732,6 +747,12 @@
   .ft-faq {
     grid-template-columns: 1fr;
   }
+
+  /* The hero stacks above, so the sandbox card is now full viewport width
+     like the home page's timeline; widen the sidebar to match. */
+  .ft-sandbox-card .tl-grid {
+    --tl-sidebar-w: 180px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -747,8 +768,17 @@
     padding: 48px 0 40px;
   }
 
+  .ft-sandbox-card .tl-grid {
+    --tl-sidebar-w: 140px;
+  }
+
   .ft-matrix {
     overflow-x: auto;
+  }
+
+  .ft-matrix__table {
+    width: auto;
+    min-width: 640px;
   }
 }
 
@@ -908,6 +938,16 @@
     transparent
   );
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+}
+
+/* Neutral pill (hero "Now in early access" status tag): the base .fmkt-pill
+   uses the lavender accent-container token, which this same page teaches as
+   "manual, non-Xero availability" a few sections down in the interactive
+   timeline. A status tag has no provenance meaning, so it stays off that
+   token here rather than diluting it. */
+.fmkt-pill--neutral {
+  color: var(--marketing-on-surface-variant);
+  background: var(--marketing-surface-high);
 }
 
 /* ---- Sync Pathway Strip ---- */
@@ -2147,6 +2187,25 @@
   color: var(--marketing-primary);
 }
 
+.fmkt-integration-bridge__panel li[data-status="planned"] {
+  color: var(--marketing-on-surface-variant);
+}
+
+.fmkt-integration-bridge__badge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 2px 8px;
+  margin-top: 1px;
+  font: 500 0.6875rem / 1.3 var(--marketing-font);
+  color: var(--marketing-on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  background: var(--marketing-surface-high);
+  border-radius: 999px;
+}
+
 /* ---- How It Works ---- */
 
 .fmkt-how {
@@ -2165,10 +2224,38 @@
 }
 
 .fmkt-how__item {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 0;
+}
+
+/* Flow marker: same dot-and-line grammar as the hero sync diagram and the
+   timeline's day guides, so "one calm workflow" reads as a continuation of
+   the page's own visual language rather than a generic stepper. */
+.fmkt-how__node {
+  display: block;
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  margin-bottom: 10px;
+  background: var(--marketing-primary);
+  border-radius: 999px;
+}
+
+.fmkt-how__item:not(:last-child) .fmkt-how__node::after {
+  position: absolute;
+  top: 4px;
+  left: 10px;
+  width: calc(100% - 10px + 24px);
+  height: 1px;
+  content: "";
+  background: color-mix(
+    in srgb,
+    var(--marketing-outline-variant) 45%,
+    transparent
+  );
 }
 
 .fmkt-how__title {
@@ -3159,6 +3246,15 @@
 
   .fmkt-how__steps {
     grid-template-columns: repeat(2, 1fr);
+    row-gap: 32px;
+  }
+
+  /* The line only reads correctly across one row; at two columns it would
+     draw off the right edge of every item, including ones that wrap to a
+     new row. The dot alone still marks each step. Selector matches the base
+     rule's specificity so this override actually wins the cascade. */
+  .fmkt-how__item:not(:last-child) .fmkt-how__node::after {
+    content: none;
   }
 
   .fmkt-cta__panel {

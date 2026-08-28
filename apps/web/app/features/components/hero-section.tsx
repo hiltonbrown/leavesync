@@ -6,7 +6,7 @@ export const HeroSection = () => (
   <section className="fmkt-hero">
     <div className="fmkt-hero__copy">
       <div className="fmkt-hero__copy-inner">
-        <div className="fmkt-pill">Now in early access</div>
+        <div className="fmkt-pill fmkt-pill--neutral">Now in early access</div>
         <h1 className="fmkt-hero__title">
           Out of office notifications, leave and working from home.
           <em>There is a better way to manage it all.</em>
