@@ -8,10 +8,12 @@ import {
 import {
   fetchEmployees as fetchNzEmployees,
   fetchLeaveApplicationStatus as fetchNzLeaveApplicationStatus,
+  fetchLeaveForEmployee as fetchNzLeaveForEmployee,
 } from "../nz/read";
 import {
   fetchEmployees as fetchUkEmployees,
   fetchLeaveApplicationStatus as fetchUkLeaveApplicationStatus,
+  fetchLeaveForEmployee as fetchUkLeaveForEmployee,
 } from "../uk/read";
 import type {
   PayrollRegion,
@@ -89,7 +91,7 @@ export async function fetchLeaveRecordsForRegion(
       return {
         error: {
           code: "unknown_error",
-          message: "NZ payroll leave reads are not yet available.",
+          message: "NZ payroll requires per-employee leave reads.",
         },
         ok: false,
       };
@@ -97,7 +99,44 @@ export async function fetchLeaveRecordsForRegion(
       return {
         error: {
           code: "unknown_error",
-          message: "UK payroll leave reads are not yet available.",
+          message: "UK payroll requires per-employee leave reads.",
+        },
+        ok: false,
+      };
+    default:
+      return {
+        error: {
+          code: "unknown_error",
+          message: "Unsupported payroll region.",
+        },
+        ok: false,
+      };
+  }
+}
+
+export async function fetchLeaveForEmployeeForRegion(
+  payrollRegion: PayrollRegion | string,
+  input: {
+    xeroEmployeeId: string;
+    xeroTenant: XeroTenantForWrite;
+  }
+): Promise<
+  XeroWriteResult<{
+    complete: boolean;
+    leaveRecords: XeroLeaveRecord[];
+    rawResponse: unknown;
+  }>
+> {
+  switch (payrollRegion) {
+    case "NZ":
+      return await fetchNzLeaveForEmployee(input);
+    case "UK":
+      return await fetchUkLeaveForEmployee(input);
+    case "AU":
+      return {
+        error: {
+          code: "unknown_error",
+          message: "AU payroll does not support per-employee leave reads.",
         },
         ok: false,
       };

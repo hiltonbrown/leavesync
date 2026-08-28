@@ -8,12 +8,13 @@ import {
 } from "@repo/availability";
 import type { Result } from "@repo/core";
 import { database, scopedTo as scoped } from "@repo/database";
-import { Prisma } from "@repo/database/generated/client";
+import { type availability_privacy_mode, Prisma } from "@repo/database/generated/client";
 import { feedIdsForPeople } from "@repo/feeds";
 import { publishOrganisationNotificationEvent } from "@repo/notifications";
 import { log } from "@repo/observability/log";
 import {
   ensureFreshXeroConnection,
+  fetchLeaveForEmployeeForRegion,
   fetchLeaveRecordsForRegion,
   toPlainLanguageMessage,
   type XeroLeaveRecord,
@@ -27,6 +28,7 @@ import { inngest } from "../client";
 const SyncXeroLeaveRecordsInputSchema = z.object({
   clerkOrgId: z.string().min(1),
   organisationId: z.string().uuid(),
+  personId: z.string().uuid().optional(),
   triggeredByUserId: z.string().min(1).nullable().optional(),
   triggerType: z.enum(["scheduled", "manual", "webhook"]).default("manual"),
   xeroTenantId: z.string().uuid(),
@@ -49,6 +51,8 @@ type JsonValue =
   | { [key: string]: JsonValue };
 
 const BATCH_SIZE = 50;
+const LEAVE_PAGE_SIZE = 20;
+const PROBE_PAGE_SIZE = 21;
 const DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 const STALE_RUN_WINDOW_MS = 30 * 60 * 1000;
 const UUID_REGEX = /^[0-9a-fA-F-]{36}$/;
@@ -163,149 +167,442 @@ export async function syncXeroLeaveRecords(
     const { xeroTenant } = tenantReadiness;
 
     const counts = emptyCounts();
-    const skippedRegion = await skipUnsupportedRegion(
-      context,
-      run.id,
-      xeroTenant,
-      counts
-    );
-    if (skippedRegion) {
-      return skippedRegion;
-    }
 
-    const leaveRecordsResult = await fetchLeaveRecordsForRegion(
-      xeroTenant.payroll_region,
-      { xeroTenant }
-    );
-    if (!leaveRecordsResult.ok) {
-      await completeRun(context, run.id, {
-        counts,
-        errorSummary: isBlanketFailure(leaveRecordsResult.error)
-          ? toPlainLanguageMessage(leaveRecordsResult.error)
-          : leaveRecordsResult.error.message,
-        status: "failed",
+    if (xeroTenant.payroll_region === "AU") {
+      const leaveRecordsResult = await fetchLeaveRecordsForRegion("AU", {
+        xeroTenant,
       });
-      return {
-        ok: true,
-        value: { ...counts, runId: run.id, status: "failed" },
-      };
-    }
-
-    const { complete, leaveRecords: fetched } = leaveRecordsResult.value;
-    counts.fetched = fetched.length;
-    const processed: AppliedLeaveRecord[] = [];
-
-    for (let index = 0; index < fetched.length; index += BATCH_SIZE) {
-      const runState = await database.syncRun.findFirst({
-        select: { cancel_requested_at: true },
-        where: { ...scoped(context), id: run.id },
-      });
-      if (runState?.cancel_requested_at) {
+      if (!leaveRecordsResult.ok) {
         await completeRun(context, run.id, {
           counts,
-          status: "cancelled",
+          errorSummary: isBlanketFailure(leaveRecordsResult.error)
+            ? toPlainLanguageMessage(leaveRecordsResult.error)
+            : leaveRecordsResult.error.message,
+          status: "failed",
         });
         return {
           ok: true,
-          value: { ...counts, runId: run.id, status: "cancelled" },
+          value: { ...counts, runId: run.id, status: "failed" },
         };
       }
 
-      const batch = fetched.slice(index, index + BATCH_SIZE);
-      const peopleByEmployeeId = await loadPeopleByEmployeeId(
-        context,
-        batch
-          .map((record) => record.employeeId)
-          .filter((employeeId): employeeId is string => Boolean(employeeId))
-      );
-      const existingRecordsBySourceRemoteId =
-        await loadExistingRecordsBySourceRemoteId(
+      const { complete, leaveRecords: fetched } = leaveRecordsResult.value;
+      counts.fetched = fetched.length;
+      const processed: AppliedLeaveRecord[] = [];
+
+      for (let index = 0; index < fetched.length; index += BATCH_SIZE) {
+        const runState = await database.syncRun.findFirst({
+          select: { cancel_requested_at: true },
+          where: { ...scoped(context), id: run.id },
+        });
+        if (runState?.cancel_requested_at) {
+          await completeRun(context, run.id, {
+            counts,
+            status: "cancelled",
+          });
+          return {
+            ok: true,
+            value: { ...counts, runId: run.id, status: "cancelled" },
+          };
+        }
+
+        const batch = fetched.slice(index, index + BATCH_SIZE);
+        const peopleByEmployeeId = await loadPeopleByEmployeeId(
           context,
           batch
-            .map((record) => record.leaveApplicationId)
-            .filter((leaveApplicationId): leaveApplicationId is string =>
-              Boolean(leaveApplicationId)
-            )
+            .map((record) => record.employeeId)
+            .filter((employeeId): employeeId is string => Boolean(employeeId))
         );
+        const existingRecordsBySourceRemoteId =
+          await loadExistingRecordsBySourceRemoteId(
+            context,
+            batch
+              .map((record) => record.leaveApplicationId)
+              .filter((leaveApplicationId): leaveApplicationId is string =>
+                Boolean(leaveApplicationId)
+              )
+          );
 
-      for (const leaveRecord of batch) {
-        const result = await processLeaveRecord(
-          context,
-          run.id,
-          xeroTenant.id,
-          leaveRecord,
-          peopleByEmployeeId,
-          existingRecordsBySourceRemoteId,
-          startedAt
-        );
-        switch (result.kind) {
-          case "applied":
-            processed.push(result.record);
-            counts.upserted += 1;
-            break;
-          case "skipped":
-            counts.skipped += 1;
-            break;
-          case "failed":
-            counts.failed += 1;
-            break;
-          default: {
-            const exhaustive: never = result;
-            throw new Error(`Unexpected leave record outcome: ${exhaustive}`);
+        for (const leaveRecord of batch) {
+          const result = await processLeaveRecord(
+            context,
+            run.id,
+            xeroTenant.id,
+            leaveRecord,
+            peopleByEmployeeId,
+            existingRecordsBySourceRemoteId,
+            startedAt
+          );
+          switch (result.kind) {
+            case "applied":
+              processed.push(result.record);
+              counts.upserted += 1;
+              break;
+            case "skipped":
+              counts.skipped += 1;
+              break;
+            case "failed":
+              counts.failed += 1;
+              break;
+            default: {
+              const exhaustive: never = result;
+              throw new Error(`Unexpected leave record outcome: ${exhaustive}`);
+            }
           }
         }
-      }
 
-      if (index + BATCH_SIZE < fetched.length) {
-        await sleep(150);
-      }
-    }
-
-    const stale = complete
-      ? await archiveStaleRecords(
-          context,
-          fetched.map((record) => record.leaveApplicationId).filter(Boolean),
-          startedAt
-        )
-      : { archived: 0, personIds: [] };
-    if (!complete) {
-      log.warn(
-        "Skipped stale-archive because the Xero leave fetch was truncated",
-        {
-          clerkOrgId: context.clerkOrgId,
-          organisationId: context.organisationId,
-          xeroTenantId: context.xeroTenantId,
+        if (index + BATCH_SIZE < fetched.length) {
+          await sleep(150);
         }
-      );
+      }
+
+      const stale = complete
+        ? await archiveStaleRecords(
+            context,
+            fetched.map((record) => record.leaveApplicationId).filter(Boolean),
+            startedAt
+          )
+        : { archived: 0, personIds: [] };
+      if (!complete) {
+        log.warn(
+          "Skipped stale-archive because the Xero leave fetch was truncated",
+          {
+            clerkOrgId: context.clerkOrgId,
+            organisationId: context.organisationId,
+            xeroTenantId: context.xeroTenantId,
+          }
+        );
+      }
+      counts.archived = stale.archived;
+      const affectedPersonIds = new Set([
+        ...processed
+          .filter((record) => record.changed)
+          .map((record) => record.personId),
+        ...stale.personIds,
+      ]);
+      await enqueueFeedRebuilds(context, [...affectedPersonIds]);
+
+      await database.xeroTenant.updateMany({
+        data: {
+          last_leave_records_sync_at: new Date(),
+          last_sync_error_code: null,
+          last_sync_error_message: null,
+          leave_records_stale_since: null,
+        },
+        where: { ...scoped(context), id: context.xeroTenantId },
+      });
+
+      const finalStatus = counts.failed > 0 ? "partial_success" : "succeeded";
+      await completeRun(context, run.id, {
+        counts,
+        status: finalStatus,
+      });
+
+      return {
+        ok: true,
+        value: { ...counts, runId: run.id, status: finalStatus },
+      };
     }
-    counts.archived = stale.archived;
-    const affectedPersonIds = new Set([
-      ...processed
-        .filter((record) => record.changed)
-        .map((record) => record.personId),
-      ...stale.personIds,
-    ]);
-    await enqueueFeedRebuilds(context, [...affectedPersonIds]);
 
-    await database.xeroTenant.updateMany({
-      data: {
-        last_leave_records_sync_at: new Date(),
-        last_sync_error_code: null,
-        last_sync_error_message: null,
-        leave_records_stale_since: null,
-      },
-      where: { ...scoped(context), id: context.xeroTenantId },
-    });
+    if (
+      xeroTenant.payroll_region === "NZ" ||
+      xeroTenant.payroll_region === "UK"
+    ) {
+      const isTargetedPerson = Boolean(context.personId);
+      let peopleToProcess: Array<{
+        default_privacy_mode: availability_privacy_mode;
+        id: string;
+        include_in_feeds_by_default: boolean;
+        xero_employee_id: string | null;
+      }>;
+      let isLastPage = true;
+      let cursorRecord: { cursor_value: string | null; id: string } | null =
+        null;
+      let initialCursorValue: string | null = null;
+      let nextCursorValue: string | null = null;
 
-    const finalStatus = counts.failed > 0 ? "partial_success" : "succeeded";
+      if (isTargetedPerson) {
+        peopleToProcess = await database.person.findMany({
+          select: {
+            default_privacy_mode: true,
+            id: true,
+            include_in_feeds_by_default: true,
+            xero_employee_id: true,
+          },
+          where: {
+            ...scoped(context),
+            archived_at: null,
+            id: context.personId,
+            xero_employee_id: { not: null },
+          },
+        });
+      } else {
+        cursorRecord = await database.xeroSyncCursor.findFirst({
+          select: { cursor_value: true, id: true },
+          where: {
+            ...scoped(context),
+            entity_type: "leave_records",
+            xero_tenant_id: context.xeroTenantId,
+          },
+        });
+        initialCursorValue = cursorRecord?.cursor_value ?? null;
+
+        const candidatePeople = await database.person.findMany({
+          orderBy: { id: "asc" },
+          select: {
+            default_privacy_mode: true,
+            id: true,
+            include_in_feeds_by_default: true,
+            xero_employee_id: true,
+          },
+          take: PROBE_PAGE_SIZE,
+          where: {
+            ...scoped(context),
+            archived_at: null,
+            ...(initialCursorValue ? { id: { gt: initialCursorValue } } : {}),
+            xero_employee_id: { not: null },
+          },
+        });
+
+        const hasMoreAfterPage = candidatePeople.length > LEAVE_PAGE_SIZE;
+        peopleToProcess = candidatePeople.slice(0, LEAVE_PAGE_SIZE);
+        isLastPage = !hasMoreAfterPage;
+        nextCursorValue = hasMoreAfterPage
+          ? (peopleToProcess[LEAVE_PAGE_SIZE - 1]?.id ?? null)
+          : null;
+      }
+
+      const affectedPersonIds = new Set<string>();
+
+      for (const person of peopleToProcess) {
+        if (!person) {
+          continue;
+        }
+
+        const runState = await database.syncRun.findFirst({
+          select: { cancel_requested_at: true },
+          where: { ...scoped(context), id: run.id },
+        });
+        if (runState?.cancel_requested_at) {
+          await completeRun(context, run.id, {
+            counts,
+            status: "cancelled",
+          });
+          return {
+            ok: true,
+            value: { ...counts, runId: run.id, status: "cancelled" },
+          };
+        }
+
+        if (!person.xero_employee_id) {
+          continue;
+        }
+
+        const employeeLeave = await fetchLeaveForEmployeeForRegion(
+          xeroTenant.payroll_region,
+          {
+            xeroEmployeeId: person.xero_employee_id,
+            xeroTenant,
+          }
+        );
+
+        if (!employeeLeave.ok) {
+          if (isBlanketFailure(employeeLeave.error)) {
+            await completeRun(context, run.id, {
+              counts,
+              errorSummary: employeeLeave.error.message,
+              status: "failed",
+            });
+            await database.xeroTenant.updateMany({
+              data: {
+                last_sync_error_code: employeeLeave.error.code,
+                last_sync_error_message: employeeLeave.error.message,
+              },
+              where: { ...scoped(context), id: context.xeroTenantId },
+            });
+            return {
+              ok: true,
+              value: { ...counts, runId: run.id, status: "failed" },
+            };
+          }
+
+          log.warn("Per-employee leave records fetch failed", {
+            clerkOrgId: context.clerkOrgId,
+            errorCode: employeeLeave.error.code,
+            errorMessage: employeeLeave.error.message,
+            organisationId: context.organisationId,
+            personId: person.id,
+            xeroEmployeeId: person.xero_employee_id,
+            xeroTenantId: context.xeroTenantId,
+          });
+
+          await recordFailure(context, {
+            errorCode: employeeLeave.error.code,
+            errorMessage: employeeLeave.error.message,
+            rawPayload: {
+              error: employeeLeave.error,
+              personId: person.id,
+              xeroEmployeeId: person.xero_employee_id,
+            },
+            recordType: "leave_records",
+            runId: run.id,
+            sourceId: person.xero_employee_id,
+          });
+
+          counts.failed += 1;
+          continue;
+        }
+
+        if (!employeeLeave.value.complete) {
+          log.warn(
+            "Per-employee leave response was malformed or incomplete; skipping stale archival for person",
+            {
+              clerkOrgId: context.clerkOrgId,
+              organisationId: context.organisationId,
+              personId: person.id,
+              xeroEmployeeId: person.xero_employee_id,
+              xeroTenantId: context.xeroTenantId,
+            }
+          );
+
+          await recordFailure(context, {
+            errorCode: "malformed_payload",
+            errorMessage:
+              "Xero returned an incomplete or unparsable leave payload for employee.",
+            rawPayload: employeeLeave.value.rawResponse,
+            recordType: "leave_records",
+            runId: run.id,
+            sourceId: person.xero_employee_id,
+          });
+
+          counts.failed += 1;
+          continue;
+        }
+
+        const personLeaveRecords = employeeLeave.value.leaveRecords;
+        counts.fetched += personLeaveRecords.length;
+
+        const peopleByEmployeeId = new Map([[person.xero_employee_id, person]]);
+        const sourceRemoteIds = personLeaveRecords
+          .map((r) => r.leaveApplicationId)
+          .filter((id): id is string => Boolean(id));
+
+        const existingRecordsBySourceRemoteId =
+          await loadExistingRecordsBySourceRemoteId(context, sourceRemoteIds);
+
+        for (const leaveRecord of personLeaveRecords) {
+          const result = await processLeaveRecord(
+            context,
+            run.id,
+            xeroTenant.id,
+            leaveRecord,
+            peopleByEmployeeId,
+            existingRecordsBySourceRemoteId,
+            startedAt
+          );
+
+          switch (result.kind) {
+            case "applied":
+              if (result.record.changed) {
+                affectedPersonIds.add(result.record.personId);
+              }
+              counts.upserted += 1;
+              break;
+            case "skipped":
+              counts.skipped += 1;
+              break;
+            case "failed":
+              counts.failed += 1;
+              break;
+            default: {
+              const exhaustive: never = result;
+              throw new Error(`Unexpected leave record outcome: ${exhaustive}`);
+            }
+          }
+        }
+
+        // Person-scoped stale archival
+        const staleOutcome = await archiveStaleRecords(
+          context,
+          sourceRemoteIds,
+          startedAt,
+          person.id
+        );
+        counts.archived += staleOutcome.archived;
+        for (const personId of staleOutcome.personIds) {
+          affectedPersonIds.add(personId);
+        }
+      }
+
+      await enqueueFeedRebuilds(context, [...affectedPersonIds]);
+
+      if (isTargetedPerson) {
+        await database.xeroTenant.updateMany({
+          data: {
+            last_leave_records_sync_at: new Date(),
+            last_sync_error_code: null,
+            last_sync_error_message: null,
+          },
+          where: { ...scoped(context), id: context.xeroTenantId },
+        });
+      } else {
+        const casSuccess = await advanceCursor({
+          context,
+          cursorRecord,
+          initialCursorValue,
+          nextCursorValue,
+        });
+        if (!casSuccess) {
+          await completeRun(context, run.id, {
+            counts,
+            errorSummary:
+              "Cursor update lost compare-and-swap race; run superseded",
+            status: "cancelled",
+          });
+          return {
+            ok: true,
+            value: { ...counts, runId: run.id, status: "cancelled" },
+          };
+        }
+
+        let staleSinceData: { leave_records_stale_since?: Date | null } = {};
+        if (isLastPage) {
+          staleSinceData = { leave_records_stale_since: null };
+        } else if (!xeroTenant.leave_records_stale_since) {
+          staleSinceData = { leave_records_stale_since: startedAt };
+        }
+
+        await database.xeroTenant.updateMany({
+          data: {
+            last_leave_records_sync_at: new Date(),
+            last_sync_error_code: null,
+            last_sync_error_message: null,
+            ...staleSinceData,
+          },
+          where: { ...scoped(context), id: context.xeroTenantId },
+        });
+      }
+
+      const finalStatus = counts.failed > 0 ? "partial_success" : "succeeded";
+      await completeRun(context, run.id, {
+        counts,
+        status: finalStatus,
+      });
+
+      return {
+        ok: true,
+        value: { ...counts, runId: run.id, status: finalStatus },
+      };
+    }
+
     await completeRun(context, run.id, {
       counts,
-      status: finalStatus,
+      errorSummary: "Unsupported payroll region.",
+      status: "failed",
     });
-
     return {
       ok: true,
-      value: { ...counts, runId: run.id, status: finalStatus },
+      value: { ...counts, runId: run.id, status: "failed" },
     };
   } catch (error) {
     log.error("Unhandled exception in syncXeroLeaveRecords:", { error });
@@ -439,33 +736,6 @@ async function ensureTenantReady(
     };
   }
   return { ready: true, xeroTenant };
-}
-
-async function skipUnsupportedRegion(
-  context: SyncXeroLeaveRecordsInput,
-  runId: string,
-  xeroTenant: XeroTenant,
-  counts: Counts
-): Promise<SyncXeroLeaveRecordsResult | null> {
-  if (
-    xeroTenant.payroll_region !== "NZ" &&
-    xeroTenant.payroll_region !== "UK"
-  ) {
-    return null;
-  }
-
-  log.info(
-    `Sync leave records skipped for region ${xeroTenant.payroll_region} as it is not yet available.`
-  );
-  await completeRun(context, runId, {
-    counts,
-    errorSummary: `${xeroTenant.payroll_region} payroll leave reads are not yet available.`,
-    status: "succeeded",
-  });
-  return {
-    ok: true,
-    value: { ...counts, runId, status: "succeeded" },
-  };
 }
 
 async function loadPeopleByEmployeeId(
@@ -831,16 +1101,20 @@ function decideRemoteSnapshot(
 async function archiveStaleRecords(
   context: SyncXeroLeaveRecordsInput,
   fetchedRemoteIds: string[],
-  startedAt: Date
+  startedAt: Date,
+  personId?: string
 ): Promise<{ archived: number; personIds: string[] }> {
-  if (fetchedRemoteIds.length === 0) {
+  if (!personId && fetchedRemoteIds.length === 0) {
     return { archived: 0, personIds: [] };
   }
 
   const stalePredicate = {
     ...scoped(context),
     archived_at: null,
-    source_remote_id: { notIn: fetchedRemoteIds },
+    ...(personId ? { person_id: personId } : {}),
+    ...(fetchedRemoteIds.length > 0
+      ? { source_remote_id: { notIn: fetchedRemoteIds } }
+      : {}),
     source_type: "xero_leave" as const,
     updated_at: { lte: startedAt },
   };
@@ -869,6 +1143,60 @@ async function archiveStaleRecords(
     archived: updateResult.count,
     personIds: stalePeople.map((record) => record.person_id),
   };
+}
+
+async function advanceCursor(params: {
+  context: SyncXeroLeaveRecordsInput;
+  cursorRecord: { cursor_value: string | null; id: string } | null;
+  initialCursorValue: string | null;
+  nextCursorValue: string | null;
+}): Promise<boolean> {
+  const { context, cursorRecord, initialCursorValue, nextCursorValue } = params;
+
+  if (cursorRecord) {
+    const updated = await database.xeroSyncCursor.updateMany({
+      data: {
+        cursor_value: nextCursorValue,
+        updated_at: new Date(),
+      },
+      where: {
+        ...scoped(context),
+        cursor_value: initialCursorValue,
+        entity_type: "leave_records",
+        id: cursorRecord.id,
+        xero_tenant_id: context.xeroTenantId,
+      },
+    });
+    return updated.count > 0;
+  }
+
+  try {
+    await database.xeroSyncCursor.create({
+      data: {
+        ...scoped(context),
+        cursor_value: nextCursorValue,
+        entity_type: "leave_records",
+        xero_tenant_id: context.xeroTenantId,
+      },
+    });
+    return true;
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return false;
+    }
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
+      return false;
+    }
+    throw error;
+  }
 }
 
 async function materialiseSyncedPublication(
@@ -1060,7 +1388,12 @@ function loadXeroTenant(context: SyncXeroLeaveRecordsInput) {
 }
 
 function isBlanketFailure(error: XeroWriteError): boolean {
-  return error.code === "auth_error" || error.code === "rate_limit_error";
+  return (
+    error.code === "auth_error" ||
+    error.code === "rate_limit_error" ||
+    error.code === "permission_error" ||
+    error.code === "network_error"
+  );
 }
 
 async function publishRunStatusChanged(

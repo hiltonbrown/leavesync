@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   failedRecordCreate: vi.fn(),
   feedFindMany: vi.fn(),
   feedIdsForPeople: vi.fn(),
+  fetchLeaveForEmployeeForRegion: vi.fn(),
   fetchLeaveRecordsForRegion: vi.fn(),
   inngestSend: vi.fn(() => Promise.resolve({ ids: ["event_1"] })),
   materialiseAvailabilityPublication: vi.fn(),
@@ -26,6 +27,9 @@ const mocks = vi.hoisted(() => ({
   syncRunFindFirst: vi.fn(),
   syncRunUpdateMany: vi.fn(),
   toPlainLanguageMessage: vi.fn(() => "Xero request failed"),
+  xeroSyncCursorCreate: vi.fn(),
+  xeroSyncCursorFindFirst: vi.fn(),
+  xeroSyncCursorUpdateMany: vi.fn(),
   xeroTenantFindFirst: vi.fn(),
   xeroTenantUpdateMany: vi.fn(),
 }));
@@ -61,6 +65,11 @@ const databaseMock = {
     findFirst: mocks.syncRunFindFirst,
     updateMany: mocks.syncRunUpdateMany,
   },
+  xeroSyncCursor: {
+    create: mocks.xeroSyncCursorCreate,
+    findFirst: mocks.xeroSyncCursorFindFirst,
+    updateMany: mocks.xeroSyncCursorUpdateMany,
+  },
   xeroTenant: {
     findFirst: mocks.xeroTenantFindFirst,
     updateMany: mocks.xeroTenantUpdateMany,
@@ -86,6 +95,7 @@ vi.mock("@repo/observability/log", () => ({
 }));
 vi.mock("@repo/xero", () => ({
   ensureFreshXeroConnection: mocks.ensureFreshXeroConnection,
+  fetchLeaveForEmployeeForRegion: mocks.fetchLeaveForEmployeeForRegion,
   fetchLeaveRecordsForRegion: mocks.fetchLeaveRecordsForRegion,
   toPlainLanguageMessage: mocks.toPlainLanguageMessage,
 }));
@@ -965,6 +975,563 @@ describe("leave records stale archival", () => {
     }
     expect(mocks.materialiseAvailabilityPublication).not.toHaveBeenCalled();
     expect(mocks.inngestSend).not.toHaveBeenCalled();
+  });
+});
+
+describe("regional leave sync (NZ/UK)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.databaseTransaction.mockImplementation(async (target: unknown) => {
+      if (typeof target === "function") {
+        return await target(databaseMock);
+      }
+      if (Array.isArray(target)) {
+        return await Promise.all(target);
+      }
+      return target;
+    });
+    mocks.feedIdsForPeople.mockResolvedValue([]);
+    mocks.syncRunCreate.mockResolvedValue({ id: RUN_ID });
+    mocks.syncRunFindFirst.mockResolvedValue(null);
+    mocks.syncRunUpdateMany.mockResolvedValue({ count: 1 });
+    mocks.xeroTenantFindFirst.mockResolvedValue({
+      id: XERO_TENANT_ID,
+      leave_records_stale_since: null,
+      payroll_region: "NZ",
+      sync_paused_at: null,
+      xero_connection: {},
+      xero_connection_id: XERO_CONNECTION_ID,
+    });
+    mocks.xeroTenantUpdateMany.mockResolvedValue({ count: 1 });
+    mocks.ensureFreshXeroConnection.mockResolvedValue({
+      ok: true,
+      value: { refreshed: false },
+    });
+    mocks.xeroSyncCursorFindFirst.mockResolvedValue(null);
+    mocks.xeroSyncCursorCreate.mockResolvedValue({ id: "cursor_1" });
+    mocks.xeroSyncCursorUpdateMany.mockResolvedValue({ count: 1 });
+    mocks.availabilityRecordFindMany.mockResolvedValue([]);
+    mocks.availabilityRecordCreate.mockResolvedValue({
+      id: "80000000-0000-4000-8000-000000000001",
+    });
+    mocks.availabilityRecordUpdateMany.mockResolvedValue({ count: 1 });
+    mocks.failedRecordCreate.mockResolvedValue({});
+    mocks.feedFindMany.mockResolvedValue([]);
+    mocks.inngestSend.mockResolvedValue({ ids: ["event_1"] });
+    mocks.materialiseAvailabilityPublication.mockResolvedValue({ ok: true });
+    mocks.normaliseInboundLeaveRecord.mockImplementation((record) =>
+      normalisedLeaveRecord({
+        hash: `hash-${record.sourceRemoteId}`,
+        personId: record.personId,
+        sourceRemoteId: record.sourceRemoteId,
+      })
+    );
+    mocks.personFindFirst.mockResolvedValue(null);
+    mocks.personFindMany.mockResolvedValue([]);
+    mocks.fetchLeaveForEmployeeForRegion.mockImplementation(
+      async (_region, empInput: { xeroEmployeeId: string }) => ({
+        ok: true,
+        value: {
+          complete: true,
+          leaveRecords: [
+            xeroLeaveRecord({
+              employeeId: empInput.xeroEmployeeId,
+              leaveApplicationId: `50000000-0000-4000-8000-${empInput.xeroEmployeeId.slice(-12)}`,
+            }),
+          ],
+          rawResponse: {},
+        },
+      })
+    );
+  });
+
+  it("pages 20 people and creates cursor with 21 candidate people (first page)", async () => {
+    const peopleList = Array.from({ length: 21 }, (_, i) =>
+      person(
+        `70000000-0000-4000-8000-${String(i + 1).padStart(12, "0")}`,
+        `60000000-0000-4000-8000-${String(i + 1).padStart(12, "0")}`
+      )
+    );
+    mocks.personFindMany.mockResolvedValueOnce(peopleList);
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        failed: 0,
+        fetched: 20,
+        status: "succeeded",
+        upserted: 20,
+      });
+    }
+
+    expect(mocks.fetchLeaveForEmployeeForRegion).toHaveBeenCalledTimes(20);
+    expect(mocks.xeroSyncCursorCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          clerk_org_id: CLERK_ORG_ID,
+          cursor_value: peopleList[19]?.id,
+          entity_type: "leave_records",
+          organisation_id: ORGANISATION_ID,
+          xero_tenant_id: XERO_TENANT_ID,
+        }),
+      })
+    );
+    expect(mocks.xeroTenantUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          leave_records_stale_since: expect.any(Date),
+        }),
+      })
+    );
+  });
+
+  it("queries after cursor on middle page and updates cursor", async () => {
+    const cursorRecord = {
+      cursor_value: "70000000-0000-4000-8000-000000000020",
+      id: "cursor_1",
+    };
+    mocks.xeroSyncCursorFindFirst.mockResolvedValue(cursorRecord);
+
+    const peopleList = Array.from({ length: 21 }, (_, i) =>
+      person(
+        `70000000-0000-4000-8000-${String(i + 21).padStart(12, "0")}`,
+        `60000000-0000-4000-8000-${String(i + 21).padStart(12, "0")}`
+      )
+    );
+    mocks.personFindMany.mockResolvedValueOnce(peopleList);
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    expect(mocks.personFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: { id: "asc" },
+        take: 21,
+        where: expect.objectContaining({
+          archived_at: null,
+          id: { gt: "70000000-0000-4000-8000-000000000020" },
+          xero_employee_id: { not: null },
+        }),
+      })
+    );
+    expect(mocks.xeroSyncCursorUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          cursor_value: peopleList[19]?.id,
+        }),
+        where: expect.objectContaining({
+          cursor_value: "70000000-0000-4000-8000-000000000020",
+          entity_type: "leave_records",
+          id: "cursor_1",
+        }),
+      })
+    );
+  });
+
+  it("resets cursor to null on final page and clears stale_since", async () => {
+    const cursorRecord = {
+      cursor_value: "70000000-0000-4000-8000-000000000040",
+      id: "cursor_1",
+    };
+    mocks.xeroSyncCursorFindFirst.mockResolvedValue(cursorRecord);
+
+    const peopleList = Array.from({ length: 10 }, (_, i) =>
+      person(
+        `70000000-0000-4000-8000-${String(i + 41).padStart(12, "0")}`,
+        `60000000-0000-4000-8000-${String(i + 41).padStart(12, "0")}`
+      )
+    );
+    mocks.personFindMany.mockResolvedValueOnce(peopleList);
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    expect(mocks.xeroSyncCursorUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          cursor_value: null,
+        }),
+      })
+    );
+    expect(mocks.xeroTenantUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          leave_records_stale_since: null,
+        }),
+      })
+    );
+  });
+
+  it("resets cursor to null when candidate people count is exactly 20", async () => {
+    const peopleList = Array.from({ length: 20 }, (_, i) =>
+      person(
+        `70000000-0000-4000-8000-${String(i + 1).padStart(12, "0")}`,
+        `60000000-0000-4000-8000-${String(i + 1).padStart(12, "0")}`
+      )
+    );
+    mocks.personFindMany.mockResolvedValueOnce(peopleList);
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    expect(mocks.xeroSyncCursorCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          cursor_value: null,
+        }),
+      })
+    );
+  });
+
+  it("uses deleted cursor value as valid lexical boundary", async () => {
+    const deletedPersonId = "70000000-0000-4000-8000-000000000099";
+    mocks.xeroSyncCursorFindFirst.mockResolvedValue({
+      cursor_value: deletedPersonId,
+      id: "cursor_1",
+    });
+    mocks.personFindMany.mockResolvedValueOnce([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+    ]);
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    expect(mocks.personFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          id: { gt: deletedPersonId },
+        }),
+      })
+    );
+  });
+
+  it("stops immediately and does not advance cursor on blanket auth_error", async () => {
+    mocks.personFindMany.mockResolvedValueOnce([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+      person(PERSON_ID_2, XERO_EMPLOYEE_ID_2),
+    ]);
+    mocks.fetchLeaveForEmployeeForRegion.mockResolvedValueOnce({
+      error: { code: "auth_error", message: "Token expired or revoked" },
+      ok: false,
+    });
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.status).toBe("failed");
+    }
+    expect(mocks.fetchLeaveForEmployeeForRegion).toHaveBeenCalledTimes(1);
+    expect(mocks.xeroSyncCursorCreate).not.toHaveBeenCalled();
+    expect(mocks.xeroSyncCursorUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it("stops immediately and does not advance cursor on blanket permission_error", async () => {
+    mocks.personFindMany.mockResolvedValueOnce([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+      person(PERSON_ID_2, XERO_EMPLOYEE_ID_2),
+    ]);
+    mocks.fetchLeaveForEmployeeForRegion.mockResolvedValueOnce({
+      error: { code: "permission_error", message: "Forbidden" },
+      ok: false,
+    });
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.status).toBe("failed");
+    }
+    expect(mocks.fetchLeaveForEmployeeForRegion).toHaveBeenCalledTimes(1);
+    expect(mocks.xeroSyncCursorCreate).not.toHaveBeenCalled();
+    expect(mocks.xeroSyncCursorUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it("stops immediately and does not advance cursor on blanket rate_limit_error", async () => {
+    mocks.personFindMany.mockResolvedValueOnce([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+      person(PERSON_ID_2, XERO_EMPLOYEE_ID_2),
+    ]);
+    mocks.fetchLeaveForEmployeeForRegion.mockResolvedValueOnce({
+      error: { code: "rate_limit_error", message: "Rate limit exceeded" },
+      ok: false,
+    });
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.status).toBe("failed");
+    }
+    expect(mocks.fetchLeaveForEmployeeForRegion).toHaveBeenCalledTimes(1);
+    expect(mocks.xeroSyncCursorCreate).not.toHaveBeenCalled();
+    expect(mocks.xeroSyncCursorUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it("stops immediately and does not advance cursor on blanket network_error", async () => {
+    mocks.personFindMany.mockResolvedValueOnce([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+      person(PERSON_ID_2, XERO_EMPLOYEE_ID_2),
+    ]);
+    mocks.fetchLeaveForEmployeeForRegion.mockResolvedValueOnce({
+      error: { code: "network_error", message: "Network timeout" },
+      ok: false,
+    });
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.status).toBe("failed");
+    }
+    expect(mocks.fetchLeaveForEmployeeForRegion).toHaveBeenCalledTimes(1);
+    expect(mocks.xeroSyncCursorCreate).not.toHaveBeenCalled();
+    expect(mocks.xeroSyncCursorUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it("records employee-specific failure and continues to next employee, completing as partial_success and advancing cursor", async () => {
+    mocks.personFindMany.mockResolvedValueOnce([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+      person(PERSON_ID_2, XERO_EMPLOYEE_ID_2),
+    ]);
+    mocks.fetchLeaveForEmployeeForRegion
+      .mockResolvedValueOnce({
+        error: { code: "validation_error", message: "Invalid employee format" },
+        ok: false,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        value: {
+          complete: true,
+          leaveRecords: [
+            xeroLeaveRecord({
+              employeeId: XERO_EMPLOYEE_ID_2,
+              leaveApplicationId: LEAVE_APPLICATION_ID_2,
+            }),
+          ],
+          rawResponse: {},
+        },
+      });
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        failed: 1,
+        fetched: 1,
+        status: "partial_success",
+        upserted: 1,
+      });
+    }
+    expect(mocks.failedRecordCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          error_code: "validation_error",
+          source_id: XERO_EMPLOYEE_ID,
+        }),
+      })
+    );
+    expect(mocks.xeroSyncCursorCreate).toHaveBeenCalled();
+  });
+
+  it("records failedRecord and skips stale archival when employee payload is incomplete (complete: false)", async () => {
+    mocks.personFindMany.mockResolvedValueOnce([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+    ]);
+    mocks.fetchLeaveForEmployeeForRegion.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        complete: false,
+        leaveRecords: [],
+        rawResponse: { malformed: true },
+      },
+    });
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        archived: 0,
+        failed: 1,
+        status: "partial_success",
+        upserted: 0,
+      });
+    }
+    expect(mocks.failedRecordCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          error_code: "malformed_payload",
+          source_id: XERO_EMPLOYEE_ID,
+        }),
+      })
+    );
+    expect(mocks.databaseTransaction).not.toHaveBeenCalled();
+  });
+
+  it("archives Person A's stale records without affecting Person B (completing A cannot archive B)", async () => {
+    mocks.personFindMany.mockResolvedValueOnce([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+    ]);
+    mocks.fetchLeaveForEmployeeForRegion.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        complete: true,
+        leaveRecords: [
+          xeroLeaveRecord({
+            employeeId: XERO_EMPLOYEE_ID,
+            leaveApplicationId: LEAVE_APPLICATION_ID,
+          }),
+        ],
+        rawResponse: {},
+      },
+    });
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    expect(mocks.databaseTransaction).toHaveBeenCalledTimes(1);
+    expect(mocks.availabilityRecordFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          archived_at: null,
+          clerk_org_id: CLERK_ORG_ID,
+          organisation_id: ORGANISATION_ID,
+          person_id: PERSON_ID,
+          source_remote_id: { notIn: [LEAVE_APPLICATION_ID] },
+          source_type: "xero_leave",
+          updated_at: { lte: expect.any(Date) },
+        }),
+      })
+    );
+    expect(mocks.availabilityRecordUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          archived_at: null,
+          clerk_org_id: CLERK_ORG_ID,
+          organisation_id: ORGANISATION_ID,
+          person_id: PERSON_ID,
+          source_remote_id: { notIn: [LEAVE_APPLICATION_ID] },
+          source_type: "xero_leave",
+          updated_at: { lte: expect.any(Date) },
+        }),
+      })
+    );
+  });
+
+  it("archives stale records when an employee has 0 leave records in Xero (empty complete employee)", async () => {
+    mocks.personFindMany.mockResolvedValueOnce([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+    ]);
+    mocks.fetchLeaveForEmployeeForRegion.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        complete: true,
+        leaveRecords: [],
+        rawResponse: {},
+      },
+    });
+    mocks.availabilityRecordFindMany.mockResolvedValueOnce([
+      { person_id: PERSON_ID },
+    ]);
+    mocks.availabilityRecordUpdateMany.mockResolvedValueOnce({ count: 2 });
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        archived: 2,
+        failed: 0,
+        fetched: 0,
+        status: "succeeded",
+        upserted: 0,
+      });
+    }
+    expect(mocks.availabilityRecordFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          archived_at: null,
+          person_id: PERSON_ID,
+          source_type: "xero_leave",
+        }),
+      })
+    );
+  });
+
+  it("completes as cancelled when cursor update loses the compare-and-swap race", async () => {
+    mocks.personFindMany.mockResolvedValueOnce([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+    ]);
+    mocks.xeroSyncCursorFindFirst.mockResolvedValue({
+      cursor_value: "old_cursor",
+      id: "cursor_1",
+    });
+    mocks.xeroSyncCursorUpdateMany.mockResolvedValue({ count: 0 });
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.status).toBe("cancelled");
+    }
+    expect(mocks.syncRunUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          error_summary:
+            "Cursor update lost compare-and-swap race; run superseded",
+          status: "cancelled",
+        }),
+      })
+    );
+  });
+
+  it("completes as cancelled when cancellation is requested mid-run and does not advance cursor", async () => {
+    mocks.personFindMany.mockResolvedValueOnce([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+      person(PERSON_ID_2, XERO_EMPLOYEE_ID_2),
+    ]);
+    mocks.syncRunFindFirst
+      .mockResolvedValueOnce(null) // cancelDuplicateRun
+      .mockResolvedValueOnce(null) // first person check
+      .mockResolvedValueOnce({ cancel_requested_at: new Date() }); // second person check
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.status).toBe("cancelled");
+    }
+    expect(mocks.xeroSyncCursorCreate).not.toHaveBeenCalled();
+    expect(mocks.xeroSyncCursorUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it("syncs targeted person without querying or touching cursor", async () => {
+    mocks.personFindMany.mockResolvedValueOnce([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+    ]);
+
+    const result = await syncXeroLeaveRecords({
+      ...input(),
+      personId: PERSON_ID,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(mocks.personFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          archived_at: null,
+          id: PERSON_ID,
+          xero_employee_id: { not: null },
+        }),
+      })
+    );
+    expect(mocks.xeroSyncCursorFindFirst).not.toHaveBeenCalled();
+    expect(mocks.xeroSyncCursorCreate).not.toHaveBeenCalled();
+    expect(mocks.xeroSyncCursorUpdateMany).not.toHaveBeenCalled();
   });
 });
 
