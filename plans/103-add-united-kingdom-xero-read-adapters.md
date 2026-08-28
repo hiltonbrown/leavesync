@@ -15,7 +15,7 @@
 - **Depends on**: `plans/102-add-new-zealand-xero-read-adapters.md` DONE
 - **Category**: migration
 - **Planned at**: commit `ecd49f5`, 2026-08-24; re-stamp after dependency
-- **Execution status**: TODO
+- **Execution status**: DONE
 - **Supersedes**: UK adapter slice of rejected Plan 071
 
 ## Why this matters
@@ -92,11 +92,11 @@ rate limit, token refresh and raw payload retention.
 
 ## Done criteria
 
-- [ ] Three fixture-backed UK low-level readers satisfy shared contracts.
-- [ ] 403 cannot masquerade as empty data or 401.
-- [ ] Unsupported monetary units fail closed.
-- [ ] No activation/support claim changes.
-- [ ] Every command passes.
+- [x] Three fixture-backed UK low-level readers satisfy shared contracts.
+- [x] 403 cannot masquerade as empty data or 401.
+- [x] Unsupported monetary units fail closed.
+- [x] No activation/support claim changes.
+- [x] Every command passes.
 
 ## STOP conditions
 
