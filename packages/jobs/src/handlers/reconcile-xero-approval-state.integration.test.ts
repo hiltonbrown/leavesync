@@ -539,6 +539,183 @@ describeWithDatabase("reconcile-xero-approval-state database flow", () => {
     expect(uncheckedAfterRun2).toBe(0);
   }, 120_000);
 
+  it("fails the run immediately on a blanket permission_error (403)", async () => {
+    await setupTenant(tenantA);
+    await setupPerson(tenantA);
+    const first = await createAvailabilityRecord(tenantA, {
+      id: recordId("012"),
+      sourceRemoteId: leaveApplicationId("perm-first"),
+    });
+    const second = await createAvailabilityRecord(tenantA, {
+      endsAt: new Date("2026-07-06T00:00:00.000Z"),
+      id: recordId("013"),
+      sourceRemoteId: leaveApplicationId("perm-second"),
+      startsAt: new Date("2026-07-05T00:00:00.000Z"),
+    });
+
+    mockFetchLeaveApplicationStatusForRegion.mockResolvedValue(
+      xeroError("permission_error")
+    );
+
+    const result = await reconcileXeroApprovalState(reconcileInput(tenantA));
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        approved: 0,
+        failed: 0,
+        status: "failed",
+      });
+    }
+
+    expect(await findRecord(first.id)).toMatchObject({
+      approval_status: "submitted",
+      derived_sequence: 0,
+    });
+    expect(await findRecord(second.id)).toMatchObject({
+      approval_status: "submitted",
+      derived_sequence: 0,
+    });
+    expect(
+      await database.failedRecord.count({
+        where: {
+          clerk_org_id: tenantA.clerkOrgId,
+          organisation_id: tenantA.organisationId,
+        },
+      })
+    ).toBe(0);
+
+    const run = await latestRun(tenantA);
+    expect(run).toMatchObject({
+      error_summary:
+        "Your Xero organisation does not have permission to access this payroll feature. Check your Xero subscription and permissions.",
+      records_failed: 0,
+      records_synced: 0,
+      status: "failed",
+    });
+  });
+
+  it("passes employee and leave IDs to regional reader and reconciles NZ leave", async () => {
+    await setupTenant(tenantA, "NZ");
+    await setupPerson(tenantA);
+    const record = await createAvailabilityRecord(tenantA, {
+      id: recordId("014"),
+      sourceRemoteId: leaveApplicationId("nz-leave"),
+    });
+
+    mockFetchLeaveApplicationStatusForRegion.mockResolvedValue(
+      xeroStatus("APPROVED")
+    );
+
+    const result = await reconcileXeroApprovalState(reconcileInput(tenantA));
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        approved: 1,
+        failed: 0,
+        status: "succeeded",
+      });
+    }
+
+    expect(mockFetchLeaveApplicationStatusForRegion).toHaveBeenCalledWith(
+      "NZ",
+      expect.objectContaining({
+        xeroEmployeeId: tenantA.xeroEmployeeId,
+        xeroLeaveApplicationId: leaveApplicationId("nz-leave"),
+        xeroTenant: expect.objectContaining({
+          id: tenantA.xeroTenantId,
+          payroll_region: "NZ",
+        }),
+      })
+    );
+
+    const updated = await findRecord(record.id);
+    expect(updated).toMatchObject({
+      approval_status: "approved",
+      derived_sequence: 1,
+    });
+  });
+
+  it("treats missing employee ID on regional leave as a record failure and advances fairly", async () => {
+    await setupTenant(tenantA, "NZ");
+    await database.person.upsert({
+      create: {
+        clerk_org_id: tenantA.clerkOrgId,
+        clerk_user_id: ownerUserId(tenantA),
+        email: `${tenantA.personId}@example.com`,
+        employment_type: "employee",
+        first_name: "Pat",
+        id: tenantA.personId,
+        last_name: "Taylor",
+        organisation_id: tenantA.organisationId,
+        source_person_key: "manual-key",
+        source_system: "MANUAL",
+        xero_employee_id: null,
+      },
+      update: {
+        clerk_org_id: tenantA.clerkOrgId,
+        clerk_user_id: ownerUserId(tenantA),
+        email: `${tenantA.personId}@example.com`,
+        employment_type: "employee",
+        first_name: "Pat",
+        last_name: "Taylor",
+        organisation_id: tenantA.organisationId,
+        source_person_key: "manual-key",
+        source_system: "MANUAL",
+        xero_employee_id: null,
+      },
+      where: { id: tenantA.personId },
+    });
+
+    const failed = await createAvailabilityRecord(tenantA, {
+      id: recordId("015"),
+      sourceRemoteId: leaveApplicationId("missing-emp"),
+    });
+
+    mockFetchLeaveApplicationStatusForRegion.mockResolvedValue({
+      error: {
+        code: "validation_error",
+        message: "NZ payroll approval-state read requires xeroEmployeeId.",
+        rawPayload: null,
+      },
+      ok: false,
+    });
+
+    const result = await reconcileXeroApprovalState(reconcileInput(tenantA));
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        failed: 1,
+        status: "partial_success",
+      });
+    }
+
+    expect(mockFetchLeaveApplicationStatusForRegion).toHaveBeenCalledWith(
+      "NZ",
+      expect.objectContaining({
+        xeroEmployeeId: undefined,
+        xeroLeaveApplicationId: leaveApplicationId("missing-emp"),
+      })
+    );
+
+    const updated = await findRecord(failed.id);
+    expect(updated?.xero_approval_checked_at).toBeInstanceOf(Date);
+
+    const failedRecord = await database.failedRecord.findFirst({
+      where: {
+        clerk_org_id: tenantA.clerkOrgId,
+        organisation_id: tenantA.organisationId,
+        source_remote_id: leaveApplicationId("missing-emp"),
+      },
+    });
+    expect(failedRecord).toMatchObject({
+      error_code: "validation_error",
+      source_remote_id: leaveApplicationId("missing-emp"),
+    });
+  });
+
   it("returns a validation error for invalid input", async () => {
     const result = await reconcileXeroApprovalState({});
 
@@ -553,17 +730,20 @@ describeWithDatabase("reconcile-xero-approval-state database flow", () => {
 
 type TestTenant = typeof tenantA | typeof tenantB;
 
-async function setupTenant(tenant: TestTenant) {
+async function setupTenant(
+  tenant: TestTenant,
+  region: "AU" | "NZ" | "UK" = "AU"
+) {
   await database.organisation.upsert({
     create: {
       clerk_org_id: tenant.clerkOrgId,
-      country_code: "AU",
+      country_code: region,
       id: tenant.organisationId,
       name: `Test Org ${tenant.clerkOrgId}`,
     },
     update: {
       clerk_org_id: tenant.clerkOrgId,
-      country_code: "AU",
+      country_code: region,
       name: `Test Org ${tenant.clerkOrgId}`,
     },
     where: { id: tenant.organisationId },
@@ -593,7 +773,7 @@ async function setupTenant(tenant: TestTenant) {
       clerk_org_id: tenant.clerkOrgId,
       id: tenant.xeroTenantId,
       organisation_id: tenant.organisationId,
-      payroll_region: "AU",
+      payroll_region: region,
       tenant_name: "Xero Tenant",
       xero_connection_id: tenant.xeroConnectionId,
       xero_tenant_id: `xero-${tenant.xeroTenantId}`,
@@ -601,7 +781,7 @@ async function setupTenant(tenant: TestTenant) {
     update: {
       clerk_org_id: tenant.clerkOrgId,
       organisation_id: tenant.organisationId,
-      payroll_region: "AU",
+      payroll_region: region,
       tenant_name: "Xero Tenant",
       xero_connection_id: tenant.xeroConnectionId,
       xero_tenant_id: `xero-${tenant.xeroTenantId}`,
@@ -737,6 +917,7 @@ type XeroErrorCode =
   | "conflict_error"
   | "network_error"
   | "not_found_error"
+  | "permission_error"
   | "rate_limit_error"
   | "unknown_error"
   | "validation_error";
