@@ -211,6 +211,94 @@ describe("computeWorkingDays", () => {
     expect(result).toEqual({ ok: true, value: 5 });
   });
 
+  it("applies location override non_working to exclude holiday", async () => {
+    mocks.listForOrganisation.mockResolvedValue({
+      ok: true,
+      value: [
+        {
+          ...holiday("2026-05-05"),
+          assignments: [
+            {
+              archived_at: null,
+              day_classification: "non_working",
+              scope_type: "location",
+              scope_value: "loc_1",
+            },
+          ],
+          default_classification: "working",
+          region_code: "NSW", // Mismatched jurisdiction overridden by location
+        },
+      ],
+    });
+
+    const result = await computeWorkingDays({
+      allDay: true,
+      clerkOrgId: "org_1",
+      endsAt: new Date("2026-05-08T00:00:00.000Z"),
+      locationId: "loc_1",
+      organisationId: "00000000-0000-4000-8000-000000000001",
+      startsAt: new Date("2026-05-04T00:00:00.000Z"),
+    });
+
+    expect(result).toEqual({ ok: true, value: 4 });
+  });
+
+  it("applies location override working to include day as working day", async () => {
+    mocks.listForOrganisation.mockResolvedValue({
+      ok: true,
+      value: [
+        {
+          ...holiday("2026-05-05"),
+          assignments: [
+            {
+              archived_at: null,
+              day_classification: "working",
+              scope_type: "location",
+              scope_value: "loc_1",
+            },
+          ],
+          default_classification: "non_working",
+          region_code: "QLD",
+        },
+      ],
+    });
+
+    const result = await computeWorkingDays({
+      allDay: true,
+      clerkOrgId: "org_1",
+      endsAt: new Date("2026-05-08T00:00:00.000Z"),
+      locationId: "loc_1",
+      organisationId: "00000000-0000-4000-8000-000000000001",
+      startsAt: new Date("2026-05-04T00:00:00.000Z"),
+    });
+
+    expect(result).toEqual({ ok: true, value: 5 });
+  });
+
+  it("applies CUSTOM holiday to exclude working day", async () => {
+    mocks.listForOrganisation.mockResolvedValue({
+      ok: true,
+      value: [
+        {
+          ...holiday("2026-05-06"),
+          country_code: "CUSTOM",
+          region_code: null,
+        },
+      ],
+    });
+
+    const result = await computeWorkingDays({
+      allDay: true,
+      clerkOrgId: "org_1",
+      endsAt: new Date("2026-05-08T00:00:00.000Z"),
+      locationId: "loc_1",
+      organisationId: "00000000-0000-4000-8000-000000000001",
+      startsAt: new Date("2026-05-04T00:00:00.000Z"),
+    });
+
+    expect(result).toEqual({ ok: true, value: 4 });
+  });
+
   it("rounds part-day ranges half-up to the nearest quarter", async () => {
     const result = await computeWorkingDays({
       allDay: false,

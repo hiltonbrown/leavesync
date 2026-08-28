@@ -1,7 +1,12 @@
 import { log } from "@repo/observability/log";
 import "server-only";
 
-import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
+import {
+  type ClerkOrgId,
+  holidayIsNonWorking,
+  type OrganisationId,
+  type Result,
+} from "@repo/core";
 import { database, scopedTo } from "@repo/database";
 import type {
   availability_approval_status,
@@ -202,21 +207,6 @@ interface ScopedRecord {
   submitted_at: Date | null;
   title: string | null;
   xero_write_error: string | null;
-}
-
-interface HolidayForCalendar {
-  archived_at: Date | null;
-  assignments: Array<{
-    archived_at: Date | null;
-    day_classification: "non_working" | "working";
-    scope_type: string;
-    scope_value: string;
-  }>;
-  country_code: string;
-  default_classification: "non_working" | "working";
-  holiday_date: Date;
-  name: string;
-  region_code: string | null;
 }
 
 export async function getCalendarRange(
@@ -651,11 +641,34 @@ async function loadPublicHolidayCells(input: {
       if (!input.dateOnlyValues.includes(dateOnly)) {
         continue;
       }
+      const locationAssignments = holiday.assignments
+        .filter((assignment) => assignment.scope_type === "location")
+        .map((assignment) => ({
+          archivedAt: assignment.archived_at,
+          classification: assignment.day_classification,
+          locationId: assignment.scope_value,
+        }));
+
       const locationNames = [...locations.values()]
         .filter((location): location is NonNullable<typeof location> =>
           Boolean(location)
         )
-        .filter((location) => holidayAppliesToLocation(holiday, location))
+        .filter((location) =>
+          holidayIsNonWorking({
+            holiday: {
+              archivedAt: holiday.archived_at,
+              countryCode: holiday.country_code,
+              defaultClassification: holiday.default_classification,
+              locationAssignments,
+              regionCode: holiday.region_code,
+            },
+            subject: {
+              countryCode: location.country_code,
+              locationId: location.id,
+              regionCode: location.region_code,
+            },
+          })
+        )
         .map((location) => location.name)
         .sort((first, second) => first.localeCompare(second));
       if (locationNames.length === 0) {
@@ -682,34 +695,6 @@ async function loadPublicHolidayCells(input: {
     }
   }
   return cells;
-}
-
-function holidayAppliesToLocation(
-  holiday: HolidayForCalendar,
-  location: NonNullable<ScopedPerson["location"]>
-): boolean {
-  const locationAssignment = holiday.assignments.find(
-    (assignment) =>
-      assignment.archived_at === null &&
-      assignment.scope_type === "location" &&
-      assignment.scope_value === location.id
-  );
-  if (locationAssignment) {
-    return locationAssignment.day_classification === "non_working";
-  }
-  if (holiday.default_classification !== "non_working") {
-    return false;
-  }
-  if (
-    holiday.country_code !== "CUSTOM" &&
-    location.country_code !== holiday.country_code
-  ) {
-    return false;
-  }
-  if (holiday.region_code && holiday.region_code !== location.region_code) {
-    return false;
-  }
-  return true;
 }
 
 function toCalendarEvent(
