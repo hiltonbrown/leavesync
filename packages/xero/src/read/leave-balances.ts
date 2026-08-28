@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { XeroWriteError } from "../write/types";
 
 export interface XeroLeaveBalance {
   balance: number;
@@ -8,6 +9,11 @@ export interface XeroLeaveBalance {
   leaveTypeName: string | null;
   rawPayload: unknown;
   unitType: "currency" | "days" | "hours" | null;
+}
+
+export interface XeroLeaveBalanceFetchFailure {
+  employeeId: string;
+  error: XeroWriteError;
 }
 
 // Supported ISO 4217 currency codes for monetary leave balances (e.g. NZ Payroll

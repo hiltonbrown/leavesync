@@ -99,4 +99,92 @@ describe("mapLeaveApplicationStatus", () => {
       status: "SUBMITTED",
     });
   });
+
+  it("reads status from nested periods array in v2 employee leave shapes", () => {
+    const payload = {
+      leave: [
+        {
+          leaveID: "leave-1",
+          periods: [
+            {
+              numberOfUnits: 8,
+              periodEndDate: "2026-06-01",
+              periodStartDate: "2026-06-01",
+              periodStatus: "Completed",
+            },
+          ],
+          updatedDateUTC: "2026-06-02T03:04:05.000Z",
+        },
+      ],
+    };
+
+    const result = mapLeaveApplicationStatus(payload);
+
+    expect(result).toEqual({
+      approvedAt: new Date("2026-06-02T03:04:05.000Z"),
+      rawResponse: payload,
+      status: "APPROVED",
+    });
+  });
+
+  it("maps Estimated period status to APPROVED", () => {
+    const payload = {
+      leaveID: "leave-2",
+      periods: [
+        {
+          periodStatus: "Estimated",
+        },
+      ],
+    };
+
+    expect(mapLeaveApplicationStatus(payload).status).toBe("APPROVED");
+  });
+});
+
+describe("mapXeroReadHttpError", () => {
+  it("maps 401 to auth_error and 403 to permission_error", async () => {
+    const { mapXeroReadHttpError } = await import("./leave-application-status");
+
+    const authRes = new Response(JSON.stringify({ Message: "Unauthorized" }), {
+      status: 401,
+      statusText: "Unauthorized",
+    });
+    expect(
+      mapXeroReadHttpError(authRes, { Message: "Unauthorized" })
+    ).toMatchObject({
+      code: "auth_error",
+      httpStatus: 401,
+    });
+
+    const permRes = new Response(JSON.stringify({ Message: "Forbidden" }), {
+      status: 403,
+      statusText: "Forbidden",
+    });
+    expect(
+      mapXeroReadHttpError(permRes, { Message: "Forbidden" })
+    ).toMatchObject({
+      code: "permission_error",
+      httpStatus: 403,
+    });
+  });
+
+  it("maps 400, 404, 409, 429, and 500", async () => {
+    const { mapXeroReadHttpError } = await import("./leave-application-status");
+
+    expect(
+      mapXeroReadHttpError(new Response("", { status: 400 }), {}).code
+    ).toBe("validation_error");
+    expect(
+      mapXeroReadHttpError(new Response("", { status: 404 }), {}).code
+    ).toBe("not_found_error");
+    expect(
+      mapXeroReadHttpError(new Response("", { status: 409 }), {}).code
+    ).toBe("conflict_error");
+    expect(
+      mapXeroReadHttpError(new Response("", { status: 429 }), {}).code
+    ).toBe("rate_limit_error");
+    expect(
+      mapXeroReadHttpError(new Response("", { status: 500 }), {}).code
+    ).toBe("unknown_error");
+  });
 });

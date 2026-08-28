@@ -15,6 +15,10 @@ const cases: [XeroWriteError["code"], string][] = [
     "This employee or leave type is not yet set up in Xero. Ask your administrator to check the Xero configuration.",
   ],
   [
+    "permission_error",
+    "Your Xero organisation does not have permission to access this payroll feature. Check your Xero subscription and permissions.",
+  ],
+  [
     "rate_limit_error",
     "Xero is temporarily rate-limited. Try again in a few minutes.",
   ],
