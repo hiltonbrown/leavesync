@@ -8,7 +8,10 @@ import {
 } from "@repo/availability";
 import type { Result } from "@repo/core";
 import { database, scopedTo as scoped } from "@repo/database";
-import { type availability_privacy_mode, Prisma } from "@repo/database/generated/client";
+import {
+  type availability_privacy_mode,
+  Prisma,
+} from "@repo/database/generated/client";
 import { feedIdsForPeople } from "@repo/feeds";
 import { publishOrganisationNotificationEvent } from "@repo/notifications";
 import { log } from "@repo/observability/log";
