@@ -15,7 +15,7 @@
 - **Depends on**: `plans/091-page-scheduled-xero-balance-sync.md` DONE, `plans/101-add-currency-leave-balance-contract.md` DONE, `plans/102-add-new-zealand-xero-read-adapters.md` DONE and `plans/103-add-united-kingdom-xero-read-adapters.md` DONE
 - **Category**: migration
 - **Planned at**: commit `ecd49f5`, 2026-08-24; re-stamp after dependencies
-- **Execution status**: TODO
+- **Execution status**: DONE
 - **Supersedes**: balance-orchestration slice of rejected Plan 071
 
 ## Why this matters
@@ -95,11 +95,11 @@ AU null currency, retry/idempotency and both tenant keys.
 
 ## Done criteria
 
-- [ ] Each region uses the same 40-person employee cursor contract.
-- [ ] Cursor movement is per employee, never per balance row.
-- [ ] Currency/raw payload invariants hold at read and persistence boundaries.
-- [ ] Targeted and blanket-failure behaviour is unchanged.
-- [ ] Every command passes.
+- [x] Each region uses the same 40-person employee cursor contract.
+- [x] Cursor movement is per employee, never per balance row.
+- [x] Currency/raw payload invariants hold at read and persistence boundaries.
+- [x] Targeted and blanket-failure behaviour is unchanged.
+- [x] Every command passes.
 
 ## STOP conditions
 

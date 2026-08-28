@@ -53,7 +53,34 @@ const tenantB = {
   xeroTenantId: "80000000-0000-4000-8000-000000000003",
 } as const;
 
-const testClerkOrgIds = [tenantA.clerkOrgId, tenantB.clerkOrgId] as const;
+const tenantNz = {
+  clerkOrgId: "org_test_balance_sync_nz",
+  countryCode: "NZ",
+  organisationId: "71000000-0000-4000-8000-000000000001",
+  payrollRegion: "NZ" as const,
+  personId: "71000000-0000-4000-8000-000000000004",
+  xeroConnectionId: "71000000-0000-4000-8000-000000000002",
+  xeroEmployeeId: "71000000-0000-4000-8000-000000000005",
+  xeroTenantId: "71000000-0000-4000-8000-000000000003",
+} as const;
+
+const tenantUk = {
+  clerkOrgId: "org_test_balance_sync_uk",
+  countryCode: "GB",
+  organisationId: "72000000-0000-4000-8000-000000000001",
+  payrollRegion: "UK" as const,
+  personId: "72000000-0000-4000-8000-000000000004",
+  xeroConnectionId: "72000000-0000-4000-8000-000000000002",
+  xeroEmployeeId: "72000000-0000-4000-8000-000000000005",
+  xeroTenantId: "72000000-0000-4000-8000-000000000003",
+} as const;
+
+const testClerkOrgIds = [
+  tenantA.clerkOrgId,
+  tenantB.clerkOrgId,
+  tenantNz.clerkOrgId,
+  tenantUk.clerkOrgId,
+] as const;
 
 describe("sync-xero-leave-balances handler", () => {
   it("is registered for dispatch", () => {
@@ -555,13 +582,169 @@ describeWithDatabase("sync-xero-leave-balances database flow", () => {
     });
     expect(cursorB).toBeNull();
   });
+
+  it("syncs NZ leave balances with NZD currency and hour records", async () => {
+    await setupTenant(tenantNz);
+    await setupPerson(tenantNz);
+    mockFetchLeaveBalancesForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        failures: [],
+        leaveBalances: [
+          xeroBalance(tenantNz, 40),
+          xeroCurrencyBalance(tenantNz, 2500.75),
+        ],
+        rawResponses: [],
+      },
+    });
+
+    const result = await syncXeroLeaveBalances(syncInput(tenantNz));
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        failed: 0,
+        fetched: 2,
+        status: "succeeded",
+        upserted: 2,
+      });
+    }
+
+    const balances = await database.leaveBalance.findMany({
+      orderBy: { leave_type_xero_id: "asc" },
+      where: {
+        clerk_org_id: tenantNz.clerkOrgId,
+        organisation_id: tenantNz.organisationId,
+      },
+    });
+    expect(balances).toHaveLength(2);
+    expect(balances[0]).toMatchObject({
+      balance_unit: "hours",
+      currency_code: null,
+      leave_type_xero_id: "annual",
+      person_id: tenantNz.personId,
+    });
+    expect(Number(balances[0]?.balance)).toBe(40);
+    expect(balances[1]).toMatchObject({
+      balance_unit: "currency",
+      currency_code: "NZD",
+      leave_type_xero_id: "holiday-pay",
+      person_id: tenantNz.personId,
+    });
+    expect(Number(balances[1]?.balance)).toBe(2500.75);
+  });
+
+  it("syncs UK leave balances with hours and days units and null currency", async () => {
+    await setupTenant(tenantUk);
+    await setupPerson(tenantUk);
+    mockFetchLeaveBalancesForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        failures: [],
+        leaveBalances: [
+          {
+            balance: 37.5,
+            currencyCode: null,
+            employeeId: tenantUk.xeroEmployeeId,
+            leaveTypeId: "holiday",
+            leaveTypeName: "Holiday",
+            rawPayload: { UnitType: "Hours" },
+            unitType: "hours" as const,
+          },
+          {
+            balance: 10,
+            currencyCode: null,
+            employeeId: tenantUk.xeroEmployeeId,
+            leaveTypeId: "maternity",
+            leaveTypeName: "Maternity",
+            rawPayload: { UnitType: "Days" },
+            unitType: "days" as const,
+          },
+        ],
+        rawResponses: [],
+      },
+    });
+
+    const result = await syncXeroLeaveBalances(syncInput(tenantUk));
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        failed: 0,
+        fetched: 2,
+        status: "succeeded",
+        upserted: 2,
+      });
+    }
+
+    const balances = await database.leaveBalance.findMany({
+      orderBy: { leave_type_xero_id: "asc" },
+      where: {
+        clerk_org_id: tenantUk.clerkOrgId,
+        organisation_id: tenantUk.organisationId,
+      },
+    });
+    expect(balances).toHaveLength(2);
+    expect(balances[0]).toMatchObject({
+      balance_unit: "hours",
+      currency_code: null,
+      leave_type_xero_id: "holiday",
+      person_id: tenantUk.personId,
+    });
+    expect(Number(balances[0]?.balance)).toBe(37.5);
+    expect(balances[1]).toMatchObject({
+      balance_unit: "days",
+      currency_code: null,
+      leave_type_xero_id: "maternity",
+      person_id: tenantUk.personId,
+    });
+    expect(Number(balances[1]?.balance)).toBe(10);
+  });
+
+  it("preserves cursor and does not advance on blanket 403 permission error for regional tenant", async () => {
+    await setupTenant(tenantUk);
+    await setupPerson(tenantUk);
+
+    mockFetchLeaveBalancesForRegion.mockResolvedValueOnce({
+      error: {
+        code: "permission_error",
+        httpStatus: 403,
+        message: "Forbidden",
+      },
+      ok: false,
+    });
+
+    const result = await syncXeroLeaveBalances({
+      ...syncInput(tenantUk),
+      triggerType: "scheduled",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.status).toBe("failed");
+    }
+
+    const cursor = await database.xeroSyncCursor.findFirst({
+      where: {
+        clerk_org_id: tenantUk.clerkOrgId,
+        entity_type: "leave_balances",
+        xero_tenant_id: tenantUk.xeroTenantId,
+      },
+    });
+    expect(cursor).toBeNull();
+  });
 });
 
-async function setupTenant(tenant: typeof tenantA | typeof tenantB) {
+async function setupTenant(
+  tenant: typeof tenantA | typeof tenantB | typeof tenantNz | typeof tenantUk
+) {
+  const countryCode = "countryCode" in tenant ? tenant.countryCode : "AU";
+  const payrollRegion = "payrollRegion" in tenant ? tenant.payrollRegion : "AU";
+
   await database.organisation.create({
     data: {
       clerk_org_id: tenant.clerkOrgId,
-      country_code: "AU",
+      country_code: countryCode,
       id: tenant.organisationId,
       name: `Test Org ${tenant.clerkOrgId}`,
     },
@@ -584,7 +767,7 @@ async function setupTenant(tenant: typeof tenantA | typeof tenantB) {
       clerk_org_id: tenant.clerkOrgId,
       id: tenant.xeroTenantId,
       organisation_id: tenant.organisationId,
-      payroll_region: "AU",
+      payroll_region: payrollRegion,
       tenant_name: "Xero Tenant",
       xero_connection_id: tenant.xeroConnectionId,
       xero_tenant_id: `xero-${tenant.xeroTenantId}`,
@@ -592,7 +775,9 @@ async function setupTenant(tenant: typeof tenantA | typeof tenantB) {
   });
 }
 
-async function setupPerson(tenant: typeof tenantA | typeof tenantB) {
+async function setupPerson(
+  tenant: typeof tenantA | typeof tenantB | typeof tenantNz | typeof tenantUk
+) {
   await database.person.create({
     data: {
       clerk_org_id: tenant.clerkOrgId,
@@ -621,7 +806,9 @@ async function cleanTestData() {
   await database.organisation.deleteMany({ where: scope });
 }
 
-function syncInput(tenant: typeof tenantA) {
+function syncInput(
+  tenant: typeof tenantA | typeof tenantB | typeof tenantNz | typeof tenantUk
+) {
   return {
     clerkOrgId: tenant.clerkOrgId,
     organisationId: tenant.organisationId,
@@ -630,7 +817,10 @@ function syncInput(tenant: typeof tenantA) {
   };
 }
 
-function xeroBalance(tenant: typeof tenantA, balance: number) {
+function xeroBalance(
+  tenant: typeof tenantA | typeof tenantB | typeof tenantNz | typeof tenantUk,
+  balance: number
+) {
   return {
     balance,
     currencyCode: null,
@@ -642,7 +832,10 @@ function xeroBalance(tenant: typeof tenantA, balance: number) {
   };
 }
 
-function xeroCurrencyBalance(tenant: typeof tenantA, balance: number) {
+function xeroCurrencyBalance(
+  tenant: typeof tenantA | typeof tenantB | typeof tenantNz | typeof tenantUk,
+  balance: number
+) {
   return {
     balance,
     currencyCode: "NZD",

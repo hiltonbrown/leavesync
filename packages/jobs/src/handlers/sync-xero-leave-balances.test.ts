@@ -808,4 +808,281 @@ describe("leave balances sync run lifecycle", () => {
     expect(mocks.xeroTenantUpdateMany).not.toHaveBeenCalled();
     expect(mocks.leaveBalanceUpsert).toHaveBeenCalled();
   });
+
+  it("syncs NZ balance page with 40 people, NZD currency balances, and advances cursor", async () => {
+    mocks.xeroTenantFindFirst.mockResolvedValue({
+      id: XERO_TENANT_ID,
+      payroll_region: "NZ",
+      sync_paused_at: null,
+      xero_connection: {},
+      xero_connection_id: "40000000-0000-4000-8000-000000000001",
+    });
+
+    const people = Array.from({ length: 41 }, (_, i) => ({
+      id: `50000000-0000-4000-8000-${String(i + 1).padStart(12, "0")}`,
+      xero_employee_id: `60000000-0000-4000-8000-${String(i + 1).padStart(12, "0")}`,
+    }));
+    mocks.personFindMany.mockResolvedValue(people);
+    mocks.xeroSyncCursorFindFirst.mockResolvedValue(null);
+    mocks.xeroSyncCursorCreate.mockResolvedValue({ id: "cursor_nz_1" });
+    mocks.fetchLeaveBalancesForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        failures: [],
+        leaveBalances: people.slice(0, 40).flatMap((p) => [
+          {
+            balance: 80,
+            currencyCode: null,
+            employeeId: p.xero_employee_id,
+            leaveTypeId: "annual",
+            leaveTypeName: "Annual Leave",
+            rawPayload: { LeaveType: "Annual" },
+            unitType: "hours",
+          },
+          {
+            balance: 1500.5,
+            currencyCode: "NZD",
+            employeeId: p.xero_employee_id,
+            leaveTypeId: "holiday-pay",
+            leaveTypeName: "Holiday Pay",
+            rawPayload: { TypeOfUnits: "Dollars" },
+            unitType: "currency",
+          },
+        ]),
+        rawResponses: [],
+      },
+    });
+
+    const result = await syncXeroLeaveBalances({
+      ...input(),
+      triggerType: "scheduled",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.status).toBe("succeeded");
+      expect(result.value.fetched).toBe(80);
+      expect(result.value.upserted).toBe(80);
+    }
+    expect(mocks.fetchLeaveBalancesForRegion).toHaveBeenCalledWith(
+      "NZ",
+      expect.objectContaining({
+        employeeIds: people.slice(0, 40).map((p) => p.xero_employee_id),
+      })
+    );
+    expect(mocks.xeroSyncCursorCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          cursor_value: people[39]?.id,
+          entity_type: "leave_balances",
+          xero_tenant_id: XERO_TENANT_ID,
+        }),
+      })
+    );
+  });
+
+  it("syncs UK balance page with 40 people, hour and day units, null currency code, and advances cursor", async () => {
+    mocks.xeroTenantFindFirst.mockResolvedValue({
+      id: XERO_TENANT_ID,
+      payroll_region: "UK",
+      sync_paused_at: null,
+      xero_connection: {},
+      xero_connection_id: "40000000-0000-4000-8000-000000000001",
+    });
+
+    const people = Array.from({ length: 41 }, (_, i) => ({
+      id: `50000000-0000-4000-8000-${String(i + 1).padStart(12, "0")}`,
+      xero_employee_id: `60000000-0000-4000-8000-${String(i + 1).padStart(12, "0")}`,
+    }));
+    mocks.personFindMany.mockResolvedValue(people);
+    mocks.xeroSyncCursorFindFirst.mockResolvedValue(null);
+    mocks.xeroSyncCursorCreate.mockResolvedValue({ id: "cursor_uk_1" });
+    mocks.fetchLeaveBalancesForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        failures: [],
+        leaveBalances: people.slice(0, 40).flatMap((p) => [
+          {
+            balance: 37.5,
+            currencyCode: null,
+            employeeId: p.xero_employee_id,
+            leaveTypeId: "holiday",
+            leaveTypeName: "Holiday",
+            rawPayload: { UnitType: "Hours" },
+            unitType: "hours",
+          },
+          {
+            balance: 5,
+            currencyCode: null,
+            employeeId: p.xero_employee_id,
+            leaveTypeId: "maternity",
+            leaveTypeName: "Maternity",
+            rawPayload: { UnitType: "Days" },
+            unitType: "days",
+          },
+        ]),
+        rawResponses: [],
+      },
+    });
+
+    const result = await syncXeroLeaveBalances({
+      ...input(),
+      triggerType: "scheduled",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.status).toBe("succeeded");
+      expect(result.value.fetched).toBe(80);
+      expect(result.value.upserted).toBe(80);
+    }
+    expect(mocks.fetchLeaveBalancesForRegion).toHaveBeenCalledWith(
+      "UK",
+      expect.objectContaining({
+        employeeIds: people.slice(0, 40).map((p) => p.xero_employee_id),
+      })
+    );
+    expect(mocks.xeroSyncCursorCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          cursor_value: people[39]?.id,
+          entity_type: "leave_balances",
+          xero_tenant_id: XERO_TENANT_ID,
+        }),
+      })
+    );
+  });
+
+  it("does not advance cursor after a blanket 403 permission error for regional tenant", async () => {
+    mocks.xeroTenantFindFirst.mockResolvedValue({
+      id: XERO_TENANT_ID,
+      payroll_region: "UK",
+      sync_paused_at: null,
+      xero_connection: {},
+      xero_connection_id: "40000000-0000-4000-8000-000000000001",
+    });
+    mocks.personFindMany.mockResolvedValue([
+      { id: "50000000-0000-4000-8000-000000000001", xero_employee_id: "emp_1" },
+    ]);
+    mocks.fetchLeaveBalancesForRegion.mockResolvedValue({
+      error: {
+        code: "permission_error",
+        httpStatus: 403,
+        message: "Forbidden",
+      },
+      ok: false,
+    });
+
+    const result = await syncXeroLeaveBalances({
+      ...input(),
+      triggerType: "scheduled",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.status).toBe("failed");
+    }
+    expect(mocks.xeroSyncCursorUpdateMany).not.toHaveBeenCalled();
+    expect(mocks.xeroSyncCursorCreate).not.toHaveBeenCalled();
+  });
+
+  it("does not advance cursor after a blanket network error", async () => {
+    mocks.xeroTenantFindFirst.mockResolvedValue({
+      id: XERO_TENANT_ID,
+      payroll_region: "NZ",
+      sync_paused_at: null,
+      xero_connection: {},
+      xero_connection_id: "40000000-0000-4000-8000-000000000001",
+    });
+    mocks.personFindMany.mockResolvedValue([
+      { id: "50000000-0000-4000-8000-000000000001", xero_employee_id: "emp_1" },
+    ]);
+    mocks.fetchLeaveBalancesForRegion.mockResolvedValue({
+      error: {
+        code: "network_error",
+        message: "Network failure",
+      },
+      ok: false,
+    });
+
+    const result = await syncXeroLeaveBalances({
+      ...input(),
+      triggerType: "scheduled",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.status).toBe("failed");
+    }
+    expect(mocks.xeroSyncCursorUpdateMany).not.toHaveBeenCalled();
+    expect(mocks.xeroSyncCursorCreate).not.toHaveBeenCalled();
+  });
+
+  it("advances cursor once for an employee who has multiple balance records", async () => {
+    const employeeId = "60000000-0000-4000-8000-000000000001";
+    const personId = "50000000-0000-4000-8000-000000000001";
+    mocks.personFindMany.mockResolvedValue([
+      { id: personId, xero_employee_id: employeeId },
+    ]);
+    mocks.xeroSyncCursorFindFirst.mockResolvedValue(null);
+    mocks.xeroSyncCursorCreate.mockResolvedValue({ id: "cursor_1" });
+    mocks.fetchLeaveBalancesForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        failures: [],
+        leaveBalances: [
+          {
+            balance: 80,
+            currencyCode: null,
+            employeeId,
+            leaveTypeId: "annual",
+            leaveTypeName: "Annual Leave",
+            rawPayload: {},
+            unitType: "hours",
+          },
+          {
+            balance: 40,
+            currencyCode: null,
+            employeeId,
+            leaveTypeId: "sick",
+            leaveTypeName: "Sick Leave",
+            rawPayload: {},
+            unitType: "hours",
+          },
+          {
+            balance: 1200,
+            currencyCode: "NZD",
+            employeeId,
+            leaveTypeId: "holiday-pay",
+            leaveTypeName: "Holiday Pay",
+            rawPayload: {},
+            unitType: "currency",
+          },
+        ],
+        rawResponses: [],
+      },
+    });
+
+    const result = await syncXeroLeaveBalances({
+      ...input(),
+      triggerType: "scheduled",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.status).toBe("succeeded");
+      expect(result.value.fetched).toBe(3);
+      expect(result.value.upserted).toBe(3);
+    }
+    expect(mocks.leaveBalanceUpsert).toHaveBeenCalledTimes(3);
+    // Even with 3 balances for 1 person on a 1-person final page, cursor is updated to null (isLastPage)
+    expect(mocks.xeroSyncCursorCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          cursor_value: null,
+          entity_type: "leave_balances",
+        }),
+      })
+    );
+  });
 });

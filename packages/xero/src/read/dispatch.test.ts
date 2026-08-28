@@ -7,9 +7,11 @@ const mocks = vi.hoisted(() => ({
   fetchAuLeaveRecords: vi.fn(),
   fetchNzEmployees: vi.fn(),
   fetchNzLeaveApplicationStatus: vi.fn(),
+  fetchNzLeaveBalancesForEmployee: vi.fn(),
   fetchNzLeaveForEmployee: vi.fn(),
   fetchUkEmployees: vi.fn(),
   fetchUkLeaveApplicationStatus: vi.fn(),
+  fetchUkLeaveBalancesForEmployee: vi.fn(),
   fetchUkLeaveForEmployee: vi.fn(),
 }));
 
@@ -23,12 +25,14 @@ vi.mock("../au/read", () => ({
 vi.mock("../nz/read", () => ({
   fetchEmployees: mocks.fetchNzEmployees,
   fetchLeaveApplicationStatus: mocks.fetchNzLeaveApplicationStatus,
+  fetchLeaveBalancesForEmployee: mocks.fetchNzLeaveBalancesForEmployee,
   fetchLeaveForEmployee: mocks.fetchNzLeaveForEmployee,
 }));
 
 vi.mock("../uk/read", () => ({
   fetchEmployees: mocks.fetchUkEmployees,
   fetchLeaveApplicationStatus: mocks.fetchUkLeaveApplicationStatus,
+  fetchLeaveBalancesForEmployee: mocks.fetchUkLeaveBalancesForEmployee,
   fetchLeaveForEmployee: mocks.fetchUkLeaveForEmployee,
 }));
 
@@ -257,30 +261,353 @@ describe("fetchLeaveForEmployeeForRegion dispatch", () => {
   });
 });
 
-describe("regional stubs for leave balances", () => {
-  it("returns not available for NZ leave balances", async () => {
-    const result = await fetchLeaveBalancesForRegion("NZ", {
-      employeeIds: ["emp-1"],
-      xeroTenant: buildTenant("NZ"),
-    });
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.message).toContain(
-        "NZ payroll leave balance reads are not yet available."
-      );
-    }
+describe("fetchLeaveBalancesForRegion dispatch", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it("returns not available for UK leave balances", async () => {
-    const result = await fetchLeaveBalancesForRegion("UK", {
-      employeeIds: ["emp-1"],
-      xeroTenant: buildTenant("UK"),
+  it("dispatches to AU reader for AU region", async () => {
+    const tenant = buildTenant("AU");
+    mocks.fetchAuLeaveBalances.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        failures: [],
+        leaveBalances: [],
+        rawResponses: [],
+      },
     });
+
+    const result = await fetchLeaveBalancesForRegion("AU", {
+      employeeIds: ["emp-au-1", "emp-au-2"],
+      xeroTenant: tenant,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(mocks.fetchAuLeaveBalances).toHaveBeenCalledWith({
+      employeeIds: ["emp-au-1", "emp-au-2"],
+      xeroTenant: tenant,
+    });
+  });
+
+  it("dispatches to NZ reader per employee for NZ region", async () => {
+    const tenant = buildTenant("NZ");
+    mocks.fetchNzLeaveBalancesForEmployee
+      .mockResolvedValueOnce({
+        ok: true,
+        value: {
+          leaveBalances: [
+            {
+              balance: 80,
+              currencyCode: null,
+              employeeId: "emp-nz-1",
+              leaveTypeId: "lt-1",
+              leaveTypeName: "Annual Leave",
+              rawPayload: {},
+              unitType: "hours",
+            },
+            {
+              balance: 1500.5,
+              currencyCode: "NZD",
+              employeeId: "emp-nz-1",
+              leaveTypeId: "lt-2",
+              leaveTypeName: "Holiday Pay",
+              rawPayload: {},
+              unitType: "currency",
+            },
+          ],
+          rawResponse: { raw: "nz-1" },
+        },
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        value: {
+          leaveBalances: [
+            {
+              balance: 40,
+              currencyCode: null,
+              employeeId: "emp-nz-2",
+              leaveTypeId: "lt-3",
+              leaveTypeName: "Sick Leave",
+              rawPayload: {},
+              unitType: "hours",
+            },
+          ],
+          rawResponse: { raw: "nz-2" },
+        },
+      });
+
+    const progressCalls: [number, number][] = [];
+    const result = await fetchLeaveBalancesForRegion("NZ", {
+      employeeIds: ["emp-nz-1", "emp-nz-2"],
+      onProgress: (p, t) => {
+        progressCalls.push([p, t]);
+      },
+      xeroTenant: tenant,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.leaveBalances).toHaveLength(3);
+      expect(result.value.rawResponses).toEqual([
+        { raw: "nz-1" },
+        { raw: "nz-2" },
+      ]);
+      expect(result.value.failures).toHaveLength(0);
+    }
+    expect(mocks.fetchNzLeaveBalancesForEmployee).toHaveBeenCalledTimes(2);
+    expect(progressCalls).toEqual([
+      [1, 2],
+      [2, 2],
+    ]);
+  });
+
+  it("aborts NZ balance fetch on blanket auth failure (401)", async () => {
+    const tenant = buildTenant("NZ");
+    mocks.fetchNzLeaveBalancesForEmployee.mockResolvedValueOnce({
+      error: {
+        code: "auth_error",
+        httpStatus: 401,
+        message: "Unauthorized",
+      },
+      ok: false,
+    });
+
+    const result = await fetchLeaveBalancesForRegion("NZ", {
+      employeeIds: ["emp-nz-1", "emp-nz-2"],
+      xeroTenant: tenant,
+    });
+
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error.message).toContain(
-        "UK payroll leave balance reads are not yet available."
-      );
+      expect(result.error.code).toBe("auth_error");
+    }
+    expect(mocks.fetchNzLeaveBalancesForEmployee).toHaveBeenCalledTimes(1);
+  });
+
+  it("aborts NZ balance fetch on blanket permission failure (403)", async () => {
+    const tenant = buildTenant("NZ");
+    mocks.fetchNzLeaveBalancesForEmployee.mockResolvedValueOnce({
+      error: {
+        code: "permission_error",
+        httpStatus: 403,
+        message: "Forbidden",
+      },
+      ok: false,
+    });
+
+    const result = await fetchLeaveBalancesForRegion("NZ", {
+      employeeIds: ["emp-nz-1", "emp-nz-2"],
+      xeroTenant: tenant,
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("permission_error");
+    }
+    expect(mocks.fetchNzLeaveBalancesForEmployee).toHaveBeenCalledTimes(1);
+  });
+
+  it("isolates NZ employee failure and continues to next employee", async () => {
+    const tenant = buildTenant("NZ");
+    mocks.fetchNzLeaveBalancesForEmployee
+      .mockResolvedValueOnce({
+        error: {
+          code: "not_found_error",
+          httpStatus: 404,
+          message: "Employee not found",
+        },
+        ok: false,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        value: {
+          leaveBalances: [
+            {
+              balance: 10,
+              currencyCode: null,
+              employeeId: "emp-nz-2",
+              leaveTypeId: "lt-1",
+              leaveTypeName: "Annual Leave",
+              rawPayload: {},
+              unitType: "hours",
+            },
+          ],
+          rawResponse: { raw: "nz-2" },
+        },
+      });
+
+    const result = await fetchLeaveBalancesForRegion("NZ", {
+      employeeIds: ["emp-nz-1", "emp-nz-2"],
+      xeroTenant: tenant,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.leaveBalances).toHaveLength(1);
+      expect(result.value.failures).toHaveLength(1);
+      expect(result.value.failures[0]?.employeeId).toBe("emp-nz-1");
+    }
+    expect(mocks.fetchNzLeaveBalancesForEmployee).toHaveBeenCalledTimes(2);
+  });
+
+  it("dispatches to UK reader per employee for UK region", async () => {
+    const tenant = buildTenant("UK");
+    mocks.fetchUkLeaveBalancesForEmployee
+      .mockResolvedValueOnce({
+        ok: true,
+        value: {
+          leaveBalances: [
+            {
+              balance: 37.5,
+              currencyCode: null,
+              employeeId: "emp-uk-1",
+              leaveTypeId: "lt-uk-1",
+              leaveTypeName: "Holiday",
+              rawPayload: {},
+              unitType: "hours",
+            },
+          ],
+          rawResponse: { raw: "uk-1" },
+        },
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        value: {
+          leaveBalances: [
+            {
+              balance: 5,
+              currencyCode: null,
+              employeeId: "emp-uk-2",
+              leaveTypeId: "lt-uk-2",
+              leaveTypeName: "Maternity",
+              rawPayload: {},
+              unitType: "days",
+            },
+          ],
+          rawResponse: { raw: "uk-2" },
+        },
+      });
+
+    const result = await fetchLeaveBalancesForRegion("UK", {
+      employeeIds: ["emp-uk-1", "emp-uk-2"],
+      xeroTenant: tenant,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.leaveBalances).toHaveLength(2);
+      expect(result.value.rawResponses).toEqual([
+        { raw: "uk-1" },
+        { raw: "uk-2" },
+      ]);
+      expect(result.value.failures).toHaveLength(0);
+    }
+    expect(mocks.fetchUkLeaveBalancesForEmployee).toHaveBeenCalledTimes(2);
+  });
+
+  it("aborts UK balance fetch on blanket rate-limit failure (429)", async () => {
+    const tenant = buildTenant("UK");
+    mocks.fetchUkLeaveBalancesForEmployee.mockResolvedValueOnce({
+      error: {
+        code: "rate_limit_error",
+        httpStatus: 429,
+        message: "Rate limited",
+      },
+      ok: false,
+    });
+
+    const result = await fetchLeaveBalancesForRegion("UK", {
+      employeeIds: ["emp-uk-1", "emp-uk-2"],
+      xeroTenant: tenant,
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("rate_limit_error");
+    }
+    expect(mocks.fetchUkLeaveBalancesForEmployee).toHaveBeenCalledTimes(1);
+  });
+
+  it("aborts UK balance fetch on blanket permission failure (403)", async () => {
+    const tenant = buildTenant("UK");
+    mocks.fetchUkLeaveBalancesForEmployee.mockResolvedValueOnce({
+      error: {
+        code: "permission_error",
+        httpStatus: 403,
+        message: "Forbidden",
+      },
+      ok: false,
+    });
+
+    const result = await fetchLeaveBalancesForRegion("UK", {
+      employeeIds: ["emp-uk-1", "emp-uk-2"],
+      xeroTenant: tenant,
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("permission_error");
+    }
+    expect(mocks.fetchUkLeaveBalancesForEmployee).toHaveBeenCalledTimes(1);
+  });
+
+  it("isolates UK employee validation failure and continues to next employee", async () => {
+    const tenant = buildTenant("UK");
+    mocks.fetchUkLeaveBalancesForEmployee
+      .mockResolvedValueOnce({
+        error: {
+          code: "validation_error",
+          message: "UK leave balances response could not be parsed.",
+          rawPayload: { bad: "payload" },
+        },
+        ok: false,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        value: {
+          leaveBalances: [
+            {
+              balance: 25,
+              currencyCode: null,
+              employeeId: "emp-uk-2",
+              leaveTypeId: "lt-uk-2",
+              leaveTypeName: "Annual Leave",
+              rawPayload: {},
+              unitType: "days",
+            },
+          ],
+          rawResponse: { raw: "uk-2" },
+        },
+      });
+
+    const result = await fetchLeaveBalancesForRegion("UK", {
+      employeeIds: ["emp-uk-1", "emp-uk-2"],
+      xeroTenant: tenant,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.leaveBalances).toHaveLength(1);
+      expect(result.value.failures).toHaveLength(1);
+      expect(result.value.failures[0]?.employeeId).toBe("emp-uk-1");
+      expect(result.value.rawResponses).toEqual([
+        { bad: "payload" },
+        { raw: "uk-2" },
+      ]);
+    }
+    expect(mocks.fetchUkLeaveBalancesForEmployee).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns unsupported payroll region error for unknown regions", async () => {
+    const result = await fetchLeaveBalancesForRegion("US", {
+      employeeIds: ["emp-1"],
+      xeroTenant: buildTenant("AU"),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("unknown_error");
+      expect(result.error.message).toBe("Unsupported payroll region.");
     }
   });
 });
