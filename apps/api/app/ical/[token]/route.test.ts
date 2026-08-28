@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { setFeedRateLimiterClientForTests } from "../../../lib/rate-limit/feed-rate-limit";
 
 const mocks = vi.hoisted(() => ({
   renderFeedForToken: vi.fn(),
@@ -21,14 +22,25 @@ function activeFeedResult(overrides: { body?: string; etag?: string } = {}) {
   };
 }
 
-function requestFor(ifNoneMatch?: string) {
+function requestFor(
+  ifNoneMatch?: string,
+  headers: Record<string, string> = {}
+) {
+  const reqHeaders = new Headers(headers);
+  if (ifNoneMatch) {
+    reqHeaders.set("If-None-Match", ifNoneMatch);
+  }
   return new Request("https://api.example.com/ical/feed-token.ics", {
-    headers: ifNoneMatch ? { "If-None-Match": ifNoneMatch } : undefined,
+    headers: reqHeaders,
   });
 }
 
-function getFeed(token = "feed-token.ics", ifNoneMatch?: string) {
-  return GET(requestFor(ifNoneMatch), {
+function getFeed(
+  token = "feed-token.ics",
+  ifNoneMatch?: string,
+  headers: Record<string, string> = {}
+) {
+  return GET(requestFor(ifNoneMatch, headers), {
     params: Promise.resolve({ token }),
   });
 }
@@ -36,7 +48,12 @@ function getFeed(token = "feed-token.ics", ifNoneMatch?: string) {
 describe("GET /ical/:token.ics", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setFeedRateLimiterClientForTests(null);
     mocks.renderFeedForToken.mockResolvedValue(activeFeedResult());
+  });
+
+  afterEach(() => {
+    setFeedRateLimiterClientForTests(null);
   });
 
   it("returns an active feed with ETag and calendar content type", async () => {
@@ -154,6 +171,59 @@ describe("GET /ical/:token.ics", () => {
     const response = await getFeed("feed-token.ics", '"old-etag"');
 
     expect(response.status).toBe(200);
+    expect(mocks.renderFeedForToken).toHaveBeenCalledTimes(1);
+    expect(mocks.renderFeedForToken).toHaveBeenCalledWith("feed-token");
+  });
+
+  it("returns 429 with Retry-After when client IP rate limit is exceeded without calling renderFeedForToken", async () => {
+    setFeedRateLimiterClientForTests({
+      eval: (_script, keys) => {
+        const [key] = keys;
+        if (key.startsWith("ratelimit:feed:ip:")) {
+          return Promise.resolve([61, 35]);
+        }
+        return Promise.resolve([1, 60]);
+      },
+    });
+
+    const response = await getFeed("feed-token.ics", undefined, {
+      "x-forwarded-for": "203.0.113.50",
+    });
+
+    expect(response.status).toBe(429);
+    expect(await response.text()).toBe("Too Many Requests");
+    expect(response.headers.get("Retry-After")).toBe("35");
+    expect(mocks.renderFeedForToken).not.toHaveBeenCalled();
+  });
+
+  it("returns 429 with Retry-After when token probe rate limit is exceeded without calling renderFeedForToken", async () => {
+    setFeedRateLimiterClientForTests({
+      eval: (_script, keys) => {
+        const [key] = keys;
+        if (key.startsWith("ratelimit:feed:token:")) {
+          return Promise.resolve([121, 45]);
+        }
+        return Promise.resolve([1, 60]);
+      },
+    });
+
+    const response = await getFeed("probed-token.ics");
+
+    expect(response.status).toBe(429);
+    expect(await response.text()).toBe("Too Many Requests");
+    expect(response.headers.get("Retry-After")).toBe("45");
+    expect(mocks.renderFeedForToken).not.toHaveBeenCalled();
+  });
+
+  it("fails open and renders feed normally when Redis rate limiter throws", async () => {
+    setFeedRateLimiterClientForTests({
+      eval: () => Promise.reject(new Error("Redis cluster unreachable")),
+    });
+
+    const response = await getFeed("feed-token.ics");
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe("BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n");
     expect(mocks.renderFeedForToken).toHaveBeenCalledTimes(1);
     expect(mocks.renderFeedForToken).toHaveBeenCalledWith("feed-token");
   });
