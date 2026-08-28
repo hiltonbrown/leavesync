@@ -1,7 +1,7 @@
 import {
   createSlice14Fixture,
   type Slice14AvailabilityRecordFixture,
-} from "@repo/database/src/test-fixtures/slice-14-fixture";
+} from "@repo/database/test-fixtures/slice-14-fixture";
 import { describe, expect, it } from "vitest";
 
 describe("Slice 14 cohesion flows", () => {

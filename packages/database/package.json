@@ -1,6 +1,72 @@
 {
   "name": "@repo/database",
   "version": "0.0.0",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "default": "./index.ts"
+    },
+    "./keys": {
+      "types": "./keys.ts",
+      "default": "./keys.ts"
+    },
+    "./generated/client": {
+      "types": "./generated/client.ts",
+      "default": "./generated/client.ts"
+    },
+    "./generated/enums": {
+      "types": "./generated/enums.ts",
+      "default": "./generated/enums.ts"
+    },
+    "./queries/availability-records": {
+      "types": "./queries/availability-records.ts",
+      "default": "./queries/availability-records.ts"
+    },
+    "./queries/billing": {
+      "types": "./queries/billing.ts",
+      "default": "./queries/billing.ts"
+    },
+    "./queries/feeds": {
+      "types": "./queries/feeds.ts",
+      "default": "./queries/feeds.ts"
+    },
+    "./queries/leave-balances": {
+      "types": "./queries/leave-balances.ts",
+      "default": "./queries/leave-balances.ts"
+    },
+    "./queries/notifications": {
+      "types": "./queries/notifications.ts",
+      "default": "./queries/notifications.ts"
+    },
+    "./queries/organisations": {
+      "types": "./queries/organisations.ts",
+      "default": "./queries/organisations.ts"
+    },
+    "./queries/people": {
+      "types": "./queries/people.ts",
+      "default": "./queries/people.ts"
+    },
+    "./queries/public-holidays": {
+      "types": "./queries/public-holidays.ts",
+      "default": "./queries/public-holidays.ts"
+    },
+    "./queries/schedulable-xero-tenants": {
+      "types": "./queries/schedulable-xero-tenants.ts",
+      "default": "./queries/schedulable-xero-tenants.ts"
+    },
+    "./queries/support-submissions": {
+      "types": "./queries/support-submissions.ts",
+      "default": "./queries/support-submissions.ts"
+    },
+    "./queries/sync-runs": {
+      "types": "./queries/sync-runs.ts",
+      "default": "./queries/sync-runs.ts"
+    },
+    "./test-fixtures/slice-14-fixture": {
+      "types": "./test-fixtures/slice-14-fixture.ts",
+      "default": "./test-fixtures/slice-14-fixture.ts"
+    }
+  },
   "main": "./index.ts",
   "types": "./index.ts",
   "scripts": {

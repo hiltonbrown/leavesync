@@ -8,8 +8,8 @@ import type {
   ClerkOrgId,
   OrganisationId,
 } from "@repo/core";
-import { getAvailabilityRecordById } from "@repo/database/src/queries/availability-records";
-import { getOrganisationById } from "@repo/database/src/queries/organisations";
+import { getAvailabilityRecordById } from "@repo/database/queries/availability-records";
+import { getOrganisationById } from "@repo/database/queries/organisations";
 import { log } from "@repo/observability/log";
 import { z } from "zod";
 
