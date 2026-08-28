@@ -1,5 +1,7 @@
 "use client";
 
+import { getAvailabilityRecordLabel } from "@repo/core";
+
 import { Button } from "@repo/design-system/components/ui/button";
 import { toast } from "@repo/design-system/components/ui/sonner";
 import { Textarea } from "@repo/design-system/components/ui/textarea";
@@ -59,8 +61,8 @@ export function RequestInfoModal({
     >
       <div className="space-y-5">
         <p className="text-muted-foreground text-sm">
-          {record.employeeName}, {labelForType(record.recordType)},{" "}
-          {formatDateRange(record.startsAt, record.endsAt)}
+          {record.employeeName}, {getAvailabilityRecordLabel(record.recordType)}
+          , {formatDateRange(record.startsAt, record.endsAt)}
         </p>
         <div className="space-y-2">
           <label className="font-medium text-sm" htmlFor="info-question">
@@ -124,11 +126,4 @@ function formatDate(value: string | Date) {
     timeZone: "UTC",
     year: "numeric",
   }).format(new Date(value));
-}
-
-function labelForType(recordType: string) {
-  return recordType
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
 }

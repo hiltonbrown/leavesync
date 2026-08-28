@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   type ClerkOrgId,
+  getAvailabilityRecordLabel,
   holidayIsNonWorking,
   type OrganisationId,
   type Result,
@@ -684,7 +685,7 @@ function donut(
   return [...daysByType.entries()]
     .map(([recordType, days]) => ({
       days,
-      label: labelForRecordType(recordType),
+      label: getAvailabilityRecordLabel(recordType),
       percentage: totalDays === 0 ? 0 : round((days / totalDays) * 100),
       recordType,
     }))
@@ -765,13 +766,6 @@ function yearsBetween(startYear: number, endYear: number): number[] {
     years.push(year);
   }
   return years;
-}
-
-function labelForRecordType(recordType: availability_record_type): string {
-  return recordType
-    .split("_")
-    .map((part) => `${part.slice(0, 1).toUpperCase()}${part.slice(1)}`)
-    .join(" ");
 }
 
 function sum(values: readonly number[]): number {

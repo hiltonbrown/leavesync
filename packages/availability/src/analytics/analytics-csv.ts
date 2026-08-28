@@ -1,14 +1,6 @@
+import { getAvailabilityRecordLabel } from "@repo/core";
 import { csvEscape } from "../settings/shared";
 import type { AnalyticsRecordListItem } from "./leave-reports-service";
-
-function labelForRecordType(recordType: string): string {
-  return recordType
-    .split("_")
-    .map((part) =>
-      part ? `${part.slice(0, 1).toUpperCase()}${part.slice(1)}` : ""
-    )
-    .join(" ");
-}
 
 function formatApprovedBy(
   firstName: string | null,
@@ -43,7 +35,7 @@ export function exportAnalyticsToCsv(
     record.personLastName,
     record.teamName ?? "",
     record.locationName ?? "",
-    labelForRecordType(record.recordType),
+    getAvailabilityRecordLabel(record.recordType),
     record.sourceType,
     record.startsAt.toISOString(),
     record.endsAt.toISOString(),
