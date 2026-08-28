@@ -112,7 +112,7 @@ describe("out of office service", () => {
         expect(result.value.oooTypeDonut).toEqual([
           {
             days: 5,
-            label: "Wfh",
+            label: "Work From Home",
             percentage: 100,
             recordType: "wfh",
           },

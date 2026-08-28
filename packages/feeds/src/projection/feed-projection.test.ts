@@ -68,7 +68,9 @@ vi.mock("../scope/feed-scope", () => ({
   resolvePeopleForFeed: mocks.resolvePeopleForFeed,
 }));
 
-const { projectFeedEvents } = await import("./feed-projection");
+const { labelForRecordType, projectFeedEvents } = await import(
+  "./feed-projection"
+);
 
 const baseInput = {
   actingRole: "viewer" as const,
@@ -860,5 +862,24 @@ describe("projectFeedEvents", () => {
         summary: "Public holiday: Labour Day",
       },
     ]);
+  });
+
+  describe("labelForRecordType", () => {
+    it("prefers custom title override when present", () => {
+      expect(labelForRecordType("annual_leave", "Trip to Japan")).toBe(
+        "Trip to Japan"
+      );
+      expect(labelForRecordType("wfh", "WFH Afternoon")).toBe("WFH Afternoon");
+    });
+
+    it("falls back to centralised canonical label when title is null or whitespace", () => {
+      expect(labelForRecordType("annual_leave", null)).toBe("Annual Leave");
+      expect(labelForRecordType("annual_leave", "   ")).toBe("Annual Leave");
+      expect(labelForRecordType("wfh", null)).toBe("Work From Home");
+      expect(labelForRecordType("long_service_leave", null)).toBe(
+        "Long Service Leave"
+      );
+      expect(labelForRecordType("travelling", null)).toBe("Travelling");
+    });
   });
 });

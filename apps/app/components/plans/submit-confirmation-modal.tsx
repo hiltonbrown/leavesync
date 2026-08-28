@@ -1,5 +1,7 @@
 "use client";
 
+import { getAvailabilityRecordLabel } from "@repo/core";
+
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   Dialog,
@@ -121,7 +123,7 @@ export function SubmitConfirmationModal({
         <dl className="grid gap-3">
           <SummaryRow label="Leave type">
             {recordTypeLabels[record.recordType] ??
-              labelForType(record.recordType)}
+              getAvailabilityRecordLabel(record.recordType)}
           </SummaryRow>
           <SummaryRow label="Dates">
             {formatDateRange(record.startsAt, record.endsAt)}
@@ -248,11 +250,4 @@ function formatDate(value: string): string {
     timeZone: "UTC",
     year: "numeric",
   }).format(new Date(value));
-}
-
-function labelForType(recordType: string): string {
-  return recordType
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
 }

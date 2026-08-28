@@ -1,5 +1,7 @@
 "use client";
 
+import { getAvailabilityRecordLabel } from "@repo/core";
+
 import {
   Avatar,
   AvatarFallback,
@@ -354,7 +356,9 @@ export function LeaveApprovalsClient({
                       <TableCell>
                         <PersonCell record={record} />
                       </TableCell>
-                      <TableCell>{labelForType(record.recordType)}</TableCell>
+                      <TableCell>
+                        {getAvailabilityRecordLabel(record.recordType)}
+                      </TableCell>
                       <TableCell>
                         {formatDateRange(record.startsAt, record.endsAt)}
                         <div className="text-muted-foreground text-xs">
@@ -739,13 +743,6 @@ function formatDate(value: string | Date) {
     timeZone: "UTC",
     year: "numeric",
   }).format(new Date(value));
-}
-
-function labelForType(recordType: string) {
-  return recordType
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
 }
 
 function statusLabel(status: string) {

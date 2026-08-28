@@ -1,5 +1,7 @@
 "use client";
 
+import { getAvailabilityRecordLabel } from "@repo/core";
+
 import { Button } from "@repo/design-system/components/ui/button";
 import { Checkbox } from "@repo/design-system/components/ui/checkbox";
 import { Input } from "@repo/design-system/components/ui/input";
@@ -333,7 +335,8 @@ export function RecordForm({
                 <SelectLabel>{recordTypeLabels.group}</SelectLabel>
                 {visibleRecordTypes.map((type) => (
                   <SelectItem key={type} value={type}>
-                    {labelForType(type)}: {recordTypeDescriptions[type]}
+                    {getAvailabilityRecordLabel(type)}:{" "}
+                    {recordTypeDescriptions[type]}
                   </SelectItem>
                 ))}
               </SelectGroup>
@@ -514,13 +517,6 @@ function Field({
       {children}
     </div>
   );
-}
-
-function labelForType(recordType: string): string {
-  return recordType
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
 }
 
 function isXeroLeaveSelection(

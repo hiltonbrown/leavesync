@@ -1,6 +1,7 @@
 "use client";
 
 import type { CalendarEvent } from "@repo/availability";
+import { getAvailabilityRecordLabel } from "@repo/core";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   Popover,
@@ -28,7 +29,7 @@ export function CalendarEventPopover({
   const recordTypeLabel =
     event.recordType === "private"
       ? "Private"
-      : labelForValue(event.recordType);
+      : getAvailabilityRecordLabel(event.recordType);
 
   return (
     <Popover>

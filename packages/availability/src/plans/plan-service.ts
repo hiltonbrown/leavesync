@@ -1,7 +1,7 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-import type { Result } from "@repo/core";
+import { getAvailabilityRecordLabel, type Result } from "@repo/core";
 import { database, scopedTo } from "@repo/database";
 import type {
   availability_approval_status,
@@ -419,7 +419,7 @@ export async function createRecord(
           record_type: parsed.data.recordType,
           source_type: routing.sourceType,
           starts_at: parsed.data.startsAt,
-          title: labelForRecordType(parsed.data.recordType),
+          title: getAvailabilityRecordLabel(parsed.data.recordType),
           updated_by_user_id: parsed.data.createdByUserId,
         },
         include: recordInclude,
@@ -559,7 +559,7 @@ export async function updateRecord(
           derived_uid_key: derivedUidKey,
           record_type: nextRecordType,
           source_type: routing.sourceType,
-          title: labelForRecordType(nextRecordType),
+          title: getAvailabilityRecordLabel(nextRecordType),
           updated_by_user_id: parsed.data.actingUserId,
         },
         where: {
@@ -1289,11 +1289,4 @@ function unknownError(): Result<never, PlanServiceError> {
 function emptyToNull(value: string | undefined): string | null {
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;
-}
-
-function labelForRecordType(recordType: availability_record_type): string {
-  return recordType
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
 }

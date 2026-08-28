@@ -1,5 +1,7 @@
 "use client";
 
+import { getAvailabilityRecordLabel } from "@repo/core";
+
 import { Button } from "@repo/design-system/components/ui/button";
 import { toast } from "@repo/design-system/components/ui/sonner";
 import { Loader2Icon } from "lucide-react";
@@ -155,7 +157,7 @@ export function SummaryBlock({ record }: { record: ApprovalModalRecord }) {
       <dl className="grid gap-3">
         <SummaryRow label="Employee">{record.employeeName}</SummaryRow>
         <SummaryRow label="Leave type">
-          {labelForType(record.recordType)}
+          {getAvailabilityRecordLabel(record.recordType)}
         </SummaryRow>
         <SummaryRow label="Dates">
           {formatDateRange(record.startsAt, record.endsAt)}
@@ -218,11 +220,4 @@ function formatDate(value: string | Date) {
     timeZone: "UTC",
     year: "numeric",
   }).format(new Date(value));
-}
-
-function labelForType(recordType: string) {
-  return recordType
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
 }

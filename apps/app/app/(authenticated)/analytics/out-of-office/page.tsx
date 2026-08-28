@@ -4,6 +4,7 @@ import {
   aggregateOutOfOffice,
   resolveDateRange,
 } from "@repo/availability";
+import { getAvailabilityRecordLabel } from "@repo/core";
 import { database } from "@repo/database";
 import {
   Card,
@@ -313,10 +314,7 @@ function labelForRecordType(recordType: string): string {
   if (recordType === "wfh") {
     return "WFH";
   }
-  return recordType
-    .split("_")
-    .map((part) => `${part.slice(0, 1).toUpperCase()}${part.slice(1)}`)
-    .join(" ");
+  return getAvailabilityRecordLabel(recordType);
 }
 
 export default OutOfOfficePage;

@@ -1,5 +1,7 @@
 "use client";
 
+import { getAvailabilityRecordLabel } from "@repo/core";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -342,7 +344,7 @@ export function PlansClient({
                       <div className="flex flex-col gap-1">
                         <span className="font-medium">
                           {recordTypeLabels[record.recordType] ??
-                            record.recordType}
+                            getAvailabilityRecordLabel(record.recordType)}
                         </span>
                         <SourceBadge sourceType={record.sourceType} />
                       </div>
@@ -883,7 +885,7 @@ function buttonVariantForAction(
 }
 
 function recordTypeLabel(recordType: string): string {
-  return recordTypeLabels[recordType] ?? recordType;
+  return recordTypeLabels[recordType] ?? getAvailabilityRecordLabel(recordType);
 }
 
 function ConfirmActionDialog({
