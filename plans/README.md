@@ -85,7 +85,8 @@ This reconciliation was read-only outside `plans/`.
 | Plan 103 execution | approved at `0d5b502`; low-level United Kingdom leave, balance and application status readers (fetchUkLeaveForEmployee, fetchUkLeaveBalancesForEmployee, fetchUkLeaveApplicationStatus), ordinary hour/day null currency, fail-closed unmapped monetary units, typed permission_error, UK test suite 29/29, check, typecheck, unit, live database integration and build gates passed |
 | Plan 104 execution | approved at `5d95d37`; 20-person paginated regional leave sync with dual-tenant CAS cursor advancement, person-scoped stale leave archival with freshness guard, employee-level error isolation, dispatch suite 15/15, handler suite 53/53, integration suite 15/15, check, typecheck, unit, live database integration and build gates passed |
 | Plan 105 execution | approved at `22c69b2`; employee-aware regional approval reconciliation for New Zealand and United Kingdom tenants, missing employee ID validation failure, permission/auth failure isolation, handler suite 43/43, integration suite 13/13, check, typecheck, unit, live database integration and build gates passed |
-| Current indexed plans | 64: 1 TODO, 47 DONE, 14 REJECTED, 2 BLOCKED |
+| Plan 106 execution | approved at `bd8248c`; orchestrated 40-person regional balance pages for NZ and UK tenants, per-employee cursor CAS updates, NZD currency mapping, fail-closed unmapped UK units, blanket failure halting, handler suite 21/21, dispatch suite 28/28, integration suite 13/13, check, typecheck, unit, live database integration and build gates passed |
+| Current indexed plans | 64: 0 TODO, 48 DONE, 14 REJECTED, 2 BLOCKED |
 
 Historical green gates remain useful evidence, but are not represented as fresh
 proof on `ecd49f5`. A plan requiring build or database integration must run on a
@@ -137,7 +138,7 @@ before starting its dependent plan.
 | [103](103-add-united-kingdom-xero-read-adapters.md) | Add UK leave/balance/status adapters | P1 | 102 | DONE |
 | [104](104-orchestrate-regional-leave-sync.md) | Page and reconcile regional leave | P1 | 090, 102, 103 | DONE |
 | [105](105-reconcile-regional-approval-state.md) | Reconcile regional approval state | P1 | 056, 102, 103 | DONE |
-| [106](106-orchestrate-regional-balance-sync.md) | Orchestrate regional balance pages | P1 | 091, 101, 102, 103 | TODO |
+| [106](106-orchestrate-regional-balance-sync.md) | Orchestrate regional balance pages | P1 | 091, 101, 102, 103 | DONE |
 
 The unnumbered [go-to-market plan](gtm-team-calendar-go-to-market-plan.md) is a
 business strategy document, not an executor plan. It was refreshed on 24 August:
@@ -406,6 +407,10 @@ predecessor/preflight contract in its plan.
   tenants using employee-aware status dispatch, treating missing employee IDs as
   per-record failures and keeping auth/permission errors strictly isolated from
   approval business states while maintaining Plan 056's fair cursor contract.
+- Plan 106 is complete at `bd8248c`. Orchestrated 40-person paginated regional
+  leave balance synchronization for New Zealand and United Kingdom tenants,
+  advancing the cursor per-employee after persistence, maintaining NZD currency
+  contracts and fail-closed unknown unit handling.
 - Plan 074 is rejected. Official Xero Payroll AU exposes `EmployeeGroupName`,
   not the assumed tracking-category or supervisor relationships. Plan 086 is a
   read-only team-mapping spike; manager hierarchy is unsupported.
