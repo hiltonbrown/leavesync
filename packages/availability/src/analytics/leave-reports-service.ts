@@ -1,6 +1,11 @@
 import "server-only";
 
-import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
+import {
+  type ClerkOrgId,
+  holidayIsNonWorking,
+  type OrganisationId,
+  type Result,
+} from "@repo/core";
 import { database, scopedQuery } from "@repo/database";
 import type { Prisma } from "@repo/database/generated/client";
 import type {
@@ -503,7 +508,30 @@ function buildHolidayMap(
     map.set(
       locationKey,
       holidays
-        .filter((holiday) => holidayAppliesToLocation(holiday, person.location))
+        .filter((holiday) => {
+          const locationAssignments = holiday.assignments
+            .filter((assignment) => assignment.scope_type === "location")
+            .map((assignment) => ({
+              archivedAt: assignment.archived_at,
+              classification: assignment.day_classification,
+              locationId: assignment.scope_value,
+            }));
+
+          return holidayIsNonWorking({
+            holiday: {
+              archivedAt: holiday.archived_at,
+              countryCode: holiday.country_code,
+              defaultClassification: holiday.default_classification,
+              locationAssignments,
+              regionCode: holiday.region_code,
+            },
+            subject: {
+              countryCode: person.location?.country_code ?? null,
+              locationId: person.location?.id ?? null,
+              regionCode: person.location?.region_code ?? null,
+            },
+          });
+        })
         .map((holiday) => ({
           date: holiday.holiday_date,
           isSuppressed: false,
@@ -511,38 +539,6 @@ function buildHolidayMap(
     );
   }
   return map;
-}
-
-function holidayAppliesToLocation(
-  holiday: HolidayRow,
-  location: LocationForHolidayMatch | undefined
-): boolean {
-  if (holiday.archived_at) {
-    return false;
-  }
-  const locationAssignment = holiday.assignments.find(
-    (assignment) =>
-      assignment.archived_at === null &&
-      assignment.scope_type === "location" &&
-      assignment.scope_value === location?.id
-  );
-  if (locationAssignment) {
-    return locationAssignment.day_classification === "non_working";
-  }
-  if (holiday.default_classification !== "non_working") {
-    return false;
-  }
-  if (
-    holiday.country_code !== "CUSTOM" &&
-    location?.country_code &&
-    holiday.country_code !== location.country_code
-  ) {
-    return false;
-  }
-  if (holiday.region_code && holiday.region_code !== location?.region_code) {
-    return false;
-  }
-  return true;
 }
 
 async function workingDaysByRecord(
