@@ -19,21 +19,21 @@ export interface XeroLeaveApplicationStatusResult {
 }
 
 export interface FetchLeaveApplicationStatusInput {
+  xeroEmployeeId?: string;
   xeroLeaveApplicationId: string;
   xeroTenant: XeroTenantForWrite;
+}
+
+export interface FetchNzLeaveApplicationStatusInput
+  extends FetchLeaveApplicationStatusInput {
+  xeroEmployeeId: string;
 }
 
 export function mapLeaveApplicationStatus(
   payload: unknown
 ): XeroLeaveApplicationStatusResult {
   const application = firstLeaveApplication(payload);
-  const rawStatus =
-    readString(application, "Status") ??
-    readString(application, "status") ??
-    readString(application, "LeaveApplicationStatus") ??
-    readString(application, "leaveApplicationStatus") ??
-    readString(application, "LeavePeriodStatus") ??
-    readString(application, "leavePeriodStatus");
+  const rawStatus = extractRawStatus(application);
   const status = normaliseStatus(rawStatus);
   const approvedAtValue =
     readString(application, "ApprovedDate") ??
@@ -84,8 +84,11 @@ export function mapXeroReadHttpError(
   if (response.status === 400) {
     return { ...details, code: "validation_error" };
   }
-  if (response.status === 401 || response.status === 403) {
+  if (response.status === 401) {
     return { ...details, code: "auth_error" };
+  }
+  if (response.status === 403) {
+    return { ...details, code: "permission_error" };
   }
   if (response.status === 404) {
     return { ...details, code: "not_found_error" };
@@ -104,11 +107,63 @@ function firstLeaveApplication(payload: unknown): Record<string, unknown> {
     return {};
   }
   const objectPayload = payload as Record<string, unknown>;
-  const applications = objectPayload.LeaveApplications;
-  if (Array.isArray(applications) && typeof applications[0] === "object") {
+  const applications =
+    objectPayload.LeaveApplications ??
+    objectPayload.leaveApplications ??
+    objectPayload.Leave ??
+    objectPayload.leave;
+  if (
+    Array.isArray(applications) &&
+    typeof applications[0] === "object" &&
+    applications[0] !== null
+  ) {
     return applications[0] as Record<string, unknown>;
   }
+  if (
+    applications &&
+    typeof applications === "object" &&
+    !Array.isArray(applications)
+  ) {
+    return applications as Record<string, unknown>;
+  }
   return objectPayload;
+}
+
+function extractRawStatus(application: Record<string, unknown>): string | null {
+  const direct =
+    readString(application, "Status") ??
+    readString(application, "status") ??
+    readString(application, "LeaveApplicationStatus") ??
+    readString(application, "leaveApplicationStatus") ??
+    readString(application, "LeavePeriodStatus") ??
+    readString(application, "leavePeriodStatus") ??
+    readString(application, "PeriodStatus") ??
+    readString(application, "periodStatus");
+  if (direct) {
+    return direct;
+  }
+  const periods =
+    application.Periods ??
+    application.periods ??
+    application.LeavePeriods ??
+    application.leavePeriods;
+  if (
+    Array.isArray(periods) &&
+    periods.length > 0 &&
+    typeof periods[0] === "object" &&
+    periods[0] !== null
+  ) {
+    const period = periods[0] as Record<string, unknown>;
+    return (
+      readString(period, "PeriodStatus") ??
+      readString(period, "periodStatus") ??
+      readString(period, "Status") ??
+      readString(period, "status") ??
+      readString(period, "LeavePeriodStatus") ??
+      readString(period, "leavePeriodStatus")
+    );
+  }
+  return null;
 }
 
 function readString(
@@ -121,7 +176,12 @@ function readString(
 
 function normaliseStatus(value: string | null): XeroLeaveApplicationStatus {
   const status = value?.trim().toUpperCase();
-  if (status === "APPROVED" || status === "SCHEDULED") {
+  if (
+    status === "APPROVED" ||
+    status === "SCHEDULED" ||
+    status === "COMPLETED" ||
+    status === "ESTIMATED"
+  ) {
     return "APPROVED";
   }
   if (status === "REJECTED" || status === "DECLINED") {
