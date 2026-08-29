@@ -1,3 +1,28 @@
+# Plan: Stabilise PR125 scheduler registration test
+
+## Tasks
+
+- [x] Reproduce and inspect the scheduler registration test's import path
+- [x] Remove repeated in-test module loading without weakening registration assertions
+- [x] Remove existing `any` casts from the touched registration test
+- [x] Run the focused test repeatedly and all required repository gates
+- [x] Review, commit, and push the test-only fix to PR125
+
+## Review
+
+- Moved the scheduler and function-registry imports to file setup after Vitest
+  mocks are declared, so the registration assertion no longer performs
+  contended module loading inside its five-second timeout.
+- Kept the original membership, function ID, cron and uniqueness assertions,
+  while using Inngest's public typed `opts` property instead of explicit
+  `any` casts.
+- Ran the registration test five times concurrently; each assertion completed
+  in 4 to 10 milliseconds. The full scheduler file passed all 10 tests.
+- Verified `bun run fix`, `bun run check`, `bun run typecheck`, `bun run test`,
+  `bun run test:integration` and `git diff --check`.
+
+---
+
 # Plan: Repair PR124 and PR125 web CI configuration
 
 ## Tasks

@@ -39,6 +39,11 @@
 
 ## CI debugging patterns (2026-08)
 
+- Registration tests that load an entire function registry should perform the
+  expensive module initialisation once at file setup, after mocks are declared,
+  rather than repeating dynamic imports inside a test's default five-second
+  timeout. A locally fast cached import is not evidence that the test is stable
+  under contended CI workers.
 - Before opening or handing off a PR, run the production build from a clean
   generated-file state. `next.config.ts` is evaluated before Next generates
   app artefacts, so it must not depend on application path aliases or full app
