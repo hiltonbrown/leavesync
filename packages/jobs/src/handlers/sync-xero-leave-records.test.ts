@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   fetchLeaveForEmployeeForRegion: vi.fn(),
   fetchLeaveRecordsForRegion: vi.fn(),
   inngestSend: vi.fn(() => Promise.resolve({ ids: ["event_1"] })),
+  mapXeroLeaveType: vi.fn(),
   materialiseAvailabilityPublication: vi.fn(),
   normaliseInboundLeaveRecord: vi.fn(),
   personFindFirst: vi.fn(),
@@ -42,7 +43,6 @@ vi.mock("../client", () => ({
   },
 }));
 vi.mock("@repo/availability", () => ({
-  deriveXeroStableSourceKey: vi.fn(() => "stable-key"),
   materialiseAvailabilityPublication: mocks.materialiseAvailabilityPublication,
   normaliseInboundLeaveRecord: mocks.normaliseInboundLeaveRecord,
 }));
@@ -94,9 +94,11 @@ vi.mock("@repo/observability/log", () => ({
   log: { error: vi.fn(), info: vi.fn(), warn: vi.fn() },
 }));
 vi.mock("@repo/xero", () => ({
+  deriveXeroStableSourceKey: vi.fn(() => "stable-key"),
   ensureFreshXeroConnection: mocks.ensureFreshXeroConnection,
   fetchLeaveForEmployeeForRegion: mocks.fetchLeaveForEmployeeForRegion,
   fetchLeaveRecordsForRegion: mocks.fetchLeaveRecordsForRegion,
+  mapXeroLeaveType: mocks.mapXeroLeaveType,
   toPlainLanguageMessage: mocks.toPlainLanguageMessage,
 }));
 
@@ -163,6 +165,10 @@ describe("leave records stale archival", () => {
     mocks.feedFindMany.mockResolvedValue([]);
     mocks.inngestSend.mockResolvedValue({ ids: ["event_1"] });
     mocks.materialiseAvailabilityPublication.mockResolvedValue({ ok: true });
+    mocks.mapXeroLeaveType.mockReturnValue({
+      mapped: true,
+      recordType: "annual_leave",
+    });
     mocks.normaliseInboundLeaveRecord.mockImplementation((record) =>
       normalisedLeaveRecord({
         hash: `hash-${record.sourceRemoteId}`,
@@ -194,6 +200,50 @@ describe("leave records stale archival", () => {
     expect(mocks.databaseTransaction).not.toHaveBeenCalled();
     expect(mocks.availabilityRecordFindMany).not.toHaveBeenCalled();
     expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it("persists and flags an unmapped Xero leave type", async () => {
+    const record = {
+      ...xeroLeaveRecord(),
+      leaveTypeId: "purchased-leave",
+      leaveTypeName: "Custom Purchased Leave",
+    };
+    mocks.fetchLeaveRecordsForRegion.mockResolvedValue({
+      ok: true,
+      value: { complete: true, leaveRecords: [record], rawResponse: {} },
+    });
+    mocks.personFindMany.mockResolvedValue([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+    ]);
+    mocks.mapXeroLeaveType.mockReturnValueOnce({
+      leaveTypeName: "Custom Purchased Leave",
+      mapped: false,
+      payrollRegion: "AU",
+      recordType: "leave",
+    });
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        failed: 1,
+        status: "partial_success",
+        upserted: 1,
+      });
+    }
+    expect(mocks.normaliseInboundLeaveRecord).toHaveBeenCalledWith(
+      expect.objectContaining({ recordType: "leave" })
+    );
+    expect(mocks.failedRecordCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        clerk_org_id: CLERK_ORG_ID,
+        error_code: "unmapped_leave_type",
+        organisation_id: ORGANISATION_ID,
+        source_remote_id: LEAVE_APPLICATION_ID,
+      }),
+    });
+    expect(mocks.availabilityRecordCreate).toHaveBeenCalledTimes(1);
   });
 
   it("uses a notIn query for stale archival when Xero returns records", async () => {
@@ -1019,6 +1069,10 @@ describe("regional leave sync (NZ/UK)", () => {
     mocks.feedFindMany.mockResolvedValue([]);
     mocks.inngestSend.mockResolvedValue({ ids: ["event_1"] });
     mocks.materialiseAvailabilityPublication.mockResolvedValue({ ok: true });
+    mocks.mapXeroLeaveType.mockReturnValue({
+      mapped: true,
+      recordType: "annual_leave",
+    });
     mocks.normaliseInboundLeaveRecord.mockImplementation((record) =>
       normalisedLeaveRecord({
         hash: `hash-${record.sourceRemoteId}`,

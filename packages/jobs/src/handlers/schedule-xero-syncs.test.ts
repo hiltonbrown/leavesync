@@ -30,8 +30,13 @@ vi.mock("../events", async (importOriginal) => {
 import type { SchedulableXeroTenant } from "@repo/database";
 import { getScheduledSyncEventId, type RegisteredSyncRunType } from "../events";
 
-const { dueRunTypes, rotateDormantXeroConnections, scheduleXeroSyncsPage } =
-  await import("./schedule-xero-syncs");
+const {
+  dueRunTypes,
+  rotateDormantXeroConnections,
+  scheduleXeroSyncsFunction,
+  scheduleXeroSyncsPage,
+} = await import("./schedule-xero-syncs");
+const { functions } = await import("../functions");
 
 describe("scheduleXeroSyncs Coordinator", () => {
   const providerTenantId = "00000000-0000-4000-8000-000000000099";
@@ -323,20 +328,15 @@ describe("scheduleXeroSyncs Coordinator", () => {
   });
 
   describe("scheduleXeroSyncsFunction registration", () => {
-    it("registers scheduleXeroSyncsFunction with id schedule-xero-syncs and 15-min cron", async () => {
-      const { functions } = await import("../functions");
-      const { scheduleXeroSyncsFunction } = await import(
-        "./schedule-xero-syncs"
-      );
-
+    it("registers scheduleXeroSyncsFunction with id schedule-xero-syncs and 15-min cron", () => {
       expect(functions).toContain(scheduleXeroSyncsFunction);
 
-      const fnOpts = (scheduleXeroSyncsFunction as any).opts;
+      const fnOpts = scheduleXeroSyncsFunction.opts;
       expect(fnOpts.id).toBe("schedule-xero-syncs");
       expect(fnOpts.triggers).toEqual([{ cron: "*/15 * * * *" }]);
 
       const coordinators = functions.filter(
-        (fn: any) => fn.opts?.id === "schedule-xero-syncs"
+        (fn) => fn.opts.id === "schedule-xero-syncs"
       );
       expect(coordinators).toHaveLength(1);
     });

@@ -1,7 +1,6 @@
 import "server-only";
 
 import {
-  deriveXeroStableSourceKey,
   type InboundLeaveApprovalStatus,
   materialiseAvailabilityPublication,
   normaliseInboundLeaveRecord,
@@ -16,12 +15,15 @@ import { feedIdsForPeople } from "@repo/feeds";
 import { publishOrganisationNotificationEvent } from "@repo/notifications";
 import { log } from "@repo/observability/log";
 import {
+  deriveXeroStableSourceKey,
   ensureFreshXeroConnection,
   fetchLeaveForEmployeeForRegion,
   fetchLeaveRecordsForRegion,
+  mapXeroLeaveType,
   toPlainLanguageMessage,
   type XeroLeaveRecord,
   type XeroLeaveRecordStatus,
+  type XeroPayrollRegion,
   type XeroWriteError,
 } from "@repo/xero";
 import type { InngestFunction } from "inngest";
@@ -101,9 +103,13 @@ interface AppliedLeaveRecord {
 }
 
 type ProcessLeaveRecordOutcome =
-  | { kind: "applied"; record: AppliedLeaveRecord }
+  | { flagged: boolean; kind: "applied"; record: AppliedLeaveRecord }
   | { kind: "failed" }
-  | { kind: "skipped"; reason: RemoteSnapshotSkipReason };
+  | {
+      flagged: boolean;
+      kind: "skipped";
+      reason: RemoteSnapshotSkipReason;
+    };
 
 type RemoteSnapshotSkipReason =
   | "duplicate_remote_snapshot"
@@ -231,11 +237,15 @@ export async function syncXeroLeaveRecords(
             context,
             run.id,
             xeroTenant.id,
+            "AU",
             leaveRecord,
             peopleByEmployeeId,
             existingRecordsBySourceRemoteId,
             startedAt
           );
+          if (result.kind !== "failed" && result.flagged) {
+            counts.failed += 1;
+          }
           switch (result.kind) {
             case "applied":
               processed.push(result.record);
@@ -498,11 +508,16 @@ export async function syncXeroLeaveRecords(
             context,
             run.id,
             xeroTenant.id,
+            xeroTenant.payroll_region,
             leaveRecord,
             peopleByEmployeeId,
             existingRecordsBySourceRemoteId,
             startedAt
           );
+
+          if (result.kind !== "failed" && result.flagged) {
+            counts.failed += 1;
+          }
 
           switch (result.kind) {
             case "applied":
@@ -803,6 +818,7 @@ async function processLeaveRecord(
   context: SyncXeroLeaveRecordsInput,
   runId: string,
   xeroTenantId: string,
+  payrollRegion: XeroPayrollRegion,
   leaveRecord: XeroLeaveRecord,
   peopleByEmployeeId: Awaited<ReturnType<typeof loadPeopleByEmployeeId>>,
   existingRecordsBySourceRemoteId: Awaited<
@@ -862,18 +878,34 @@ async function processLeaveRecord(
       return { kind: "failed" };
     }
 
+    const leaveTypeMapping = mapXeroLeaveType({
+      leaveTypeName: leaveRecord.leaveTypeName,
+      payrollRegion,
+    });
+    if (!leaveTypeMapping.mapped) {
+      const sourceLeaveType =
+        leaveTypeMapping.leaveTypeName ?? leaveRecord.leaveTypeId;
+      await recordFailure(context, {
+        errorCode: "unmapped_leave_type",
+        errorMessage: `Xero leave type "${sourceLeaveType}" has no canonical mapping for ${payrollRegion} payroll.`,
+        rawPayload: leaveRecord.rawPayload,
+        recordType: "leave_records",
+        runId,
+        sourceId: leaveRecord.leaveApplicationId,
+      });
+    }
+
     const normalised = normaliseInboundLeaveRecord({
       approvalStatus,
       clerkOrgId: context.clerkOrgId,
       endsAt,
-      leaveTypeId: leaveRecord.leaveTypeId,
-      leaveTypeName: leaveRecord.leaveTypeName,
       organisationId: context.organisationId,
       personId: person.id,
-      provider: "xero",
       rawPayload: leaveRecord.rawPayload,
+      recordType: leaveTypeMapping.recordType,
       sourceLastModifiedAt,
       sourceRemoteId: leaveRecord.leaveApplicationId,
+      sourceType: "xero_leave",
       stableSourceKey: deriveXeroStableSourceKey({
         employeeId: leaveRecord.employeeId,
         endsAt,
@@ -899,7 +931,11 @@ async function processLeaveRecord(
         sourceRemoteId: normalised.sourceRemoteId,
         xeroTenantId,
       });
-      return { kind: "skipped", reason: freshness.reason };
+      return {
+        flagged: !leaveTypeMapping.mapped,
+        kind: "skipped",
+        reason: freshness.reason,
+      };
     }
     let approvalStatusToPersist = normalised.approvalStatus;
     if (
@@ -982,7 +1018,11 @@ async function processLeaveRecord(
           sourceRemoteId: normalised.sourceRemoteId,
           xeroTenantId,
         });
-        return { kind: "skipped", reason: "stale_local_snapshot" };
+        return {
+          flagged: !leaveTypeMapping.mapped,
+          kind: "skipped",
+          reason: "stale_local_snapshot",
+        };
       }
       existingRecordsBySourceRemoteId.set(normalised.sourceRemoteId, {
         approval_status: approvalStatusToPersist,
@@ -1026,6 +1066,7 @@ async function processLeaveRecord(
       await materialiseSyncedPublication(context, recordId);
     }
     return {
+      flagged: !leaveTypeMapping.mapped,
       kind: "applied",
       record: {
         changed,

@@ -221,12 +221,10 @@ export type {
 } from "./src/settings/shared";
 export { deriveAvailabilityUidKey } from "./src/sync/availability-uid";
 export {
-  deriveXeroStableSourceKey,
   type InboundLeaveApprovalStatus,
   type InboundLeaveRecordInput,
   type NormalisedInboundLeaveRecord,
   normaliseInboundLeaveRecord,
-  recordTypeFromLeaveType,
 } from "./src/sync/inbound-leave-normaliser";
 export {
   cancelRun,

@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   fetchLeaveBalancesForRegion: vi.fn(),
   isSupportedCurrencyCode: vi.fn((value: unknown) => value === "NZD"),
   leaveBalanceUpsert: vi.fn(),
+  mapXeroLeaveType: vi.fn(),
   personFindFirst: vi.fn(),
   personFindMany: vi.fn(),
   publishOrganisationNotificationEvent: vi.fn(),
@@ -71,6 +72,7 @@ vi.mock("@repo/xero", () => ({
   ensureFreshXeroConnection: mocks.ensureFreshXeroConnection,
   fetchLeaveBalancesForRegion: mocks.fetchLeaveBalancesForRegion,
   isSupportedCurrencyCode: mocks.isSupportedCurrencyCode,
+  mapXeroLeaveType: mocks.mapXeroLeaveType,
   toPlainLanguageMessage: mocks.toPlainLanguageMessage,
   toValidatedLeaveBalanceRawPayload: mocks.toValidatedLeaveBalanceRawPayload,
 }));
@@ -116,6 +118,10 @@ describe("leave balances sync run lifecycle", () => {
       id: "50000000-0000-4000-8000-000000000001",
     });
     mocks.leaveBalanceUpsert.mockResolvedValue({});
+    mocks.mapXeroLeaveType.mockReturnValue({
+      mapped: true,
+      recordType: "annual_leave",
+    });
     mocks.fetchLeaveBalancesForRegion.mockResolvedValue({
       ok: true,
       value: { failures: [], leaveBalances: [], rawResponses: [] },

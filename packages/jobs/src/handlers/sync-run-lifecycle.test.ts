@@ -27,7 +27,6 @@ vi.mock("../client", () => ({
   },
 }));
 vi.mock("@repo/availability", () => ({
-  deriveXeroStableSourceKey: mocks.deriveXeroStableSourceKey,
   materialiseAvailabilityPublication: mocks.materialiseAvailabilityPublication,
   normaliseInboundLeaveRecord: mocks.normaliseInboundLeaveRecord,
 }));
@@ -52,6 +51,7 @@ vi.mock("@repo/observability/log", () => ({
   log: { error: vi.fn(), info: vi.fn() },
 }));
 vi.mock("@repo/xero", () => ({
+  deriveXeroStableSourceKey: mocks.deriveXeroStableSourceKey,
   ensureFreshXeroConnection: mocks.ensureFreshXeroConnection,
   fetchLeaveRecordsForRegion: mocks.fetchLeaveRecordsForRegion,
   toPlainLanguageMessage: mocks.toPlainLanguageMessage,

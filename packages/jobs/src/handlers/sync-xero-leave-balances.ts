@@ -1,6 +1,5 @@
 import "server-only";
 
-import { recordTypeFromLeaveType } from "@repo/availability";
 import type { Result } from "@repo/core";
 import { database, scopedTo as scoped } from "@repo/database";
 import { Prisma } from "@repo/database/generated/client";
@@ -10,10 +9,12 @@ import {
   ensureFreshXeroConnection,
   fetchLeaveBalancesForRegion,
   isSupportedCurrencyCode,
+  mapXeroLeaveType,
   toPlainLanguageMessage,
   toValidatedLeaveBalanceRawPayload,
   type XeroLeaveBalance,
   type XeroLeaveBalanceFetchFailure,
+  type XeroPayrollRegion,
   type XeroWriteError,
 } from "@repo/xero";
 import type { InngestFunction } from "inngest";
@@ -215,6 +216,7 @@ export async function syncXeroLeaveBalances(
       context,
       run.id,
       xeroTenant.id,
+      xeroTenant.payroll_region,
       balancesResult.value.leaveBalances,
       personIdByEmployeeId,
       counts
@@ -299,6 +301,7 @@ async function processBalance(
   context: SyncXeroLeaveBalancesInput,
   runId: string,
   xeroTenantId: string,
+  payrollRegion: XeroPayrollRegion,
   balance: XeroLeaveBalance,
   personIdByEmployeeId: Map<string, string>
 ): Promise<boolean> {
@@ -327,7 +330,10 @@ async function processBalance(
       return false;
     }
 
-    const recordType = recordTypeFromLeaveType(balance.leaveTypeName);
+    const { recordType } = mapXeroLeaveType({
+      leaveTypeName: balance.leaveTypeName,
+      payrollRegion,
+    });
 
     const sourcePayloadJson =
       toValidatedLeaveBalanceRawPayload(balance.rawPayload) ?? Prisma.DbNull;
@@ -384,6 +390,7 @@ async function processBalances(
   context: SyncXeroLeaveBalancesInput,
   runId: string,
   xeroTenantId: string,
+  payrollRegion: XeroPayrollRegion,
   balances: XeroLeaveBalance[],
   personIdByEmployeeId: Map<string, string>,
   counts: Counts
@@ -399,6 +406,7 @@ async function processBalances(
         context,
         runId,
         xeroTenantId,
+        payrollRegion,
         balance,
         personIdByEmployeeId
       );
