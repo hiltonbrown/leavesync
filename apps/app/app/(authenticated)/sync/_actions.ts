@@ -3,20 +3,14 @@
 import { auth, currentUser } from "@repo/auth/server";
 import {
   cancelRun,
-  dispatchManualSync,
   exportFailedRecordsCsv,
   type SyncMonitorError,
   type SyncMonitorRole,
-  type SyncRunType,
 } from "@repo/availability";
 import type { Result } from "@repo/core";
-import {
-  reconcileXeroApprovalState,
-  syncXeroLeaveBalances,
-  syncXeroLeaveRecords,
-  syncXeroPeople,
-} from "@repo/jobs";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { getPublicApiUrl } from "@/lib/public-api-url";
 import { getActiveOrgContext } from "@/lib/server/get-active-org-context";
 import {
   CancelRunActionSchema,
@@ -50,23 +44,40 @@ interface DispatchResultValue {
   upserted?: number;
 }
 
-interface InlineSyncValue {
-  errorSummary?: string | null;
-  failed?: number;
-  fetched?: number;
-  runId?: string;
-  skipped?: number;
-  status?: string;
-  upserted?: number;
-}
-
-interface InlineSyncPayload {
-  clerkOrgId: string;
-  organisationId: string;
-  triggeredByUserId: string;
-  triggerType: "manual";
-  xeroTenantId: string;
-}
+const DispatchApiResponseSchema = z.discriminatedUnion("ok", [
+  z.object({
+    ok: z.literal(true),
+    value: z.object({
+      errorSummary: z.string().nullable().optional(),
+      eventName: z.string(),
+      failed: z.number().int().nonnegative().optional(),
+      fetched: z.number().int().nonnegative().optional(),
+      queued: z.boolean(),
+      reason: z.string().optional(),
+      runId: z.string().optional(),
+      skipped: z.number().int().nonnegative().optional(),
+      status: z.string().optional(),
+      upserted: z.number().int().nonnegative().optional(),
+    }),
+  }),
+  z.object({
+    error: z.object({
+      code: z.enum([
+        "connection_not_active",
+        "dispatch_failed",
+        "invalid_run_type",
+        "not_authorised",
+        "run_not_found",
+        "tenant_not_found",
+        "tenant_sync_paused",
+        "unknown_error",
+        "validation_error",
+      ]),
+      message: z.string(),
+    }),
+    ok: z.literal(false),
+  }),
+]);
 
 export async function dispatchManualSyncAction(input: {
   organisationId: string;
@@ -81,108 +92,62 @@ export async function dispatchManualSyncAction(input: {
   if (!context.ok) {
     return context;
   }
-  const result = await dispatchManualSync({
-    ...context.value,
+  return await dispatchManualSyncViaApi({
+    organisationId: context.value.organisationId,
     runType: parsed.data.runType,
     xeroTenantId: parsed.data.xeroTenantId,
   });
+}
 
-  if (result.ok) {
-    return result;
+async function dispatchManualSyncViaApi(input: {
+  organisationId: string;
+  runType: string;
+  xeroTenantId: string;
+}): Promise<Result<DispatchResultValue, SyncActionError>> {
+  const apiUrl = getPublicApiUrl("/api/sync/dispatch");
+  if (!apiUrl) {
+    return dispatchFailed("The API URL is not configured for sync dispatch.");
   }
 
-  const shouldFallbackToInline =
-    result.error.code === "dispatch_failed" &&
-    process.env.NODE_ENV !== "production";
-  if (!shouldFallbackToInline) {
-    return result;
-  }
-
-  const fallbackEventNames: Record<string, string> = {
-    approval_state_reconciliation: "reconcile-xero-approval-state",
-    leave_balances: "sync-xero-leave-balances",
-    leave_records: "sync-xero-leave-records",
-    people: "sync-xero-people",
-  };
-  const effectiveEventName =
-    fallbackEventNames[parsed.data.runType] ?? parsed.data.runType;
-  const handlerPayload = {
-    clerkOrgId: context.value.clerkOrgId,
-    organisationId: context.value.organisationId,
-    triggeredByUserId: context.value.actingUserId,
-    triggerType: "manual" as const,
-    xeroTenantId: parsed.data.xeroTenantId,
-  };
-  let syncResult: Result<InlineSyncValue, SyncActionError>;
+  let sessionToken: string | null;
   try {
-    syncResult = await executeInlineSync(parsed.data.runType, handlerPayload);
-  } catch (error) {
-    revalidateSyncPaths();
-    return {
-      error: {
-        code: "sync_failed",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Sync run threw an unexpected error.",
-      },
-      ok: false,
-    };
+    const authObject = await auth();
+    sessionToken = await authObject.getToken();
+  } catch {
+    return dispatchFailed("Could not authorise the sync dispatch request.");
+  }
+  if (!sessionToken) {
+    return notAuthorised();
   }
 
-  revalidateSyncPaths();
-  if (!syncResult.ok) {
-    return syncResult;
-  }
-  const { value } = syncResult;
-  if (value.status === "failed" || value.status === "cancelled") {
-    return {
-      error: {
-        code: "sync_failed",
-        message: value.errorSummary || "Sync run failed or was cancelled.",
+  try {
+    const response = await fetch(apiUrl, {
+      body: JSON.stringify(input),
+      cache: "no-store",
+      headers: {
+        authorization: `Bearer ${sessionToken}`,
+        "content-type": "application/json",
       },
-      ok: false,
-    };
+      method: "POST",
+    });
+    const responseBody: unknown = await response.json().catch(() => null);
+    const parsed = DispatchApiResponseSchema.safeParse(responseBody);
+    if (!parsed.success) {
+      return dispatchFailed(
+        "The sync dispatch service returned an invalid response."
+      );
+    }
+    return parsed.data;
+  } catch {
+    return dispatchFailed("Failed to reach the sync dispatch service.");
   }
+}
 
+function dispatchFailed(message: string): Result<never, SyncActionError> {
   return {
-    ok: true,
-    value: {
-      errorSummary: value.errorSummary ?? null,
-      eventName: effectiveEventName,
-      failed: value.failed ?? 0,
-      fetched: value.fetched ?? 0,
-      queued: true,
-      runId: value.runId,
-      skipped: value.skipped ?? 0,
-      status: value.status,
-      upserted: value.upserted ?? 0,
-    },
+    error: { code: "dispatch_failed", message },
+    ok: false,
   };
-}
-
-async function executeInlineSync(
-  runType: SyncRunType,
-  payload: InlineSyncPayload
-): Promise<Result<InlineSyncValue, SyncActionError>> {
-  if (runType === "people") {
-    return await syncXeroPeople(payload);
-  }
-  if (runType === "leave_records") {
-    return await syncXeroLeaveRecords(payload);
-  }
-  if (runType === "leave_balances") {
-    return await syncXeroLeaveBalances(payload);
-  }
-  return await reconcileXeroApprovalState(payload);
-}
-
-function revalidateSyncPaths() {
-  revalidatePath("/sync");
-  revalidatePath("/people");
-  revalidatePath("/leave-approvals");
-  revalidatePath("/notifications");
-  revalidatePath("/settings/integrations/xero");
 }
 
 export async function cancelRunAction(input: {

@@ -196,6 +196,7 @@ describe("sync-xero-people handler", () => {
     });
     expect(people1.length).toBe(2);
     expect(people1[0]).toMatchObject({
+      clerk_user_id: null,
       email: "jane.smith@noemail.teamcalendar.online", // fallback email
       employment_type: "contractor",
       first_name: "Jane",
@@ -204,6 +205,7 @@ describe("sync-xero-people handler", () => {
       person_type: "contractor",
     });
     expect(people1[1]).toMatchObject({
+      clerk_user_id: null,
       email: "john.doe@example.com",
       employment_type: "employee",
       first_name: "John",

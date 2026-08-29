@@ -4,14 +4,11 @@ const mocks = vi.hoisted(() => ({
   auth: vi.fn(),
   cancelRun: vi.fn(),
   currentUser: vi.fn(),
-  dispatchManualSync: vi.fn(),
   exportFailedRecordsCsv: vi.fn(),
   getActiveOrgContext: vi.fn(),
-  reconcileXeroApprovalState: vi.fn(),
+  getPublicApiUrl: vi.fn(),
+  getToken: vi.fn(),
   revalidatePath: vi.fn(),
-  syncXeroLeaveBalances: vi.fn(),
-  syncXeroLeaveRecords: vi.fn(),
-  syncXeroPeople: vi.fn(),
 }));
 
 vi.mock("@repo/auth/server", () => ({
@@ -20,17 +17,13 @@ vi.mock("@repo/auth/server", () => ({
 }));
 vi.mock("@repo/availability", () => ({
   cancelRun: mocks.cancelRun,
-  dispatchManualSync: mocks.dispatchManualSync,
   exportFailedRecordsCsv: mocks.exportFailedRecordsCsv,
-}));
-vi.mock("@repo/jobs", () => ({
-  reconcileXeroApprovalState: mocks.reconcileXeroApprovalState,
-  syncXeroLeaveBalances: mocks.syncXeroLeaveBalances,
-  syncXeroLeaveRecords: mocks.syncXeroLeaveRecords,
-  syncXeroPeople: mocks.syncXeroPeople,
 }));
 vi.mock("next/cache", () => ({
   revalidatePath: mocks.revalidatePath,
+}));
+vi.mock("@/lib/public-api-url", () => ({
+  getPublicApiUrl: mocks.getPublicApiUrl,
 }));
 vi.mock("@/lib/server/get-active-org-context", () => ({
   getActiveOrgContext: mocks.getActiveOrgContext,
@@ -48,54 +41,22 @@ const xeroTenantId = "00000000-0000-4000-8000-000000000003";
 const clerkOrgId = "org_123";
 const userId = "user_456";
 
-function failDispatch() {
-  mocks.dispatchManualSync.mockResolvedValueOnce({
-    error: {
-      code: "dispatch_failed",
-      message: "Failed to queue the sync job.",
-    },
-    ok: false,
-  });
-}
-
-function successfulInlineResult(): {
-  ok: true;
-  value: {
-    failed: number;
-    fetched: number;
-    runId: string;
-    skipped: number;
-    status: "succeeded";
-    upserted: number;
-  };
-} {
-  return {
-    ok: true,
-    value: {
-      failed: 0,
-      fetched: 2,
-      runId: "run_1",
-      skipped: 0,
-      status: "succeeded",
-      upserted: 2,
-    },
-  };
-}
-
 describe("sync server actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.stubEnv("NODE_ENV", "test");
-    mocks.auth.mockResolvedValue({ orgRole: "org:admin" });
+    mocks.auth.mockResolvedValue({
+      getToken: mocks.getToken,
+      orgRole: "org:admin",
+    });
     mocks.currentUser.mockResolvedValue({ id: userId });
     mocks.getActiveOrgContext.mockResolvedValue({
       ok: true,
       value: { clerkOrgId, organisationId },
     });
-    mocks.dispatchManualSync.mockResolvedValue({
-      ok: true,
-      value: { eventName: "sync.requested", queued: true },
-    });
+    mocks.getPublicApiUrl.mockReturnValue(
+      "https://api.example.com/api/sync/dispatch"
+    );
+    mocks.getToken.mockResolvedValue("session_token");
     mocks.cancelRun.mockResolvedValue({
       ok: true,
       value: { cancellationRequested: true, eventQueued: true },
@@ -104,304 +65,184 @@ describe("sync server actions", () => {
       ok: true,
       value: { csvContent: "id,error\n1,fail", filename: "failed.csv" },
     });
-    mocks.reconcileXeroApprovalState.mockResolvedValue(
-      successfulInlineResult()
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            value: { eventName: "sync-xero-people", queued: true },
+          }),
+          { status: 202 }
+        )
+      )
     );
-    mocks.syncXeroLeaveBalances.mockResolvedValue(successfulInlineResult());
-    mocks.syncXeroLeaveRecords.mockResolvedValue(successfulInlineResult());
-    mocks.syncXeroPeople.mockResolvedValue(successfulInlineResult());
   });
 
   afterEach(() => {
-    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
   });
 
-  describe("baseline authorization and scoping tests", () => {
-    it("rejects unauthenticated callers", async () => {
-      mocks.currentUser.mockResolvedValue(null);
+  it("rejects unauthenticated callers", async () => {
+    mocks.currentUser.mockResolvedValue(null);
 
-      const result = await dispatchManualSyncAction({
-        organisationId,
-        runType: "people",
-        xeroTenantId,
-      });
-
-      expect(result).toEqual({
-        error: {
-          code: "not_authorised",
-          message: "Only admins and owners can manage sync health.",
-        },
-        ok: false,
-      });
-      expect(mocks.dispatchManualSync).not.toHaveBeenCalled();
+    const result = await dispatchManualSyncAction({
+      organisationId,
+      runType: "people",
+      xeroTenantId,
     });
 
-    it("rejects non-admin roles (manager, viewer)", async () => {
-      mocks.auth.mockResolvedValue({ orgRole: "org:manager" });
+    expect(result).toEqual({
+      error: {
+        code: "not_authorised",
+        message: "Only admins and owners can manage sync health.",
+      },
+      ok: false,
+    });
+    expect(fetch).not.toHaveBeenCalled();
+  });
 
-      const result = await cancelRunAction({ organisationId, runId });
-
-      expect(result).toEqual({
-        error: {
-          code: "not_authorised",
-          message: "Only admins and owners can manage sync health.",
-        },
-        ok: false,
-      });
-      expect(mocks.cancelRun).not.toHaveBeenCalled();
+  it("rejects non-admin roles", async () => {
+    mocks.auth.mockResolvedValue({
+      getToken: mocks.getToken,
+      orgRole: "org:manager",
     });
 
-    it("rejects malformed inputs", async () => {
-      const result = await dispatchManualSyncAction({
-        organisationId: "invalid-uuid",
-        runType: "people",
-        xeroTenantId,
-      });
+    const result = await cancelRunAction({ organisationId, runId });
 
-      expect(result.ok).toBe(false);
-      if (!result.ok) {
-        expect(result.error.code).toBe("validation_error");
-      }
-      expect(mocks.dispatchManualSync).not.toHaveBeenCalled();
+    expect(result.ok).toBe(false);
+    expect(mocks.cancelRun).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed inputs before dispatch", async () => {
+    const result = await dispatchManualSyncAction({
+      organisationId: "invalid-uuid",
+      runType: "people",
+      xeroTenantId,
     });
 
-    it("scopes actions to clerkOrgId and organisationId", async () => {
-      await cancelRunAction({ organisationId, runId });
+    expect(result.ok).toBe(false);
+    expect(fetch).not.toHaveBeenCalled();
+  });
 
-      expect(mocks.cancelRun).toHaveBeenCalledWith({
-        actingRole: "admin",
-        actingUserId: userId,
-        clerkOrgId,
-        organisationId,
-        runId,
-      });
+  it("scopes cancellation to both tenant identifiers", async () => {
+    await cancelRunAction({ organisationId, runId });
+
+    expect(mocks.cancelRun).toHaveBeenCalledWith({
+      actingRole: "admin",
+      actingUserId: userId,
+      clerkOrgId,
+      organisationId,
+      runId,
     });
   });
 
-  describe("action specific functionality", () => {
-    it("queues a sync once without executing the handler inline", async () => {
-      const result = await dispatchManualSyncAction({
-        organisationId,
-        runType: "leave_records",
-        xeroTenantId,
-      });
-
-      expect(result.ok).toBe(true);
-      expect(mocks.dispatchManualSync).toHaveBeenCalledWith({
-        actingRole: "admin",
-        actingUserId: userId,
-        clerkOrgId,
-        organisationId,
-        runType: "leave_records",
-        xeroTenantId,
-      });
-      expect(mocks.dispatchManualSync).toHaveBeenCalledTimes(1);
-      expect(mocks.syncXeroLeaveRecords).not.toHaveBeenCalled();
-      expect(mocks.syncXeroPeople).not.toHaveBeenCalled();
-      expect(mocks.revalidatePath).not.toHaveBeenCalled();
+  it("queues manual sync through the authenticated API endpoint", async () => {
+    const result = await dispatchManualSyncAction({
+      organisationId,
+      runType: "people",
+      xeroTenantId,
     });
 
-    it.each([
-      ["people", mocks.syncXeroPeople],
-      ["leave_records", mocks.syncXeroLeaveRecords],
-      ["leave_balances", mocks.syncXeroLeaveBalances],
-      ["approval_state_reconciliation", mocks.reconcileXeroApprovalState],
-    ])(
-      "executes the %s handler inline once when non-production dispatch fails",
-      async (runType, handler) => {
-        failDispatch();
-
-        const result = await dispatchManualSyncAction({
+    expect(result).toEqual({
+      ok: true,
+      value: { eventName: "sync-xero-people", queued: true },
+    });
+    expect(fetch).toHaveBeenCalledWith(
+      "https://api.example.com/api/sync/dispatch",
+      {
+        body: JSON.stringify({
           organisationId,
-          runType,
+          runType: "people",
           xeroTenantId,
-        });
-
-        expect(result.ok).toBe(true);
-        expect(handler).toHaveBeenCalledWith({
-          clerkOrgId,
-          organisationId,
-          triggeredByUserId: userId,
-          triggerType: "manual",
-          xeroTenantId,
-        });
-        expect(handler).toHaveBeenCalledTimes(1);
-        expect(mocks.revalidatePath).toHaveBeenCalledWith("/sync");
-        expect(mocks.revalidatePath).toHaveBeenCalledWith("/people");
+        }),
+        cache: "no-store",
+        headers: {
+          authorization: "Bearer session_token",
+          "content-type": "application/json",
+        },
+        method: "POST",
       }
     );
+  });
 
-    it("does not execute inline when production dispatch fails", async () => {
-      vi.stubEnv("NODE_ENV", "production");
-      failDispatch();
+  it("does not dispatch without a Clerk session token", async () => {
+    mocks.getToken.mockResolvedValueOnce(null);
 
-      const result = await dispatchManualSyncAction({
-        organisationId,
-        runType: "people",
-        xeroTenantId,
-      });
-
-      expect(result).toEqual({
-        error: {
-          code: "dispatch_failed",
-          message: "Failed to queue the sync job.",
-        },
-        ok: false,
-      });
-      expect(mocks.syncXeroPeople).not.toHaveBeenCalled();
+    const result = await dispatchManualSyncAction({
+      organisationId,
+      runType: "people",
+      xeroTenantId,
     });
 
-    it("returns sync_failed error and does not report queued/successful when handler returns failed status", async () => {
-      failDispatch();
-      mocks.syncXeroPeople.mockResolvedValueOnce({
-        ok: true,
-        value: {
-          errorSummary: "Xero connection not active",
-          failed: 0,
-          fetched: 0,
-          runId: "run_failed_1",
-          skipped: 0,
-          status: "failed",
-          upserted: 0,
-        },
-      });
+    expect(result).toEqual({
+      error: {
+        code: "not_authorised",
+        message: "Only admins and owners can manage sync health.",
+      },
+      ok: false,
+    });
+    expect(fetch).not.toHaveBeenCalled();
+  });
 
-      const result = await dispatchManualSyncAction({
-        organisationId,
-        runType: "people",
-        xeroTenantId,
-      });
+  it("rejects an invalid API response", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ queued: true }), { status: 202 })
+    );
 
-      expect(result.ok).toBe(false);
-      expect(result).toEqual({
-        error: {
-          code: "sync_failed",
-          message: "Xero connection not active",
-        },
-        ok: false,
-      });
+    const result = await dispatchManualSyncAction({
+      organisationId,
+      runType: "leave_records",
+      xeroTenantId,
     });
 
-    it("returns sync_failed error and does not report queued/successful when handler returns cancelled status", async () => {
-      failDispatch();
-      mocks.syncXeroPeople.mockResolvedValueOnce({
-        ok: true,
-        value: {
-          errorSummary: "Tenant sync is paused for this Xero connection",
-          failed: 0,
-          fetched: 0,
-          runId: "run_cancelled_1",
-          skipped: 0,
-          status: "cancelled",
-          upserted: 0,
-        },
-      });
+    expect(result).toEqual({
+      error: {
+        code: "dispatch_failed",
+        message: "The sync dispatch service returned an invalid response.",
+      },
+      ok: false,
+    });
+  });
 
-      const result = await dispatchManualSyncAction({
-        organisationId,
-        runType: "people",
-        xeroTenantId,
-      });
+  it("preserves a scoped API error", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          error: {
+            code: "tenant_not_found",
+            message: "Xero tenant was not found for this organisation.",
+          },
+          ok: false,
+        }),
+        { status: 404 }
+      )
+    );
 
-      expect(result.ok).toBe(false);
-      expect(result).toEqual({
-        error: {
-          code: "sync_failed",
-          message: "Tenant sync is paused for this Xero connection",
-        },
-        ok: false,
-      });
+    const result = await dispatchManualSyncAction({
+      organisationId,
+      runType: "people",
+      xeroTenantId,
     });
 
-    it("falls back to default error message when failed status has no errorSummary", async () => {
-      failDispatch();
-      mocks.syncXeroPeople.mockResolvedValueOnce({
-        ok: true,
-        value: {
-          errorSummary: null,
-          failed: 0,
-          fetched: 0,
-          runId: "run_failed_2",
-          skipped: 0,
-          status: "failed",
-          upserted: 0,
-        },
-      });
+    expect(result).toEqual({
+      error: {
+        code: "tenant_not_found",
+        message: "Xero tenant was not found for this organisation.",
+      },
+      ok: false,
+    });
+  });
 
-      const result = await dispatchManualSyncAction({
-        organisationId,
-        runType: "people",
-        xeroTenantId,
-      });
-
-      expect(result.ok).toBe(false);
-      expect(result).toEqual({
-        error: {
-          code: "sync_failed",
-          message: "Sync run failed or was cancelled.",
-        },
-        ok: false,
-      });
+  it("returns failed-record CSV export data", async () => {
+    const result = await exportFailedRecordsCsvAction({
+      organisationId,
+      runId,
     });
 
-    it("surfaces handler error result when handler returns ok: false", async () => {
-      failDispatch();
-      mocks.syncXeroPeople.mockResolvedValueOnce({
-        error: {
-          code: "validation_error",
-          message: "Invalid sync parameters.",
-        },
-        ok: false,
-      });
-
-      const result = await dispatchManualSyncAction({
-        organisationId,
-        runType: "people",
-        xeroTenantId,
-      });
-
-      expect(result.ok).toBe(false);
-      expect(result).toEqual({
-        error: {
-          code: "validation_error",
-          message: "Invalid sync parameters.",
-        },
-        ok: false,
-      });
-    });
-
-    it("surfaces sync_failed when handler throws an unexpected exception", async () => {
-      failDispatch();
-      mocks.syncXeroPeople.mockRejectedValueOnce(
-        new Error("Database connection lost.")
-      );
-
-      const result = await dispatchManualSyncAction({
-        organisationId,
-        runType: "people",
-        xeroTenantId,
-      });
-
-      expect(result.ok).toBe(false);
-      expect(result).toEqual({
-        error: {
-          code: "sync_failed",
-          message: "Database connection lost.",
-        },
-        ok: false,
-      });
-    });
-
-    it("exportFailedRecordsCsvAction returns CSV export data", async () => {
-      const result = await exportFailedRecordsCsvAction({
-        organisationId,
-        runId,
-      });
-
-      expect(result).toEqual({
-        ok: true,
-        value: { csvContent: "id,error\n1,fail", filename: "failed.csv" },
-      });
+    expect(result).toEqual({
+      ok: true,
+      value: { csvContent: "id,error\n1,fail", filename: "failed.csv" },
     });
   });
 });

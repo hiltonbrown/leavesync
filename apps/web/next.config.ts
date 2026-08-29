@@ -1,8 +1,12 @@
 import { config, withAnalyzer } from "@repo/next-config";
 import { withLogging, withSentry } from "@repo/observability/next-config";
 import type { NextConfig } from "next";
-import { env } from "@/env";
-import { signInHref, signUpHref } from "@/src/lib/auth-links";
+import { resolveAuthLinks } from "./src/lib/auth-link-values";
+
+const { signInHref, signUpHref } = resolveAuthLinks({
+  appUrl: process.env.NEXT_PUBLIC_APP_URL,
+  vercelEnv: process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.VERCEL_ENV,
+});
 
 const webConfig: NextConfig = {
   ...config,
@@ -34,11 +38,11 @@ const webConfig: NextConfig = {
 
 let nextConfig: NextConfig = withLogging(webConfig);
 
-if (env.VERCEL) {
+if (process.env.VERCEL) {
   nextConfig = withSentry(nextConfig);
 }
 
-if (env.ANALYZE === "true") {
+if (process.env.ANALYZE === "true") {
   nextConfig = withAnalyzer(nextConfig);
 }
 
