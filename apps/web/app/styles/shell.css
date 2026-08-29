@@ -234,7 +234,7 @@
   overflow-wrap: anywhere;
   text-decoration: none;
   border: none;
-  border-radius: 16px;
+  border-radius: 14px;
   transition:
     background 160ms cubic-bezier(0.2, 0, 0, 1),
     color 160ms cubic-bezier(0.2, 0, 0, 1),
