@@ -3,14 +3,29 @@
 ## Tasks
 
 - [x] Verify the staged cleanup and inspect the local and upstream branch state
-- [ ] Commit the cleanup with a conventional commit
-- [ ] Synchronise with the upstream branch and resolve conflicts
-- [ ] Audit the remote branch tip and reachable history for leaked files and credentials
-- [ ] Purge verified leaks from the scoped remote branch and confirm the remote state
+- [x] Commit the cleanup with a conventional commit
+- [x] Synchronise with the upstream branch and resolve conflicts
+- [x] Audit the remote branch tip and reachable history for leaked files and credentials
+- [x] Purge verified leaks from the authorised heads and tag and confirm their remote state
 
 ## Review
 
-- Pending remote synchronisation and leak verification.
+- Recreated `fix/xero-leave-sync` from current `origin/main` with only the
+  cleanup commit, avoiding four stale commits already incorporated through
+  squashed pull requests. No rebase conflicts occurred.
+- Rewrote `main`, `fix/xero-leave-sync`, and `leave-management` in an isolated
+  mirror, removing `.mcp.json` from all 953 commits reachable through those
+  refs. Published all three updates atomically with force-with-lease.
+- Verified the only main/tag tree change introduced by the rewrite was removal
+  of `.mcp.json`; the cleanup branch tree was otherwise unchanged.
+- Audited a fresh GitHub mirror. The rewritten heads and tag contain no
+  `.mcp.json` history, leaked blob, sensitive tip filenames, or
+  high-confidence credential signatures. GitHub reports no open secret
+  scanning alerts.
+- GitHub's server-managed pull-request refs still retain the old initial
+  commit for historical PRs 1–56 and 68–125. These refs cannot be rewritten by
+  a normal Git push. Rotate the exposed credential and request GitHub Support's
+  sensitive-data purge to remove retained PR refs and cached commit views.
 
 ---
 
