@@ -1,3 +1,29 @@
+# Plan: Repair PR124 and PR125 web CI configuration
+
+## Tasks
+
+- [x] Remove direct and transitive config-time dependencies on the app env module
+- [x] Remove the ignored, Next-generated `next-env.d.ts` path from root Ultracite scripts
+- [x] Verify existing auth-link and redirect regression coverage against the refactor
+- [x] Run focused verification and all repository CI gates, including the production build
+- [x] Review the final diff and document results
+
+## Review
+
+- Reproduced the CI build error locally. Next's config transpiler rewrote the
+  transitive `@/env` import in `auth-links.ts` to `./env` relative to
+  `src/lib`, so changing only the direct config import would not have fixed it.
+- Extracted the redirect URL calculation into an env-free helper. Application
+  code still supplies validated env values; `next.config.ts` supplies
+  `process.env` values and preserves the `VERCEL_ENV` production fallback.
+- Removed ignored, Next-generated `next-env.d.ts` files from the root check and
+  fix targets instead of adding generated declarations to source control.
+- Verified the web tests and production build, `bun run fix`, `bun run check`,
+  `bun run typecheck`, `bun run test`, `bun run test:integration`, the full
+  monorepo `bun run build`, and `git diff --check`.
+
+---
+
 # Plan: Fix Xero /sync current-health and manual-dispatch behaviour
 
 ## Tasks
