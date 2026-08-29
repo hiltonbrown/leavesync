@@ -7,9 +7,17 @@ describe("Integrations page", () => {
   it("describes calendar refresh timing without promising client delivery", () => {
     const html = renderToStaticMarkup(React.createElement(IntegrationsPage));
 
-    expect(html).not.toContain("within 60 seconds");
+    expect(html).not.toContain("60 seconds");
+    expect(html).not.toContain("60-second");
     expect(html).toContain("calendar clients refresh subscribed feeds");
     expect(html).toContain("on their own schedules");
+  });
+
+  it("links to the canonical contact and security routes", () => {
+    const html = renderToStaticMarkup(React.createElement(IntegrationsPage));
+
+    expect(html).toContain('href="/contact">Talk to us</a>');
+    expect(html).toContain('href="/security">Review security</a>');
   });
 
   it("separates data collection scope from credential safeguards", () => {
@@ -23,9 +31,10 @@ describe("Integrations page", () => {
 
   it("describes only the Xero data that Team Calendar reads", () => {
     const html = renderToStaticMarkup(React.createElement(IntegrationsPage));
+    const lowerHtml = html.toLowerCase();
 
-    expect(html).not.toContain(["Payroll", "calendar"].join(" "));
-    expect(html).not.toContain(["pay", "period", "information"].join(" "));
+    expect(lowerHtml).not.toContain("payroll calendar");
+    expect(lowerHtml).not.toContain("pay period information");
     expect(html).toContain("Employee records");
     expect(html).toContain("leave applications");
     expect(html).toContain("balances");
