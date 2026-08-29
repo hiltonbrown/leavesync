@@ -8,29 +8,28 @@ from `plans/` into the completed-plan ledger below. All 14 rejected plan files
 (Plans 024, 031, 051, 058, 062, 063, 064, 065, 067, 068, 070, 071, 072, 073, 074)
 have also been removed, with their decision rationales and superseding plan linkages
 preserved in the Reconciliation decisions section below. The execution queue contains
-0 TODO plans. Only the two regional activation plans remain `BLOCKED` (Plans 108 and 109),
+16 TODO plans. The two regional activation plans remain `BLOCKED` (Plans 108 and 109),
 pending named live Xero environments and UK partner permission.
 
 ## Execution policy
 
-Set 2026-08-26: all plan executions land directly on `preview`
-(`origin/preview`), not `main`, and run directly in this working tree — no
-isolated git worktree. This supersedes the `improve` skill's default
+Set 2026-08-26 and clarified 2026-08-30: all plan executions use and land
+directly on `preview` (`origin/preview`), not `main`, and run directly in this
+working tree. There is no isolated git worktree. This supersedes the `improve`
+skill's default
 `execute` dispatch (`isolation: "worktree"`, branch off the default branch)
 for this repo only:
 
-- Every TODO/BLOCKED plan's `## Git workflow` section opens with a "Base
-  branch: `preview`" bullet ahead of its own branch name — branch from
-  `preview`, not `main`.
+- Every TODO/BLOCKED plan's `## Git workflow` section names `preview` as the
+  branch and landing target. Executors do not create plan-specific feature
+  branches.
 - Executors work directly in the current working tree. Uncommitted changes
-  must be checked (`git status`) and any in-progress work stashed or
-  committed before a plan's branch is checked out, per the standing git
-  safety rules.
+  must be checked (`git status`) and preserved before editing, per the standing
+  git safety rules.
 - The advisor's review verdict process is unchanged: re-run done criteria,
   check scope, read the diff. **APPROVE** still means presenting the diff for
-  the user's own merge decision — the user merges into `preview` themselves;
-  the advisor and executor never merge, push, or land on `preview` without
-  that explicit go-ahead.
+  the user's own push decision. The advisor and executor never push to
+  `origin/preview` without that explicit go-ahead.
 - Rejected and DONE plans are historical records; this policy does not
   retroactively change how already-merged work landed (092 and 076 merged to
   `main`, before this policy existed).
@@ -90,17 +89,183 @@ This reconciliation was read-only outside `plans/`.
 | Plan 105 execution | approved at `22c69b2`; employee-aware regional approval reconciliation for NZ and UK tenants, missing employee ID validation failure |
 | Plan 106 execution | approved at `bd8248c`; orchestrated 40-person regional balance pages for NZ and UK tenants, per-employee cursor CAS updates, NZD currency mapping |
 | Plan 107 execution | approved at `6b66916`; formatLeaveBalance helper with Intl.NumberFormat NZD and unit handling, services restricted to day subtraction only |
-| Current indexed plans | 64: 0 TODO, 48 DONE (ledgered), 14 REJECTED (ledgered decisions), 2 BLOCKED |
+| Current indexed plans | 98: 32 TODO, 50 DONE (including queue completions), 14 REJECTED (ledgered decisions), 2 BLOCKED |
 
 ## Execution queue
 
-The execution queue is currently empty. All 48 codebase implementation plans have
-landed and passed verification.
+Plans 110–120 were added on 30 August 2026 from a read-only audit of
+`apps/web/app/integrations`. They refine the existing Persuade surface using the
+Impeccable design contract. Execute sequentially because later plans depend on
+the content model and CSS location established by earlier plans.
+
+Plan 121 was added on 30 August 2026 from the contact-page critique. It combines
+all vetted `/contact` findings into one Persuade-mode refinement.
+
+Plan 122 rolls the full `/customers` critique into one Impeccable-shaped page
+plan. It follows Plan 120 because it shares marketing focus, metadata and
+stylesheet seams with the integrations sequence.
+
+Plan 123 rolls the full `/about` critique into one founder-led, Impeccable-shaped
+trust-page plan. It follows Plan 122 so it reuses the completed focus, metadata,
+header-test and route-scoped stylesheet contracts instead of overwriting them.
+
+Plan 124 rolls the full `/help-centre` critique into one Impeccable Read-mode
+plan. It keeps content truth, task architecture, accessibility, responsive
+reading, sitemap discovery and contract tests together as one page-level change.
+
+Plan 125 rolls the full Blog critique into one Impeccable Read-mode publishing
+plan. It keeps the MDX pipeline, editorial model, content truth, interface,
+accessibility, discovery, metadata, RSS and verification in one vertical slice.
+
+Plan 126 consolidates the full `/careers` critique into one Impeccable-shaped
+page plan. It follows Plan 122 so Careers extends the established route-aware
+skip-link and route-owned stylesheet seams rather than creating competing
+shared-shell mechanisms.
+
+Plan 127 rolls the full `/security` critique into one release-gated control and
+trust-page plan. It follows Plan 120 so the page reuses the settled marketing
+focus, metadata and scoped-stylesheet conventions. Its security remediations
+must land before its public claims are published.
+
+Plan 128 rolls the full `/status` critique into one Better Stack-backed
+operational Read surface. It follows Plans 121 and 122 so it consumes canonical
+support values and shared marketing style-loading contracts without duplicating
+them.
+
+Plan 129 rolls the full `/pricing` critique into one Impeccable Persuade-mode
+plan. It centralises the approved Australian Starter/Premium/Enterprise offer,
+adds truthful AUD/NZD/GBP availability selection, and rebuilds both launch modes
+as coherent, static-first, accessible pricing experiences.
+
+Plans 130–143 were added on 30 August 2026 from a read-only Improve survey of
+the requested authenticated product routes, shaped by the Impeccable Operate
+critique contract. There is one plan per requested path. Plans 141, 142 and 143
+record that `/availability`, `/leave-balances` and `/setup` are compatibility
+redirects and route visual work to their canonical destinations. Plan 139
+covers the `/settings` shell and representative subpages because `/settings`
+itself redirects to `/settings/general`.
 
 | Plan | Outcome | Priority | Depends on | Status |
 |---|---|---:|---|---|
+| [110](110-correct-calendar-refresh-claim.md) | Describe calendar refresh timing accurately | P1 | — | DONE at `45357d92`, approved 2026-08-30 |
+| [111](111-correct-token-handling-copy.md) | Separate collection scope from credential protection | P1 | 110 | DONE at `5fa417a1`, approved 2026-08-30 |
+| [112](112-align-advertised-xero-reads.md) | Align advertised Xero reads with the AU adapter | P1 | 111 | DONE at `83ed611`, approved 2026-08-30 |
+| [113](113-centralise-integration-capabilities.md) | Centralise public integration capability status | P1 | 112 | DONE at `b50f42b`, approved 2026-08-30 |
+| [114](114-strengthen-integration-contract-tests.md) | Test the public integration contract | P1 | 113 | DONE at `ddbebd0`, approved 2026-08-30 |
+| [115](115-show-region-launch-status.md) | Make shipped and planned regions unmistakable | P2 | 113, 114 | DONE at `d8f84cf`, visual capture blocked, approved 2026-08-30 |
+| [116](116-clarify-integrations-hero.md) | Clarify integrations hero hierarchy and copy | P2 | 115 | DONE at `ce5a1c4`, visual capture blocked, approved 2026-08-30 |
+| [117](117-restore-marketing-focus-ring.md) | Restore the documented 3px marketing focus ring | P2 | 116 | DONE at `d29f65b`, browser pass blocked, approved 2026-08-30 |
+| [118](118-use-australian-open-graph-locale.md) | Default public metadata to Australian English | P2 | 117 | DONE at `5dcaa72`, approved 2026-08-30 |
+| [119](119-extract-integrations-css.md) | Scope integrations CSS to its route | P3 | 118 | TODO |
+| [120](120-align-integrations-shape-scale.md) | Align integrations surfaces with the shape scale | P3 | 119 | TODO |
+| [121](121-refine-contact-page.md) | Make the contact page a clear, specific and maintainable enquiry path | P1 | 120 | TODO |
+| [122](122-reshape-customers-page-as-who-its-for.md) | Reshape `/customers` into an honest, specific “Who it’s for” page | P1 | 120 | TODO |
+| [123](123-reshape-about-as-founder-led-trust-page.md) | Reshape `/about` as a founder-led trust page | P1 | 122, approved human content and assets | TODO |
+| [124](124-rebuild-help-centre-read-surface.md) | Rebuild help centre as an accurate task-led Read surface | P1 | 121, 122, 123 | TODO |
+| [125](125-rebuild-blog-read-mode.md) | Rebuild Blog as a validated, accessible Read-mode publishing surface | P1 | — | TODO |
+| [126](126-reshape-careers-page.md) | Turn Careers into a candid, accessible applicant page | P1 | 122 | TODO |
+| [127](127-harden-security-controls-and-trust-page.md) | Close verified control gaps and rebuild `/security` from evidence | P0 | 120 | TODO |
+| [128](128-build-betterstack-status-page.md) | Publish validated Better Stack component health and incident history | P1 | 121, 122 | TODO |
+| [129](129-rebuild-pricing-as-coherent-launch-mode-experience.md) | Rebuild pricing with approved AU plans and NZ/UK currency states | P1 | 120, 121 | TODO |
+| [130](130-refine-leave-reports.md) | Make leave reports trustworthy, accessible and decision-led | P1 | — | TODO |
+| [131](131-refine-out-of-office-analytics.md) | Make out-of-office analytics accessible and insight-led | P1 | 130 | TODO |
+| [132](132-harden-calendar-experience.md) | Make the calendar timezone-correct and mobile-operable | P1 | — | TODO |
+| [133](133-distill-feed-management.md) | Make feed subscription primary and administration progressive | P1 | — | TODO |
+| [134](134-clarify-leave-approvals.md) | Make leave approvals scan-fast and action-safe | P1 | — | TODO |
+| [135](135-refine-notification-centre.md) | Make notifications calmer, accessible and mobile-first | P1 | — | TODO |
+| [136](136-refine-people-and-balances.md) | Make People responsive and restore profile source-of-truth cues | P1 | — | TODO |
+| [137](137-distill-plans-experience.md) | Make plans clear, responsive and truthful about provenance | P1 | — | TODO |
+| [138](138-shape-public-holiday-management.md) | Give public-holiday management one safe, responsive home | P1 | — | TODO |
+| [139](139-restructure-settings-shell.md) | Make Settings responsive, context-safe and goal-grouped | P1 | — | TODO |
+| [140](140-distill-sync-health.md) | Make sync status truthful, accessible and easier to operate | P1 | — | TODO |
+| [141](141-harden-availability-compatibility-route.md) | Keep availability deep links correct and remove legacy UI ambiguity | P2 | 137 | TODO |
+| [142](142-harden-leave-balances-redirect.md) | Preserve leave-balance deep links and orient users at the person profile | P2 | 136 | TODO |
+| [143](143-distill-setup-checklist.md) | Make setup a single, confident next-step experience | P2 | 139 | TODO |
 | [108](108-activate-new-zealand-xero-sync.md) | Activate New Zealand Xero sync | P1 | 076, 100, 102, 104, 105, 106, 107 DONE; live NZ tenant & credentials | BLOCKED |
 | [109](109-activate-united-kingdom-xero-sync.md) | Validate and activate UK Xero sync | P1 | 076, 100, 101, 103, 104, 105, 106, 107 DONE; live UK partner & tenant | BLOCKED |
+
+## Plan dependency notes
+
+- 110–112 correct three independent product-truth defects in a shared focused
+  page test before architecture changes.
+- 113 introduces the typed capability model; 114 hardens its contract before
+  115 makes launch status visually dependent on it.
+- 116–118 are independent refinements but remain sequential so each executor
+  reviews one bounded change.
+- 119 relocates integrations CSS; 120 depends on the new module path.
+- 125 is one self-contained Blog vertical slice. It has no dependency on the
+  integrations sequence, but it must coordinate with shared focus and locale
+  work in Plans 117 and 118 without overwriting their unrelated page scope.
+- 121 follows 120 so the contact CTA consumes the shared 3px focus ring and 14px
+  button radius without defining a competing local override.
+- 122 follows 120 to reuse rather than overwrite completed focus-ring,
+  Australian-locale and marketing-CSS changes while reshaping `/customers`.
+- 123 follows 122 to reuse its shared header tests and route-loading contract;
+  approved founder copy, LinkedIn URL and photographs are additional hard
+  prerequisites.
+- 124 follows 121–123 so it inherits their shared marketing-shell changes. Its
+  content contract, task architecture, accessibility, responsive reading,
+  sitemap and regression coverage land together so the help surface cannot be
+  polished while remaining operationally inaccurate.
+- 126 follows 122 to extend its route-aware skip-link and route-owned stylesheet
+  patterns while preserving the canonical regional and focus work completed by
+  Plans 113–120.
+- 128 follows 121 and 122 so it reuses the canonical support constants and
+  marketing style-loading seam. Its Better Stack projection, status hierarchy,
+  incident history and recovery path land as one vertical slice.
+- 130 establishes the shared analytics filter and summary treatment before 131
+  extends it with person-type segmentation and multi-series accessibility.
+- 141 follows 137 because `/availability` is a redirect to Plans and must not
+  create a second availability interface.
+- 142 follows 136 because `/leave-balances` redirects into People and depends
+  on the refined profile balance destination.
+- 143 follows 139 so Getting Started uses the responsive,
+  organisation-preserving Settings shell.
+- Plans 132–140 are otherwise independent. They may execute in
+  parallel only when their explicit in-scope files do not overlap.
+
+## Authenticated UI findings considered and rejected
+
+- Designing standalone interfaces for `/availability`, `/leave-balances`,
+  `/settings` or `/setup` was rejected because these entry files redirect.
+- A repository-wide Table primitive rewrite was rejected for this batch. Each
+  dense surface owns a role-appropriate mobile projection; extract a shared
+  primitive only after at least three implementations converge.
+- New analytics calculations, notification types, feed lifecycle states and
+  Xero write semantics were rejected as product expansion rather than critique
+  follow-through.
+- The current notification SSE provider and complete feed URL display are
+  retained because both already match the product contract.
+- 127 follows 120 for the shared marketing seams. Its internal order is a hard
+  dependency: control fixes and regression tests precede trust-page copy.
+- 129 follows 120 and 121 so it consumes the completed focus, shape,
+  stylesheet and support-data contracts. Its approved AU plan table and
+  AUD/NZD/GBP availability contract precede catalogue, mode, accessibility,
+  performance and test work.
+
+## Integrations findings considered and rejected
+
+- No direct security, unsafe-link, semantic HTML or React client-boundary issue
+  was found.
+- A dedicated final CTA was rejected because the immediately following footer
+  already provides Sign up and Talk to us actions.
+- A tablet-specific layout redesign was rejected pending rendered evidence; the
+  CSS extraction plan captures 820px output and should reopen it only if the
+  real layout proves materially weak.
+
+## Pricing findings considered and rejected
+
+- No direct security vulnerability was found in the static pricing route; it
+  accepts no request input, performs no mutation and handles no credential.
+- Detector signals for the floating header shadow, font usage and table-wrapper
+  padding were rejected as false positives against intentional shared styling.
+- Setup icon tiles and desktop line-length signals remain composition prompts,
+  not standalone defects; Plan 129 changes them only where the mode-specific
+  hierarchy requires it.
+- Missing FAQ `aria-controls` was not promoted separately. Plan 129 replaces the
+  custom accordion with native `details`/`summary` instead of adding more ARIA.
+- The public support email is not a secret. Plan 129 consumes Plan 121's shared
+  support contract without changing the operating model.
 
 The unnumbered [go-to-market plan](gtm-team-calendar-go-to-market-plan.md) is a
 business strategy document, not an executor plan. It was refreshed on 24 August:

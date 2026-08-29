@@ -58,6 +58,39 @@ empty states remain explicit and do not receive a decorative timeline.
   starts), and the Windows control bridge rejects the WSL workspace path. No
   visual screenshot result is claimed.
 
+## Active plan: Standardise plan numbering, Git workflow and Impeccable use
+
+Status: Complete
+
+### Outcome
+
+The active plan batch is numbered contiguously from 121 through 143. Every plan
+uses `preview` as its working and landing branch, and every plan explicitly uses
+Impeccable for its rendered surface where applicable.
+
+### Tasks
+
+- [x] Inventory the existing plan files and their Git workflow sections.
+- [x] Renumber the batch contiguously as Plans 121–143 and update dependencies.
+- [x] Replace feature-branch instructions with `preview`.
+- [x] Add a consistent `## Git workflow` section to every plan.
+- [x] Align `plans/README.md` with the direct-on-`preview` policy.
+- [x] Verify every Plan 121–143 has exactly one workflow section and
+  no stale branch instruction.
+- [x] Verify every Plan 121–143 explicitly invokes Impeccable, with redirect
+  plans routing visual work to the canonical rendered destination.
+
+### Review
+
+- Confirmed exactly one file and matching `# Plan` heading for each number from
+  121 through 143, with no duplicate numbers.
+- Confirmed all 23 plans have one Git workflow, branch `preview`, landing target
+  `preview`, and no plan-specific branch reference.
+- Confirmed all 23 plans contain explicit Impeccable guidance.
+- Confirmed all numbered README links resolve. `git diff --check` passes for
+  tracked changes, and a direct whitespace/conflict-marker scan passes for all
+  untracked plan files.
+
 ## Follow-ups
 
 ### Calendar subscribe URL verification
