@@ -39,6 +39,11 @@
 
 ## CI debugging patterns (2026-08)
 
+- Before opening or handing off a PR, run the production build from a clean
+  generated-file state. `next.config.ts` is evaluated before Next generates
+  app artefacts, so it must not depend on application path aliases or full app
+  env validation for optional build wrappers. Never pass ignored,
+  Next-generated `next-env.d.ts` files as explicit lint targets.
 - CI failures are layered: fixing the first blocking stage (e.g. Lint) can expose a
   further failure at a later stage (e.g. integration tests) that was already broken
   and simply never reached. Before treating a newly-visible failure as caused by your
