@@ -147,17 +147,17 @@ itself redirects to `/settings/general`.
 
 | Plan | Outcome | Priority | Depends on | Status |
 |---|---|---:|---|---|
-| [110](110-correct-calendar-refresh-claim.md) | Describe calendar refresh timing accurately | P1 | — | APPROVED at `45357d92`; PREVIEW PENDING |
-| [111](111-correct-token-handling-copy.md) | Separate collection scope from credential protection | P1 | 110 | APPROVED at `5fa417a1`; PREVIEW PENDING |
-| [112](112-align-advertised-xero-reads.md) | Align advertised Xero reads with the AU adapter | P1 | 111 | APPROVED at `83ed611`; PREVIEW PENDING |
-| [113](113-centralise-integration-capabilities.md) | Centralise public integration capability status | P1 | 112 | APPROVED at `b50f42b`; PREVIEW PENDING |
-| [114](114-strengthen-integration-contract-tests.md) | Test the public integration contract | P1 | 113 | APPROVED at `ddbebd0`; PREVIEW PENDING |
-| [115](115-show-region-launch-status.md) | Make shipped and planned regions unmistakable | P2 | 113, 114 | APPROVED at `d8f84cf`; PREVIEW PENDING; visual capture blocked |
-| [116](116-clarify-integrations-hero.md) | Clarify integrations hero hierarchy and copy | P2 | 115 | APPROVED at `ce5a1c4`; PREVIEW PENDING; visual capture blocked |
-| [117](117-restore-marketing-focus-ring.md) | Restore the documented 3px marketing focus ring | P2 | 116 | APPROVED at `d29f65b`; PREVIEW PENDING; browser pass blocked |
-| [118](118-use-australian-open-graph-locale.md) | Default public metadata to Australian English | P2 | 117 | APPROVED at `5dcaa72`; PREVIEW PENDING |
-| [119](119-extract-integrations-css.md) | Scope integrations CSS to its route | P3 | 118 | APPROVED at `a65db00`; PREVIEW PENDING; build/visual evidence blocked |
-| [120](120-align-integrations-shape-scale.md) | Align integrations surfaces with the shape scale | P3 | 119 | TODO; must branch from and land on `preview` |
+| [110](110-correct-calendar-refresh-claim.md) | Describe calendar refresh timing accurately | P1 | — | DONE at `45357d92`; LANDED ON PREVIEW |
+| [111](111-correct-token-handling-copy.md) | Separate collection scope from credential protection | P1 | 110 | DONE at `5fa417a1`; LANDED ON PREVIEW |
+| [112](112-align-advertised-xero-reads.md) | Align advertised Xero reads with the AU adapter | P1 | 111 | DONE at `83ed611`; LANDED ON PREVIEW |
+| [113](113-centralise-integration-capabilities.md) | Centralise public integration capability status | P1 | 112 | DONE at `b50f42b`; LANDED ON PREVIEW |
+| [114](114-strengthen-integration-contract-tests.md) | Test the public integration contract | P1 | 113 | DONE at `ddbebd0`; LANDED ON PREVIEW |
+| [115](115-show-region-launch-status.md) | Make shipped and planned regions unmistakable | P2 | 113, 114 | DONE at `d8f84cf`; LANDED ON PREVIEW; visual capture confirmed with Plan 120 |
+| [116](116-clarify-integrations-hero.md) | Clarify integrations hero hierarchy and copy | P2 | 115 | DONE at `ce5a1c4`; LANDED ON PREVIEW; visual capture confirmed with Plan 120 |
+| [117](117-restore-marketing-focus-ring.md) | Restore the documented 3px marketing focus ring | P2 | 116 | DONE at `d29f65b`; LANDED ON PREVIEW; browser pass confirmed with Plan 120 |
+| [118](118-use-australian-open-graph-locale.md) | Default public metadata to Australian English | P2 | 117 | DONE at `5dcaa72`; LANDED ON PREVIEW |
+| [119](119-extract-integrations-css.md) | Scope integrations CSS to its route | P3 | 118 | DONE at `a65db00`; LANDED ON PREVIEW; build and visual parity confirmed with Plan 120 |
+| [120](120-align-integrations-shape-scale.md) | Align integrations surfaces with the shape scale | P3 | 119 | DONE at `b8b791f`; LANDED ON PREVIEW |
 | [121](121-refine-contact-page.md) | Make the contact page a clear, specific and maintainable enquiry path | P1 | 120 | TODO |
 | [122](122-reshape-customers-page-as-who-its-for.md) | Reshape `/customers` into an honest, specific “Who it’s for” page | P1 | 120 | TODO |
 | [123](123-reshape-about-as-founder-led-trust-page.md) | Reshape `/about` as a founder-led trust page | P1 | 122, approved human content and assets | TODO |
