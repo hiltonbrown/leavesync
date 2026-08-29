@@ -85,7 +85,6 @@ packages/design-system/styles/compiled.css
 .claude/skills/*
 .claude/*
 
-
-apps/api/next-env.d.ts
-apps/app/next-env.d.ts
-apps/web/next-env.d.ts
+# Next.js generated type declarations
+next-env.d.ts
+**/next-env.d.ts
