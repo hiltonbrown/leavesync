@@ -19,6 +19,10 @@ actionable; keep one-off task evidence in the review for that task.
 - Do not silently restyle vendored or governance files solely to satisfy product
   language or presentation rules. Flag the difference and change the canonical
   source when appropriate.
+- Before splitting route CSS, identify shared selector ownership as well as
+  route consumers. If a route stylesheet owns global layout primitives, expand
+  the approved scope explicitly and extract those primitives before changing
+  imports.
 
 ## Xero integration
 
