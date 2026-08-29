@@ -5,7 +5,7 @@
 > not merge enablement or public claims using fixture evidence alone.
 >
 > **Drift check (run first)**:
-> `git diff --stat ecd49f5..HEAD -- packages/xero/src/oauth/service.ts packages/xero/src/oauth/service.test.ts packages/database/src/queries/schedulable-xero-tenants.ts packages/database/src/queries/schedulable-xero-tenants.test.ts packages/jobs/src/handlers/schedule-xero-syncs.ts packages/jobs/src/handlers/schedule-xero-syncs.test.ts README.md docs/architecture/xero-people-sync.md`
+> `git diff --stat f79b1de..HEAD -- packages/xero/src/oauth/service.ts packages/xero/src/oauth/service.test.ts packages/database/src/queries/schedulable-xero-tenants.ts packages/database/src/queries/schedulable-xero-tenants.test.ts packages/jobs/src/handlers/schedule-xero-syncs.ts packages/jobs/src/handlers/schedule-xero-syncs.test.ts README.md plans/xero-people-sync.md`
 > Re-stamp after all code dependencies are DONE and the external preflight is
 > recorded without secret values.
 
@@ -16,7 +16,7 @@
 - **Risk**: HIGH
 - **Depends on**: Plans 076, 100, 102, 104, 105, 106 and 107 DONE; sanctioned live NZ tenant and preview deployment credentials
 - **Category**: migration
-- **Planned at**: commit `ecd49f5`, 2026-08-24; re-stamp after dependencies
+- **Planned at**: commit `f79b1de`, 2026-08-29; all code dependencies merged
 - **Execution status**: BLOCKED, live NZ verification environment not recorded
 - **Supersedes**: NZ activation slice of rejected Plan 071
 

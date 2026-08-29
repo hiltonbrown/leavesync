@@ -86,3 +86,6 @@ packages/design-system/styles/compiled.css
 .claude/*
 
 
+apps/api/next-env.d.ts
+apps/app/next-env.d.ts
+apps/web/next-env.d.ts
