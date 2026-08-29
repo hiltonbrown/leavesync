@@ -22,10 +22,8 @@ describe("Integrations page", () => {
 
   it("assigns the hero outcome, problem, and mechanism distinct copy", () => {
     const html = renderToStaticMarkup(React.createElement(IntegrationsPage));
-    const heroHtml = html.slice(
-      0,
-      html.indexOf('<section class="fmkt-integrations__section">')
-    );
+    const [, heroAndRest = ""] = html.split('data-integrations-section="hero"');
+    const [heroHtml = ""] = heroAndRest.split("<section");
 
     expect(heroHtml).toContain("See who is away");
     expect(heroHtml).toContain("Stop piecing together leave and availability");
