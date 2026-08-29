@@ -16,6 +16,7 @@ const regions = integrationCapabilities.xeroPayrollRegions.map((region) => ({
     region.status === "shipped"
       ? "Annual leave, sick leave, long service leave, personal carer's leave, and public holidays."
       : "Planned for a future release.",
+  statusLabel: region.status === "shipped" ? "Supported at launch" : "Planned",
 }));
 
 const shippedRegionNames = integrationCapabilities.xeroPayrollRegions
@@ -193,10 +194,21 @@ const IntegrationsPage = () => (
         </div>
         <div className="fmkt-integrations__region-list">
           {regions.map((region) => (
-            <article className="fmkt-integrations__region" key={region.code}>
-              <span>{region.code}</span>
+            <article
+              className="fmkt-integrations__region"
+              data-status={region.status}
+              key={region.code}
+            >
+              <span className="fmkt-integrations__region-code">
+                {region.code}
+              </span>
               <div>
-                <h3>{region.name}</h3>
+                <div className="fmkt-integrations__region-heading">
+                  <h3>{region.name}</h3>
+                  <span className="fmkt-integrations__region-status">
+                    {region.statusLabel}
+                  </span>
+                </div>
                 <p>{region.detail}</p>
               </div>
             </article>

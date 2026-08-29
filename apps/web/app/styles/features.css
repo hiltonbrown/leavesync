@@ -2970,11 +2970,32 @@
   border-radius: 12px;
 }
 
+.fmkt-integrations__region[data-status="shipped"] {
+  background: color-mix(
+    in srgb,
+    var(--marketing-primary-container) 36%,
+    var(--marketing-surface-container)
+  );
+}
+
+.fmkt-integrations__region[data-status="planned"] {
+  background: var(--marketing-surface-low);
+}
+
+:where(.dark, [data-theme="dark"])
+  .fmkt-integrations__region[data-status="shipped"] {
+  background: color-mix(
+    in srgb,
+    var(--marketing-primary-container) 24%,
+    var(--marketing-surface-container)
+  );
+}
+
 .fmkt-integrations__section--tonal .fmkt-integrations__destination {
   background: var(--marketing-surface-lowest);
 }
 
-.fmkt-integrations__region span,
+.fmkt-integrations__region-code,
 .fmkt-integrations__destination span {
   display: inline-flex;
   align-items: center;
@@ -2985,6 +3006,46 @@
   color: var(--marketing-on-secondary-container);
   background: var(--marketing-secondary-container);
   border-radius: 12px;
+}
+
+.fmkt-integrations__region[data-status="shipped"]
+  .fmkt-integrations__region-code {
+  color: var(--marketing-on-primary-container);
+  background: var(--marketing-primary-container);
+}
+
+.fmkt-integrations__region[data-status="planned"]
+  .fmkt-integrations__region-code {
+  color: var(--marketing-on-surface-variant);
+  background: var(--marketing-surface-high);
+}
+
+.fmkt-integrations__region-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  align-items: center;
+}
+
+.fmkt-integrations__region-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  font: 600 0.6875rem / 1.3 var(--marketing-font);
+  white-space: nowrap;
+  border-radius: 12px;
+}
+
+.fmkt-integrations__region[data-status="shipped"]
+  .fmkt-integrations__region-status {
+  color: var(--marketing-on-primary-container);
+  background: var(--marketing-primary-container);
+}
+
+.fmkt-integrations__region[data-status="planned"]
+  .fmkt-integrations__region-status {
+  color: var(--marketing-on-surface-variant);
+  background: var(--marketing-surface-high);
 }
 
 .fmkt-integrations__destination span {
@@ -3483,7 +3544,13 @@
   .fmkt-pricing-setup-card,
   .fmkt-pricing-faq__item,
   .fmkt-pricing-form,
+  .fmkt-integrations__region,
   .fmkt-cta__panel {
+    border: 1px solid CanvasText;
+  }
+
+  .fmkt-integrations__region-code,
+  .fmkt-integrations__region-status {
     border: 1px solid CanvasText;
   }
 
