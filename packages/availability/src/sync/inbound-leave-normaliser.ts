@@ -16,14 +16,13 @@ export interface InboundLeaveRecordInput {
   approvalStatus: InboundLeaveApprovalStatus;
   clerkOrgId: string;
   endsAt: Date;
-  leaveTypeId: string;
-  leaveTypeName: string | null;
   organisationId: string;
   personId: string;
-  provider: "xero";
   rawPayload: unknown;
+  recordType: availability_record_type;
   sourceLastModifiedAt: Date | null;
   sourceRemoteId: string;
+  sourceType: "xero_leave";
   stableSourceKey: string;
   startsAt: Date;
   title: string | null;
@@ -54,7 +53,6 @@ export function normaliseInboundLeaveRecord(
   input: InboundLeaveRecordInput
 ): NormalisedInboundLeaveRecord {
   const approvalStatus = mapApprovalStatus(input.approvalStatus);
-  const recordType = recordTypeFromLeaveType(input.leaveTypeName);
   return {
     allDay: true,
     approvalStatus,
@@ -64,8 +62,8 @@ export function normaliseInboundLeaveRecord(
       endsAt: input.endsAt,
       organisationId: input.organisationId,
       personId: input.personId,
-      recordType,
-      sourceType: "xero_leave",
+      recordType: input.recordType,
+      sourceType: input.sourceType,
       stableSourceKey: input.stableSourceKey,
       startsAt: input.startsAt,
     }),
@@ -75,32 +73,14 @@ export function normaliseInboundLeaveRecord(
     privacyMode: "named",
     publishStatus: approvalStatus === "cancelled" ? "archived" : "eligible",
     rawPayload: input.rawPayload,
-    recordType,
+    recordType: input.recordType,
     sourceLastModifiedAt: input.sourceLastModifiedAt,
     sourceRemoteHash: hashJson(input.rawPayload),
     sourceRemoteId: input.sourceRemoteId,
-    sourceType: "xero_leave",
+    sourceType: input.sourceType,
     startsAt: input.startsAt,
     title: input.title,
   };
-}
-
-export function deriveXeroStableSourceKey(input: {
-  employeeId: string;
-  endsAt: Date;
-  leaveTypeId: string;
-  startsAt: Date;
-  units: number;
-  xeroTenantId: string;
-}): string {
-  return [
-    input.xeroTenantId,
-    input.employeeId,
-    input.leaveTypeId,
-    input.startsAt.toISOString(),
-    input.endsAt.toISOString(),
-    normaliseUnits(input.units),
-  ].join("|");
 }
 
 function mapApprovalStatus(
@@ -122,31 +102,6 @@ function mapApprovalStatus(
       return exhaustive;
     }
   }
-}
-
-export function recordTypeFromLeaveType(
-  leaveTypeName: string | null
-): availability_record_type {
-  const value = leaveTypeName?.toLowerCase() ?? "";
-  if (value.includes("annual")) {
-    return "annual_leave";
-  }
-  if (value.includes("personal")) {
-    return "personal_leave";
-  }
-  if (value.includes("sick")) {
-    return "sick_leave";
-  }
-  if (value.includes("long service")) {
-    return "long_service_leave";
-  }
-  if (value.includes("unpaid")) {
-    return "unpaid_leave";
-  }
-  if (value.includes("holiday")) {
-    return "holiday";
-  }
-  return "leave";
 }
 
 function hashJson(value: unknown): string {
@@ -179,8 +134,4 @@ function stableStringify(value: unknown): string {
       .join(",")}}`;
   }
   return JSON.stringify(String(value));
-}
-
-function normaliseUnits(value: number): string {
-  return Number.isInteger(value) ? value.toString() : value.toFixed(4);
 }

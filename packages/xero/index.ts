@@ -51,6 +51,12 @@ export type {
   XeroLeaveRecordStatus,
 } from "./src/read/leave-records";
 export {
+  deriveXeroStableSourceKey,
+  mapXeroLeaveType,
+  type XeroLeaveTypeMapping,
+  type XeroPayrollRegion,
+} from "./src/read/leave-type-mapping";
+export {
   type ResolutionError,
   resolveXeroEmployeeId,
 } from "./src/resolution/resolve-employee";

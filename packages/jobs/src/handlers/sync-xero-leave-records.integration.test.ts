@@ -6,6 +6,7 @@ const mockFetchLeaveForEmployeeForRegion = vi.fn();
 const mockFetchLeaveRecordsForRegion = vi.fn();
 const mockInngestSend = vi.fn(async () => ({ ids: ["event_1"] }));
 const ICAL_UID_SUFFIX_REGEX = /@ical.teamcalendar.online$/;
+const SHA256_HEX_REGEX = /^[a-f0-9]{64}$/;
 
 vi.mock("../client", () => ({
   inngest: {
@@ -136,6 +137,13 @@ describeWithDatabase("sync-xero-leave-records database flow", () => {
       records.find((record) => record.source_remote_id === leaveId())
         ?.derived_uid_key
     ).toMatch(ICAL_UID_SUFFIX_REGEX);
+    const currentRecord = records.find(
+      (record) => record.source_remote_id === leaveId()
+    );
+    expect(currentRecord?.source_payload_json).toMatchObject({
+      LeaveApplicationID: leaveId(),
+    });
+    expect(currentRecord?.source_remote_hash).toMatch(SHA256_HEX_REGEX);
     expect(
       records.find((record) => record.source_remote_id === staleLeaveId())
         ?.publish_status
