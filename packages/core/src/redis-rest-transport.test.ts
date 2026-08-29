@@ -271,4 +271,54 @@ describe("executeRedisRestCommand", () => {
       expect(result.error.message).toContain("[REDACTED]");
     }
   });
+
+  it("redacts URL credentials when an earlier non-credential :// exists", async () => {
+    const secretToken = "token-777";
+    const mockFetch = vi
+      .fn()
+      .mockRejectedValue(
+        new Error(
+          `protocol://no-creds then https://user:${secretToken}@redis.internal failed`
+        )
+      );
+
+    const result = await executeRedisRestCommand({
+      command: ["get", "key"],
+      fetch: mockFetch as unknown as typeof fetch,
+      token: secretToken,
+      url: defaultUrl,
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).not.toContain(secretToken);
+      expect(result.error.message).toContain("https://[REDACTED]:[REDACTED]@");
+    }
+  });
+
+  it("redacts credentials for multiple URLs in one message", async () => {
+    const firstSecret = "token-1";
+    const secondSecret = "token-2";
+    const message = `Source https://alice:${firstSecret}@source.internal failed, destination https://bob:${secondSecret}@dest.internal unreachable`;
+    const mockFetch = vi.fn().mockRejectedValue(new Error(message));
+
+    const result = await executeRedisRestCommand({
+      command: ["get", "key"],
+      fetch: mockFetch as unknown as typeof fetch,
+      token: "",
+      url: defaultUrl,
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toContain(
+        "https://[REDACTED]:[REDACTED]@source.internal"
+      );
+      expect(result.error.message).toContain(
+        "https://[REDACTED]:[REDACTED]@dest.internal"
+      );
+      expect(result.error.message).not.toContain(firstSecret);
+      expect(result.error.message).not.toContain(secondSecret);
+    }
+  });
 });
