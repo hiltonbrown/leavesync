@@ -46,7 +46,7 @@ function redactBasicAuthInUrl(message: string): string {
 
     const slashIndex = redacted.indexOf("/", credentialsStart);
     if (slashIndex !== -1 && slashIndex < atIndex) {
-      searchIndex = slashIndex + 1;
+      searchIndex = schemeIndex + 1;
       continue;
     }
 
