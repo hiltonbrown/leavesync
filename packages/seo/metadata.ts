@@ -39,7 +39,7 @@ export const createMetadata = ({
     metadataBase: resolveCanonicalWebUrl(),
     openGraph: {
       description,
-      locale: "en_US",
+      locale: "en_AU",
       siteName: applicationName,
       title: parsedTitle,
       type: "website",
