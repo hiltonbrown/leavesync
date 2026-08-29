@@ -11,4 +11,13 @@ describe("Integrations page", () => {
     expect(html).toContain("calendar clients refresh subscribed feeds");
     expect(html).toContain("on their own schedules");
   });
+
+  it("separates data collection scope from credential safeguards", () => {
+    const html = renderToStaticMarkup(React.createElement(IntegrationsPage));
+
+    expect(html).not.toContain("Plaintext feed or OAuth tokens");
+    expect(html).toContain("OAuth tokens are encrypted at rest");
+    expect(html).toContain("feed tokens are signed and revocable");
+    expect(html).toContain("stay out of client-side code");
+  });
 });

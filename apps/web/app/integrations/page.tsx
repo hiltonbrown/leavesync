@@ -71,7 +71,6 @@ const dataMoves = [
     items: [
       "Salary, banking, tax, or superannuation data",
       "Personal calendar contents",
-      "Plaintext feed or OAuth tokens",
     ],
     title: "Never reads",
   },
