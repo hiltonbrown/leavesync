@@ -14,6 +14,8 @@
 - **Depends on**: Plan 112 DONE
 - **Category**: tech-debt
 - **Planned at**: commit `83ed611`, 2026-08-30; reconciled after Plan 112
+- **Preview landing**: PENDING; approved commit `b50f42b`; `preview` is
+  user-provisioned
 
 ## Why this matters
 
@@ -67,9 +69,16 @@ without coupling the marketing site to server-only Xero adapters.
 
 ## Git workflow
 
+- Target branch: user-created `preview`; do not create or reset it.
 - Branch: `codex/113-centralise-integration-capabilities`
 - Commit: `refactor(web): centralise integration capabilities`
-- Do not push or merge.
+- Approved landing commit: `b50f42b`.
+- Executor: do not push or merge. Stop if `preview` or `origin/preview` is absent.
+- Landing owner: after Plan 112 is reachable from `origin/preview`, update local
+  `preview`, fast-forward it to the working branch with `git merge --ff-only`,
+  run the plan gates, then push `preview`. Stop and reconcile on divergence.
+- Completion proof: `git merge-base --is-ancestor b50f42b origin/preview` must
+  exit 0 before this plan is considered landed.
 
 ## Steps
 

@@ -18,6 +18,7 @@
 - **Category**: bug
 - **Planned at**: commit `e7ee7c7`, 2026-08-30
 - **Execution status**: DONE, approved at `45357d92` on 2026-08-30
+- **Preview landing**: PENDING; `preview` is user-provisioned
 
 ## Why this matters
 
@@ -67,9 +68,16 @@ turning the Persuade surface into implementation documentation.
 
 ## Git workflow
 
+- Target branch: user-created `preview`; do not create or reset it.
 - Branch: `codex/110-correct-calendar-refresh-claim`
 - Commit: `fix(web): correct calendar refresh claim`
-- Do not push or merge.
+- Approved landing commit: `45357d92`.
+- Executor: do not push or merge. Stop if `preview` or `origin/preview` is absent.
+- Landing owner: update local `preview` from `origin/preview`, fast-forward it to
+  the working branch with `git merge --ff-only`, run the plan gates on
+  `preview`, then push `preview`. Stop and reconcile if fast-forwarding fails.
+- Completion proof: `git merge-base --is-ancestor 45357d92 origin/preview` must
+  exit 0 before this plan is considered landed.
 
 ## Steps
 

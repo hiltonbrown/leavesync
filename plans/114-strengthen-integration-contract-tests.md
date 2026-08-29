@@ -14,6 +14,8 @@
 - **Depends on**: Plan 113 DONE
 - **Category**: tests
 - **Planned at**: commit `b50f42b`, 2026-08-30; reconciled after Plan 113
+- **Preview landing**: PENDING; approved commit `ddbebd0`; `preview` is
+  user-provisioned
 
 ## Why this matters
 
@@ -56,9 +58,16 @@ capability boundary without freezing entire paragraphs or HTML snapshots.
 
 ## Git workflow
 
+- Target branch: user-created `preview`; do not create or reset it.
 - Branch: `codex/114-strengthen-integration-contract-tests`
 - Commit: `test(web): protect integration capability claims`
-- Do not push or merge.
+- Approved landing commit: `ddbebd0`.
+- Executor: do not push or merge. Stop if `preview` or `origin/preview` is absent.
+- Landing owner: after Plan 113 is reachable from `origin/preview`, update local
+  `preview`, fast-forward it to the working branch with `git merge --ff-only`,
+  run the plan gates, then push `preview`. Stop and reconcile on divergence.
+- Completion proof: `git merge-base --is-ancestor ddbebd0 origin/preview` must
+  exit 0 before this plan is considered landed.
 
 ## Steps
 

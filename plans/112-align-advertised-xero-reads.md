@@ -15,6 +15,7 @@
 - **Category**: docs
 - **Planned at**: commit `5fa417a1`, 2026-08-30; reconciled after Plan 111
 - **Execution status**: DONE, approved after one revision at `83ed611` on 2026-08-30
+- **Preview landing**: PENDING; `preview` is user-provisioned
 
 ## Why this matters
 
@@ -64,9 +65,16 @@ and expect no matches after the edit.
 
 ## Git workflow
 
+- Target branch: user-created `preview`; do not create or reset it.
 - Branch: `codex/112-align-advertised-xero-reads`
 - Commit: `fix(web): align Xero data access claims`
-- Do not push or merge.
+- Approved landing commit: `83ed611`.
+- Executor: do not push or merge. Stop if `preview` or `origin/preview` is absent.
+- Landing owner: after Plan 111 is reachable from `origin/preview`, update local
+  `preview`, fast-forward it to the working branch with `git merge --ff-only`,
+  run the plan gates, then push `preview`. Stop and reconcile on divergence.
+- Completion proof: `git merge-base --is-ancestor 83ed611 origin/preview` must
+  exit 0 before this plan is considered landed.
 
 ## Steps
 

@@ -14,6 +14,8 @@
 - **Depends on**: Plan 116 DONE
 - **Category**: bug
 - **Planned at**: commit `ce5a1c4`, 2026-08-30; reconciled after Plan 116
+- **Preview landing**: PENDING; approved commit `d29f65b`; `preview` is
+  user-provisioned
 
 ## Why this matters
 
@@ -55,9 +57,16 @@ hero and all shared marketing controls.
 
 ## Git workflow
 
+- Target branch: user-created `preview`; do not create or reset it.
 - Branch: `codex/117-restore-marketing-focus-ring`
 - Commit: `fix(web): restore marketing focus ring`
-- Do not push or merge.
+- Approved landing commit: `d29f65b`.
+- Executor: do not push or merge. Stop if `preview` or `origin/preview` is absent.
+- Landing owner: after Plan 116 is reachable from `origin/preview`, update local
+  `preview`, fast-forward it to the working branch with `git merge --ff-only`,
+  run the plan gates, then push `preview`. Stop and reconcile on divergence.
+- Completion proof: `git merge-base --is-ancestor d29f65b origin/preview` must
+  exit 0 before this plan is considered landed.
 
 ## Steps
 

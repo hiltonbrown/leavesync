@@ -15,6 +15,7 @@
 - **Category**: bug
 - **Planned at**: commit `45357d92`, 2026-08-30; reconciled after Plan 110
 - **Execution status**: DONE, approved at `5fa417a1` on 2026-08-30
+- **Preview landing**: PENDING; `preview` is user-provisioned
 
 ## Why this matters
 
@@ -58,9 +59,16 @@ Plan 110. Every command must exit 0.
 
 ## Git workflow
 
+- Target branch: user-created `preview`; do not create or reset it.
 - Branch: `codex/111-correct-token-handling-copy`
 - Commit: `fix(web): clarify integration credential handling`
-- Do not push or merge.
+- Approved landing commit: `5fa417a1`.
+- Executor: do not push or merge. Stop if `preview` or `origin/preview` is absent.
+- Landing owner: after Plan 110 is reachable from `origin/preview`, update local
+  `preview`, fast-forward it to the working branch with `git merge --ff-only`,
+  run the plan gates, then push `preview`. Stop and reconcile on divergence.
+- Completion proof: `git merge-base --is-ancestor 5fa417a1 origin/preview` must
+  exit 0 before this plan is considered landed.
 
 ## Steps
 

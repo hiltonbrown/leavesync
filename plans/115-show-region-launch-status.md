@@ -14,6 +14,8 @@
 - **Depends on**: Plans 113 and 114 DONE
 - **Category**: tech-debt
 - **Planned at**: commit `ddbebd0`, 2026-08-30; reconciled after Plan 114
+- **Preview landing**: PENDING; approved commit `d8f84cf`; `preview` is
+  user-provisioned
 
 ## Why this matters
 
@@ -65,9 +67,17 @@ clear during a six-second scan and cannot rely on colour alone.
 
 ## Git workflow
 
+- Target branch: user-created `preview`; do not create or reset it.
 - Branch: `codex/115-show-region-launch-status`
 - Commit: `fix(web): distinguish planned payroll regions`
-- Do not push or merge.
+- Approved landing commit: `d8f84cf`.
+- Executor: do not push or merge. Stop if `preview` or `origin/preview` is absent.
+- Landing owner: after Plans 113 and 114 are reachable from `origin/preview`,
+  update local `preview`, fast-forward it to the working branch with
+  `git merge --ff-only`, run the plan gates, then push `preview`. Stop and
+  reconcile on divergence.
+- Completion proof: `git merge-base --is-ancestor d8f84cf origin/preview` must
+  exit 0 before this plan is considered landed.
 
 ## Steps
 

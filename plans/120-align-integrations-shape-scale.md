@@ -4,16 +4,17 @@
 > changing it and touch only in-scope files. The reviewer maintains the index.
 >
 > **Drift check (run first)**:
-> `git diff --stat e7ee7c7..HEAD -- apps/web/app/integrations/integrations.module.css apps/web/app/styles/shell.css`
+> `git diff --stat a65db00..HEAD -- apps/web/app/integrations/integrations.module.css apps/web/app/styles/shell.css`
 
 ## Status
 
 - **Priority**: P3
 - **Effort**: S
 - **Risk**: MED
-- **Depends on**: Plan 119 DONE
+- **Depends on**: Plan 119 landed on `origin/preview`
 - **Category**: tech-debt
-- **Planned at**: commit `e7ee7c7`, 2026-08-30
+- **Planned at**: commit `a65db00`, 2026-08-30; reconciled after Plan 119
+- **Preview landing**: PENDING EXECUTION; `preview` is user-provisioned
 
 ## Why this matters
 
@@ -61,9 +62,18 @@ clear surface hierarchy without redesigning the page.
 
 ## Git workflow
 
+- Target branch: user-created `preview`; do not create or reset it.
 - Branch: `codex/120-align-integrations-shape-scale`
 - Commit: `style(web): align integrations shape scale`
-- Do not push or merge.
+- Execution base: begin only after Plan 119's approved commit is reachable from
+  `origin/preview`, then branch from the updated local `preview`.
+- Executor: do not push or merge. Stop if `preview` or `origin/preview` is absent.
+- Landing owner: after approval, update local `preview`, fast-forward it to the
+  working branch with `git merge --ff-only`, run the plan gates, then push
+  `preview`. Stop and reconcile on divergence.
+- Completion proof: record the approved commit SHA, then require
+  `git merge-base --is-ancestor <approved-sha> origin/preview` to exit 0 before
+  this plan is considered landed.
 
 ## Steps
 

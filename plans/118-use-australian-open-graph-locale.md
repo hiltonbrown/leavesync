@@ -14,6 +14,8 @@
 - **Depends on**: Plan 117 DONE
 - **Category**: bug
 - **Planned at**: commit `d29f65b`, 2026-08-30; reconciled after Plan 117
+- **Preview landing**: PENDING; approved commit `5dcaa72`; `preview` is
+  user-provisioned
 
 ## Why this matters
 
@@ -49,9 +51,16 @@ surface.
 
 ## Git workflow
 
+- Target branch: user-created `preview`; do not create or reset it.
 - Branch: `codex/118-use-australian-open-graph-locale`
 - Commit: `fix(seo): use Australian Open Graph locale`
-- Do not push or merge.
+- Approved landing commit: `5dcaa72`.
+- Executor: do not push or merge. Stop if `preview` or `origin/preview` is absent.
+- Landing owner: after Plan 117 is reachable from `origin/preview`, update local
+  `preview`, fast-forward it to the working branch with `git merge --ff-only`,
+  run the plan gates, then push `preview`. Stop and reconcile on divergence.
+- Completion proof: `git merge-base --is-ancestor 5dcaa72 origin/preview` must
+  exit 0 before this plan is considered landed.
 
 ## Steps
 

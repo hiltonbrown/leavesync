@@ -14,6 +14,8 @@
 - **Depends on**: Plan 118 DONE
 - **Category**: perf
 - **Planned at**: commit `5dcaa72`, 2026-08-30; reconciled after Plan 118
+- **Preview landing**: PENDING; approved commit `a65db00`; `preview` is
+  user-provisioned
 
 ## Why this matters
 
@@ -72,9 +74,16 @@ changing the page’s visual world.
 
 ## Git workflow
 
+- Target branch: user-created `preview`; do not create or reset it.
 - Branch: `codex/119-extract-integrations-css`
 - Commit: `refactor(web): scope integrations styles`
-- Do not push or merge.
+- Approved landing commit: `a65db00`.
+- Executor: do not push or merge. Stop if `preview` or `origin/preview` is absent.
+- Landing owner: after Plan 118 is reachable from `origin/preview`, update local
+  `preview`, fast-forward it to the working branch with `git merge --ff-only`,
+  run the plan gates, then push `preview`. Stop and reconcile on divergence.
+- Completion proof: `git merge-base --is-ancestor a65db00 origin/preview` must
+  exit 0 before this plan is considered landed.
 
 ## Steps
 

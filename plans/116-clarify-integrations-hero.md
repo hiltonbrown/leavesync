@@ -14,6 +14,8 @@
 - **Depends on**: Plan 115 DONE
 - **Category**: docs
 - **Planned at**: commit `d8f84cf`, 2026-08-30; reconciled after Plan 115
+- **Preview landing**: PENDING; approved commit `ce5a1c4`; `preview` is
+  user-provisioned
 
 ## Why this matters
 
@@ -56,9 +58,16 @@ visible without awkward wrapping and the copy measure must stay readable.
 
 ## Git workflow
 
+- Target branch: user-created `preview`; do not create or reset it.
 - Branch: `codex/116-clarify-integrations-hero`
 - Commit: `refactor(web): clarify integrations hero copy`
-- Do not push or merge.
+- Approved landing commit: `ce5a1c4`.
+- Executor: do not push or merge. Stop if `preview` or `origin/preview` is absent.
+- Landing owner: after Plan 115 is reachable from `origin/preview`, update local
+  `preview`, fast-forward it to the working branch with `git merge --ff-only`,
+  run the plan gates, then push `preview`. Stop and reconcile on divergence.
+- Completion proof: `git merge-base --is-ancestor ce5a1c4 origin/preview` must
+  exit 0 before this plan is considered landed.
 
 ## Steps
 
