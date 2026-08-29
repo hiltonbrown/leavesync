@@ -1,15 +1,16 @@
+import { signUpCopy } from "@repo/auth/components/sign-up";
 import { createMetadata } from "@repo/seo/metadata";
 import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 
-const title = "Create your organisation";
-const description =
-  "Start a new Team Calendar organisation or accept an invitation from your team.";
 const SignUp = dynamic(() =>
   import("@repo/auth/components/sign-up").then((mod) => mod.SignUp)
 );
 
-export const metadata: Metadata = createMetadata({ description, title });
+export const metadata: Metadata = createMetadata({
+  description: signUpCopy.description,
+  title: signUpCopy.title,
+});
 
 const SignUpPage = () => <SignUp />;
 

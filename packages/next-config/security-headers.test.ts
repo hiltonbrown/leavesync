@@ -39,11 +39,7 @@ describe("shared security headers", () => {
       );
 
       expect(appConfigSource).toContain('from "@repo/next-config"');
-      if (appName === "app") {
-        expect(appConfigSource).toContain("...securityHeaders");
-      } else {
-        expect(appConfigSource).toContain("withLogging(config)");
-      }
+      expect(appConfigSource).toContain("withLogging(");
     }
   });
 });

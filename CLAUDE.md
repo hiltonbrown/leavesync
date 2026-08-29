@@ -53,7 +53,7 @@ Xero remains the payroll source of truth. Outbound writes (submit, approve, decl
 
 4. Verification Before Done
 - Never mark a task complete without proving it works
-- Diff behavior between main and your changes when relevant
+- Diff behaviour between main and your changes when relevant
 - Ask yourself: "Would a staff engineer approve this?"
 - Run tests, check logs, demonstrate correctness
 
@@ -70,7 +70,7 @@ Xero remains the payroll source of truth. Outbound writes (submit, approve, decl
 - Go fix failing CI tests without being told how
 
 7. Analysis Is Not a Deliverable
-- When asked to implement, implement — do not substitute a list of findings for the work itself
+- When asked to implement, implement: do not substitute a list of findings for the work itself
 - Comparison, gap analysis, and difference lists are intermediate steps toward implementation, never the end product
 - If you identify differences between a design and the production code, fix every single one in that same session before reporting back
 - Do not report partial progress as completion. "I found 20 differences" is a failure state, not a result
@@ -381,7 +381,7 @@ Service functions return `Result`. Route handlers map errors to HTTP responses. 
 - Token refresh handled proactively before sync runs.
 - All Xero sync operations carry `clerk_org_id` and `organisation_id` in their context.
 - Resolve XeroTenant via `organisation_id` FK, not bare `clerk_org_id`.
-- Outbound writes return `Result<T, XeroWriteError>`. `XeroWriteError` variants: `validation_error`, `conflict_error`, `auth_error`, `rate_limit_error`, `unknown_error`.
+- Outbound writes return `Result<T, XeroWriteError>`. `XeroWriteError` variants: `validation_error`, `conflict_error`, `auth_error`, `permission_error`, `rate_limit_error`, `network_error`, `not_found_error`, `region_not_supported_error`, `unknown_error`.
 
 ---
 

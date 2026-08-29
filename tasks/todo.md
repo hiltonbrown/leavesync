@@ -1,15 +1,65 @@
-# Plan 091: Page scheduled Xero balance sync across runs
+# Plan: Fix Xero /sync current-health and manual-dispatch behaviour
 
 ## Tasks
 
-- [x] Step 1: Add tests for first, middle, final and wraparound pages, cursor compare-and-swap, retries, tenant isolation and targeted-person refreshes
-- [x] Step 2: Query 41 active people in stable ID order after the cursor and process at most 40 (complete cycle and restart deterministically on next scheduled invocation)
-- [x] Step 3: Persist individual outcomes before conditional dual-tenant cursor update (advance on recorded employee failure, hold on blanket failure)
-- [x] Step 4: Serialise scheduled work by database XeroTenant.id; ensure targeted refreshes bypass shared cursor and cycle timestamps
-- [x] Step 5: Update PRODUCT.md and rename settings timestamp to "Latest balance page" with "Rolling refresh in progress since ..." status
-- [x] Step 6: Verify full test, check, typecheck, integration, and build gates
+- [x] Model current sync health from the latest completed run per sync type plus unresolved failed records
+- [x] Separate current failure, partial-success warning, and 30-day historical metrics in the tenant card
+- [x] Ensure successful manual dispatch queues once and development fallback executes inline once
+- [x] Add regression coverage for recovery, partial success, active connections, and dispatch execution paths
+- [x] Run focused tests, formatting, repository checks, typechecking, unit tests, and integration tests
 
 ## Review
+
+- Added current failed and partial-success counts derived from the latest completed outcome for each sync type, so a later success restores healthy current state while 30-day failures remain historical context.
+- Corrected the historical failure metric to count only failed runs, not partial successes.
+- Reworked the tenant card to keep OAuth connection status separate from current sync health, use destructive treatment for active failures, use warning treatment for partial success, and provide organisation-scoped affected-run links.
+- Changed manual dispatch so a successful Inngest queue returns immediately. Inline execution now occurs exactly once only after a non-production dispatch failure; production queue failures remain surfaced errors.
+- Added recovery, independent run-type, partial-success, unresolved-record, active-connection, production-dispatch, and all-handler development-fallback regression coverage.
+- Verified focused suites (28 tests), Impeccable detector (0 findings), `bun run check` (811 files), `bun run typecheck` (19 tasks), `bun run test` (17 tasks), and `bun run test:integration` (5 tasks, 114 passed and 2 credential-dependent Xero tests skipped).
+
+---
+
+# Plan: Diagnose contradictory Xero /sync connection and failure states
+
+## Tasks
+
+- [x] Trace how `/sync` loads Xero connection state and recent sync run failures
+- [x] Trace manual sync result handling, redirects, and error-message persistence
+- [x] Compare page behaviour with focused tests and available runtime evidence
+- [x] Document the root cause, affected states, and recommended implementation fix
+
+## Review
+
+- Confirmed that the active indicator reports stored OAuth connection state, while the red failure panel reports any failed or partially successful run in the last 30 days or any unresolved failed record.
+- Found that a later successful run clears resolved failed-record counts but does not clear `failedRunsLast30Days`, so the categorical “Xero sync failed” panel can remain for 30 days after recovery.
+- Confirmed that partial success is rendered as a destructive failure despite the design contract requiring warning treatment with counts and a failed-record review path.
+- Found a separate manual-sync defect: a successful Inngest dispatch is followed by the same handler running inline, creating duplicate attempts and noisy cancelled-run history. Inline execution should be restricted to the documented non-production dispatch-failure fallback.
+- Focused app action/client and availability service suites passed, 18 tests total. The local runtime log had no relevant Xero error, and browser verification was unavailable because `agent-browser` is not installed in this workspace.
+
+---
+
+# Plan: Review and align the /sign-in page across web and app
+
+## Tasks
+
+- [x] Audit sign-in routes, headers, redirects, visual styling, copy, and auth link resolution across `apps/web`, `apps/app`, and `packages/auth`
+- [x] Implement redirects in `apps/web/next.config.ts` for `/sign-in`, `/login`, `/sign-up`, and `/register` to seamless app auth URLs
+- [x] Align metadata description and component copy in `apps/app/app/(unauthenticated)/(auth)/sign-in` with `signInCopy` from `@repo/auth`
+- [x] Align metadata description and component copy in `apps/app/app/(unauthenticated)/(auth)/sign-up` with `signUpCopy` from `@repo/auth`
+- [x] Verify visual and responsive appearance of sign-in page across desktop, tablet, and mobile breakpoints (brand panel, theme switching, Clerk card sizing, focus states)
+- [x] Add unit and route tests for web redirects and sign-in metadata / copy alignment
+- [x] Run full validation suite (`bun run check`, `bun run typecheck`, `bun run test`, `bun run test:integration`)
+
+## Review
+
+- Audited sign-in navigation, layout, theme toggles, tokens, metadata, and copy across `apps/web`, `apps/app`, and `packages/auth`.
+- Implemented redirects in `apps/web/next.config.ts` for `/sign-in`, `/login`, `/sign-up`, and `/register` to redirect to the canonical app auth destinations (`signInHref` and `signUpHref`).
+- Unified page metadata `title` and `description` in `apps/app` with `signInCopy` and `signUpCopy` from `@repo/auth`, eliminating copy drift across SEO metadata and on-page headings.
+- Verified visual hierarchy, dark/light theme switching, responsive design, WCAG 2.2 AA contrast, and mobile full-width Clerk card containment.
+- Verified all checks, typechecks, unit tests (including newly added `next-config.test.ts`), and integration tests across the monorepo.
+
+
+
 
 - Implemented 40-person page balance sync per scheduled run with stable ascending Person.id cursor order probing 41 rows.
 - Set up atomic compare-and-swap cursor updates on `XeroSyncCursor` (`entity_type: "leave_balances"`), with automatic cycle reset on final/wraparound pages and lost-CAS run cancellation.

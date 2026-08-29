@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { SyncRunStatus, SyncRunType } from "./sync-monitor-service";
 
 const mocks = vi.hoisted(() => ({
   auditCreate: vi.fn(),
@@ -51,7 +52,52 @@ const baseInput = {
   organisationId: "00000000-0000-4000-8000-000000000001",
 };
 
+function completedRunFixture(input: {
+  completedAt?: Date;
+  failedRecordIds?: string[];
+  id: string;
+  recordsFailed?: number;
+  recordsUpserted?: number;
+  runType: SyncRunType;
+  startedAt: Date;
+  status: Exclude<SyncRunStatus, "running">;
+}) {
+  return {
+    completed_at:
+      input.completedAt ?? new Date(input.startedAt.getTime() + 5 * 60_000),
+    failed_records: (input.failedRecordIds ?? []).map((id) => ({ id })),
+    id: input.id,
+    records_failed: input.recordsFailed ?? 0,
+    records_upserted: input.recordsUpserted ?? 5,
+    run_type: input.runType,
+    started_at: input.startedAt,
+    status: input.status,
+    xero_tenant_id: "tenant_1",
+  };
+}
+
+function failedRecordFixture(input: {
+  createdAt: Date;
+  id: string;
+  runType: SyncRunType;
+  startedAt: Date;
+}) {
+  return {
+    created_at: input.createdAt,
+    id: input.id,
+    sync_run: {
+      run_type: input.runType,
+      started_at: input.startedAt,
+      xero_tenant_id: "tenant_1",
+    },
+  };
+}
+
 describe("sync-monitor-service", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.xeroTenantFindMany.mockResolvedValue([
@@ -110,28 +156,24 @@ describe("sync-monitor-service", () => {
     const startedAt = new Date("2026-04-19T12:00:00.000Z");
     const completedAt = new Date("2026-04-19T12:05:00.000Z");
     mocks.syncRunFindMany.mockResolvedValue([
-      {
-        completed_at: completedAt,
-        failed_records: [{ id: "failed_record_1" }],
+      completedRunFixture({
+        completedAt,
+        failedRecordIds: ["failed_record_1"],
         id: "run_1",
-        records_failed: 1,
-        records_upserted: 4,
-        run_type: "people",
-        started_at: startedAt,
+        recordsFailed: 1,
+        recordsUpserted: 4,
+        runType: "people",
+        startedAt,
         status: "partial_success",
-        xero_tenant_id: "tenant_1",
-      },
+      }),
     ]);
     mocks.failedRecordFindMany.mockResolvedValue([
-      {
-        created_at: new Date("2026-04-19T12:01:00.000Z"),
+      failedRecordFixture({
+        createdAt: new Date("2026-04-19T12:01:00.000Z"),
         id: "failed_record_1",
-        sync_run: {
-          run_type: "people",
-          started_at: startedAt,
-          xero_tenant_id: "tenant_1",
-        },
-      },
+        runType: "people",
+        startedAt,
+      }),
     ]);
 
     try {
@@ -160,7 +202,9 @@ describe("sync-monitor-service", () => {
         ok: true,
         value: [
           {
-            failedRunsLast30Days: 1,
+            currentFailedRuns: 0,
+            currentPartialSuccessRuns: 1,
+            failedRunsLast30Days: 0,
             lastPeopleSync: completedAt,
             lastRun: {
               id: "run_1",
@@ -178,6 +222,117 @@ describe("sync-monitor-service", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("keeps failed runs as history after a later successful run resolves the current issue", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-20T12:00:00.000Z"));
+
+    const failedAt = new Date("2026-04-18T12:00:00.000Z");
+    const succeededAt = new Date("2026-04-19T12:00:00.000Z");
+    mocks.syncRunFindMany.mockResolvedValue([
+      completedRunFixture({
+        id: "run_succeeded",
+        runType: "people",
+        startedAt: succeededAt,
+        status: "succeeded",
+      }),
+      completedRunFixture({
+        failedRecordIds: ["failed_record_1"],
+        id: "run_failed",
+        recordsFailed: 1,
+        recordsUpserted: 0,
+        runType: "people",
+        startedAt: failedAt,
+        status: "failed",
+      }),
+    ]);
+    mocks.failedRecordFindMany.mockResolvedValue([
+      failedRecordFixture({
+        createdAt: new Date("2026-04-18T12:01:00.000Z"),
+        id: "failed_record_1",
+        runType: "people",
+        startedAt: failedAt,
+      }),
+    ]);
+
+    const result = await listTenantSummaries(baseInput);
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: [
+        {
+          currentFailedRuns: 0,
+          currentPartialSuccessRuns: 0,
+          failedRunsLast30Days: 1,
+          lastRun: { id: "run_succeeded", status: "succeeded" },
+          pendingFailedRecords: 0,
+        },
+      ],
+    });
+  });
+
+  it("tracks the latest completed outcome independently for each run type", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-20T12:00:00.000Z"));
+
+    const oldestAt = new Date("2026-04-17T12:00:00.000Z");
+    const failedAt = new Date("2026-04-18T12:00:00.000Z");
+    const succeededAt = new Date("2026-04-19T12:00:00.000Z");
+    mocks.syncRunFindMany.mockResolvedValue([
+      completedRunFixture({
+        id: "run_leave_records_succeeded",
+        runType: "leave_records",
+        startedAt: succeededAt,
+        status: "succeeded",
+      }),
+      completedRunFixture({
+        failedRecordIds: ["failed_record_1"],
+        id: "run_people_failed",
+        recordsFailed: 1,
+        recordsUpserted: 0,
+        runType: "people",
+        startedAt: failedAt,
+        status: "failed",
+      }),
+      completedRunFixture({
+        failedRecordIds: ["failed_record_2"],
+        id: "run_leave_records_partial",
+        recordsFailed: 1,
+        recordsUpserted: 4,
+        runType: "leave_records",
+        startedAt: oldestAt,
+        status: "partial_success",
+      }),
+    ]);
+    mocks.failedRecordFindMany.mockResolvedValue([
+      failedRecordFixture({
+        createdAt: new Date("2026-04-18T12:01:00.000Z"),
+        id: "failed_record_1",
+        runType: "people",
+        startedAt: failedAt,
+      }),
+      failedRecordFixture({
+        createdAt: new Date("2026-04-17T12:01:00.000Z"),
+        id: "failed_record_2",
+        runType: "leave_records",
+        startedAt: oldestAt,
+      }),
+    ]);
+
+    const result = await listTenantSummaries(baseInput);
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: [
+        {
+          currentFailedRuns: 1,
+          currentPartialSuccessRuns: 0,
+          failedRunsLast30Days: 1,
+          pendingFailedRecords: 1,
+        },
+      ],
+    });
   });
 
   it("dispatches manual sync for active connection even if access token expires_at is past", async () => {

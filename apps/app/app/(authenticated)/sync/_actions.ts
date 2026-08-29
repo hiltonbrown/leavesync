@@ -7,6 +7,7 @@ import {
   exportFailedRecordsCsv,
   type SyncMonitorError,
   type SyncMonitorRole,
+  type SyncRunType,
 } from "@repo/availability";
 import type { Result } from "@repo/core";
 import {
@@ -49,7 +50,24 @@ interface DispatchResultValue {
   upserted?: number;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: manual sync dispatches inline handling for 4 run types and error surfacing
+interface InlineSyncValue {
+  errorSummary?: string | null;
+  failed?: number;
+  fetched?: number;
+  runId?: string;
+  skipped?: number;
+  status?: string;
+  upserted?: number;
+}
+
+interface InlineSyncPayload {
+  clerkOrgId: string;
+  organisationId: string;
+  triggeredByUserId: string;
+  triggerType: "manual";
+  xeroTenantId: string;
+}
+
 export async function dispatchManualSyncAction(input: {
   organisationId: string;
   runType: string;
@@ -69,23 +87,17 @@ export async function dispatchManualSyncAction(input: {
     xeroTenantId: parsed.data.xeroTenantId,
   });
 
-  // In local dev without Inngest dev server, dispatchSyncEvent fails with
-  // "Failed to queue the sync job.". Fall back to inline execution so
-  // Sync People / leave records / balances still work without Inngest.
-  const isDispatchFailed =
-    !result.ok &&
-    (result.error as { code?: string }).code === "dispatch_failed";
-  const shouldFallbackToInline =
-    isDispatchFailed && process.env.NODE_ENV !== "production";
-
-  if (!(result.ok || shouldFallbackToInline)) {
+  if (result.ok) {
     return result;
   }
-  if (result.ok && !result.value.queued) {
-    return result as Result<DispatchResultValue, SyncActionError>;
+
+  const shouldFallbackToInline =
+    result.error.code === "dispatch_failed" &&
+    process.env.NODE_ENV !== "production";
+  if (!shouldFallbackToInline) {
+    return result;
   }
 
-  // Resolve eventName for both queued and fallback-to-inline paths
   const fallbackEventNames: Record<string, string> = {
     approval_state_reconciliation: "reconcile-xero-approval-state",
     leave_balances: "sync-xero-leave-balances",
@@ -93,9 +105,7 @@ export async function dispatchManualSyncAction(input: {
     people: "sync-xero-people",
   };
   const effectiveEventName =
-    result.ok && result.value.eventName
-      ? result.value.eventName
-      : (fallbackEventNames[parsed.data.runType] ?? parsed.data.runType);
+    fallbackEventNames[parsed.data.runType] ?? parsed.data.runType;
   const handlerPayload = {
     clerkOrgId: context.value.clerkOrgId,
     organisationId: context.value.organisationId,
@@ -103,96 +113,76 @@ export async function dispatchManualSyncAction(input: {
     triggerType: "manual" as const,
     xeroTenantId: parsed.data.xeroTenantId,
   };
-  let syncResult: Result<unknown, { code: string; message: string }> | null =
-    null;
-  let syncError: unknown = null;
+  let syncResult: Result<InlineSyncValue, SyncActionError>;
   try {
-    if (parsed.data.runType === "people") {
-      syncResult = (await syncXeroPeople(handlerPayload)) as unknown as Result<
-        unknown,
-        { code: string; message: string }
-      >;
-    } else if (parsed.data.runType === "leave_records") {
-      syncResult = (await syncXeroLeaveRecords(
-        handlerPayload
-      )) as unknown as Result<unknown, { code: string; message: string }>;
-    } else if (parsed.data.runType === "leave_balances") {
-      syncResult = (await syncXeroLeaveBalances(
-        handlerPayload
-      )) as unknown as Result<unknown, { code: string; message: string }>;
-    } else if (parsed.data.runType === "approval_state_reconciliation") {
-      syncResult = (await reconcileXeroApprovalState(
-        handlerPayload
-      )) as unknown as Result<unknown, { code: string; message: string }>;
-    }
+    syncResult = await executeInlineSync(parsed.data.runType, handlerPayload);
   } catch (error) {
-    syncError = error;
-  }
-
-  // Always revalidate so run history reflects new run even on failure
-  revalidatePath("/sync");
-  revalidatePath("/people");
-  revalidatePath("/leave-approvals");
-  revalidatePath("/notifications");
-  revalidatePath("/settings/integrations/xero");
-
-  if (syncError) {
+    revalidateSyncPaths();
     return {
       error: {
         code: "sync_failed",
         message:
-          syncError instanceof Error
-            ? syncError.message
+          error instanceof Error
+            ? error.message
             : "Sync run threw an unexpected error.",
       },
       ok: false,
     };
   }
 
-  if (syncResult) {
-    if (!syncResult.ok) {
-      return {
-        error: syncResult.error as SyncActionError,
-        ok: false,
-      };
-    }
-    const value = syncResult.value as {
-      errorSummary?: string | null;
-      failed?: number;
-      fetched?: number;
-      runId?: string;
-      skipped?: number;
-      status?: string;
-      upserted?: number;
-    };
-    if (value.status === "failed" || value.status === "cancelled") {
-      return {
-        error: {
-          code: "sync_failed",
-          message: value.errorSummary || "Sync run failed or was cancelled.",
-        },
-        ok: false,
-      } as unknown as Result<never, SyncActionError>;
-    }
-    // Include inline sync counts in the success payload so the client can
-    // render a meaningful confirmation instead of a generic "Sync queued.".
+  revalidateSyncPaths();
+  if (!syncResult.ok) {
+    return syncResult;
+  }
+  const { value } = syncResult;
+  if (value.status === "failed" || value.status === "cancelled") {
     return {
-      ok: true,
-      value: {
-        errorSummary: value.errorSummary ?? null,
-        eventName: effectiveEventName,
-        failed: value.failed ?? 0,
-        fetched: value.fetched ?? 0,
-        queued: true,
-        runId: value.runId,
-        skipped: value.skipped ?? 0,
-        status: value.status,
-        upserted: value.upserted ?? 0,
+      error: {
+        code: "sync_failed",
+        message: value.errorSummary || "Sync run failed or was cancelled.",
       },
+      ok: false,
     };
   }
 
-  return result as unknown as Result<DispatchResultValue, SyncActionError>;
+  return {
+    ok: true,
+    value: {
+      errorSummary: value.errorSummary ?? null,
+      eventName: effectiveEventName,
+      failed: value.failed ?? 0,
+      fetched: value.fetched ?? 0,
+      queued: true,
+      runId: value.runId,
+      skipped: value.skipped ?? 0,
+      status: value.status,
+      upserted: value.upserted ?? 0,
+    },
+  };
+}
+
+async function executeInlineSync(
+  runType: SyncRunType,
+  payload: InlineSyncPayload
+): Promise<Result<InlineSyncValue, SyncActionError>> {
+  if (runType === "people") {
+    return await syncXeroPeople(payload);
+  }
+  if (runType === "leave_records") {
+    return await syncXeroLeaveRecords(payload);
+  }
+  if (runType === "leave_balances") {
+    return await syncXeroLeaveBalances(payload);
+  }
+  return await reconcileXeroApprovalState(payload);
+}
+
+function revalidateSyncPaths() {
+  revalidatePath("/sync");
+  revalidatePath("/people");
+  revalidatePath("/leave-approvals");
+  revalidatePath("/notifications");
+  revalidatePath("/settings/integrations/xero");
 }
 
 export async function cancelRunAction(input: {

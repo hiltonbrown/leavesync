@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@repo/design-system/components/ui/select";
 import { useNotificationEvents } from "@repo/notifications/components/provider";
+import { AlertTriangleIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
@@ -297,8 +298,12 @@ function TenantCard({
   orgQueryValue: string | null;
   summary: TenantSummary;
 }) {
-  const hasFailures =
-    summary.failedRunsLast30Days > 0 || summary.pendingFailedRecords > 0;
+  const hasCurrentFailure =
+    summary.currentFailedRuns > 0 ||
+    (summary.pendingFailedRecords > 0 &&
+      summary.currentPartialSuccessRuns === 0);
+  const hasPartialSuccessWarning =
+    !hasCurrentFailure && summary.currentPartialSuccessRuns > 0;
 
   return (
     <article className="space-y-4 rounded-2xl bg-muted p-5">
@@ -310,21 +315,6 @@ function TenantCard({
             <ConnectionDot status={summary.connectionStatus} />
           </div>
         </div>
-        {summary.pendingFailedRecords > 0 && (
-          <Button asChild size="sm" variant="secondary">
-            <Link
-              href={withOrg(
-                `/sync?${buildQuery({
-                  status: ["failed", "partial_success"],
-                  xeroTenantId: [summary.xeroTenantId],
-                })}`,
-                orgQueryValue
-              )}
-            >
-              {summary.pendingFailedRecords} pending failures
-            </Link>
-          </Button>
-        )}
       </div>
 
       <dl className="grid gap-3 sm:grid-cols-2">
@@ -346,24 +336,59 @@ function TenantCard({
         />
       </dl>
 
-      {hasFailures ? (
+      {hasCurrentFailure ? (
         <XeroSyncFailedState
-          message="Recent sync failures need review before downstream data can be trusted."
+          message={currentFailureMessage(summary)}
           retrySlot={
             <Button asChild size="sm" variant="secondary">
               <Link
                 href={withOrg(
                   `/sync?${buildQuery({
+                    status: ["failed", "partial_success"],
                     xeroTenantId: [summary.xeroTenantId],
                   })}`,
                   orgQueryValue
                 )}
               >
-                View run history
+                Review affected runs
               </Link>
             </Button>
           }
         />
+      ) : null}
+
+      {hasPartialSuccessWarning ? (
+        <div
+          className="flex flex-col gap-3 rounded-2xl bg-warning-container p-4 text-on-warning-container"
+          role="alert"
+        >
+          <div className="flex items-center gap-2 font-medium text-sm">
+            <AlertTriangleIcon aria-hidden="true" className="size-4" />
+            Xero sync partially completed
+          </div>
+          <p className="text-sm">{partialSuccessMessage(summary)}</p>
+          <div>
+            <Button asChild size="sm" variant="secondary">
+              <Link
+                href={withOrg(
+                  `/sync?${buildQuery({
+                    status: ["failed", "partial_success"],
+                    xeroTenantId: [summary.xeroTenantId],
+                  })}`,
+                  orgQueryValue
+                )}
+              >
+                Review affected runs
+              </Link>
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {summary.failedRunsLast30Days > 0 ? (
+        <p className="text-muted-foreground text-sm">
+          Historical context: {historicalFailureSummary(summary)}
+        </p>
       ) : null}
 
       <div className="flex flex-wrap gap-2">
@@ -400,6 +425,58 @@ function TenantCard({
       </div>
     </article>
   );
+}
+
+function currentFailureMessage(summary: TenantSummary): string {
+  const runSummary = `${currentFailedRunSummary(summary.currentFailedRuns)}${currentPartialRunSummary(summary.currentPartialSuccessRuns)}`;
+  if (summary.pendingFailedRecords === 1) {
+    return `${runSummary}1 failed record needs review before downstream data can be trusted.`;
+  }
+  if (summary.pendingFailedRecords > 1) {
+    return `${runSummary}${summary.pendingFailedRecords} failed records need review before downstream data can be trusted.`;
+  }
+  return `${runSummary}Review the failed runs before relying on downstream data.`;
+}
+
+function currentFailedRunSummary(currentFailedRuns: number): string {
+  if (currentFailedRuns === 0) {
+    return "";
+  }
+  if (currentFailedRuns === 1) {
+    return "1 sync type is still failing. ";
+  }
+  return `${currentFailedRuns} sync types are still failing. `;
+}
+
+function currentPartialRunSummary(currentPartialSuccessRuns: number): string {
+  if (currentPartialSuccessRuns === 0) {
+    return "";
+  }
+  if (currentPartialSuccessRuns === 1) {
+    return "1 other sync type completed with issues. ";
+  }
+  return `${currentPartialSuccessRuns} other sync types completed with issues. `;
+}
+
+function partialSuccessMessage(summary: TenantSummary): string {
+  const runSummary =
+    summary.currentPartialSuccessRuns === 1
+      ? "1 sync type completed with issues."
+      : `${summary.currentPartialSuccessRuns} sync types completed with issues.`;
+  if (summary.pendingFailedRecords === 1) {
+    return `${runSummary} 1 failed record needs review before downstream data can be trusted.`;
+  }
+  if (summary.pendingFailedRecords > 1) {
+    return `${runSummary} ${summary.pendingFailedRecords} failed records need review before downstream data can be trusted.`;
+  }
+  return `${runSummary} Review the affected runs before relying on downstream data.`;
+}
+
+function historicalFailureSummary(summary: TenantSummary): string {
+  const failedRunLabel =
+    summary.failedRunsLast30Days === 1 ? "run failed" : "runs failed";
+  const totalRunLabel = summary.totalRunsLast30Days === 1 ? "run" : "runs";
+  return `${summary.failedRunsLast30Days} ${failedRunLabel} out of ${summary.totalRunsLast30Days} ${totalRunLabel} in the past 30 days.`;
 }
 
 function FilterBar({

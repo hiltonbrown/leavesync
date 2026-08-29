@@ -42,7 +42,7 @@ Read PRODUCT.md before implementing or changing domain entities, sync logic, fee
 
 4. Verification Before Done
 - Never mark a task complete without proving it works
-- Diff behavior between main and your changes when relevant
+- Diff behaviour between main and your changes when relevant
 - Ask yourself: "Would a staff engineer approve this?"
 - Run tests, check logs, demonstrate correctness
 
@@ -59,7 +59,7 @@ Read PRODUCT.md before implementing or changing domain entities, sync logic, fee
 - Go fix failing CI tests without being told how
 
 7. Analysis Is Not a Deliverable
-- When asked to implement, implement — do not substitute a list of findings for the work itself
+- When asked to implement, implement: do not substitute a list of findings for the work itself
 - Comparison, gap analysis, and difference lists are intermediate steps toward implementation, never the end product
 - If you identify differences between a design and the production code, fix every single one in that same session before reporting back
 - Do not report partial progress as completion. "I found 20 differences" is a failure state, not a result
@@ -123,7 +123,7 @@ Task Management
 
 | Package | Purpose |
 |---|---|
-| `packages/xero` | Xero OAuth, tenant sync, AU/NZ/UK region handling, rate limiting, leave-type mapping |
+| `packages/xero` | Xero OAuth, tenant sync, AU/NZ/UK region handling, outbound write operations, rate limiting, leave-type mapping |
 | `packages/availability` | Canonical person model, availability records, privacy rules, contactability, feed eligibility |
 | `packages/feeds` | ICS generation, stable UID strategy, feed token validation, Vercel KV caching |
 | `packages/notifications` | In-app notification creation, SSE delivery, notification preferences, email dispatch via Resend |
@@ -143,10 +143,10 @@ Do not reference or depend on: `packages/ai`, `packages/cms`, `packages/collabor
 ## Tenancy model
 
 ```
-Clerk Organisation (clerk_org_id)   — top-level tenant; one country code; billing anchor
-  └─ Organisation                   — payroll entity (e.g. Acme Restaurants Pty Ltd)
-        └─ XeroConnection           — one per Organisation; UNIQUE on organisation_id
-              └─ XeroTenant         — one per XeroConnection; UNIQUE on xero_connection_id
+Clerk Organisation (clerk_org_id)   : top-level tenant; one country code; billing anchor
+  └─ Organisation                   : payroll entity (e.g. Acme Restaurants Pty Ltd)
+        └─ XeroConnection           : one per Organisation; UNIQUE on organisation_id
+              └─ XeroTenant         : one per XeroConnection; UNIQUE on xero_connection_id
 ```
 
 There is no custom `workspaces` database table. Clerk Organisations are the top-level tenant boundary.
@@ -228,7 +228,7 @@ const tenant = await db.xeroTenant.findFirst({
 - Vitest as runner. Every feature or fix must include corresponding tests.
 - Factories or builders for test data.
 - Fixture-based tests for Xero response mappers and region-specific parsers.
-- Explicitly test: ICS serialisation, UID generation, SEQUENCE incrementing, privacy transforms, Zod validators, feed token validation, `clerk_org_id` query isolation, XeroConnection/XeroTenant uniqueness invariants.
+- Explicitly test: ICS serialisation, UID generation, SEQUENCE incrementing, privacy transforms, Zod validators, feed token validation, `clerk_org_id` query isolation, XeroConnection/XeroTenant uniqueness invariants, approval state transitions, decline-reason enforcement.
 
 ---
 
@@ -236,16 +236,29 @@ const tenant = await db.xeroTenant.findFirst({
 
 The primary domain object is `AvailabilityRecord`. It holds both Xero-synced leave and manual availability entries. It is not called a "leave application" or "absence event". See PRODUCT.md for the full schema and record types.
 
+### Xero write-back
+
+Outbound writes are synchronous and user-triggered. The four write operations are:
+
+- **Submit**: employee submits a leave request; write to Xero, transition to `submitted`
+- **Approve**: manager approves; write to Xero, transition to `approved`
+- **Decline**: manager declines with a required reason; write to Xero, transition to `declined`
+- **Withdraw**: employee or admin withdraws; write to Xero, transition to `withdrawn`
+
+Do not queue outbound writes as background jobs. Failures are surfaced inline to the user.
+
 ---
 
 ## Xero adapter rules
 
 - All Xero code in `packages/xero` with region subdirectories (`au/`, `nz/`, `uk/`).
 - Raw Xero responses stored in `source_payload_json` for audit.
+- Raw Xero write error payloads stored in `xero_write_error_raw` for admin audit only. A plain-language version is stored in `xero_write_error` for display. Never expose raw Xero error codes or payloads to employees.
 - Rate limiting (60/min per org, 5,000/day per org, five concurrent per org) handled inside `packages/xero`.
 - Xero-specific types never leak into `packages/availability` or `packages/feeds`.
 - All sync operations carry `clerk_org_id` and `organisation_id` in their context.
 - Resolve XeroTenant via `organisation_id` FK, not bare `clerk_org_id`.
+- Outbound writes return `Result<T, XeroWriteError>`. `XeroWriteError` variants: `validation_error`, `conflict_error`, `auth_error`, `permission_error`, `rate_limit_error`, `network_error`, `not_found_error`, `region_not_supported_error`, `unknown_error`.
 
 ---
 
@@ -273,6 +286,19 @@ The primary domain object is `AvailabilityRecord`. It holds both Xero-synced lea
 - Australian English everywhere (organise, analyse, colour, centre, prioritise).
 - No em dashes. Use commas, colons, semicolons, or parentheses.
 - Direct, professional tone. No hype, cliches, or motivational language.
+
+---
+
+## Design system summary
+
+- Brand colour: `#336A3B` (deep forest green). Primary actions, CTAs, brand moments. Not decoration.
+- Font: Plus Jakarta Sans.
+- Border radius: 20px (cards/containers), 16px (dialogs/sheets/popovers/dropdowns), 14px (buttons/inputs), 12px (chips/small elements). No 4px or 8px.
+- No borders for content separation. Use tonal layering (surface colour shifts).
+- No `#000000` for text. Use `on-surface` token.
+- No drop shadows except on floating elements.
+- Light-first. Dark mode receives equal care.
+- Full token tables in DESIGN.md.
 
 ---
 
@@ -332,6 +358,29 @@ bun run preflight
 - Feed tokens signed and revocable; plaintext never persisted.
 - No tokens or raw payloads exposed to client.
 - Never log or commit secrets or `.env` files.
+- SSE connections are per-user and per-Clerk-Organisation. Must not leak notifications across `clerk_org_id` boundaries.
+
+---
+
+## Environment variables
+
+Optional variables with format constraints must be absent (commented out), not `""`. Empty strings fail Zod format validation even for `.optional()` fields.
+
+| Variable | Used by | Purpose |
+|---|---|---|
+| `DATABASE_URL` | `packages/database` | Neon Postgres connection string |
+| `CLERK_SECRET_KEY` | `packages/auth` | Clerk server-side auth |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | `packages/auth` | Clerk client-side auth |
+| `RESEND_TOKEN` | `packages/email` | Resend API key |
+| `RESEND_FROM` | `packages/email` | Sender address |
+| `NEXT_PUBLIC_SENTRY_DSN` | `packages/observability` | Sentry error tracking (client DSN) |
+| `XERO_CLIENT_ID` | `packages/xero` | Xero OAuth app ID |
+| `XERO_CLIENT_SECRET` | `packages/xero` | Xero OAuth app secret |
+| `XERO_TOKEN_ENCRYPTION_KEY` | `packages/xero` | AES-256-GCM key for encrypting Xero OAuth tokens at rest; must be 32 bytes, base64-encoded |
+| `INNGEST_EVENT_KEY` | `packages/jobs` | Inngest event key |
+| `INNGEST_SIGNING_KEY` | `packages/jobs` | Inngest signing key |
+| `KV_REST_API_URL` | `packages/feeds` | Vercel KV endpoint |
+| `KV_REST_API_TOKEN` | `packages/feeds` | Vercel KV auth token |
 
 ---
 
@@ -340,6 +389,18 @@ bun run preflight
 - Prisma 7 WASM compiler requires `serverExternalPackages: ["@prisma/client", "@prisma/adapter-neon"]` in `packages/next-config/index.ts`.
 - Optional env vars with format constraints must be absent (commented out), not `""`. Empty strings fail Zod `.optional()` validation.
 - Git: conventional commits (`feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`), one logical change per commit, branch per feature slice.
+
+### Stripe billing environment
+
+| Variable | Scope | Notes |
+|---|---|---|
+| `STRIPE_SECRET_KEY` | `packages/billing` | Server-side Stripe secret key. Must be absent, not empty, when unset. |
+| `STRIPE_WEBHOOK_SECRET` | `apps/api` | Stripe endpoint signing secret (`whsec_...`). |
+| `STRIPE_PRICE_BASIC` | seed/config | Stripe recurring Price id for the Basic product. |
+| `STRIPE_PRICE_PREMIUM` | seed/config | Stripe recurring Price id for the Premium product. Enterprise is custom quoted and has no price id. |
+| `STRIPE_PORTAL_RETURN_URL` | `packages/billing` | Return URL after the hosted Customer Portal. |
+| `STRIPE_CHECKOUT_SUCCESS_URL` | `packages/billing` | Success URL after hosted Checkout. |
+| `STRIPE_CHECKOUT_CANCEL_URL` | `packages/billing` | Cancel URL after hosted Checkout. |
 
 ---
 
