@@ -30,7 +30,7 @@ const regions = [
 
 const flow = [
   {
-    copy: "Employees, approved leave, balances, and leave type configuration sync from your connected payroll file.",
+    copy: "Employees, approved leave, and balances sync from your connected payroll file.",
     icon: "sync",
     label: "Source of truth",
     title: "Xero Payroll",
@@ -53,9 +53,8 @@ const dataMoves = [
   {
     items: [
       "Employee records and employment status",
-      "Leave entitlements and leave type configuration",
-      "Approved leave applications and balances",
-      "Payroll calendar and pay period information",
+      "Approved leave applications",
+      "Leave balances",
     ],
     title: "Reads from Xero",
   },
@@ -79,7 +78,7 @@ const dataMoves = [
 const setupSteps = [
   "Connect your organisation from Team Calendar settings.",
   "Authorise Team Calendar in Xero and choose the payroll file.",
-  "Run the first sync for employees, leave, balances, and leave types.",
+  "Run the first sync for employees, leave, and balances.",
   "Publish secure feeds for teams, people, or locations.",
 ];
 

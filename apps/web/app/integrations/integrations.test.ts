@@ -20,4 +20,14 @@ describe("Integrations page", () => {
     expect(html).toContain("feed tokens are signed and revocable");
     expect(html).toContain("stay out of client-side code");
   });
+
+  it("describes only the Xero data that Team Calendar reads", () => {
+    const html = renderToStaticMarkup(React.createElement(IntegrationsPage));
+
+    expect(html).not.toContain(["Payroll", "calendar"].join(" "));
+    expect(html).not.toContain(["pay", "period", "information"].join(" "));
+    expect(html).toContain("Employee records");
+    expect(html).toContain("leave applications");
+    expect(html).toContain("balances");
+  });
 });
