@@ -27,14 +27,49 @@ export interface RedisRestEnvelope<T = unknown> {
   result?: T;
 }
 
-const URL_BASIC_AUTH_REGEX = /:\/\/[^:]+:[^@]+@/;
+function redactBasicAuthInUrl(message: string): string {
+  let redacted = message;
+  let searchIndex = 0;
+
+  while (searchIndex < redacted.length) {
+    const schemeIndex = redacted.indexOf("://", searchIndex);
+    if (schemeIndex === -1) {
+      break;
+    }
+
+    const credentialsStart = schemeIndex + 3;
+    const atIndex = redacted.indexOf("@", credentialsStart);
+    if (atIndex === -1) {
+      searchIndex = credentialsStart;
+      continue;
+    }
+
+    const slashIndex = redacted.indexOf("/", credentialsStart);
+    if (slashIndex !== -1 && slashIndex < atIndex) {
+      searchIndex = schemeIndex + 1;
+      continue;
+    }
+
+    const colonIndex = redacted.indexOf(":", credentialsStart);
+    if (colonIndex === -1 || colonIndex > atIndex) {
+      searchIndex = atIndex + 1;
+      continue;
+    }
+
+    const tail = redacted.slice(atIndex + 1);
+    redacted = `${redacted.slice(0, credentialsStart)}[REDACTED]:[REDACTED]@${tail}`;
+    searchIndex = credentialsStart + "[REDACTED]:[REDACTED]@".length;
+  }
+
+  return redacted;
+}
 
 function redactCredentials(message: string, token: string): string {
   let cleaned = message;
   if (token) {
     cleaned = cleaned.replaceAll(token, "[REDACTED]");
   }
-  return cleaned.replace(URL_BASIC_AUTH_REGEX, "://[REDACTED]:[REDACTED]@");
+  return redactBasicAuthInUrl(cleaned);
 }
 
 function parseEnvelope<T>(
