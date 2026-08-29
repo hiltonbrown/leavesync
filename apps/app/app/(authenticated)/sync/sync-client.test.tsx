@@ -39,6 +39,8 @@ const tenantId = "00000000-0000-4000-8000-000000000011";
 const runId = "00000000-0000-4000-8000-000000000021";
 const summary: TenantSummary = {
   connectionStatus: "active",
+  currentFailedRuns: 0,
+  currentPartialSuccessRuns: 0,
   currentRun: null,
   failedRunsLast30Days: 0,
   lastApprovalReconciliation: null,
@@ -133,6 +135,153 @@ describe("SyncClient", () => {
     expect(
       screen.getByRole("link", { name: "View" }).getAttribute("href")
     ).toBe(`/sync/${runId}?org=${organisationId}`);
+  });
+
+  it("labels resolved failures as history without showing a current failure", () => {
+    render(
+      <SyncClient
+        filters={{}}
+        nextCursor={null}
+        organisationId={organisationId}
+        orgQueryValue={organisationId}
+        runs={[]}
+        summaries={[
+          {
+            ...summary,
+            failedRunsLast30Days: 1,
+            lastRun: {
+              completedAt: new Date("2026-08-02T00:01:00.000Z"),
+              id: runId,
+              recordsFailed: 0,
+              recordsUpserted: 2,
+              runType: "people",
+              startedAt: new Date("2026-08-02T00:00:00.000Z"),
+              status: "succeeded",
+            },
+            totalRunsLast30Days: 2,
+          },
+        ]}
+      />
+    );
+
+    expect(screen.queryByText("Xero sync failed")).toBeNull();
+    expect(
+      screen.getByText(
+        "Historical context: 1 run failed out of 2 runs in the past 30 days."
+      )
+    ).toBeDefined();
+    expect(screen.getByText("active")).toBeDefined();
+  });
+
+  it("shows unresolved failed records even when no sync type is still failing", () => {
+    render(
+      <SyncClient
+        filters={{}}
+        nextCursor={null}
+        organisationId={organisationId}
+        orgQueryValue={organisationId}
+        runs={[]}
+        summaries={[{ ...summary, pendingFailedRecords: 1 }]}
+      />
+    );
+
+    expect(screen.getByText("Xero sync failed")).toBeDefined();
+    expect(
+      screen.getByText(
+        "1 failed record needs review before downstream data can be trusted."
+      )
+    ).toBeDefined();
+  });
+
+  it("shows a destructive state only for a current failed or unresolved sync", () => {
+    render(
+      <SyncClient
+        filters={{}}
+        nextCursor={null}
+        organisationId={organisationId}
+        orgQueryValue={organisationId}
+        runs={[]}
+        summaries={[
+          {
+            ...summary,
+            currentFailedRuns: 1,
+            currentPartialSuccessRuns: 1,
+            failedRunsLast30Days: 1,
+            lastRun: {
+              completedAt: new Date("2026-08-02T00:01:00.000Z"),
+              id: runId,
+              recordsFailed: 3,
+              recordsUpserted: 0,
+              runType: "people",
+              startedAt: new Date("2026-08-02T00:00:00.000Z"),
+              status: "failed",
+            },
+            pendingFailedRecords: 3,
+            totalRunsLast30Days: 1,
+          },
+        ]}
+      />
+    );
+
+    expect(screen.getByText("Xero sync failed")).toBeDefined();
+    expect(
+      screen.getByText(
+        "1 sync type is still failing. 1 other sync type completed with issues. 3 failed records need review before downstream data can be trusted."
+      )
+    ).toBeDefined();
+    expect(screen.queryByText("Xero sync partially completed")).toBeNull();
+    expect(
+      screen
+        .getByRole("link", { name: "Review affected runs" })
+        .getAttribute("href")
+    ).toBe(
+      `/sync?status=failed%2Cpartial_success&xeroTenantId=${tenantId}&org=${organisationId}`
+    );
+  });
+
+  it("shows partial success as a warning with counts and a review path", () => {
+    render(
+      <SyncClient
+        filters={{}}
+        nextCursor={null}
+        organisationId={organisationId}
+        orgQueryValue={organisationId}
+        runs={[]}
+        summaries={[
+          {
+            ...summary,
+            currentPartialSuccessRuns: 1,
+            failedRunsLast30Days: 0,
+            lastRun: {
+              completedAt: new Date("2026-08-02T00:01:00.000Z"),
+              id: runId,
+              recordsFailed: 2,
+              recordsUpserted: 5,
+              runType: "people",
+              startedAt: new Date("2026-08-02T00:00:00.000Z"),
+              status: "partial_success",
+            },
+            pendingFailedRecords: 2,
+            totalRunsLast30Days: 1,
+          },
+        ]}
+      />
+    );
+
+    expect(screen.queryByText("Xero sync failed")).toBeNull();
+    expect(screen.getByText("Xero sync partially completed")).toBeDefined();
+    expect(
+      screen.getByText(
+        "1 sync type completed with issues. 2 failed records need review before downstream data can be trusted."
+      )
+    ).toBeDefined();
+    expect(
+      screen
+        .getByRole("link", { name: "Review affected runs" })
+        .getAttribute("href")
+    ).toBe(
+      `/sync?status=failed%2Cpartial_success&xeroTenantId=${tenantId}&org=${organisationId}`
+    );
   });
 
   it("refreshes only for this organisation's sync events", async () => {

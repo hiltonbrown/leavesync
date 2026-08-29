@@ -44,6 +44,8 @@ export type SyncMonitorRole =
 
 export interface TenantSummary {
   connectionStatus: "active" | "expired" | "not_configured" | "revoked";
+  currentFailedRuns: number;
+  currentPartialSuccessRuns: number;
   currentRun: {
     id: string;
     runType: SyncRunType;
@@ -196,7 +198,6 @@ type CancelRunInput = z.infer<typeof CancelRunSchema>;
 const CSV_EXPORT_LIMIT = 50_000;
 const CSV_ESCAPE_PATTERN = /[",\r\n]/;
 const SUCCESS_STATUSES: SyncRunStatus[] = ["succeeded", "partial_success"];
-const FAILURE_STATUSES: SyncRunStatus[] = ["failed", "partial_success"];
 
 export async function listTenantSummaries(
   input: z.input<typeof ListTenantSummariesSchema>
@@ -271,6 +272,7 @@ export async function listTenantSummaries(
         );
         const currentRun = tenantRuns.find((run) => run.status === "running");
         const lastRun = tenantRuns.find((run) => run.status !== "running");
+        const latestCompletedRuns = latestCompletedRunsByType(tenantRuns);
         const runsLast30Days = tenantRuns.filter(
           (run) => run.started_at >= since
         );
@@ -289,6 +291,12 @@ export async function listTenantSummaries(
 
         return {
           connectionStatus: connectionStatus(tenant.xero_connection),
+          currentFailedRuns: latestCompletedRuns.filter(
+            (run) => run.status === "failed"
+          ).length,
+          currentPartialSuccessRuns: latestCompletedRuns.filter(
+            (run) => run.status === "partial_success"
+          ).length,
           currentRun: currentRun
             ? {
                 id: currentRun.id,
@@ -772,12 +780,35 @@ function latestCompletedRunAt(
   );
 }
 
+function latestCompletedRunsByType<
+  T extends {
+    run_type: SyncRunType;
+    started_at: Date;
+    status: SyncRunStatus;
+  },
+>(runs: T[]): T[] {
+  const latestRuns = new Map<SyncRunType, T>();
+
+  for (const run of runs) {
+    if (run.status === "cancelled" || run.status === "running") {
+      continue;
+    }
+    const latestRun = latestRuns.get(run.run_type);
+    if (latestRun && latestRun.started_at >= run.started_at) {
+      continue;
+    }
+    latestRuns.set(run.run_type, run);
+  }
+
+  return [...latestRuns.values()];
+}
+
 function isSuccessStatus(status: SyncRunStatus): boolean {
   return SUCCESS_STATUSES.includes(status);
 }
 
 function isFailureStatus(status: SyncRunStatus): boolean {
-  return FAILURE_STATUSES.includes(status);
+  return status === "failed";
 }
 
 function daysAgo(days: number): Date {

@@ -12,8 +12,12 @@ web
 |---|---|
 | `PRODUCT.md` | This file. Authoritative product truth, architecture, schema, and non-negotiables. |
 | `CLAUDE.md` | Coding agent instructions, repo conventions, package boundaries, and environment variables. |
+| `AGENTS.md` | Equivalent agent instructions for coding agents other than Claude Code; mirrors `CLAUDE.md`. |
+| `GEMINI.md` | Equivalent agent instructions for Gemini CLI; mirrors `CLAUDE.md`. |
 | `DESIGN.md` | Colour tokens, typography, spacing, elevation, and component specifications. |
 | `.impeccable.md` | Brand personality, user context, and design principles. |
+| `SECURITY.md` | Vulnerability reporting policy, response targets, and disclosure process. |
+| `ScreenCatalogue.md` | Screen-by-screen reconciliation of `apps/app` against implemented code; catalogues drift between design intent and shipped behaviour. |
 
 Where this document conflicts with any other, PRODUCT.md takes precedence.
 
@@ -163,7 +167,7 @@ Multi-entity groups are a supported capability, not the primary case. The typica
 ### Auth integration
 
 - Personal Accounts are disabled in the Clerk dashboard. Every user must belong to at least one Clerk Organisation.
-- The `<OrganizationSwitcher />` component provides tenant switching. No custom switcher is required.
+- In-app switching between multiple Organisations is not currently implemented. `CustomUserButton` (`apps/app/app/(authenticated)/components/custom-user-button.tsx`) exposes only Clerk's organisation-profile action (`openOrganizationProfile()`). Adding `<OrganizationSwitcher />` or an equivalent control is an open product gap, not a shipped mechanism.
 - Roles are defined once as custom roles in the Clerk dashboard and apply across all Clerk Organisations.
 - The `auth()` helper (server) and `useAuth()` / `useOrganization()` hooks (client) provide `orgId` and role context.
 - For background fetches (Inngest jobs, API routes not initiated from the active tab), call `getToken()` and pass the result in the `Authorization` header. Do not rely on the session cookie alone in background contexts.
@@ -292,7 +296,7 @@ Responsibilities: Xero OAuth token management (acquire, refresh, encrypt at rest
 
 Submit, approve, decline, and withdraw leave applications to Xero Payroll. All write operations return `Result<T, XeroWriteError>`.
 
-`XeroWriteError` variants: `validation_error`, `conflict_error`, `auth_error`, `rate_limit_error`, `unknown_error`.
+`XeroWriteError` variants: `validation_error`, `conflict_error`, `auth_error`, `permission_error`, `rate_limit_error`, `network_error`, `not_found_error`, `region_not_supported_error`, `unknown_error`.
 
 Outbound write failures are surfaced synchronously to the user in plain language. The raw Xero error payload is stored in `xero_write_error_raw` for admin audit only; never displayed to employees.
 
