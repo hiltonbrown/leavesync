@@ -467,6 +467,7 @@ async function processBatch(
           xero_missing_since: null,
         },
         where: {
+          clerk_org_id: context.clerkOrgId,
           organisation_id_source_system_source_person_key: {
             organisation_id: context.organisationId,
             source_person_key: employee.employeeId,
