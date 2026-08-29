@@ -1,6 +1,11 @@
 "use client";
 
 import { Check, Clock, Mail } from "lucide-react";
+import { integrationCapabilities } from "../../integrations/capabilities";
+
+const shippedRegionNames = integrationCapabilities.xeroPayrollRegions
+  .filter((region) => region.status === "shipped")
+  .map((region) => region.name);
 
 const contactCopy = {
   benefits: [
@@ -10,8 +15,7 @@ const contactCopy = {
       title: "Quick setup",
     },
     {
-      description:
-        "Our team understands Xero Payroll Australia. We can help with region-specific leave configurations.",
+      description: `Our team understands Xero Payroll ${shippedRegionNames.join(" and ")}. We can help with region-specific leave configurations.`,
       title: "Xero expertise",
     },
     {
@@ -55,9 +59,9 @@ export const ContactForm = () => (
               Early Access Contact & Support
             </h2>
             <p className="text-muted-foreground text-sm">
-              Team Calendar is in closed early access for AU Payroll
-              organisations. Our team responds to all onboarding and technical
-              enquiries directly.
+              Team Calendar is in closed early access for organisations using
+              Xero Payroll {shippedRegionNames.join(" and ")}. Our team responds
+              to all onboarding and technical enquiries directly.
             </p>
 
             <div className="space-y-3 rounded-lg border bg-muted/50 p-4">
@@ -81,7 +85,8 @@ export const ContactForm = () => (
 
             <div className="space-y-1 text-muted-foreground text-xs">
               <p>
-                <strong>Scope:</strong> Xero Payroll Australia only.
+                <strong>Scope:</strong> Xero Payroll{" "}
+                {shippedRegionNames.join(" and ")} only.
               </p>
               <p>
                 <strong>Pricing:</strong> Confirmed with your organisation prior

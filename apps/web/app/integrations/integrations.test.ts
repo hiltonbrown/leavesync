@@ -30,4 +30,14 @@ describe("Integrations page", () => {
     expect(html).toContain("leave applications");
     expect(html).toContain("balances");
   });
+
+  it("renders region status and destinations from the capability model", () => {
+    const html = renderToStaticMarkup(React.createElement(IntegrationsPage));
+
+    expect(html).toContain("currently supports Xero Payroll Australia");
+    expect(html).toContain("New Zealand and United Kingdom support is planned");
+    expect(html).toContain("Outlook");
+    expect(html).toContain("Google Calendar");
+    expect(html).toContain("Apple Calendar");
+  });
 });

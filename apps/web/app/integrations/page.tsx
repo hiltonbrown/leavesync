@@ -2,6 +2,7 @@ import { createMetadata } from "@repo/seo/metadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingIcon } from "../(home)/components/marketing-icons";
+import { integrationCapabilities } from "./capabilities";
 
 export const metadata: Metadata = createMetadata({
   description:
@@ -9,24 +10,21 @@ export const metadata: Metadata = createMetadata({
   title: "Integrations",
 });
 
-const regions = [
-  {
-    code: "AU",
-    detail:
-      "Annual leave, sick leave, long service leave, personal carer's leave, and public holidays.",
-    name: "Australia",
-  },
-  {
-    code: "NZ",
-    detail: "Planned for a future release.",
-    name: "New Zealand",
-  },
-  {
-    code: "UK",
-    detail: "Planned for a future release.",
-    name: "United Kingdom",
-  },
-];
+const regions = integrationCapabilities.xeroPayrollRegions.map((region) => ({
+  ...region,
+  detail:
+    region.status === "shipped"
+      ? "Annual leave, sick leave, long service leave, personal carer's leave, and public holidays."
+      : "Planned for a future release.",
+}));
+
+const shippedRegionNames = integrationCapabilities.xeroPayrollRegions
+  .filter((region) => region.status === "shipped")
+  .map((region) => region.name);
+
+const plannedRegionNames = integrationCapabilities.xeroPayrollRegions
+  .filter((region) => region.status === "planned")
+  .map((region) => region.name);
 
 const flow = [
   {
@@ -51,11 +49,9 @@ const flow = [
 
 const dataMoves = [
   {
-    items: [
-      "Employee records and employment status",
-      "Approved leave applications",
-      "Leave balances",
-    ],
+    items: integrationCapabilities.inboundDataCategories.map(
+      (category) => category.name
+    ),
     title: "Reads from Xero",
   },
   {
@@ -82,23 +78,27 @@ const setupSteps = [
   "Publish secure feeds for teams, people, or locations.",
 ];
 
-const destinations = [
-  {
-    copy: "Subscribe from web in Microsoft 365 Calendar.",
-    icon: "outlook",
-    name: "Outlook",
-  },
-  {
-    copy: "Add the feed URL from calendar settings.",
-    icon: "gcal",
-    name: "Google Calendar",
-  },
-  {
+const destinationPresentation = {
+  "apple-calendar": {
     copy: "Create a calendar subscription on macOS or iOS.",
     icon: "applecal",
-    name: "Apple Calendar",
   },
-] as const;
+  "google-calendar": {
+    copy: "Add the feed URL from calendar settings.",
+    icon: "gcal",
+  },
+  outlook: {
+    copy: "Subscribe from web in Microsoft 365 Calendar.",
+    icon: "outlook",
+  },
+} as const;
+
+const destinations = integrationCapabilities.calendarDestinations.map(
+  (destination) => ({
+    ...destination,
+    ...destinationPresentation[destination.id],
+  })
+);
 
 const syncDetails = [
   {
@@ -185,8 +185,10 @@ const IntegrationsPage = () => (
             Australian Xero Payroll support at launch.
           </h2>
           <p className="fmkt-integrations__copy">
-            Team Calendar currently supports Xero Payroll Australia. New Zealand
-            and United Kingdom support is planned for future releases.
+            Team Calendar currently supports Xero Payroll{" "}
+            {shippedRegionNames.join(" and ")}.{" "}
+            {plannedRegionNames.join(" and ")} support is planned for future
+            releases.
           </p>
         </div>
         <div className="fmkt-integrations__region-list">
