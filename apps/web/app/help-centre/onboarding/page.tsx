@@ -1,4 +1,3 @@
-import { primaryDomain } from "@repo/seo/branding";
 import { createMetadata } from "@repo/seo/metadata";
 import {
   Building2,
@@ -12,6 +11,11 @@ import {
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import {
+  supportEmail,
+  supportHoursCompact,
+  supportMailtoHref,
+} from "@/src/data/support";
 
 export const metadata: Metadata = createMetadata({
   description:
@@ -63,7 +67,7 @@ const steps = [
     title: "Understand privacy modes & visibility",
   },
   {
-    copy: `If you observe a sync discrepancy, Xero write error, or privacy concern, email our support team immediately at support@${primaryDomain} with your organisation name and details. Business hours response target: Mon-Fri 9am-5pm AEST.`,
+    copy: `If you observe a sync discrepancy, Xero write error, or privacy concern, email our support team immediately at ${supportEmail} with your organisation name and details. Business hours response target: ${supportHoursCompact}.`,
     icon: ShieldAlert,
     number: "8",
     title: "Reporting sync, payroll-write, or privacy incidents",
@@ -130,11 +134,8 @@ const GuidedOnboardingPage = () => (
             <p className="marketing-simple__section-copy">
               Our team provides direct guided setup for early access accounts.
               Contact us at{" "}
-              <a
-                className="marketing-simple__link"
-                href={`mailto:support@${primaryDomain}`}
-              >
-                support@{primaryDomain}
+              <a className="marketing-simple__link" href={supportMailtoHref}>
+                {supportEmail}
               </a>
               .
             </p>

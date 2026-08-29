@@ -2,6 +2,7 @@
 
 import { isEarlyAccess } from "@repo/next-config/launch-mode";
 import Link from "next/link";
+import { supportHoursCompact } from "@/src/data/support";
 import { signUpHref } from "@/src/lib/auth-links";
 import { MARKETING_PLANS } from "../constants";
 
@@ -67,7 +68,7 @@ export const PricingPlans = () => {
               >
                 ✓
               </span>
-              Support during business hours (Mon-Fri 9am-5pm AEST)
+              Support during business hours ({supportHoursCompact})
             </li>
             <li className="fmkt-pricing-card__feature">
               <span

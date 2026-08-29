@@ -1,4 +1,3 @@
-import { primaryDomain } from "@repo/seo/branding";
 import { createMetadata } from "@repo/seo/metadata";
 import {
   BookOpen,
@@ -10,6 +9,7 @@ import {
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { supportEmail, supportMailtoHref } from "@/src/data/support";
 
 export const metadata: Metadata = createMetadata({
   description:
@@ -105,11 +105,8 @@ const HelpCentrePage = () => (
             </p>
             <p className="marketing-simple__section-copy">
               <Mail aria-hidden="true" size={16} strokeWidth={1.8} /> Contact:{" "}
-              <a
-                className="marketing-simple__link"
-                href={`mailto:support@${primaryDomain}`}
-              >
-                support@{primaryDomain}
+              <a className="marketing-simple__link" href={supportMailtoHref}>
+                {supportEmail}
               </a>
             </p>
           </div>

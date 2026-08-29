@@ -1,6 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import {
+  supportEmail,
+  supportHoursLong,
+  supportMailtoHref,
+} from "@/src/data/support";
 import { MarketingIcon } from "../../(home)/components/marketing-icons";
 import { PricingPlans } from "./pricing-plans";
 
@@ -215,14 +220,14 @@ export const PricingExperience = () => {
             <p className="mb-3">
               <a
                 className="marketing-simple__link font-semibold"
-                href="mailto:support@teamcalendar.online"
+                href={supportMailtoHref}
               >
-                support@teamcalendar.online
+                {supportEmail}
               </a>
             </p>
             <p className="marketing-simple__section-copy text-muted-foreground text-xs">
-              Support hours: Monday to Friday, 9:00 AM – 5:00 PM AEST. Pricing
-              will be confirmed before any future paid billing begins.
+              Support hours: {supportHoursLong}. Pricing will be confirmed
+              before any future paid billing begins.
             </p>
           </div>
         </div>

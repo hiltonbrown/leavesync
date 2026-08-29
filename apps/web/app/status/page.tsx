@@ -1,7 +1,7 @@
-import { primaryDomain } from "@repo/seo/branding";
 import { createMetadata } from "@repo/seo/metadata";
 import { Bell, CalendarSync, MailWarning, ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
+import { supportEmail, supportMailtoHref } from "@/src/data/support";
 
 export const metadata: Metadata = createMetadata({
   description:
@@ -89,11 +89,8 @@ const StatusPage = () => (
             </p>
             <p className="marketing-simple__section-copy">
               Contact:{" "}
-              <a
-                className="marketing-simple__link"
-                href={`mailto:support@${primaryDomain}`}
-              >
-                support@{primaryDomain}
+              <a className="marketing-simple__link" href={supportMailtoHref}>
+                {supportEmail}
               </a>
             </p>
           </div>
