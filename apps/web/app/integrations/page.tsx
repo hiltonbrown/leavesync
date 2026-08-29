@@ -124,17 +124,16 @@ const IntegrationsPage = () => (
         <div className="fmkt-integrations__hero-grid">
           <div>
             <h1 className="fmkt-integrations__title">
-              Xero Payroll to every calendar your team already uses.
+              See who is away in the calendars your team already uses.
             </h1>
             <p className="fmkt-integrations__lead">
-              Connect your Xero Payroll file once, and Team Calendar keeps leave
-              and availability flowing to the calendars your team already uses.
+              Stop piecing together leave and availability across Xero, email,
+              and separate calendar updates.
             </p>
             <p className="fmkt-integrations__copy">
-              Team Calendar connects to Xero Payroll, turns approved leave and
-              manual availability into one canonical view, then publishes it to
-              Outlook, Google Calendar, and Apple Calendar through secure ICS
-              feeds.
+              Team Calendar combines approved leave from Xero Payroll Australia
+              with manual availability, then publishes secure ICS feeds to
+              Outlook, Google Calendar, and Apple Calendar.
             </p>
             <div className="fmkt-integrations__actions">
               <Link

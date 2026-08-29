@@ -20,6 +20,24 @@ describe("Integrations page", () => {
     expect(html).toContain('href="/security">Review security</a>');
   });
 
+  it("assigns the hero outcome, problem, and mechanism distinct copy", () => {
+    const html = renderToStaticMarkup(React.createElement(IntegrationsPage));
+    const heroHtml = html.slice(
+      0,
+      html.indexOf('<section class="fmkt-integrations__section">')
+    );
+
+    expect(heroHtml).toContain("See who is away");
+    expect(heroHtml).toContain("Stop piecing together leave and availability");
+    expect(heroHtml).toContain("Xero Payroll Australia");
+    expect(heroHtml).toContain("manual availability");
+    expect(heroHtml).toContain("secure ICS feeds");
+    expect(heroHtml).toContain("Outlook");
+    expect(heroHtml).toContain("Google Calendar");
+    expect(heroHtml).toContain("Apple Calendar");
+    expect(heroHtml).not.toContain("canonical view");
+  });
+
   it("separates data collection scope from credential safeguards", () => {
     const html = renderToStaticMarkup(React.createElement(IntegrationsPage));
 
