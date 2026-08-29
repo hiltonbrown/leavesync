@@ -1,90 +1,114 @@
 # Dependencies
-node_modules/
+.bun/
 .pnp/
 .pnp.js
-.bun/
+node_modules/
 
-# Build and cache
-.next/
-out/
-build/
-dist/
-.turbo/
+# Build output and caches
 .cache/
 .eslintcache
+.next/
+.turbo/
+build/
+dist/
+out/
 
 # Test output
-coverage/
-.nyc_output/
-playwright-report/
-test-results/
-storybook-static/
 .impeccable/
+.nyc_output/
+blob-report/
+coverage/
+playwright-report/
+playwright/.cache/
+storybook-static/
+test-results/
 
 # Logs
+*.log
+lerna-debug.log*
 npm-debug.log*
+pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-*.log
 
-# Environment files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.*.local
+# Environment files and secrets
 .env*
-
-# Vercel
-.vercel
-
-# TypeScript
-*.tsbuildinfo
-
-# Local DB files
-*.sqlite
-*.sqlite3
-*.db
-
-# Secrets
-*.pem
-*.key
+!**/.env.example
+.mcp.json
+.sentryclirc
 *.crt
+*.jks
+*.key
+*.keystore
+*.p12
+*.pem
+*.pfx
+*.ppk
 
-# OS / editor
-.DS_Store
-Thumbs.db
-.agents/
-.vscode/
-.idea/
-.kilo/
-kilocode/
-.kilocode/
+# Local database files
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-shm
+*.sqlite3-wal
 
-# Temp
-.tmp/
-tmp/
-*.tmp
-
-# React Email (generated, may contain local font files)
+# Generated files
+**/next-env.d.ts
+*.tsbuildinfo
 apps/email/.react-email/
 
-# design-sync (staged converter scripts, build output, machine state)
-.ds-sync/
-ds-bundle/
+# Deployment and local tooling
+.agents/
+.clerk/
+.codex/config.toml
+.idea/
+.kilo/
+.kilocode/
+.muse/
+.vercel/
+kilocode/
+
+# Claude Code local state and installed skills
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/next-forge/
+
+# VS Code local settings
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+
+# Operating system files
+.DS_Store
+Desktop.ini
+Thumbs.db
+
+# Temporary files
+.tmp/
+*~
+*.bak
+*.orig
+*.pid
+*.pid.lock
+*.rej
+*.swo
+*.swp
+*.tmp
+tmp/
+
+# Design Sync
 .design-sync/.cache/
 .design-sync/learnings/
-.design-sync/node_modules
+.design-sync/node_modules/
+.ds-sync/
+ds-bundle/
 packages/design-system/styles/compiled.css
-
-# Claude Code local settings (machine-specific permission allowlist)
-.claude/settings.local.json
-.claude/skills/*
-.claude/*
-
-# Next.js generated type declarations
-next-env.d.ts
-**/next-env.d.ts

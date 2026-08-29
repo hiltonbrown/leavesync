@@ -1,3 +1,52 @@
+# Plan: Commit, synchronise, and clean the remote branch
+
+## Tasks
+
+- [x] Verify the staged cleanup and inspect the local and upstream branch state
+- [ ] Commit the cleanup with a conventional commit
+- [ ] Synchronise with the upstream branch and resolve conflicts
+- [ ] Audit the remote branch tip and reachable history for leaked files and credentials
+- [ ] Purge verified leaks from the scoped remote branch and confirm the remote state
+
+## Review
+
+- Pending remote synchronisation and leak verification.
+
+---
+
+# Plan: Audit and harden repository ignore rules
+
+## Tasks
+
+- [x] Inventory tracked, untracked, ignored, and generated files across the monorepo
+- [x] Audit framework, package, tooling, credential, and local artefact coverage
+- [x] Correct verified `.gitignore` omissions and remove local secret-bearing configuration from tracking
+- [x] Validate representative paths, tracked ignored files, secret indicators, and repository status
+
+## Review
+
+- Added repository-wide coverage for local Clerk and Muse state, Sentry and MCP
+  configuration, credential containers, database sidecars, Playwright output,
+  and common temporary editor and process files.
+- Kept exact `.env.example` files visible so new app and package templates are
+  not silently hidden by the broader `.env*` secret rule.
+- Removed the credential-bearing `.mcp.json` from Git tracking while retaining
+  the ignored local working copy. The exposed credential still requires
+  rotation because the file was present from the initial repository commit.
+- Verified representative ignored and visible paths, an empty non-ignored
+  untracked-file list, tracked filenames, high-confidence credential
+  indicators, the staged MCP deletion, and `git diff --check`.
+- A further adversarial pass removed broad ignore overlap from the tracked
+  `.claude/skills/next-forge` and `.vscode` files while keeping local Claude
+  skills and editor state ignored.
+- Removed the unreferenced, malformed `script.py` checkpoint helper and the
+  unused `.autorc` inherited from the upstream next-forge template. No package
+  or workflow references either file.
+- Added PuTTY private-key coverage and confirmed that project `.npmrc` files
+  remain visible because they can be legitimate shared configuration.
+
+---
+
 # Plan: Stabilise PR125 scheduler registration test
 
 ## Tasks
