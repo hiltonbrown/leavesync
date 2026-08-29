@@ -1,15 +1,46 @@
 import Link from "next/link";
+import { integrationCapabilities } from "../../integrations/capabilities";
 import { MarketingIcon } from "./marketing-icons";
 
+const shippedRegions = integrationCapabilities.xeroPayrollRegions.filter(
+  (region) => region.status === "shipped"
+);
+
+const plannedRegions = integrationCapabilities.xeroPayrollRegions.filter(
+  (region) => region.status === "planned"
+);
+
+const shippedRegionNames = shippedRegions.map((region) => region.name);
+
+const plannedRegionNames = plannedRegions.map((region) => region.name);
+
+const calendarDestinationNames =
+  integrationCapabilities.calendarDestinations.map(
+    (destination) => destination.name
+  );
+
 const integrationPoints = [
-  { status: "shipped" as const, text: "Connect Xero Payroll Australia." },
-  {
-    status: "planned" as const,
-    text: "New Zealand and United Kingdom Xero Payroll support.",
-  },
+  ...(shippedRegions.length > 0
+    ? [
+        {
+          status: "shipped" as const,
+          text: `Connect Xero Payroll ${shippedRegionNames.join(" and ")}.`,
+        },
+      ]
+    : []),
+  ...(plannedRegions.length > 0
+    ? [
+        {
+          status: "planned" as const,
+          text: `${plannedRegionNames.join(" and ")} Xero Payroll support.`,
+        },
+      ]
+    : []),
   {
     status: "shipped" as const,
-    text: "Publish secure feeds for Outlook, Google Calendar, and Apple Calendar.",
+    text: `Publish secure feeds for ${calendarDestinationNames
+      .slice(0, -1)
+      .join(", ")}, and ${calendarDestinationNames.at(-1)}.`,
   },
   {
     status: "shipped" as const,

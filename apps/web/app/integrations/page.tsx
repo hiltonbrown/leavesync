@@ -2,6 +2,8 @@ import { createMetadata } from "@repo/seo/metadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingIcon } from "../(home)/components/marketing-icons";
+import { integrationCapabilities } from "./capabilities";
+import styles from "./integrations.module.css";
 
 export const metadata: Metadata = createMetadata({
   description:
@@ -9,28 +11,26 @@ export const metadata: Metadata = createMetadata({
   title: "Integrations",
 });
 
-const regions = [
-  {
-    code: "AU",
-    detail:
-      "Annual leave, sick leave, long service leave, personal carer's leave, and public holidays.",
-    name: "Australia",
-  },
-  {
-    code: "NZ",
-    detail: "Planned for a future release.",
-    name: "New Zealand",
-  },
-  {
-    code: "UK",
-    detail: "Planned for a future release.",
-    name: "United Kingdom",
-  },
-];
+const regions = integrationCapabilities.xeroPayrollRegions.map((region) => ({
+  ...region,
+  detail:
+    region.status === "shipped"
+      ? "Annual leave, sick leave, long service leave, personal carer's leave, and public holidays."
+      : "Planned for a future release.",
+  statusLabel: region.status === "shipped" ? "Supported at launch" : "Planned",
+}));
+
+const shippedRegionNames = integrationCapabilities.xeroPayrollRegions
+  .filter((region) => region.status === "shipped")
+  .map((region) => region.name);
+
+const plannedRegionNames = integrationCapabilities.xeroPayrollRegions
+  .filter((region) => region.status === "planned")
+  .map((region) => region.name);
 
 const flow = [
   {
-    copy: "Employees, approved leave, balances, and leave type configuration sync from your connected payroll file.",
+    copy: "Employees, approved leave, and balances sync from your connected payroll file.",
     icon: "sync",
     label: "Source of truth",
     title: "Xero Payroll",
@@ -51,12 +51,9 @@ const flow = [
 
 const dataMoves = [
   {
-    items: [
-      "Employee records and employment status",
-      "Leave entitlements and leave type configuration",
-      "Approved leave applications and balances",
-      "Payroll calendar and pay period information",
-    ],
+    items: integrationCapabilities.inboundDataCategories.map(
+      (category) => category.name
+    ),
     title: "Reads from Xero",
   },
   {
@@ -71,7 +68,6 @@ const dataMoves = [
     items: [
       "Salary, banking, tax, or superannuation data",
       "Personal calendar contents",
-      "Plaintext feed or OAuth tokens",
     ],
     title: "Never reads",
   },
@@ -80,27 +76,31 @@ const dataMoves = [
 const setupSteps = [
   "Connect your organisation from Team Calendar settings.",
   "Authorise Team Calendar in Xero and choose the payroll file.",
-  "Run the first sync for employees, leave, balances, and leave types.",
+  "Run the first sync for employees, leave, and balances.",
   "Publish secure feeds for teams, people, or locations.",
 ];
 
-const destinations = [
-  {
-    copy: "Subscribe from web in Microsoft 365 Calendar.",
-    icon: "outlook",
-    name: "Outlook",
-  },
-  {
-    copy: "Add the feed URL from calendar settings.",
-    icon: "gcal",
-    name: "Google Calendar",
-  },
-  {
+const destinationPresentation = {
+  "apple-calendar": {
     copy: "Create a calendar subscription on macOS or iOS.",
     icon: "applecal",
-    name: "Apple Calendar",
   },
-] as const;
+  "google-calendar": {
+    copy: "Add the feed URL from calendar settings.",
+    icon: "gcal",
+  },
+  outlook: {
+    copy: "Subscribe from web in Microsoft 365 Calendar.",
+    icon: "outlook",
+  },
+} as const;
+
+const destinations = integrationCapabilities.calendarDestinations.map(
+  (destination) => ({
+    ...destination,
+    ...destinationPresentation[destination.id],
+  })
+);
 
 const syncDetails = [
   {
@@ -112,32 +112,31 @@ const syncDetails = [
     title: "Write-back",
   },
   {
-    copy: "Every feed is scoped, signed, revocable, and cached by feed and etag so calendar clients receive the latest published view within 60 seconds of a change.",
+    copy: "Every feed is scoped, signed, and revocable. Team Calendar republishes after relevant changes; calendar clients refresh subscribed feeds on their own schedules.",
     title: "Feed publishing",
   },
 ];
 
 const IntegrationsPage = () => (
-  <main className="fmkt-page fmkt-integrations">
-    <section className="fmkt-integrations__hero">
+  <main className={`fmkt-page ${styles.root}`}>
+    <section className={styles.hero} data-integrations-section="hero">
       <div className="fmkt-container">
         <p className="fmkt-overline">Integrations</p>
-        <div className="fmkt-integrations__hero-grid">
+        <div className={styles.heroGrid}>
           <div>
-            <h1 className="fmkt-integrations__title">
-              Xero Payroll to every calendar your team already uses.
+            <h1 className={styles.title}>
+              See who is away in the calendars your team already uses.
             </h1>
-            <p className="fmkt-integrations__lead">
-              Connect your Xero Payroll file once, and Team Calendar keeps leave
-              and availability flowing to the calendars your team already uses.
+            <p className={styles.lead}>
+              Stop piecing together leave and availability across Xero, email,
+              and separate calendar updates.
             </p>
-            <p className="fmkt-integrations__copy">
-              Team Calendar connects to Xero Payroll, turns approved leave and
-              manual availability into one canonical view, then publishes it to
-              Outlook, Google Calendar, and Apple Calendar through secure ICS
-              feeds.
+            <p className={styles.copy}>
+              Team Calendar combines approved leave from Xero Payroll Australia
+              with manual availability, then publishes secure ICS feeds to
+              Outlook, Google Calendar, and Apple Calendar.
             </p>
-            <div className="fmkt-integrations__actions">
+            <div className={styles.actions}>
               <Link
                 className="marketing-btn marketing-btn--primary"
                 href="/contact"
@@ -155,23 +154,18 @@ const IntegrationsPage = () => (
 
           <ol
             aria-label="Integration path from Xero Payroll to calendar feeds"
-            className="fmkt-integrations__path"
+            className={styles.path}
           >
             {flow.map((item, index) => (
-              <li className="fmkt-integrations__path-item" key={item.title}>
-                <span className="fmkt-integrations__path-icon">
+              <li className={styles.pathItem} key={item.title}>
+                <span className={styles.pathIcon}>
                   <MarketingIcon id={item.icon} size={20} />
                 </span>
-                <span className="fmkt-integrations__path-label">
-                  {item.label}
-                </span>
+                <span className={styles.pathLabel}>{item.label}</span>
                 <strong>{item.title}</strong>
                 <p>{item.copy}</p>
                 {index < flow.length - 1 ? (
-                  <span
-                    aria-hidden="true"
-                    className="fmkt-integrations__path-line"
-                  />
+                  <span aria-hidden="true" className={styles.pathLine} />
                 ) : null}
               </li>
             ))}
@@ -180,23 +174,34 @@ const IntegrationsPage = () => (
       </div>
     </section>
 
-    <section className="fmkt-integrations__section">
-      <div className="fmkt-container fmkt-integrations__split">
+    <section className={styles.section}>
+      <div className={`fmkt-container ${styles.split}`}>
         <div className="fmkt-section-header">
           <h2 className="fmkt-section-title">
             Australian Xero Payroll support at launch.
           </h2>
-          <p className="fmkt-integrations__copy">
-            Team Calendar currently supports Xero Payroll Australia. New Zealand
-            and United Kingdom support is planned for future releases.
+          <p className={styles.copy}>
+            Team Calendar currently supports Xero Payroll{" "}
+            {shippedRegionNames.join(" and ")}.{" "}
+            {plannedRegionNames.join(" and ")} support is planned for future
+            releases.
           </p>
         </div>
-        <div className="fmkt-integrations__region-list">
+        <div className={styles.regionList}>
           {regions.map((region) => (
-            <article className="fmkt-integrations__region" key={region.code}>
-              <span>{region.code}</span>
+            <article
+              className={styles.region}
+              data-status={region.status}
+              key={region.code}
+            >
+              <span className={styles.regionCode}>{region.code}</span>
               <div>
-                <h3>{region.name}</h3>
+                <div className={styles.regionHeading}>
+                  <h3>{region.name}</h3>
+                  <span className={styles.regionStatus}>
+                    {region.statusLabel}
+                  </span>
+                </div>
                 <p>{region.detail}</p>
               </div>
             </article>
@@ -205,22 +210,21 @@ const IntegrationsPage = () => (
       </div>
     </section>
 
-    <section className="fmkt-integrations__section fmkt-integrations__section--tonal">
+    <section className={`${styles.section} ${styles.tonal}`}>
       <div className="fmkt-container">
-        <div className="fmkt-integrations__compact-header">
-          <h2 className="fmkt-section-title">What moves between systems.</h2>
-          <p className="fmkt-integrations__copy">
+        <div className={styles.compactHeader}>
+          <h2 className={`fmkt-section-title ${styles.compactTitle}`}>
+            What moves between systems.
+          </h2>
+          <p className={styles.copy}>
             The connection is narrow by design. Team Calendar reads and writes
             payroll leave information, then publishes availability, not payroll
             records, into calendar clients.
           </p>
         </div>
-        <div className="fmkt-integrations__data-grid">
+        <div className={styles.dataGrid}>
           {dataMoves.map((group) => (
-            <article
-              className="fmkt-integrations__data-panel"
-              key={group.title}
-            >
+            <article className={styles.dataPanel} key={group.title}>
               <h3>{group.title}</h3>
               <ul>
                 {group.items.map((item) => (
@@ -236,19 +240,19 @@ const IntegrationsPage = () => (
       </div>
     </section>
 
-    <section className="fmkt-integrations__section">
-      <div className="fmkt-container fmkt-integrations__workflow">
+    <section className={styles.section}>
+      <div className={`fmkt-container ${styles.workflow}`}>
         <div>
           <h2 className="fmkt-section-title">
             From first connect to live feeds.
           </h2>
-          <p className="fmkt-integrations__copy">
+          <p className={styles.copy}>
             Setup follows the standard Xero OAuth flow. After authorisation,
             Team Calendar syncs source data, applies feed scope and privacy
             rules, and gives each calendar a secure subscription URL.
           </p>
         </div>
-        <ol className="fmkt-integrations__steps">
+        <ol className={styles.steps}>
           {setupSteps.map((step, index) => (
             <li key={step}>
               <span>{index + 1}</span>
@@ -259,24 +263,21 @@ const IntegrationsPage = () => (
       </div>
     </section>
 
-    <section className="fmkt-integrations__section fmkt-integrations__section--tonal">
-      <div className="fmkt-container fmkt-integrations__destination-grid">
+    <section className={`${styles.section} ${styles.tonal}`}>
+      <div className={`fmkt-container ${styles.destinationGrid}`}>
         <div>
           <h2 className="fmkt-section-title">
             Subscribe once in the calendar app.
           </h2>
-          <p className="fmkt-integrations__copy">
+          <p className={styles.copy}>
             Feeds work with common calendar clients because they publish
             standard ICS. Teams see approved leave, WFH, travel, training, and
             client-site entries without installing another calendar app.
           </p>
         </div>
-        <div className="fmkt-integrations__destinations">
+        <div className={styles.destinations}>
           {destinations.map((destination) => (
-            <article
-              className="fmkt-integrations__destination"
-              key={destination.name}
-            >
+            <article className={styles.destination} key={destination.name}>
               <span>
                 <MarketingIcon id={destination.icon} size={20} />
               </span>
@@ -290,10 +291,10 @@ const IntegrationsPage = () => (
       </div>
     </section>
 
-    <section className="fmkt-integrations__section">
+    <section className={styles.section}>
       <div className="fmkt-container">
-        <div className="fmkt-integrations__sync-panel">
-          <div className="fmkt-integrations__sync-heading">
+        <div className={styles.syncPanel}>
+          <div className={styles.syncHeading}>
             <span>
               <MarketingIcon id="shieldCheck" size={24} />
             </span>
@@ -305,7 +306,7 @@ const IntegrationsPage = () => (
               </p>
             </div>
           </div>
-          <div className="fmkt-integrations__sync-list">
+          <div className={styles.syncList}>
             {syncDetails.map((detail) => (
               <article key={detail.title}>
                 <h3>{detail.title}</h3>

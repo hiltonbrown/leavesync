@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { MarketingIcon } from "../(home)/components/marketing-icons";
+import { integrationCapabilities } from "../integrations/capabilities";
 import { FinalCtaSection } from "./components/final-cta-section";
 import { InteractiveHeroSection } from "./components/interactive-hero";
 import { ScrollReveal } from "./components/scroll-reveal";
@@ -407,6 +408,14 @@ const FeaturesMatrix = () => (
 
 // ---- FAQ --------------------------------------------------------------------
 
+const shippedRegionNames = integrationCapabilities.xeroPayrollRegions
+  .filter((region) => region.status === "shipped")
+  .map((region) => region.name);
+
+const plannedRegionNames = integrationCapabilities.xeroPayrollRegions
+  .filter((region) => region.status === "planned")
+  .map((region) => region.name);
+
 const faqs = [
   {
     a: "No. They're added directly in Team Calendar and never appear in Xero or your pay runs. They only show up on the calendar.",
@@ -425,7 +434,7 @@ const faqs = [
     q: "Can I tell which entries came from where?",
   },
   {
-    a: "Australia is supported at launch. New Zealand and United Kingdom support is planned for future releases.",
+    a: `${shippedRegionNames.join(" and ")} is supported at launch. ${plannedRegionNames.join(" and ")} support is planned for future releases.`,
     q: "Which regions of Xero Payroll are supported?",
   },
   {

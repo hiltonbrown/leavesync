@@ -2,6 +2,15 @@ import { brandNameDisplay } from "@repo/seo/branding";
 import Image from "next/image";
 import Link from "next/link";
 import { signUpHref } from "@/src/lib/auth-links";
+import { integrationCapabilities } from "../integrations/capabilities";
+
+const shippedRegionNames = integrationCapabilities.xeroPayrollRegions
+  .filter((region) => region.status === "shipped")
+  .map((region) => region.name);
+
+const plannedRegionNames = integrationCapabilities.xeroPayrollRegions
+  .filter((region) => region.status === "planned")
+  .map((region) => region.name);
 
 const footerColumns = [
   {
@@ -55,8 +64,8 @@ export const Footer = () => (
           calendars your people already use.
         </p>
         <p className="marketing-footer__proof">
-          Built for Xero Payroll teams in Australia. New Zealand and United
-          Kingdom support is planned.
+          Built for Xero Payroll teams in {shippedRegionNames.join(" and ")}.{" "}
+          {plannedRegionNames.join(" and ")} support is planned.
         </p>
         <div className="marketing-footer__actions">
           <Link className="marketing-footer__primary-link" href={signUpHref}>
