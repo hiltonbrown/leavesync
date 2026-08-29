@@ -458,7 +458,15 @@ Normalised scope rules per feed. Each row is one include rule. Carries `clerk_or
 
 ### `feed_tokens`
 
-Signed, revocable tokens. `token_hash` stored; plaintext never persisted. `rotated_from_token_id` provides a rotation trail within this table. Revoked and expired tokens return 410. Carries `clerk_org_id` for direct tenant isolation.
+Signed, revocable tokens. `token_hash` stores per-token signing material; the plaintext bearer token is reconstructed only after feed visibility checks and is never persisted. Existing legacy random tokens remain valid through hash lookup. `rotated_from_token_id` provides a rotation trail within this table. Revoked and expired tokens return 410. Carries `clerk_org_id` for direct tenant isolation.
+
+#### Calendar feed URL presentation
+
+The active calendar feed URL is a user-facing credential. Every authorised viewer must be able to see, select, and copy the complete URL from the feed list and feed detail screens. The interface must never mask, truncate, hash, redact, or replace the URL with a token hint or placeholder. Copy actions must copy the exact URL displayed.
+
+Pausing a feed does not hide its URL. Rotating or revoking a token invalidates the old URL, and rotation immediately displays the complete replacement URL. Archived feeds have no active subscribe URL. The `masked` privacy mode applies only to published event details; it must never mask the calendar feed URL.
+
+Cryptographic hashes and signing material may be used internally for validation and secure storage, but they are server-only implementation details. An internal hash must never be rendered or returned in place of the usable subscribe URL.
 
 ### `sync_runs`
 
@@ -648,9 +656,9 @@ Revoked or expired tokens return `410 Gone`.
 - Organisation scoping on all data access (filter by `organisation_id` within the Clerk Org).
 - Clerk auth on all authenticated routes.
 - Xero OAuth tokens encrypted at rest using AES-256-GCM. The encryption key is stored in `XERO_TOKEN_ENCRYPTION_KEY` (32 bytes, base64-encoded). Tokens are never stored in plaintext.
-- Feed tokens signed and revocable; plaintext never persisted. Revoked and expired tokens return 410.
+- Feed tokens signed and revocable; plaintext never persisted. The complete active subscribe URL is intentionally returned to authorised viewers. Revoked and expired tokens return 410.
 - Audit logs for all admin actions.
-- No tokens or raw payloads exposed to client.
+- No Xero tokens, internal feed token hashes, signing material, or raw payloads are exposed to the client.
 - No secrets in client bundles.
 - SSE connections are per-user and per-Clerk-Organisation. Must not deliver notifications across `clerk_org_id` boundaries.
 

@@ -2,19 +2,20 @@ import { config } from "dotenv";
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 config({ path: new URL("../database/.env", import.meta.url).pathname });
-// getFeedDetail builds the masked subscribe URL from the API origin and now
+// getFeedDetail builds the full subscribe URL from the API origin and
 // requires it to be configured. Provide one for the integration environment.
 process.env.NEXT_PUBLIC_API_URL ||= "https://api.test.local";
 vi.mock("server-only", () => ({}));
 
 let createFeed: typeof import("./index")["createFeed"];
 let ensureDefaultCalendarFeed: typeof import("./index")["ensureDefaultCalendarFeed"];
-let hashFeedToken: typeof import("./index")["hashFeedToken"];
+let getFeedDetail: typeof import("./index")["getFeedDetail"];
 let pauseFeed: typeof import("./index")["pauseFeed"];
 let renderFeedForToken: typeof import("./index")["renderFeedForToken"];
 let revokeAllFeedTokens: typeof import("./index")["revokeAllFeedTokens"];
 let revokeToken: typeof import("./index")["revokeToken"];
 let rotateToken: typeof import("./index")["rotateToken"];
+let signedFeedTokenId: typeof import("./index")["signedFeedTokenId"];
 let database: typeof import("@repo/database")["database"];
 
 const describeWithDatabase = process.env.DATABASE_URL
@@ -25,12 +26,13 @@ if (process.env.DATABASE_URL) {
   ({
     createFeed,
     ensureDefaultCalendarFeed,
-    hashFeedToken,
+    getFeedDetail,
     pauseFeed,
     renderFeedForToken,
     revokeAllFeedTokens,
     revokeToken,
     rotateToken,
+    signedFeedTokenId,
   } = await import("./index"));
   ({ database } = await import("@repo/database"));
 }
@@ -44,7 +46,7 @@ const otherTenant = {
   organisationId: "52000000-0000-4000-8000-000000000001",
 };
 const clerkOrgIds = [tenant.clerkOrgId, otherTenant.clerkOrgId];
-const TOKEN_PATTERN = /^[A-Za-z0-9_-]{40}$/;
+const TOKEN_PATTERN = /^tc1\.[0-9a-f-]{36}\.[A-Za-z0-9_-]{43}$/;
 
 describeWithDatabase("feed services", () => {
   beforeEach(async () => {
@@ -58,7 +60,7 @@ describeWithDatabase("feed services", () => {
     await database.$disconnect();
   });
 
-  test("creates feeds with a one-time plaintext token and persisted hash", async () => {
+  test("creates feeds with a signed URL that can be loaded again", async () => {
     const result = await createFeed({
       actingRole: "org:admin",
       actingUserId: "user_admin",
@@ -82,10 +84,21 @@ describeWithDatabase("feed services", () => {
       where: { feed_id: result.value.feedId },
     });
     expect(tokenRows).toHaveLength(1);
-    expect(tokenRows[0]?.token_hash).toBe(
-      hashFeedToken(result.value.token.plaintext)
-    );
     expect(tokenRows[0]?.token_hash).not.toBe(result.value.token.plaintext);
+
+    const detail = await getFeedDetail({
+      actingRole: "org:admin",
+      actingUserId: "user_admin",
+      clerkOrgId: tenant.clerkOrgId,
+      feedId: result.value.feedId,
+      organisationId: tenant.organisationId,
+    });
+    expect(detail).toMatchObject({
+      ok: true,
+      value: {
+        subscribeUrl: `https://api.test.local/ical/${result.value.token.plaintext}.ics`,
+      },
+    });
   });
 
   test("provisions a default all-staff feed with an org scope and active token", async () => {
@@ -134,9 +147,7 @@ describeWithDatabase("feed services", () => {
       organisation_id: tenant.organisationId,
       status: "active",
     });
-    expect(tokens[0]?.token_hash).toBe(
-      hashFeedToken(result.value.token?.plaintext ?? "")
-    );
+    expect(tokens[0]?.token_hash).not.toBe(result.value.token?.plaintext);
   });
 
   test("does not duplicate the default feed, scope, or token", async () => {
@@ -325,8 +336,10 @@ describeWithDatabase("feed services", () => {
 
   test("supports token lookup, rotation, and revoke-all round trip", async () => {
     const created = await createTestFeed();
+    const initialTokenId = signedFeedTokenId(created.plaintext);
+    expect(initialTokenId).not.toBeNull();
     const initialToken = await database.feedToken.findUnique({
-      where: { token_hash: hashFeedToken(created.plaintext) },
+      where: { id: initialTokenId ?? "" },
     });
     expect(initialToken).toMatchObject({
       clerk_org_id: tenant.clerkOrgId,
@@ -348,10 +361,11 @@ describeWithDatabase("feed services", () => {
     }
 
     const oldToken = await database.feedToken.findUnique({
-      where: { token_hash: hashFeedToken(created.plaintext) },
+      where: { id: initialTokenId ?? "" },
     });
+    const newTokenId = signedFeedTokenId(rotated.value.plaintext);
     const newToken = await database.feedToken.findUnique({
-      where: { token_hash: hashFeedToken(rotated.value.plaintext) },
+      where: { id: newTokenId ?? "" },
     });
     expect(oldToken).toMatchObject({
       feed_id: created.feedId,

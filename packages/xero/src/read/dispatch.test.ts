@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const mocks = vi.hoisted(() => ({
   fetchAuEmployees: vi.fn(),
   fetchAuLeaveApplicationStatus: vi.fn(),
@@ -13,6 +15,13 @@ const mocks = vi.hoisted(() => ({
   fetchUkLeaveApplicationStatus: vi.fn(),
   fetchUkLeaveBalancesForEmployee: vi.fn(),
   fetchUkLeaveForEmployee: vi.fn(),
+}));
+
+vi.mock("../adapter/auth-recovery", () => ({
+  executeWithXeroAuthRecovery: (
+    _tenant: unknown,
+    operation: (tenant: unknown) => unknown
+  ) => operation(_tenant),
 }));
 
 vi.mock("../au/read", () => ({

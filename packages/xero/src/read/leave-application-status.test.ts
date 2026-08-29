@@ -5,12 +5,14 @@ describe("mapLeaveApplicationStatus", () => {
   it.each([
     ["APPROVED", "APPROVED"],
     ["SCHEDULED", "APPROVED"],
+    ["PROCESSED", "APPROVED"],
     ["REJECTED", "REJECTED"],
     ["DECLINED", "REJECTED"],
     ["WITHDRAWN", "WITHDRAWN"],
     ["DELETED", "DELETED"],
     ["SUBMITTED", "SUBMITTED"],
     ["PENDING", "SUBMITTED"],
+    ["REQUESTED", "SUBMITTED"],
   ] as const)("maps %s to %s", (xeroStatus, expectedStatus) => {
     const result = mapLeaveApplicationStatus({ Status: xeroStatus });
 
@@ -79,6 +81,27 @@ describe("mapLeaveApplicationStatus", () => {
 
     expect(result.approvedAt).toBeNull();
     expect(result.status).toBe("APPROVED");
+  });
+
+  it("maps an AU v2 period status and .NET updated date", () => {
+    const payload = {
+      LeaveApplications: [
+        {
+          LeavePeriods: [
+            {
+              LeavePeriodStatus: "REQUESTED",
+            },
+          ],
+          UpdatedDateUTC: "/Date(1785546245000+0000)/",
+        },
+      ],
+    };
+
+    expect(mapLeaveApplicationStatus(payload)).toEqual({
+      approvedAt: new Date("2026-08-01T01:04:05.000Z"),
+      rawResponse: payload,
+      status: "SUBMITTED",
+    });
   });
 
   it("reads the first leave application from wrapped Xero responses", () => {

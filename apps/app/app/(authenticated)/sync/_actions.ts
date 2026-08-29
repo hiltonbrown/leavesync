@@ -68,6 +68,7 @@ const DispatchApiResponseSchema = z.discriminatedUnion("ok", [
         "invalid_run_type",
         "not_authorised",
         "run_not_found",
+        "sync_failed",
         "tenant_not_found",
         "tenant_sync_paused",
         "unknown_error",

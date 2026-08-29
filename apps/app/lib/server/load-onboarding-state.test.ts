@@ -61,7 +61,7 @@ describe("loadOnboardingState", () => {
     expect(feedStep).toMatchObject({
       ctaLabel: "View default feed",
       description:
-        "Your default all-staff feed is ready. Rotate its token when you need to copy a fresh subscribe URL.",
+        "Your default all-staff feed is ready. Open it whenever you need to copy its subscribe URL.",
       status: "complete",
       title: "Review calendar feed",
     });

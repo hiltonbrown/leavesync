@@ -234,6 +234,35 @@ describe("sync server actions", () => {
     });
   });
 
+  it("preserves a local fallback execution failure", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          error: {
+            code: "sync_failed",
+            message: "Sync run failed or was cancelled.",
+          },
+          ok: false,
+        }),
+        { status: 500 }
+      )
+    );
+
+    const result = await dispatchManualSyncAction({
+      organisationId,
+      runType: "people",
+      xeroTenantId,
+    });
+
+    expect(result).toEqual({
+      error: {
+        code: "sync_failed",
+        message: "Sync run failed or was cancelled.",
+      },
+      ok: false,
+    });
+  });
+
   it("returns failed-record CSV export data", async () => {
     const result = await exportFailedRecordsCsvAction({
       organisationId,

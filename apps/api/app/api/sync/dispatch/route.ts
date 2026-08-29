@@ -6,6 +6,10 @@ import {
 } from "@repo/availability";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import {
+  executeLocalSyncFallback,
+  type LocalSyncFallbackError,
+} from "../../../../lib/sync/execute-local-sync-fallback";
 
 const DispatchSyncRequestSchema = z.object({
   organisationId: z.string().uuid(),
@@ -18,7 +22,7 @@ const DispatchSyncRequestSchema = z.object({
   xeroTenantId: z.string().uuid(),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
   let clerkOrgId: string;
   try {
     clerkOrgId = await requireOrg();
@@ -64,21 +68,35 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = await dispatchManualSync({
+  const syncInput = {
     actingRole: role,
     actingUserId: user.id,
     clerkOrgId,
     organisationId: parsed.data.organisationId,
     runType: parsed.data.runType,
     xeroTenantId: parsed.data.xeroTenantId,
-  });
+  };
+  const result = await dispatchManualSync(syncInput);
+
+  if (
+    !result.ok &&
+    result.error.code === "dispatch_failed" &&
+    process.env.NODE_ENV !== "production"
+  ) {
+    const fallbackResult = await executeLocalSyncFallback(syncInput);
+    return NextResponse.json(fallbackResult, {
+      status: fallbackResult.ok ? 200 : errorStatus(fallbackResult.error),
+    });
+  }
 
   return NextResponse.json(result, {
     status: result.ok ? 202 : errorStatus(result.error),
   });
 }
 
-function errorStatus(error: SyncMonitorError): number {
+type SyncDispatchError = SyncMonitorError | LocalSyncFallbackError;
+
+function errorStatus(error: SyncDispatchError): number {
   switch (error.code) {
     case "validation_error":
     case "invalid_run_type":
@@ -93,6 +111,7 @@ function errorStatus(error: SyncMonitorError): number {
       return 409;
     case "dispatch_failed":
       return 503;
+    case "sync_failed":
     case "unknown_error":
       return 500;
     default: {

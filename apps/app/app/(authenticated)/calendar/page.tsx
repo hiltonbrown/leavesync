@@ -13,7 +13,6 @@ import { CalendarMonthView } from "@/components/calendar/calendar-month-view";
 import { CalendarScanPanel } from "@/components/calendar/calendar-scan-panel";
 import { CalendarTimeline } from "@/components/calendar/calendar-timeline";
 import { CalendarToolbar } from "@/components/calendar/calendar-toolbar";
-import { CalendarWeekView } from "@/components/calendar/calendar-week-view";
 import { FetchErrorState } from "@/components/states/fetch-error-state";
 import { requirePageRole } from "@/lib/auth/require-page-role";
 import { withOrg } from "@/lib/navigation/org-url";
@@ -167,7 +166,7 @@ const CalendarPage = async ({ searchParams }: CalendarPageProps) => {
           teams={teams}
         />
 
-        {parsedFilters.surface === "coverage" ? (
+        {dataResult.value.view === "week" ? (
           <CalendarTimeline
             data={dataResult.value}
             orgQueryValue={orgQueryValue}
@@ -261,18 +260,8 @@ function renderCalendarView({
       />
     );
   }
-  if (data.view === "month") {
-    return (
-      <CalendarMonthView
-        actingPersonId={actingPersonId}
-        data={data}
-        orgQueryValue={orgQueryValue}
-        selectedPersonId={selectedPersonId}
-      />
-    );
-  }
   return (
-    <CalendarWeekView
+    <CalendarMonthView
       actingPersonId={actingPersonId}
       data={data}
       orgQueryValue={orgQueryValue}

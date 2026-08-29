@@ -110,7 +110,7 @@ export const XeroClient = ({ organisations }: XeroClientProps) => {
           );
           return;
         }
-        toast.success("Sync completed successfully.");
+        toast.success("Sync queued.");
         router.refresh();
       } catch (error) {
         toast.error(
@@ -134,6 +134,10 @@ export const XeroClient = ({ organisations }: XeroClientProps) => {
         const connection = organisation.xero_connection;
         const tenant = connection?.xero_tenant ?? null;
         const status = statusForConnection(connection);
+        const canRefresh =
+          connection?.status === "active" &&
+          connection.disconnected_at === null &&
+          connection.revoked_at === null;
         const confirmationText =
           confirmationTextByOrganisation[organisation.id] ?? "";
 
@@ -198,7 +202,7 @@ export const XeroClient = ({ organisations }: XeroClientProps) => {
                 >
                   {connection ? "Reconnect Xero" : "Connect Xero"}
                 </Button>
-                {connection ? (
+                {canRefresh ? (
                   <Button
                     disabled={isPending}
                     onClick={() =>

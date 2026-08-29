@@ -148,7 +148,11 @@ Team Calendar is under active development and pre-launch. Core infrastructure, C
    ```bash
    bun run dev
    ```
-   This uses Turbo to spin up all applications concurrently.
+   This starts all applications through Turbo and the local Inngest Dev Server.
+   Inngest discovers the API handler at `http://localhost:3002/api/inngest` and
+   exposes its local dashboard at `http://localhost:8288`. Keep
+   `INNGEST_DEV="1"` in `apps/api/.env.local` so locally dispatched sync events
+   are sent to that server instead of Inngest Cloud.
 
 ### Testing and quality
 

@@ -44,7 +44,7 @@ This repository handles multi-tenant availability data and integrations. High-pr
 
 - Cross-tenant data access or broken organisation scoping
 - Authentication or authorisation bypass
-- Exposure of feed tokens or OAuth credentials
+- Unauthorised exposure of feed URLs, internal feed token material, or OAuth credentials
 - Insecure handling of Xero tokens or raw payroll payloads
 - Injection, SSRF, or deserialisation risks in API or job handlers
 

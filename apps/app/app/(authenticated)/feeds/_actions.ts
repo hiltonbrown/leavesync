@@ -5,6 +5,7 @@ import type { Result } from "@repo/core";
 import { database } from "@repo/database";
 import {
   archiveFeed,
+  buildFeedSubscribeUrl,
   createFeed,
   type FeedServiceError,
   normaliseRole,
@@ -43,7 +44,7 @@ export type FeedActionResult<T = void> = Result<T, FeedActionError>;
 export async function createFeedAction(input: CreateFeedActionInput): Promise<
   FeedActionResult<{
     feedId: string;
-    token: { hint: string; plaintext: string };
+    subscribeUrl: string;
   }>
 > {
   const parsed = CreateFeedActionSchema.safeParse(input);
@@ -69,10 +70,7 @@ export async function createFeedAction(input: CreateFeedActionInput): Promise<
     ok: true,
     value: {
       feedId: result.value.feedId,
-      token: {
-        hint: result.value.token.hint,
-        plaintext: result.value.token.plaintext,
-      },
+      subscribeUrl: buildFeedSubscribeUrl(result.value.token.plaintext),
     },
   };
 }
@@ -128,9 +126,7 @@ export async function restoreFeedAction(
 
 export async function rotateTokenAction(
   input: FeedCommandActionInput
-): Promise<
-  FeedActionResult<{ hint: string; plaintext: string; tokenId: string }>
-> {
+): Promise<FeedActionResult<{ subscribeUrl: string; tokenId: string }>> {
   const parsed = FeedCommandActionSchema.safeParse(input);
   if (!parsed.success) {
     return validationError("Invalid feed");
@@ -216,8 +212,7 @@ export async function rotateTokenAction(
   return {
     ok: true,
     value: {
-      hint: result.value.hint,
-      plaintext: result.value.plaintext,
+      subscribeUrl: buildFeedSubscribeUrl(result.value.plaintext),
       tokenId: result.value.tokenId,
     },
   };

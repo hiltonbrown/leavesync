@@ -59,9 +59,10 @@ describe("findConnectionsNeedingTokenRotation", () => {
       },
       where: {
         disconnected_at: null,
-        last_refreshed_at: {
-          lt: new Date("2026-07-09T00:00:00.000Z"),
-        },
+        OR: [
+          { last_error_code: "refresh_persist_failed" },
+          { last_refreshed_at: { lt: new Date("2026-07-09T00:00:00.000Z") } },
+        ],
         organisation: {
           archived_at: null,
           is_active: true,

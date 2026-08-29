@@ -81,6 +81,42 @@ describe("mapXeroEmployees", () => {
     );
   });
 
+  it.each([
+    ["/Date(1748649600000+0000)/", "2025-05-31"],
+    ["/Date(1754265600000+0000)/", "2025-08-04"],
+    ["/Date(1761955200000+0000)/", "2025-11-01"],
+    ["/Date(1777593600000+0000)/", "2026-05-01"],
+    ["/Date(1756598400000+0000)/", "2025-08-31"],
+  ])("normalises Xero payroll start date %s", (startDate, expected) => {
+    const [employee] = mapXeroEmployees({
+      Employees: [
+        {
+          EmployeeID: "11111111-1111-4111-8111-111111111111",
+          FirstName: "Ada",
+          LastName: "Lovelace",
+          StartDate: startDate,
+        },
+      ],
+    });
+
+    expect(employee?.startDate).toBe(expected);
+  });
+
+  it("maps an invalid optional start date to null", () => {
+    const [employee] = mapXeroEmployees({
+      Employees: [
+        {
+          EmployeeID: "11111111-1111-4111-8111-111111111111",
+          FirstName: "Ada",
+          LastName: "Lovelace",
+          StartDate: "not-a-date",
+        },
+      ],
+    });
+
+    expect(employee?.startDate).toBeNull();
+  });
+
   it("returns an empty list for malformed payloads", () => {
     expect(mapXeroEmployees(null)).toEqual([]);
     expect(mapXeroEmployees({})).toEqual([]);

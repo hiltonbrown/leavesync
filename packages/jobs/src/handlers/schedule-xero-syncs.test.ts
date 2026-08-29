@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   ensureFreshXeroConnection: vi.fn(),
   findConnectionsNeedingTokenRotation: vi.fn(),
   listSchedulableXeroTenants: vi.fn(),
+  scrubInactiveXeroOAuthSessionCredentials: vi.fn(),
 }));
 
 vi.mock("@repo/database", () => ({
@@ -17,6 +18,8 @@ vi.mock("@repo/database", () => ({
 
 vi.mock("@repo/xero", () => ({
   ensureFreshXeroConnection: mocks.ensureFreshXeroConnection,
+  scrubInactiveXeroOAuthSessionCredentials:
+    mocks.scrubInactiveXeroOAuthSessionCredentials,
 }));
 
 vi.mock("../events", async (importOriginal) => {
@@ -58,6 +61,10 @@ describe("scheduleXeroSyncs Coordinator", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.scrubInactiveXeroOAuthSessionCredentials.mockResolvedValue({
+      ok: true,
+      value: { scrubbed: 0 },
+    });
   });
 
   describe("rotateDormantXeroConnections", () => {

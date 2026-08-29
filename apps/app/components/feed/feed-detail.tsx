@@ -33,9 +33,8 @@ import {
   resumeFeedAction,
   rotateTokenAction,
 } from "@/app/(authenticated)/feeds/_actions";
-import { useFeedTokenSession } from "@/app/(authenticated)/feeds/feed-token-session";
-import { statusToneClasses } from "@/components/availability/availability-status";
-import { OneTimeTokenPanel } from "./one-time-token-panel";
+import { FeedStatusDot } from "./feed-status-dot";
+import { SubscribeUrlField } from "./subscribe-url-field";
 
 interface PreviewEvent {
   description: string | null;
@@ -61,12 +60,12 @@ export function FeedDetail({
     description: string | null;
     id: string;
     includesPublicHolidays: boolean;
-    maskedSubscribeUrl: string;
     name: string;
     privacyMode: "masked" | "named" | "private";
     scopeSummary: string;
     scopes: Array<{ id: string; label: string; scopeType: string }>;
     status: "active" | "archived" | "paused";
+    subscribeUrl: string | null;
     tokenHistory?: Array<{
       createdAt: Date;
       id: string;
@@ -78,18 +77,16 @@ export function FeedDetail({
   previews: Partial<Record<"masked" | "named" | "private", PreviewEvent[]>>;
 }) {
   const router = useRouter();
-  const [plaintext, setPlaintext] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<"archive" | "rotate" | null>(
     null
   );
   const [showScope, setShowScope] = useState(false);
-  const [showUrl, setShowUrl] = useState(false);
+  const [subscribeUrl, setSubscribeUrl] = useState(detail.subscribeUrl);
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{
     text: string;
     tone: "error" | "status";
   } | null>(null);
-  const tokenSession = useFeedTokenSession();
 
   const rotate = () => {
     startTransition(async () => {
@@ -101,9 +98,11 @@ export function FeedDetail({
         setMessage({ text: result.error.message, tone: "error" });
         return;
       }
-      tokenSession.setToken(detail.id, result.value.plaintext);
-      setPlaintext(result.value.plaintext);
-      setMessage({ text: "Feed token rotated.", tone: "status" });
+      setSubscribeUrl(result.value.subscribeUrl);
+      setMessage({
+        text: "Feed token rotated. The subscribe URL has been updated.",
+        tone: "status",
+      });
       setConfirmation(null);
       router.refresh();
     });
@@ -144,7 +143,7 @@ export function FeedDetail({
         ) : null}
         <div>
           <div className="flex items-center gap-2">
-            <StatusDot status={detail.status} />
+            <FeedStatusDot status={detail.status} />
             <Badge variant="secondary">
               {privacyLabel(detail.privacyMode)}
             </Badge>
@@ -195,19 +194,27 @@ export function FeedDetail({
           <p className="mt-1 text-muted-foreground">
             {privacyExplanation(detail.privacyMode)}
           </p>
+          <p className="mt-1 text-muted-foreground">
+            Public holidays are{" "}
+            {detail.includesPublicHolidays ? "included" : "not included"}.
+          </p>
         </div>
 
         <div className="rounded-2xl bg-muted p-4 text-sm">
-          <div className="font-medium">Active token</div>
-          <p className="mt-1">
+          <SubscribeUrlField
+            description="Anyone with this URL can subscribe. Pause the feed to stop publishing, or rotate the token to replace the URL."
+            feedName={detail.name}
+            url={subscribeUrl}
+          />
+          <p className="mt-3 text-muted-foreground text-xs">
             {detail.activeTokenHint
-              ? `Active token: xxxx${detail.activeTokenHint.hint}, created ${formatDate(detail.activeTokenHint.createdAt)}`
-              : "No active token"}
+              ? `Created ${formatDate(detail.activeTokenHint.createdAt)}${detail.activeTokenHint.lastUsedAt ? `, last used ${formatDate(detail.activeTokenHint.lastUsedAt)}` : ", never used"}`
+              : "This feed has no active token."}
           </p>
           {canManage ? (
             <Button
               className="mt-3"
-              disabled={isPending}
+              disabled={isPending || detail.status === "archived"}
               onClick={() => setConfirmation("rotate")}
               size="sm"
               type="button"
@@ -218,36 +225,6 @@ export function FeedDetail({
             </Button>
           ) : null}
         </div>
-
-        <div className="rounded-2xl bg-muted p-4 text-sm">
-          <div className="font-medium">Subscribe URL</div>
-          <div className="mt-2 rounded-xl bg-background p-3 font-mono text-xs">
-            {showUrl
-              ? detail.maskedSubscribeUrl
-              : "https://••••••••••/ical/•••••••••••••.ics"}
-          </div>
-          <Button
-            className="mt-2"
-            onClick={() => setShowUrl((value) => !value)}
-            size="sm"
-            type="button"
-            variant="ghost"
-          >
-            {showUrl ? "Hide URL" : "Show URL"}
-          </Button>
-        </div>
-
-        {plaintext ? (
-          <OneTimeTokenPanel
-            feedId={detail.id}
-            onDone={() => {
-              tokenSession.clearToken(detail.id);
-              setPlaintext(null);
-            }}
-            origin={tokenSession.origin}
-            plaintext={plaintext}
-          />
-        ) : null}
 
         {detail.tokenHistory && detail.tokenHistory.length > 0 ? (
           <div className="rounded-2xl bg-muted p-4 text-sm">
@@ -502,21 +479,6 @@ function PreviewTabs({
         </TabsContent>
       ))}
     </Tabs>
-  );
-}
-
-function StatusDot({ status }: { status: string }) {
-  let colour = statusToneClasses.private;
-  if (status === "active") {
-    colour = statusToneClasses.leave;
-  } else if (status === "paused") {
-    colour = statusToneClasses.holiday;
-  }
-  return (
-    <span className="flex items-center gap-2 text-sm capitalize">
-      <span className={`size-2 rounded-full ring-2 ${colour}`} />
-      {status}
-    </span>
   );
 }
 

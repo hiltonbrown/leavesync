@@ -1,3 +1,4 @@
+import { executeWithXeroAuthRecovery } from "../adapter/auth-recovery";
 import type { XeroEmployeesFetchResult } from "../au/read";
 import {
   fetchEmployees as fetchAuEmployees,
@@ -36,44 +37,43 @@ export async function fetchLeaveApplicationStatusForRegion(
   payrollRegion: PayrollRegion | string,
   input: FetchLeaveApplicationStatusInput
 ): Promise<XeroWriteResult<XeroLeaveApplicationStatusResult>> {
-  switch (payrollRegion) {
-    case "AU":
-      return await fetchAuLeaveApplicationStatus(input);
-    case "NZ":
-      return await fetchNzLeaveApplicationStatus(input);
-    case "UK":
-      return await fetchUkLeaveApplicationStatus(input);
-    default:
-      return {
-        error: {
-          code: "unknown_error",
-          message: "Unsupported payroll region.",
-        },
-        ok: false,
-      };
-  }
+  return await executeWithXeroAuthRecovery(
+    input.xeroTenant,
+    async (xeroTenant) => {
+      const nextInput = { ...input, xeroTenant };
+      switch (payrollRegion) {
+        case "AU":
+          return await fetchAuLeaveApplicationStatus(nextInput);
+        case "NZ":
+          return await fetchNzLeaveApplicationStatus(nextInput);
+        case "UK":
+          return await fetchUkLeaveApplicationStatus(nextInput);
+        default:
+          return unsupportedRegion();
+      }
+    }
+  );
 }
 
 export async function fetchEmployeesForRegion(
   payrollRegion: PayrollRegion | string,
   input: { xeroTenant: XeroTenantForWrite }
 ): Promise<XeroWriteResult<XeroEmployeesFetchResult>> {
-  switch (payrollRegion) {
-    case "AU":
-      return await fetchAuEmployees(input);
-    case "NZ":
-      return await fetchNzEmployees(input);
-    case "UK":
-      return await fetchUkEmployees(input);
-    default:
-      return {
-        error: {
-          code: "unknown_error",
-          message: "Unsupported payroll region.",
-        },
-        ok: false,
-      };
-  }
+  return await executeWithXeroAuthRecovery(
+    input.xeroTenant,
+    async (xeroTenant) => {
+      switch (payrollRegion) {
+        case "AU":
+          return await fetchAuEmployees({ xeroTenant });
+        case "NZ":
+          return await fetchNzEmployees({ xeroTenant });
+        case "UK":
+          return await fetchUkEmployees({ xeroTenant });
+        default:
+          return unsupportedRegion();
+      }
+    }
+  );
 }
 
 export async function fetchLeaveRecordsForRegion(
@@ -86,34 +86,25 @@ export async function fetchLeaveRecordsForRegion(
     rawResponse: unknown;
   }>
 > {
-  switch (payrollRegion) {
-    case "AU":
-      return await fetchAuLeaveRecords(input);
-    case "NZ":
-      return {
-        error: {
-          code: "unknown_error",
-          message: "NZ payroll requires per-employee leave reads.",
-        },
-        ok: false,
-      };
-    case "UK":
-      return {
-        error: {
-          code: "unknown_error",
-          message: "UK payroll requires per-employee leave reads.",
-        },
-        ok: false,
-      };
-    default:
-      return {
-        error: {
-          code: "unknown_error",
-          message: "Unsupported payroll region.",
-        },
-        ok: false,
-      };
-  }
+  return await executeWithXeroAuthRecovery(
+    input.xeroTenant,
+    async (xeroTenant) => {
+      switch (payrollRegion) {
+        case "AU":
+          return await fetchAuLeaveRecords({ xeroTenant });
+        case "NZ":
+          return unsupportedRegion(
+            "NZ payroll requires per-employee leave reads."
+          );
+        case "UK":
+          return unsupportedRegion(
+            "UK payroll requires per-employee leave reads."
+          );
+        default:
+          return unsupportedRegion();
+      }
+    }
+  );
 }
 
 export async function fetchLeaveForEmployeeForRegion(
@@ -129,28 +120,24 @@ export async function fetchLeaveForEmployeeForRegion(
     rawResponse: unknown;
   }>
 > {
-  switch (payrollRegion) {
-    case "NZ":
-      return await fetchNzLeaveForEmployee(input);
-    case "UK":
-      return await fetchUkLeaveForEmployee(input);
-    case "AU":
-      return {
-        error: {
-          code: "unknown_error",
-          message: "AU payroll does not support per-employee leave reads.",
-        },
-        ok: false,
-      };
-    default:
-      return {
-        error: {
-          code: "unknown_error",
-          message: "Unsupported payroll region.",
-        },
-        ok: false,
-      };
-  }
+  return await executeWithXeroAuthRecovery(
+    input.xeroTenant,
+    async (xeroTenant) => {
+      const nextInput = { ...input, xeroTenant };
+      switch (payrollRegion) {
+        case "NZ":
+          return await fetchNzLeaveForEmployee(nextInput);
+        case "UK":
+          return await fetchUkLeaveForEmployee(nextInput);
+        case "AU":
+          return unsupportedRegion(
+            "AU payroll does not support per-employee leave reads."
+          );
+        default:
+          return unsupportedRegion();
+      }
+    }
+  );
 }
 
 export async function fetchLeaveBalancesForRegion(
@@ -167,32 +154,38 @@ export async function fetchLeaveBalancesForRegion(
     rawResponses: unknown[];
   }>
 > {
-  switch (payrollRegion) {
-    case "AU":
-      return await fetchAuLeaveBalances(input);
-    case "NZ":
-      return await fetchPerEmployeeLeaveBalances(
-        input.employeeIds,
-        fetchNzLeaveBalancesForEmployee,
-        input.xeroTenant,
-        input.onProgress
-      );
-    case "UK":
-      return await fetchPerEmployeeLeaveBalances(
-        input.employeeIds,
-        fetchUkLeaveBalancesForEmployee,
-        input.xeroTenant,
-        input.onProgress
-      );
-    default:
-      return {
-        error: {
-          code: "unknown_error",
-          message: "Unsupported payroll region.",
-        },
-        ok: false,
-      };
-  }
+  return await executeWithXeroAuthRecovery(
+    input.xeroTenant,
+    async (xeroTenant) => {
+      const nextInput = { ...input, xeroTenant };
+      switch (payrollRegion) {
+        case "AU":
+          return await fetchAuLeaveBalances(nextInput);
+        case "NZ":
+          return await fetchPerEmployeeLeaveBalances(
+            input.employeeIds,
+            fetchNzLeaveBalancesForEmployee,
+            xeroTenant,
+            input.onProgress
+          );
+        case "UK":
+          return await fetchPerEmployeeLeaveBalances(
+            input.employeeIds,
+            fetchUkLeaveBalancesForEmployee,
+            xeroTenant,
+            input.onProgress
+          );
+        default:
+          return unsupportedRegion();
+      }
+    }
+  );
+}
+
+function unsupportedRegion(
+  message = "Unsupported payroll region."
+): XeroWriteResult<never> {
+  return { error: { code: "unknown_error", message }, ok: false };
 }
 
 async function fetchPerEmployeeLeaveBalances(

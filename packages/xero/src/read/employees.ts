@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normaliseXeroDateOnly } from "./date";
 
 export interface XeroEmployee {
   email: string | null;
@@ -141,7 +142,7 @@ export function tryMapXeroEmployees(payload: unknown): MapXeroEmployeesResult {
       jobTitle: trimmedOrNull(e.JobTitle ?? e.jobTitle ?? e.title),
       lastName: e.LastName ?? e.lastName ?? "",
       rawPayload: e,
-      startDate: trimmedOrNull(e.StartDate ?? e.startDate),
+      startDate: normaliseXeroDateOnly(e.StartDate ?? e.startDate),
       status: trimmedOrNull(e.Status ?? e.status),
     });
   });

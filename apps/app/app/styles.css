@@ -177,3 +177,93 @@
     animation: none;
   }
 }
+
+/* ─── Calendar: integrated team runway ────────────────────────────────── */
+.calendar-runway-selection {
+  view-transition-name: calendar-runway-selection;
+}
+
+.calendar-runway-detail {
+  view-transition-name: calendar-runway-detail;
+}
+
+::view-transition-old(calendar-runway-selection),
+::view-transition-new(calendar-runway-selection) {
+  animation-duration: 240ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(calendar-runway-detail),
+::view-transition-new(calendar-runway-detail) {
+  animation-duration: 180ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.calendar-runway-scroll {
+  overscroll-behavior-x: contain;
+  scrollbar-color: var(--surface-variant) transparent;
+  scrollbar-width: thin;
+}
+
+.calendar-runway-scroll::-webkit-scrollbar {
+  height: 7px;
+}
+
+.calendar-runway-scroll::-webkit-scrollbar-thumb {
+  background: var(--surface-variant);
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(calendar-runway-selection),
+  ::view-transition-new(calendar-runway-selection),
+  ::view-transition-old(calendar-runway-detail),
+  ::view-transition-new(calendar-runway-detail) {
+    animation: none;
+  }
+}
+
+/* ─── Dashboard: ambient calendar timeline ─────────────────────────────── */
+.ambient-calendar-selection {
+  view-transition-name: ambient-calendar-selection;
+}
+
+.ambient-calendar-detail {
+  view-transition-name: ambient-calendar-detail;
+}
+
+::view-transition-old(ambient-calendar-selection),
+::view-transition-new(ambient-calendar-selection) {
+  animation-duration: 220ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(ambient-calendar-detail),
+::view-transition-new(ambient-calendar-detail) {
+  animation-duration: 160ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ambient-calendar-scroll {
+  overscroll-behavior-x: contain;
+  scrollbar-color: var(--surface-variant) transparent;
+  scrollbar-width: thin;
+}
+
+.ambient-calendar-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.ambient-calendar-scroll::-webkit-scrollbar-thumb {
+  background: var(--surface-variant);
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(ambient-calendar-selection),
+  ::view-transition-new(ambient-calendar-selection),
+  ::view-transition-old(ambient-calendar-detail),
+  ::view-transition-new(ambient-calendar-detail) {
+    animation: none;
+  }
+}

@@ -47,12 +47,15 @@ vi.mock("../cache/feed-cache", () => ({
 }));
 
 const {
+  createSignedFeedToken,
   createInitialTokenWithClient,
-  generateFeedTokenPlaintext,
+  generateFeedTokenSecret,
   hashFeedToken,
   revokeAllFeedTokens,
   revokeToken,
   rotateToken,
+  signedFeedTokenId,
+  verifySignedFeedToken,
 } = await import("./token-service");
 
 const baseInput = {
@@ -64,6 +67,7 @@ const baseInput = {
 };
 const TOKEN_HASH_PATTERN = /^[a-f0-9]{64}$/;
 const TOKEN_PATTERN = /^[A-Za-z0-9_-]{40}$/;
+const SIGNED_TOKEN_PATTERN = /^tc1\.[0-9a-f-]{36}\.[A-Za-z0-9_-]{43}$/;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -71,9 +75,9 @@ beforeEach(() => {
   mocks.auditEventCreate.mockResolvedValue({ id: "audit_1" });
   mocks.feedFindFirst.mockResolvedValue({ id: baseInput.feedId });
   mocks.feedFindMany.mockResolvedValue([]);
-  mocks.feedTokenCreate.mockResolvedValue({
-    id: "71000000-0000-4000-8000-000000000003",
-  });
+  mocks.feedTokenCreate.mockImplementation((input: { data: { id: string } }) =>
+    Promise.resolve({ id: input.data.id })
+  );
   mocks.feedTokenFindFirst.mockResolvedValue(null);
   mocks.feedTokenFindMany.mockResolvedValue([]);
   mocks.feedTokenUpdate.mockResolvedValue({ id: "token_1" });
@@ -85,9 +89,9 @@ beforeEach(() => {
 });
 
 describe("feed token pure functions", () => {
-  it("generates distinct base64url plaintext tokens", () => {
-    const first = generateFeedTokenPlaintext();
-    const second = generateFeedTokenPlaintext();
+  it("generates distinct base64url token secrets", () => {
+    const first = generateFeedTokenSecret();
+    const second = generateFeedTokenSecret();
 
     expect(first).toMatch(TOKEN_PATTERN);
     expect(second).toMatch(TOKEN_PATTERN);
@@ -109,10 +113,28 @@ describe("feed token pure functions", () => {
       "674691f5c86301ca2ebf20072f56f06cf5e72347db4f643a309f7f7596c5e18c"
     );
   });
+
+  it("creates and verifies a recoverable signed token", () => {
+    const tokenId = "71000000-0000-4000-8000-000000000003";
+    const tokenHash = "ab".repeat(32);
+    const token = createSignedFeedToken({ tokenHash, tokenId });
+
+    expect(token).toMatch(SIGNED_TOKEN_PATTERN);
+    expect(signedFeedTokenId(token)).toBe(tokenId);
+    expect(verifySignedFeedToken({ token, tokenHash, tokenId })).toBe(true);
+    expect(
+      verifySignedFeedToken({
+        token: `${token.slice(0, -1)}x`,
+        tokenHash,
+        tokenId,
+      })
+    ).toBe(false);
+    expect(signedFeedTokenId("legacy-random-token")).toBeNull();
+  });
 });
 
 describe("feed token lifecycle with a mocked database", () => {
-  it("creates the initial token with a stored hash and one-time plaintext disclosure", async () => {
+  it("creates the initial token with a stored secret hash and signed disclosure", async () => {
     const tx = mockDatabase() as unknown as Parameters<
       typeof createInitialTokenWithClient
     >[0];
@@ -122,7 +144,7 @@ describe("feed token lifecycle with a mocked database", () => {
     if (!result.ok) {
       return;
     }
-    expect(result.value.plaintext).toMatch(TOKEN_PATTERN);
+    expect(result.value.plaintext).toMatch(SIGNED_TOKEN_PATTERN);
     expect(result.value.hint).toBe(result.value.plaintext.slice(-4));
     expect(mocks.feedFindFirst).toHaveBeenCalledWith({
       select: { id: true },
@@ -132,14 +154,22 @@ describe("feed token lifecycle with a mocked database", () => {
       select: { id: true },
       where: scopedTokenByFeed(),
     });
-    expect(mocks.feedTokenCreate).toHaveBeenCalledWith({
+    const createCall = mocks.feedTokenCreate.mock.calls[0]?.[0];
+    expect(createCall).toMatchObject({
       data: {
         ...scopedTokenByFeed(),
-        token_hash: hashFeedToken(result.value.plaintext),
+        id: result.value.tokenId,
+        token_hash: expect.stringMatching(TOKEN_HASH_PATTERN),
         token_hint: result.value.hint,
       },
       select: { id: true },
     });
+    expect(
+      createSignedFeedToken({
+        tokenHash: createCall.data.token_hash,
+        tokenId: result.value.tokenId,
+      })
+    ).toBe(result.value.plaintext);
     expect(databaseCallsAsText()).not.toContain(result.value.plaintext);
   });
 
@@ -147,10 +177,6 @@ describe("feed token lifecycle with a mocked database", () => {
     mocks.feedTokenFindMany.mockResolvedValue([
       { id: "71000000-0000-4000-8000-000000000010" },
     ]);
-    mocks.feedTokenCreate.mockResolvedValue({
-      id: "71000000-0000-4000-8000-000000000011",
-    });
-
     const result = await rotateToken(baseInput);
 
     expect(result.ok).toBe(true);
@@ -176,8 +202,9 @@ describe("feed token lifecycle with a mocked database", () => {
     expect(mocks.feedTokenCreate).toHaveBeenCalledWith({
       data: {
         ...scopedTokenByFeed(),
+        id: result.value.tokenId,
         rotated_from_token_id: "71000000-0000-4000-8000-000000000010",
-        token_hash: hashFeedToken(result.value.plaintext),
+        token_hash: expect.stringMatching(TOKEN_HASH_PATTERN),
         token_hint: result.value.hint,
       },
       select: { id: true },

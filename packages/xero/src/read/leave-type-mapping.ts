@@ -65,6 +65,9 @@ function knownRecordType(value: string): availability_record_type | null {
   if (value.includes("unpaid")) {
     return "unpaid_leave";
   }
+  if (value.includes("community service")) {
+    return "leave";
+  }
   if (value.includes("holiday")) {
     return "holiday";
   }

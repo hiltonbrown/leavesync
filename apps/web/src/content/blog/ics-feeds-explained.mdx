@@ -31,7 +31,9 @@ UIDs are generated from a combination of the person ID, the availability record 
 
 Feed URLs are not guessable. Each URL contains a signed token that is specific to the person and the feed configuration. If a URL is shared outside the intended audience, the token can be revoked and regenerated. Existing calendar subscriptions using the old URL will stop receiving updates.
 
-Tokens are never stored in plaintext. Only a cryptographic hash is persisted.
+Authorised users can always view and copy the complete active feed URL. Team Calendar never masks, truncates, or replaces the subscribe URL with a hash. Pausing a feed keeps the URL available, while rotating or revoking its token invalidates the old URL.
+
+Internal signing and verification material remains server-only and is never shown in place of the usable URL. A feed's **Masked** privacy setting affects event details, not the feed URL.
 
 ## Subscribing in your calendar app
 

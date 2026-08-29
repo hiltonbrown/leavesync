@@ -76,6 +76,22 @@ function leaveApplicationsResponse(ids: string[]): Response {
   );
 }
 
+function payItemsResponse(): Response {
+  return new Response(
+    JSON.stringify({
+      PayItems: {
+        LeaveTypes: [
+          {
+            LeaveTypeID: "annual",
+            Name: "Annual Leave",
+          },
+        ],
+      },
+    }),
+    { status: 200 }
+  );
+}
+
 function employeeListResponse(items: unknown[]): Response {
   return new Response(JSON.stringify({ Employees: items }), { status: 200 });
 }
@@ -227,6 +243,7 @@ describe("AU leave record reads", () => {
     );
     const fetchMock = vi
       .fn()
+      .mockResolvedValueOnce(payItemsResponse())
       .mockResolvedValueOnce(leaveApplicationsResponse(firstPageIds))
       .mockResolvedValueOnce(leaveApplicationsResponse(["leave-101"]));
     vi.stubGlobal("fetch", fetchMock);
@@ -240,17 +257,19 @@ describe("AU leave record reads", () => {
         result.value.leaveRecords.map((record) => record.leaveApplicationId)
       ).toEqual([...firstPageIds, "leave-101"]);
     }
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
-      expect.stringContaining("/LeaveApplications?page=1"),
-      expect.stringContaining("/LeaveApplications?page=2"),
+      expect.stringContaining("/PayItems"),
+      expect.stringContaining("/LeaveApplications/v2?page=1"),
+      expect.stringContaining("/LeaveApplications/v2?page=2"),
     ]);
   });
 
   it("marks a single short page as complete", async () => {
     const fetchMock = vi
       .fn()
-      .mockResolvedValue(leaveApplicationsResponse(["leave-1"]));
+      .mockResolvedValueOnce(payItemsResponse())
+      .mockResolvedValueOnce(leaveApplicationsResponse(["leave-1"]));
     vi.stubGlobal("fetch", fetchMock);
 
     const result = await fetchLeaveRecords({ xeroTenant: buildXeroTenant() });
@@ -264,6 +283,27 @@ describe("AU leave record reads", () => {
         ],
       });
     }
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    if (result.ok) {
+      expect(result.value.leaveRecords[0]?.leaveTypeName).toBe("Annual Leave");
+    }
+  });
+
+  it("fails before reading leave applications when AU leave-type metadata is invalid", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({}), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await fetchLeaveRecords({ xeroTenant: buildXeroTenant() });
+
+    expect(result).toMatchObject({
+      error: {
+        code: "validation_error",
+        message: "Xero returned invalid AU payroll leave types.",
+      },
+      ok: false,
+    });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
@@ -349,6 +389,27 @@ describe("AU leave balance reads", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.code).toBe("auth_error");
+    }
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("aborts the whole fetch on a permission error", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(errorResponse(403, "Forbidden"))
+      .mockResolvedValueOnce(employeeResponse("emp-2", 80));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await fetchLeaveBalances({
+      employeeIds: ["emp-1", "emp-2"],
+      readIntervalMs: 0,
+      xeroTenant: buildXeroTenant(),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe("permission_error");
+      expect(result.error.httpStatus).toBe(403);
     }
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });

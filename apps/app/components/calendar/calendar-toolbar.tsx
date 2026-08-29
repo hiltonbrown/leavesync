@@ -2,7 +2,6 @@
 
 import type { CalendarPerson, CalendarRange } from "@repo/availability";
 import { Button } from "@repo/design-system/components/ui/button";
-import { ButtonGroup } from "@repo/design-system/components/ui/button-group";
 import {
   Select,
   SelectContent,
@@ -19,10 +18,8 @@ import {
   SheetTrigger,
 } from "@repo/design-system/components/ui/sheet";
 import {
-  ChartNoAxesCombinedIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  Grid2X2Icon,
   PlusIcon,
   SlidersHorizontalIcon,
 } from "lucide-react";
@@ -89,9 +86,6 @@ export function CalendarToolbar({
     teams,
   });
   const appliedFilterCount = countAppliedFilters(filters);
-  const rangeLabel =
-    filters.surface === "coverage" ? "Coverage range" : "Calendar range";
-
   return (
     <div className="rounded-2xl bg-muted p-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -127,33 +121,11 @@ export function CalendarToolbar({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <ButtonGroup aria-label="View">
-            <Button
-              aria-pressed={filters.surface === "calendar"}
-              onClick={() => update({ surface: "calendar" })}
-              size="sm"
-              type="button"
-              variant={filters.surface === "calendar" ? "secondary" : "ghost"}
-            >
-              <Grid2X2Icon className="size-4" />
-              Calendar
-            </Button>
-            <Button
-              aria-pressed={filters.surface === "coverage"}
-              onClick={() => update({ surface: "coverage" })}
-              size="sm"
-              type="button"
-              variant={filters.surface === "coverage" ? "secondary" : "ghost"}
-            >
-              <ChartNoAxesCombinedIcon className="size-4" />
-              Coverage
-            </Button>
-          </ButtonGroup>
           <Select
             onValueChange={(value) => update({ view: parseView(value) })}
             value={filters.view}
           >
-            <SelectTrigger aria-label={rangeLabel} className="w-32">
+            <SelectTrigger aria-label="Calendar range" className="w-32">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -277,10 +249,6 @@ function activeFilterLabels({
   teams: Option[];
 }) {
   const labels: ActiveFilterLabel[] = [
-    {
-      label: "View",
-      value: filters.surface === "coverage" ? "Coverage" : "Calendar",
-    },
     { label: "Range", value: labelForValue(filters.view) },
     { label: "People", value: scopeLabel(filters, teams) },
     {

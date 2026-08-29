@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   computeWorkingDaysFromReferenceData: vi.fn(),
   declineLeaveApplicationForRegion: vi.fn(),
   dispatchNotification: vi.fn(),
+  dispatchSyncEvent: vi.fn(),
   getSettings: vi.fn(),
   hasActiveXeroConnection: vi.fn(),
   leaveBalanceFindFirst: vi.fn(),
@@ -68,6 +69,9 @@ vi.mock("../holidays/holiday-service", () => ({
 vi.mock("../xero-connection-state", () => ({
   hasActiveXeroConnection: mocks.hasActiveXeroConnection,
 }));
+vi.mock("../sync/sync-events", () => ({
+  dispatchSyncEvent: mocks.dispatchSyncEvent,
+}));
 vi.mock("../settings/organisation-settings-service", () => ({
   getSettings: mocks.getSettings,
 }));
@@ -96,6 +100,7 @@ const mockPort = {
 const {
   approve,
   decline,
+  dispatchXeroLeaveSync,
   getApprovalDetail,
   getApprovalSummaryCounts,
   listForApprover,
@@ -192,6 +197,14 @@ describe("approval-service", () => {
       ok: true,
       value: { emailQueued: false, inAppDelivered: true },
     });
+    mocks.dispatchSyncEvent.mockResolvedValue({
+      ok: true,
+      value: {
+        eventName: "sync-xero-leave-records",
+        ids: ["event_1"],
+        queued: true,
+      },
+    });
     mocks.getSettings.mockResolvedValue({
       ok: true,
       value: {
@@ -222,6 +235,33 @@ describe("approval-service", () => {
       value: [2026],
     });
     mocks.xeroTenantFindFirst.mockResolvedValue(xeroTenant);
+  });
+
+  it("dispatches inbound Xero leave records for an authorised admin", async () => {
+    const result = await dispatchXeroLeaveSync({
+      ...input,
+      role: "admin",
+    });
+
+    expect(result).toEqual({ ok: true, value: { queued: true } });
+    expect(mocks.dispatchSyncEvent).toHaveBeenCalledWith({
+      clerkOrgId: input.clerkOrgId,
+      organisationId: input.organisationId,
+      runType: "leave_records",
+      triggeredByUserId: input.actingUserId,
+      triggerType: "manual",
+      xeroTenantId: xeroTenant.id,
+    });
+  });
+
+  it("does not allow a manager to dispatch an organisation-wide Xero leave sync", async () => {
+    const result = await dispatchXeroLeaveSync(input);
+
+    expect(result).toMatchObject({
+      error: { code: "not_authorised" },
+      ok: false,
+    });
+    expect(mocks.dispatchSyncEvent).not.toHaveBeenCalled();
   });
 
   it.each([

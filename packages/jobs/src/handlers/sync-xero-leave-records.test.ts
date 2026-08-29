@@ -180,7 +180,7 @@ describe("leave records stale archival", () => {
     mocks.personFindMany.mockResolvedValue([]);
   });
 
-  it("does not archive records when Xero returns an empty leave set", async () => {
+  it("archives scoped records when Xero returns an authoritative empty leave set", async () => {
     mocks.fetchLeaveRecordsForRegion.mockResolvedValue({
       ok: true,
       value: { complete: true, leaveRecords: [], rawResponse: {} },
@@ -191,15 +191,53 @@ describe("leave records stale archival", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value).toMatchObject({
-        archived: 0,
+        archived: 1,
         fetched: 0,
         status: "succeeded",
         upserted: 0,
       });
     }
-    expect(mocks.databaseTransaction).not.toHaveBeenCalled();
-    expect(mocks.availabilityRecordFindMany).not.toHaveBeenCalled();
-    expect(mocks.availabilityRecordUpdateMany).not.toHaveBeenCalled();
+    expect(mocks.databaseTransaction).toHaveBeenCalledTimes(1);
+    expect(mocks.availabilityRecordFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          archived_at: null,
+          clerk_org_id: CLERK_ORG_ID,
+          organisation_id: ORGANISATION_ID,
+          source_type: "xero_leave",
+        }),
+      })
+    );
+    expect(mocks.availabilityRecordUpdateMany).toHaveBeenCalledTimes(1);
+  });
+
+  it("persists rejected leave with zero units", async () => {
+    mocks.fetchLeaveRecordsForRegion.mockResolvedValue({
+      ok: true,
+      value: {
+        complete: true,
+        leaveRecords: [xeroLeaveRecord({ status: "REJECTED", units: 0 })],
+        rawResponse: {},
+      },
+    });
+    mocks.personFindMany.mockResolvedValue([
+      person(PERSON_ID, XERO_EMPLOYEE_ID),
+    ]);
+
+    const result = await syncXeroLeaveRecords(input());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        failed: 0,
+        status: "succeeded",
+        upserted: 1,
+      });
+    }
+    expect(mocks.failedRecordCreate).not.toHaveBeenCalled();
+    expect(mocks.normaliseInboundLeaveRecord).toHaveBeenCalledWith(
+      expect.objectContaining({ approvalStatus: "declined" })
+    );
   });
 
   it("persists and flags an unmapped Xero leave type", async () => {
@@ -1665,6 +1703,14 @@ function xeroLeaveRecord(
   overrides: Partial<{
     employeeId: string;
     leaveApplicationId: string;
+    status:
+      | "APPROVED"
+      | "DELETED"
+      | "REJECTED"
+      | "SUBMITTED"
+      | "UNKNOWN"
+      | "WITHDRAWN";
+    units: number;
   }> = {}
 ) {
   return {
@@ -1678,9 +1724,9 @@ function xeroLeaveRecord(
       LeaveType: "Annual Leave",
     },
     startDate: "2026-05-07",
-    status: "APPROVED" as const,
+    status: overrides.status ?? ("APPROVED" as const),
     title: "Annual leave",
-    units: 15.2,
+    units: overrides.units ?? 15.2,
     updatedDateUtc: "2026-05-01T01:02:03.000Z",
   };
 }

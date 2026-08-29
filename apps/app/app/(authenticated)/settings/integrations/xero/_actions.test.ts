@@ -175,6 +175,7 @@ describe("xero settings integration server actions", () => {
         connectionId,
         destructive: false,
         organisationId,
+        performedByUserId: "user_456",
       });
     });
   });
@@ -212,6 +213,7 @@ describe("xero settings integration server actions", () => {
         connectionId,
         destructive: true,
         organisationId,
+        performedByUserId: "user_456",
       });
 
       const resSoft = await disconnectXeroAction({
@@ -227,6 +229,7 @@ describe("xero settings integration server actions", () => {
         connectionId,
         destructive: false,
         organisationId,
+        performedByUserId: "user_456",
       });
     });
 

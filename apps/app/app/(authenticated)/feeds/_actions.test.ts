@@ -30,6 +30,8 @@ vi.mock("@repo/auth/server", () => ({
 }));
 vi.mock("@repo/feeds", () => ({
   archiveFeed: mocks.archiveFeed,
+  buildFeedSubscribeUrl: (token: string) =>
+    `https://calendar.example/ical/${token}.ics`,
   createFeed: mocks.createFeed,
   normaliseRole: (role: string | null | undefined) =>
     role?.replace("org:", "") ?? "viewer",
@@ -107,6 +109,12 @@ describe("feed actions", () => {
     });
 
     expect(result.ok).toBe(true);
+    expect(result).toMatchObject({
+      value: {
+        feedId,
+        subscribeUrl: "https://calendar.example/ical/token_plaintext.ics",
+      },
+    });
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/feeds");
     expect(mocks.revalidatePath).toHaveBeenCalledWith(`/feeds/${feedId}`);
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/settings/feeds");
@@ -136,6 +144,12 @@ describe("feed actions", () => {
       const result = await rotateTokenAction({ feedId, organisationId });
 
       expect(result.ok).toBe(true);
+      expect(result).toMatchObject({
+        value: {
+          subscribeUrl: "https://calendar.example/ical/new_plaintext.ics",
+          tokenId: feedId,
+        },
+      });
       expect(mocks.database.feed.findFirst).toHaveBeenCalledWith({
         select: { name: true },
         where: {

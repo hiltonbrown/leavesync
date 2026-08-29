@@ -13,8 +13,6 @@ import { Badge } from "@repo/design-system/components/ui/badge";
 import { Button } from "@repo/design-system/components/ui/button";
 import {
   ArchiveIcon,
-  CheckIcon,
-  CopyIcon,
   PauseIcon,
   PlayIcon,
   RotateCcwIcon,
@@ -30,12 +28,9 @@ import {
   resumeFeedAction,
   rotateTokenAction,
 } from "@/app/(authenticated)/feeds/_actions";
-import {
-  buildSubscribeUrl,
-  useFeedTokenSession,
-} from "@/app/(authenticated)/feeds/feed-token-session";
-import { statusToneClasses } from "@/components/availability/availability-status";
 import { withOrg } from "@/lib/navigation/org-url";
+import { FeedStatusDot } from "./feed-status-dot";
+import { SubscribeUrlField } from "./subscribe-url-field";
 
 export interface FeedTableItem {
   activeTokenHint: { hint: string; lastUsedAt: Date | null } | null;
@@ -49,6 +44,7 @@ export interface FeedTableItem {
   scopeCount: number;
   scopeSummary: string;
   status: "active" | "archived" | "paused";
+  subscribeUrl: string | null;
 }
 
 export function FeedTable({
@@ -63,7 +59,6 @@ export function FeedTable({
   organisationId: string;
 }) {
   const router = useRouter();
-  const [copiedFeedId, setCopiedFeedId] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<{
     action: "archive" | "rotate";
     feed: FeedTableItem;
@@ -73,32 +68,6 @@ export function FeedTable({
     text: string;
     tone: "error" | "status";
   } | null>(null);
-  const tokenSession = useFeedTokenSession();
-
-  const copy = async (feedId: string) => {
-    const plaintext = tokenSession.tokenForFeed(feedId);
-    if (!plaintext) {
-      setMessage({
-        text: "Rotate to get a new link — subscribe URLs are only shown right after creation or rotation.",
-        tone: "status",
-      });
-      router.push(withOrg(`/feeds/${feedId}?panel=rotate`, orgQueryValue));
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(
-        buildSubscribeUrl(tokenSession.origin, plaintext)
-      );
-      setCopiedFeedId(feedId);
-      setMessage({ text: "Subscribe URL copied.", tone: "status" });
-      window.setTimeout(() => setCopiedFeedId(null), 2000);
-    } catch {
-      setMessage({
-        text: "Could not copy the subscribe URL. Open the feed and copy it manually.",
-        tone: "error",
-      });
-    }
-  };
 
   const rotate = (feedId: string) => {
     startTransition(async () => {
@@ -107,8 +76,10 @@ export function FeedTable({
         setMessage({ text: result.error.message, tone: "error" });
         return;
       }
-      tokenSession.setToken(feedId, result.value.plaintext);
-      setMessage({ text: "Feed token rotated.", tone: "status" });
+      setMessage({
+        text: "Feed token rotated. The subscribe URL has been updated.",
+        tone: "status",
+      });
       setConfirmation(null);
       router.refresh();
     });
@@ -194,18 +165,21 @@ export function FeedTable({
           </AlertDialogContent>
         ) : null}
       </AlertDialog>
-      <div className="grid gap-4 p-4 text-muted-foreground text-sm lg:grid-cols-[1.4fr_0.7fr_0.7fr_0.7fr_1fr]">
+      <div className="hidden gap-4 p-4 text-muted-foreground text-sm lg:grid lg:grid-cols-[1.4fr_0.7fr_0.7fr_1fr_1fr]">
         <span>Feed</span>
         <span>Status</span>
         <span>Privacy</span>
         <span>Scope</span>
-        <span>Token</span>
+        <span>Activity</span>
       </div>
       <div className="space-y-3 p-3 pt-0">
         {feeds.map((feed) => (
           <article className="rounded-2xl bg-background p-4" key={feed.id}>
-            <div className="grid items-start gap-4 lg:grid-cols-[1.4fr_0.7fr_0.7fr_0.7fr_1fr]">
+            <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-[1.4fr_0.7fr_0.7fr_1fr_1fr]">
               <div>
+                <span className="mb-1 block text-muted-foreground text-xs lg:hidden">
+                  Feed
+                </span>
                 <Link
                   className="font-semibold text-foreground hover:text-primary"
                   href={withOrg(`/feeds/${feed.id}`, orgQueryValue)}
@@ -218,17 +192,30 @@ export function FeedTable({
                   </p>
                 ) : null}
               </div>
-              <StatusDot status={feed.status} />
-              <Badge variant="secondary">
-                {privacyLabel(feed.privacyMode)}
-              </Badge>
-              <span className="text-sm">{feed.scopeSummary}</span>
-              <div className="text-sm">
-                <div>
-                  {feed.activeTokenHint
-                    ? `xxxx${feed.activeTokenHint.hint}`
-                    : "No active token"}
-                </div>
+              <div>
+                <span className="mb-1 block text-muted-foreground text-xs lg:hidden">
+                  Status
+                </span>
+                <FeedStatusDot status={feed.status} />
+              </div>
+              <div>
+                <span className="mb-1 block text-muted-foreground text-xs lg:hidden">
+                  Privacy
+                </span>
+                <Badge variant="secondary">
+                  {privacyLabel(feed.privacyMode)}
+                </Badge>
+              </div>
+              <div>
+                <span className="mb-1 block text-muted-foreground text-xs lg:hidden">
+                  Scope
+                </span>
+                <span className="text-sm">{feed.scopeSummary}</span>
+              </div>
+              <div>
+                <span className="mb-1 block text-muted-foreground text-xs lg:hidden">
+                  Activity
+                </span>
                 <div className="text-muted-foreground text-xs">
                   {feed.activeTokenHint?.lastUsedAt
                     ? `Used ${formatRelative(feed.activeTokenHint.lastUsedAt)}`
@@ -236,25 +223,14 @@ export function FeedTable({
                 </div>
               </div>
             </div>
+            <div className="mt-5">
+              <SubscribeUrlField feedName={feed.name} url={feed.subscribeUrl} />
+            </div>
             <div className="mt-4 flex flex-wrap gap-2">
-              <Button
-                onClick={() => copy(feed.id)}
-                size="sm"
-                title="Rotate the token to get a fresh subscribe URL. Subscribe URLs are only shown when a token is created or rotated."
-                type="button"
-                variant="secondary"
-              >
-                {copiedFeedId === feed.id ? (
-                  <CheckIcon className="mr-2 size-4" />
-                ) : (
-                  <CopyIcon className="mr-2 size-4" />
-                )}
-                {copiedFeedId === feed.id ? "Copied" : "Copy URL"}
-              </Button>
               {canManage ? (
                 <>
                   <Button
-                    disabled={isPending}
+                    disabled={isPending || feed.status === "archived"}
                     onClick={() => setConfirmation({ action: "rotate", feed })}
                     size="sm"
                     type="button"
@@ -371,21 +347,6 @@ function transitionSuccessMessage(
     return "Feed restored in a paused state. Create a new token before publishing.";
   }
   return "Feed resumed.";
-}
-
-function StatusDot({ status }: { status: FeedTableItem["status"] }) {
-  let colour = statusToneClasses.private;
-  if (status === "active") {
-    colour = "bg-success text-success ring-success/30";
-  } else if (status === "paused") {
-    colour = "bg-warning-container text-on-warning-container ring-warning/30";
-  }
-  return (
-    <span className="flex items-center gap-2 text-sm capitalize">
-      <span className={`size-2 rounded-full ring-2 ${colour}`} />
-      {status}
-    </span>
-  );
 }
 
 function privacyLabel(value: FeedTableItem["privacyMode"]): string {

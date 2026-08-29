@@ -476,7 +476,7 @@ describeWithDatabase("sync-xero-leave-records database flow", () => {
     expect(record?.publish_status).toBe("eligible");
   });
 
-  it("skips stale archival when fetch is incomplete or empty", async () => {
+  it("skips an incomplete fetch but archives an authoritative empty fetch", async () => {
     await setupTenant(tenantA);
     await setupPerson(tenantA);
     await setupFeed(tenantA);
@@ -520,7 +520,7 @@ describeWithDatabase("sync-xero-leave-records database flow", () => {
     const emptyResult = await syncXeroLeaveRecords(syncInput(tenantA));
     expect(emptyResult.ok).toBe(true);
     if (emptyResult.ok) {
-      expect(emptyResult.value.archived).toBe(0);
+      expect(emptyResult.value.archived).toBe(2);
     }
 
     record = await database.availabilityRecord.findFirst({
@@ -530,7 +530,8 @@ describeWithDatabase("sync-xero-leave-records database flow", () => {
         source_remote_id: staleLeaveId(),
       },
     });
-    expect(record?.archived_at).toBeNull();
+    expect(record?.archived_at).not.toBeNull();
+    expect(record?.publish_status).toBe("archived");
   });
 
   it("bulk archives multiple stale records for the same person and enqueues feed rebuild once", async () => {

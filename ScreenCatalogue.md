@@ -34,7 +34,7 @@ Every screen was independently re-verified against current code (route files, cl
 | 9 | **`/leave-approvals`'s "Sync approval state" is now fully wired**, dispatching a real `approval_state_reconciliation` job. It was previously hard-disabled with `reconciliationEnabled={false}`. Retires a `[v5 proposal]`. | S-10 | `apps/app/app/(authenticated)/leave-approvals/leave-approvals-client.tsx:209-248`; `packages/availability/src/approvals/approval-service.ts:776-831` |
 | 10 | **`/public-holidays` now client-side hides mutating controls from non-admins**, matching the pattern `/feeds` already used. Previously every viewer saw fully interactive Suppress/Restore/Delete/"Add custom holiday" controls that failed server-side. Retires a `[v5 proposal]`. | S-11 | `apps/app/app/(authenticated)/public-holidays/page.tsx:22-36`; `public-holidays-list.tsx:56,196-204,265-317` |
 | 11 | **`/notifications`'s duplicate SSE connection is fixed**; a visible "Connecting…" / "Live notifications are unavailable" indicator now exists; the bell's unread badge uses the `destructive` token instead of raw `bg-red-600`. All three retire prior `[v5 proposal]` items. | S-12 | `apps/app/app/(authenticated)/layout.tsx:40`; `notifications-client.tsx:315-324`; `apps/app/components/notifications/bell.tsx:179,191-198` |
-| 12 | **`/feeds`'s `StatusDot` no longer reuses provenance tokens** for Active/Paused; it now uses `success`/`warning-container`. **The identical `StatusDot` on `/feeds/[feedId]` was not fixed** and still uses the sage/lavender provenance tokens. This was previously recorded as fully resolved; it is only half-resolved. | S-13, S-14 | `apps/app/components/feed/feed-table.tsx:376-389` (fixed) vs. `feed-detail.tsx:508-521` (not fixed) |
+| 12 | **Feed lifecycle status now uses one shared `FeedStatusDot`** across `/feeds` and `/feeds/[feedId]`, with `success`/`warning-container` rather than provenance colours. | S-13, S-14 | `apps/app/components/feed/feed-status-dot.tsx` |
 | 13 | **`/feeds` gained a Search/Status/Privacy filter bar.** | S-13 | `apps/app/app/(authenticated)/feeds/feed-filter-bar.tsx` |
 | 14 | **`/feeds/[feedId]`'s Rotate/Archive are confirmed genuine `AlertDialog` confirmation modals**, and token rotation history is now rendered (both were previously flagged as gaps or unconfirmed). | S-14 | `apps/app/components/feed/feed-detail.tsx:252-272,321-380` |
 | 15 | **`/analytics/leave-reports` and `/analytics/out-of-office` both gained a working date-range preset selector** (`AnalyticsFilters`, presets plus custom range). Previously the date range was fully hardcoded with no filter UI. | S-15, S-16 | `apps/app/app/(authenticated)/analytics/analytics-filters.tsx`; `packages/availability/src/analytics/date-range-options.ts` |
@@ -71,7 +71,7 @@ Status definitions: `Matches`, `Drifted` (exists but differs from catalogue), `U
 | S-11 | Public holidays | `/public-holidays` | Drifted | Client-side role hiding for mutating controls now implemented; "Refresh from source" still has no UI trigger anywhere. |
 | S-12 | Notifications | `/notifications` | Matches | All three prior gaps resolved: duplicate SSE connection fixed, reconnecting indicator added, bell badge uses the `destructive` token. |
 | S-13 | Feeds | `/feeds` | Drifted | Status-dot colours correctly resolved on this screen; new Search/Status/Privacy filter bar undocumented. |
-| S-14 | Feed detail | `/feeds/[feedId]` | Drifted | Rotate/Archive confirmed as modals and token history now rendered (two proposals resolved); a separate `StatusDot` on this screen still has the unresolved provenance-token-reuse bug. |
+| S-14 | Feed detail | `/feeds/[feedId]` | Matches | Complete subscribe URL, token history, public-holiday inclusion, and semantic lifecycle status are rendered. |
 | S-15 | Leave reports | `/analytics/leave-reports` | Drifted | Date-range preset/custom-range UI now fully built, contradicting the prior "no filter UI" claim; CSV export silently ignores the selected range. |
 | S-16 | Out-of-office analytics | `/analytics/out-of-office` | Drifted | Same date-range UI addition as S-15; chart/variable-naming findings otherwise unchanged. |
 | S-17 | Settings: General | `/settings/general` | Matches | No drift found. |
@@ -519,18 +519,18 @@ Spot-checked guard literals for S-03, S-10, S-17, S-22, S-27 against live `requi
 
 **Purpose:** List all ICS feeds with subscription URLs and setup instructions.
 
-**User interactions, as-built:** "How to subscribe" is a single accordion with six client-specific items (Outlook desktop, Outlook web, Google Calendar, Apple Calendar macOS/iOS, Generic ICS), not per-client tabs. "Copy URL" shows "Rotate to get a new link: subscribe URLs are only shown right after creation or rotation." when no plaintext token is cached, and redirects to the rotate panel. **New, undocumented at the last pass:** a `FeedFilterBar` with Search (name), Status (Active+paused/Active/Paused/Archived), and Privacy (All/Named/Masked/Private) selects, round-tripping through URL search params. Rotate and Archive are genuine `AlertDialog` confirmation modals, not inline banners.
+**User interactions, as-built:** "How to subscribe" is a single accordion with six client-specific items (Outlook desktop, Outlook web, Google Calendar, Apple Calendar macOS/iOS, Generic ICS), not per-client tabs. Every visible feed shows its complete, selectable subscribe URL with a direct Copy URL action. A `FeedFilterBar` with Search (name), Status (Active+paused/Active/Paused/Archived), and Privacy (All/Named/Masked/Private) selects, round-tripping through URL search params. Rotate and Archive are genuine `AlertDialog` confirmation modals, not inline banners.
 
 **Role variations:** `canManage` (admin/owner) unlocks Pause/Resume/Rotate/Archive and "New feed"; everyone else sees a read-only list scoped by `canViewFeed`.
 
-**Data displayed:** Per feed: name, description, status dot (Active = `bg-success`, Paused = `bg-warning-container`, Archived = muted: confirmed correctly resolved on this screen), privacy badge, scope summary, masked token hint, plus the new filter row.
+**Data displayed:** Per feed: name, description, status dot (Active = `bg-success`, Paused = `bg-warning-container`, Archived = muted: confirmed correctly resolved on this screen), privacy badge, scope summary, complete subscribe URL, plus the new filter row. Calendar feed URLs must never be masked, truncated, hashed, or replaced with a token hint.
 
 **States:** Empty: "No feeds yet"; "Create feed" CTA shown only to `canManage`.
 
 **Design requirements:** Feed cards and filter bar use `rounded-2xl` (16px) throughout.
 
 **`[v5 proposal]` interaction improvements:**
-- Feed status tone: **resolved on this screen** (`bg-success`/`bg-warning-container`), but see S-14 below: the same `StatusDot` component on the detail page was not fixed.
+- Feed status tone: **resolved** through the shared `FeedStatusDot` (`bg-success`/`bg-warning-container`) used by list and detail views.
 - ~~Copy-URL-with-no-token-cached message should suggest rotating.~~ **Done.**
 
 ---
@@ -539,19 +539,19 @@ Spot-checked guard literals for S-03, S-10, S-17, S-22, S-27 against live `requi
 
 **Route:** `/feeds/[feedId]` (full page + `@modal` intercept, wide).
 **Guard:** No page-level `requirePageRole`. Visibility is scope-based via `canViewFeed`: admin/owner always see all feeds; a viewer/manager with no linked person record sees none; a linked person sees only feeds within scope; anyone outside scope gets a generic 404, not a permission-denied message.
-**Evidence:** `apps/app/app/(authenticated)/feeds/[feedId]/page.tsx`; `packages/feeds/src/scope/feed-scope.ts:271-310`; `apps/app/components/feed/{feed-detail,one-time-token-panel}.tsx`.
+**Evidence:** `apps/app/app/(authenticated)/feeds/[feedId]/page.tsx`; `packages/feeds/src/scope/feed-scope.ts:271-310`; `apps/app/components/feed/{feed-detail,subscribe-url-field}.tsx`.
 
 **Purpose:** Full feed configuration, token management, and preview.
 
-**User interactions, as-built:** "Rotate token" and "Archive feed" are confirmed genuine `AlertDialog` modals, not inline confirmation banners. "Show URL"/"Hide URL" still only reveals the masked hint; the real one-time subscribe URL only appears via `OneTimeTokenPanel` right after create/rotate. Preview tabs: admin/owner see Named/Masked/Private; everyone else sees only their own configured mode, server-enforced. **Token rotation history is now rendered**: `FeedDetail` shows a "Token history" panel listing each token's masked id suffix, status badge, and created date, sourced from `getFeedDetail`'s `tokenHistory` field. This was previously flagged as dead data never reaching the component; it is now wired up.
+**User interactions, as-built:** "Rotate token" and "Archive feed" are confirmed genuine `AlertDialog` modals, not inline confirmation banners. The complete active subscribe URL is always visible and copyable to authorised viewers; rotation replaces it immediately. Preview tabs: admin/owner see Named/Masked/Private; everyone else sees only their own configured mode, server-enforced. `FeedDetail` shows a "Token history" panel listing each token's masked id suffix, status badge, and created date, sourced from `getFeedDetail`'s `tokenHistory` field.
 
 **Role variations:** `canManage` unlocks Rotate/Pause/Resume/Archive/Edit and all three preview modes; scoped viewers/managers get read-only detail plus their single privacy-mode preview.
 
-**Data displayed:** Feed name, scope, privacy mode, "Active token: xxxx{hint}, created {date}" or "No active token", plus the now-rendered token history. Token status enum remains `active | expired | revoked`, no "Expiring" state. The `includesPublicHolidays` field exists on the detail type but no render of it was found anywhere in the component's JSX: flagged for a follow-up check, not fully chased down this pass.
+**Data displayed:** Feed name, scope, privacy mode, complete active subscribe URL, token creation and last-used dates, public-holiday inclusion, and token history. Token status enum remains `active | expired | revoked`, no "Expiring" state.
 
 **States:** Preview empty: "No upcoming events. Your feed will update automatically when leave or availability is added."
 
-**Design requirements:** `rounded-2xl` modal shell, spec-correct. **The `StatusDot` on this screen still reuses the sage/lavender provenance tokens** (`statusToneClasses.leave`/`.holiday`) for Active/Paused: the same tokens used for Xero-leave and public-holiday chips elsewhere. This is a separately-implemented copy of the component that S-13's fix did not reach; the prior "resolved" note applied only to `feed-table.tsx`. See Conflicts found.
+**Design requirements:** `rounded-2xl` modal shell, spec-correct. Lifecycle status uses the same shared semantic status component as the feed list.
 
 **`[v5 proposal]` interaction improvements:**
 - 404-vs-permission-denied for out-of-scope feeds. **Still open.**
@@ -906,7 +906,7 @@ No new full screens are proposed. Every functional gap surfaced in this and the 
 | 5 | **S-14 route is `/feeds/[feedId]`** | The singular `/feed/[feedId]` variant is retired. | S-14 | **Confirmed**, unchanged. |
 | 6 | **S-02's `embeddedAuthAppearance` question** | Whether the Clerk appearance API applies to `TaskChooseOrganization`. | S-02 | **Resolved this pass: no.** Confirmed by direct code inspection: no `appearance` prop is passed. |
 | 7 | **Legacy redirect query-param preservation** | Whether non-`org` params should be forwarded. | Legacy redirects, S-05 | **Resolved this pass: yes, implemented.** All six shims now forward every param. |
-| 8 | **Feed status colour tokens** | Whether `/feeds` should stop reusing provenance tokens for lifecycle status. | S-13, S-14 | **Resolved on S-13 only.** S-14's separate `StatusDot` implementation was not updated: see Conflicts found. |
+| 8 | **Feed status colour tokens** | Whether `/feeds` should stop reusing provenance tokens for lifecycle status. | S-13, S-14 | **Resolved.** Both views use the shared semantic `FeedStatusDot`. |
 | 9 | **Sync manual dispatch wiring** | Whether all four sync job types should be dispatchable from the UI. | S-25, S-26 | **Resolved this pass: yes.** All four registered and wired; re-run enabled for every run type. |
 | 10 | **`/notifications` SSE and reconnection UX** | Duplicate connection, missing reconnect indicator, raw-colour badge. | S-12 | **Resolved this pass**, all three items. |
 
@@ -920,7 +920,7 @@ Numbered independently of the change table above for cross-reference clarity.
 
 2. **Frost and backdrop blur remain almost entirely unimplemented.** `DESIGN.md` mandates frost fill plus blur on every elevated transient surface, with opaque fallbacks and `prefers-reduced-transparency` handling. Confirmed still only the sticky header uses `backdrop-blur`, and even that instance lacks full reduced-transparency handling. `Dialog`, `Popover`, `Sheet`, `DropdownMenu`, `Command`, and the toast primitive were not re-confirmed this pass but nothing surfaced to contradict the prior "zero blur elsewhere" finding. **Recommended rule:** close the gap in `packages/design-system`'s shared primitives; this is a code change outside a documentation pass's scope.
 
-3. **`/feeds/[feedId]`'s `StatusDot` still reuses provenance tokens for lifecycle status**, even though the identical component on `/feeds` (list view) was fixed. Two independently-implemented copies of the same visual concept diverged. **Recommended rule:** extract a single shared `FeedStatusDot` component so the fix can't apply to only one call site again.
+3. ~~**`/feeds/[feedId]`'s lifecycle status reused provenance tokens.**~~ **Resolved:** list and detail views now share `FeedStatusDot`, so lifecycle colours cannot drift between the two surfaces.
 
 4. **Withdraw location.** The carried-forward "Resolved decision" #3 places withdraw on S-09 and S-10; code implements it only on `/plans`, re-confirmed this pass. **Recommended rule:** update the decision to reflect `/plans` as the sole withdraw surface, or treat this as a real product gap. See Decisions required.
 

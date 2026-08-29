@@ -1,5 +1,7 @@
 import type { EmployeeDashboardView } from "@repo/availability";
 import { ActionItemsCard } from "./action-items-card";
+import { buildPersonalCalendarTimeline } from "./ambient-calendar-data";
+import { AmbientCalendarField } from "./ambient-calendar-field";
 import { BalancesCard } from "./balances-card";
 import {
   DashboardScaffold,
@@ -7,8 +9,6 @@ import {
 } from "./dashboard-scaffold";
 import { NextPublicHolidayCard } from "./next-public-holiday-card";
 import { QuickActionsCard } from "./quick-actions-card";
-import { TodayStatusCard } from "./today-status-card";
-import { UpcomingRecordsCard } from "./upcoming-records-card";
 import { XeroDisconnectedBanner } from "./xero-disconnected-banner";
 
 interface EmployeeViewProps {
@@ -23,6 +23,10 @@ export function EmployeeView({
   personId,
 }: EmployeeViewProps) {
   const xero = view.header.hasActiveXeroConnection;
+  const timeline = buildPersonalCalendarTimeline(view, {
+    now: new Date(),
+    timezone: view.header.timezone ?? "Australia/Brisbane",
+  });
 
   return (
     <DashboardScaffold
@@ -34,22 +38,15 @@ export function EmployeeView({
           />
         )
       }
+      feature={
+        <AmbientCalendarField model={timeline} orgQueryValue={orgQueryValue} />
+      }
       header={toDashboardHeaderProps(view.header)}
       lead={
-        <>
-          <ActionItemsCard
-            orgQueryValue={orgQueryValue}
-            state={view.actionItems}
-          />
-          <TodayStatusCard
-            orgQueryValue={orgQueryValue}
-            state={view.todayStatus}
-          />
-          <UpcomingRecordsCard
-            orgQueryValue={orgQueryValue}
-            state={view.upcoming}
-          />
-        </>
+        <ActionItemsCard
+          orgQueryValue={orgQueryValue}
+          state={view.actionItems}
+        />
       }
       rail={
         <>

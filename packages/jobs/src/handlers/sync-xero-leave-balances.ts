@@ -561,7 +561,7 @@ async function ensureTenantReady(
   if (!freshness.ok) {
     await completeRun(context, runId, {
       counts: emptyCounts(),
-      errorSummary: "Xero connection not active",
+      errorSummary: freshness.error.message,
       status: "failed",
     });
     return {

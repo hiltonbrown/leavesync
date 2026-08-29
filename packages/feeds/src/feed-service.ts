@@ -28,6 +28,7 @@ import { scopedFeed } from "./scope/scoped-feed";
 import {
   type ActiveTokenHint,
   createInitialTokenWithClient,
+  createSignedFeedToken,
   type TokenDisclosure,
   type TokenHistoryItem,
 } from "./tokens/token-service";
@@ -53,6 +54,7 @@ export interface FeedListItem {
   scopeCount: number;
   scopeSummary: string;
   status: feed_status;
+  subscribeUrl: string | null;
 }
 
 export interface FeedDetail {
@@ -64,12 +66,12 @@ export interface FeedDetail {
   includesPublicHolidays: boolean;
   lastEtag: string | null;
   lastRenderedAt: Date | null;
-  maskedSubscribeUrl: string;
   name: string;
   privacyMode: availability_privacy_mode;
   scopeSummary: string;
   scopes: ResolvedFeedScope[];
   status: feed_status;
+  subscribeUrl: string | null;
   tokenHistory: TokenHistoryItem[];
   updatedAt: Date;
 }
@@ -667,6 +669,7 @@ export async function listFeeds(
           labels.ok ? labels.value : undefined
         ),
         status: feed.status,
+        subscribeUrl: activeSubscribeUrl(feed.tokens),
       });
     }
     return { ok: true, value: visibleItems };
@@ -739,12 +742,12 @@ export async function getFeedDetail(
         includesPublicHolidays: feed.includes_public_holidays,
         lastEtag: feed.last_etag,
         lastRenderedAt: feed.last_rendered_at,
-        maskedSubscribeUrl: maskedSubscribeUrl(activeToken(feed.tokens)?.hint),
         name: feed.name,
         privacyMode: feed.privacy_mode,
         scopeSummary: scopeSummary(scopes, resolvedScopes.value),
         scopes: resolvedScopes.value,
         status: feed.status,
+        subscribeUrl: activeSubscribeUrl(feed.tokens),
         tokenHistory: feed.tokens.slice(0, 5).map(toTokenHistoryItem),
         updatedAt: feed.updated_at,
       },
@@ -964,8 +967,18 @@ async function feedNotFound(input: {
 
 const TRAILING_SLASH_PATTERN = /\/$/;
 
-function maskedSubscribeUrl(hint?: string): string {
-  // The masked URL must reflect the API origin that serves /ical/:token.ics.
+function activeSubscribeUrl(tokens: TokenRow[]): string | null {
+  const token = tokens.find((candidate) => candidate.status === "active");
+  if (!token) {
+    return null;
+  }
+  return buildFeedSubscribeUrl(
+    createSignedFeedToken({ tokenHash: token.token_hash, tokenId: token.id })
+  );
+}
+
+export function buildFeedSubscribeUrl(token: string): string {
+  // The URL must reflect the API origin that serves /ical/:token.ics.
   // There is no safe hardcoded default, so require the origin to be
   // configured rather than surfacing a wrong or stale host.
   const origin =
@@ -975,7 +988,7 @@ function maskedSubscribeUrl(hint?: string): string {
       "NEXT_PUBLIC_API_URL must be configured to build feed subscribe URLs."
     );
   }
-  return `${origin.replace(TRAILING_SLASH_PATTERN, "")}/ical/${hint ? `••••${hint}` : "••••"}.ics`;
+  return `${origin.replace(TRAILING_SLASH_PATTERN, "")}/ical/${token}.ics`;
 }
 
 function emptyToNull(value: string | null | undefined): string | null {
@@ -1054,6 +1067,7 @@ const tokenSelect = {
   revoked_at: true,
   rotated_from_token_id: true,
   status: true,
+  token_hash: true,
   token_hint: true,
 } satisfies Prisma.FeedTokenSelect;
 

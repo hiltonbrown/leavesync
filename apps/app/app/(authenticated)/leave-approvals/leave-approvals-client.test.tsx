@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LeaveApprovalsClient } from "./leave-approvals-client";
 
 const mocks = vi.hoisted(() => ({
-  dispatchApprovalReconciliationAction: vi.fn(),
+  dispatchXeroLeaveSyncAction: vi.fn(),
   refresh: vi.fn(),
   retryApprovalAction: vi.fn(),
   retryDeclineAction: vi.fn(),
@@ -36,8 +36,7 @@ vi.mock("@repo/design-system/components/ui/sonner", () => ({
 vi.mock("./_actions", () => ({
   approveAction: vi.fn(),
   declineAction: vi.fn(),
-  dispatchApprovalReconciliationAction:
-    mocks.dispatchApprovalReconciliationAction,
+  dispatchXeroLeaveSyncAction: mocks.dispatchXeroLeaveSyncAction,
   requestMoreInfoAction: vi.fn(),
   retryApprovalAction: mocks.retryApprovalAction,
   retryDeclineAction: mocks.retryDeclineAction,
@@ -51,7 +50,7 @@ const APPROVAL_ROW_NAME = /Ari Report.*Annual Leave/i;
 describe("LeaveApprovalsClient", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.dispatchApprovalReconciliationAction.mockResolvedValue({
+    mocks.dispatchXeroLeaveSyncAction.mockResolvedValue({
       ok: true,
       value: { queued: true },
     });
@@ -89,23 +88,21 @@ describe("LeaveApprovalsClient", () => {
     ).toBeDefined();
   });
 
-  it("enables reconciliation for authorised users and confirms dispatch", async () => {
+  it("enables inbound Xero leave sync for authorised users and confirms dispatch", async () => {
     renderClient();
 
-    const reconcile = screen.getByRole("button", {
-      name: "Sync approval state",
+    const sync = screen.getByRole("button", {
+      name: "Sync Xero leave",
     });
-    expect((reconcile as HTMLButtonElement).disabled).toBe(false);
+    expect((sync as HTMLButtonElement).disabled).toBe(false);
 
-    fireEvent.click(reconcile);
+    fireEvent.click(sync);
 
     await waitFor(() => {
-      expect(mocks.dispatchApprovalReconciliationAction).toHaveBeenCalledWith({
+      expect(mocks.dispatchXeroLeaveSyncAction).toHaveBeenCalledWith({
         organisationId,
       });
-      expect(mocks.toastSuccess).toHaveBeenCalledWith(
-        "Approval reconciliation queued"
-      );
+      expect(mocks.toastSuccess).toHaveBeenCalledWith("Xero leave sync queued");
     });
   });
 

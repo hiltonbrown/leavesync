@@ -730,7 +730,7 @@ async function ensureTenantReady(
   if (!freshness.ok) {
     await completeRun(context, runId, {
       counts: emptyCounts(),
-      errorSummary: "Xero connection not active",
+      errorSummary: freshness.error.message,
       status: "failed",
     });
     return {
@@ -1148,10 +1148,6 @@ async function archiveStaleRecords(
   startedAt: Date,
   personId?: string
 ): Promise<{ archived: number; personIds: string[] }> {
-  if (!personId && fetchedRemoteIds.length === 0) {
-    return { archived: 0, personIds: [] };
-  }
-
   const stalePredicate = {
     ...scoped(context),
     archived_at: null,
@@ -1309,8 +1305,19 @@ function validateLeaveRecord(
   if (!leaveRecord.leaveTypeId.trim()) {
     return { message: "Leave type is required", valid: false };
   }
-  if (leaveRecord.units <= 0) {
-    return { message: "Leave units must be greater than zero", valid: false };
+  if (leaveRecord.units < 0) {
+    return { message: "Leave units must not be negative", valid: false };
+  }
+  if (
+    leaveRecord.units === 0 &&
+    (leaveRecord.status === "APPROVED" ||
+      leaveRecord.status === "SUBMITTED" ||
+      leaveRecord.status === "UNKNOWN")
+  ) {
+    return {
+      message: "Active leave units must be greater than zero",
+      valid: false,
+    };
   }
   return { valid: true };
 }

@@ -1,3 +1,4 @@
+import { executeWithXeroAuthRecovery } from "../adapter/auth-recovery";
 import {
   approveLeaveApplication as approveAuLeaveApplication,
   declineLeaveApplication as declineAuLeaveApplication,
@@ -31,64 +32,88 @@ export async function submitLeaveApplicationForRegion(
 ): Promise<
   XeroWriteResult<{ rawResponse: unknown; xeroLeaveApplicationId: string }>
 > {
-  switch (payrollRegion) {
-    case "AU":
-      return await submitAuLeaveApplication(input);
-    case "NZ":
-      return await submitNzLeaveApplication(input);
-    case "UK":
-      return await submitUkLeaveApplication(input);
-    default:
-      return unsupportedRegion();
-  }
+  return await executeWithXeroAuthRecovery(
+    input.xeroTenant,
+    async (xeroTenant) => {
+      const nextInput = { ...input, xeroTenant };
+      switch (payrollRegion) {
+        case "AU":
+          return await submitAuLeaveApplication(nextInput);
+        case "NZ":
+          return await submitNzLeaveApplication(nextInput);
+        case "UK":
+          return await submitUkLeaveApplication(nextInput);
+        default:
+          return unsupportedRegion();
+      }
+    }
+  );
 }
 
 export async function approveLeaveApplicationForRegion(
   payrollRegion: PayrollRegion | string,
   input: ApproveLeaveApplicationInput
 ): Promise<XeroWriteResult<{ rawResponse: unknown }>> {
-  switch (payrollRegion) {
-    case "AU":
-      return await approveAuLeaveApplication(input);
-    case "NZ":
-      return await approveNzLeaveApplication(input);
-    case "UK":
-      return await approveUkLeaveApplication(input);
-    default:
-      return unsupportedRegion();
-  }
+  return await executeWithXeroAuthRecovery(
+    input.xeroTenant,
+    async (xeroTenant) => {
+      const nextInput = { ...input, xeroTenant };
+      switch (payrollRegion) {
+        case "AU":
+          return await approveAuLeaveApplication(nextInput);
+        case "NZ":
+          return await approveNzLeaveApplication(nextInput);
+        case "UK":
+          return await approveUkLeaveApplication(nextInput);
+        default:
+          return unsupportedRegion();
+      }
+    }
+  );
 }
 
 export async function declineLeaveApplicationForRegion(
   payrollRegion: PayrollRegion | string,
   input: DeclineLeaveApplicationInput
 ): Promise<XeroWriteResult<{ rawResponse: unknown }>> {
-  switch (payrollRegion) {
-    case "AU":
-      return await declineAuLeaveApplication(input);
-    case "NZ":
-      return await declineNzLeaveApplication(input);
-    case "UK":
-      return await declineUkLeaveApplication(input);
-    default:
-      return unsupportedRegion();
-  }
+  return await executeWithXeroAuthRecovery(
+    input.xeroTenant,
+    async (xeroTenant) => {
+      const nextInput = { ...input, xeroTenant };
+      switch (payrollRegion) {
+        case "AU":
+          return await declineAuLeaveApplication(nextInput);
+        case "NZ":
+          return await declineNzLeaveApplication(nextInput);
+        case "UK":
+          return await declineUkLeaveApplication(nextInput);
+        default:
+          return unsupportedRegion();
+      }
+    }
+  );
 }
 
 export async function withdrawLeaveApplicationForRegion(
   payrollRegion: PayrollRegion | string,
   input: WithdrawLeaveApplicationInput
 ): Promise<XeroWriteResult<{ rawResponse: unknown }>> {
-  switch (payrollRegion) {
-    case "AU":
-      return await withdrawAuLeaveApplication(input);
-    case "NZ":
-      return await withdrawNzLeaveApplication(input);
-    case "UK":
-      return await withdrawUkLeaveApplication(input);
-    default:
-      return unsupportedRegion();
-  }
+  return await executeWithXeroAuthRecovery(
+    input.xeroTenant,
+    async (xeroTenant) => {
+      const nextInput = { ...input, xeroTenant };
+      switch (payrollRegion) {
+        case "AU":
+          return await withdrawAuLeaveApplication(nextInput);
+        case "NZ":
+          return await withdrawNzLeaveApplication(nextInput);
+        case "UK":
+          return await withdrawUkLeaveApplication(nextInput);
+        default:
+          return unsupportedRegion();
+      }
+    }
+  );
 }
 
 function unsupportedRegion(): XeroWriteResult<never> {

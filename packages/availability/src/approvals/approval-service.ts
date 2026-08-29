@@ -784,11 +784,26 @@ export function dispatchApprovalReconciliation(
     return Promise.resolve(notAuthorised());
   }
 
-  return dispatchApprovalReconciliationInternal(parsed.data);
+  return dispatchXeroSyncInternal(parsed.data, "approval_state_reconciliation");
 }
 
-async function dispatchApprovalReconciliationInternal(
-  input: DispatchInput
+export function dispatchXeroLeaveSync(
+  input: z.input<typeof DispatchSchema>
+): Promise<Result<{ queued: boolean; reason?: string }, ApprovalServiceError>> {
+  const parsed = DispatchSchema.safeParse(input);
+  if (!parsed.success) {
+    return Promise.resolve(validationError(parsed.error));
+  }
+  if (!(parsed.data.role === "admin" || parsed.data.role === "owner")) {
+    return Promise.resolve(notAuthorised());
+  }
+
+  return dispatchXeroSyncInternal(parsed.data, "leave_records");
+}
+
+async function dispatchXeroSyncInternal(
+  input: DispatchInput,
+  runType: "approval_state_reconciliation" | "leave_records"
 ): Promise<Result<{ queued: boolean; reason?: string }, ApprovalServiceError>> {
   const tenant = await database.xeroTenant.findFirst({
     orderBy: { created_at: "asc" },
@@ -812,7 +827,7 @@ async function dispatchApprovalReconciliationInternal(
   const dispatched = await dispatchSyncEvent({
     clerkOrgId: input.clerkOrgId,
     organisationId: input.organisationId,
-    runType: "approval_state_reconciliation",
+    runType,
     triggeredByUserId: input.actingUserId,
     triggerType: "manual",
     xeroTenantId: tenant.id,

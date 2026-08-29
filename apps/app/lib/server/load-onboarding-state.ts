@@ -186,7 +186,7 @@ export async function loadOnboardingState({
       ctaHref: "/feeds",
       ctaLabel: hasFeeds ? "View default feed" : "Create feed",
       description: hasFeeds
-        ? "Your default all-staff feed is ready. Rotate its token when you need to copy a fresh subscribe URL."
+        ? "Your default all-staff feed is ready. Open it whenever you need to copy its subscribe URL."
         : "Create an ICS feed manually if this organisation does not have a default feed available.",
       id: "feed",
       status: statusForRequiredStep("feed", hasFeeds, nextRequiredId),

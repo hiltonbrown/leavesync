@@ -14,6 +14,7 @@ export {
   type PendingXeroSessionOrganisation,
   type PendingXeroSessionTenant,
   refreshXeroOAuthConnection,
+  scrubInactiveXeroOAuthSessionCredentials,
   type XeroConnectionRefreshDecision,
   type XeroOAuthError,
   xeroConnectionRefreshDecision,

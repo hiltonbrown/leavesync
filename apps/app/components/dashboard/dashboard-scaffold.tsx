@@ -5,6 +5,7 @@ import { DashboardHeader } from "./dashboard-header";
 
 interface DashboardScaffoldProps {
   banner?: ReactNode;
+  feature?: ReactNode;
   header: {
     name: string;
     roleLabel: string;
@@ -21,6 +22,7 @@ interface DashboardScaffoldProps {
  */
 export function DashboardScaffold({
   banner,
+  feature,
   header,
   lead,
   rail,
@@ -33,6 +35,7 @@ export function DashboardScaffold({
         subtitle={header.subtitle}
       />
       {banner}
+      {feature}
       <DashboardGrid lead={lead} rail={rail} />
     </div>
   );

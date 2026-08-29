@@ -49,22 +49,33 @@ const FeedPage = async ({ searchParams }: FeedPageProps) => {
     role === "org:admin" ||
     role === "org:owner";
 
-  const feedsResult = user
-    ? await listFeeds({
-        actingRole: role,
-        actingUserId: user.id,
-        clerkOrgId,
-        filters,
-        organisationId,
-        pagination: { cursor: filters.cursor, pageSize: 50 },
-      })
-    : {
-        error: {
-          code: "not_authorised" as const,
-          message: "You must be signed in to view feeds.",
-        },
-        ok: false as const,
-      };
+  const unauthorisedResult = {
+    error: {
+      code: "not_authorised" as const,
+      message: "You must be signed in to view feeds.",
+    },
+    ok: false as const,
+  };
+  const [feedsResult, subscriptionFeedsResult] = user
+    ? await Promise.all([
+        listFeeds({
+          actingRole: role,
+          actingUserId: user.id,
+          clerkOrgId,
+          filters,
+          organisationId,
+          pagination: { cursor: filters.cursor, pageSize: 50 },
+        }),
+        listFeeds({
+          actingRole: role,
+          actingUserId: user.id,
+          clerkOrgId,
+          filters: { status: ["active"] },
+          organisationId,
+          pagination: { pageSize: 50 },
+        }),
+      ])
+    : [unauthorisedResult, unauthorisedResult];
   let content = <FetchErrorState entityName="feeds" />;
   if (feedsResult.ok && feedsResult.value.length === 0) {
     content = (
@@ -99,15 +110,12 @@ const FeedPage = async ({ searchParams }: FeedPageProps) => {
       <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
         <section className="flex flex-col justify-between gap-4 rounded-2xl bg-muted p-6 lg:flex-row lg:items-end">
           <div>
-            <p className="font-medium text-muted-foreground text-xs uppercase tracking-widest">
-              Calendar publishing
-            </p>
-            <h1 className="mt-1 font-semibold text-foreground text-headline-md">
+            <h1 className="font-semibold text-foreground text-headline-md">
               Feeds
             </h1>
             <p className="mt-2 max-w-2xl text-muted-foreground text-sm">
-              Publish approved availability to subscribed calendars. Subscribe
-              URLs are only shown when a token is created or rotated.
+              Publish approved availability to subscribed calendars. Each feed
+              has a subscribe URL you can view and copy whenever you need it.
             </p>
           </div>
           {canManage ? (
@@ -117,7 +125,24 @@ const FeedPage = async ({ searchParams }: FeedPageProps) => {
           ) : null}
         </section>
 
-        <SubscribeInstructions />
+        <SubscribeInstructions
+          feeds={
+            subscriptionFeedsResult.ok
+              ? subscriptionFeedsResult.value.flatMap((feed) =>
+                  feed.subscribeUrl
+                    ? [
+                        {
+                          id: feed.id,
+                          name: feed.name,
+                          subscribeUrl: feed.subscribeUrl,
+                        },
+                      ]
+                    : []
+                )
+              : []
+          }
+          hasLoadError={!subscriptionFeedsResult.ok}
+        />
 
         <FeedFilterBar
           privacyMode={filters.privacyMode ?? []}

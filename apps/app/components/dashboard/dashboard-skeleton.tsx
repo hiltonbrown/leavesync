@@ -21,6 +21,7 @@ export function DashboardSkeleton() {
         <Block className="h-8 w-44" />
         <Block className="h-4 w-60" />
       </div>
+      <Block className="h-72 rounded-2xl" />
       <DashboardGrid
         lead={
           <>

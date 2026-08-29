@@ -56,7 +56,9 @@ vi.mock("@/components/calendar/calendar-scan-panel", () => ({
   CalendarScanPanel: () => <div>Today in view</div>,
 }));
 vi.mock("@/components/calendar/calendar-timeline", () => ({
-  CalendarTimeline: () => <div>Coverage timeline</div>,
+  CalendarTimeline: () => (
+    <section aria-label="Calendar">Calendar surface</section>
+  ),
 }));
 vi.mock("@/components/calendar/calendar-day-view", () => ({
   CalendarDayView: () => <div>Day view</div>,
@@ -104,7 +106,8 @@ describe("CalendarPage", () => {
         scope: { type: "my_self" },
       })
     );
-    expect(screen.getByText("Week view")).toBeDefined();
+    expect(screen.getByRole("region", { name: "Calendar" })).toBeDefined();
+    expect(screen.queryByText("Today in view")).toBeNull();
   });
 
   it("uses admin default scope all_teams", async () => {
@@ -126,13 +129,26 @@ describe("CalendarPage", () => {
     expect(screen.getByText(XERO_NOT_CONNECTED_COPY)).toBeDefined();
   });
 
-  it("shows coverage instead of the calendar canvas when selected", async () => {
+  it("normalises the legacy coverage URL to the integrated runway", async () => {
     render(
       await Page({ searchParams: Promise.resolve({ surface: "coverage" }) })
     );
 
-    expect(screen.getByText("Coverage timeline")).toBeDefined();
+    expect(screen.getByRole("region", { name: "Calendar" })).toBeDefined();
     expect(screen.queryByText("Week view")).toBeNull();
+  });
+
+  it("preserves the focused day view with scan context", async () => {
+    mocks.getCalendarRange.mockResolvedValue({
+      ok: true,
+      value: { ...calendarRange(), view: "day" },
+    });
+
+    render(await Page({ searchParams: Promise.resolve({ view: "day" }) }));
+
+    expect(screen.getByText("Day view")).toBeDefined();
+    expect(screen.getByText("Today in view")).toBeDefined();
+    expect(screen.queryByRole("region", { name: "Calendar" })).toBeNull();
   });
 
   it("renders FetchErrorState on loader failure", async () => {

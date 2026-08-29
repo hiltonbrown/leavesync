@@ -1,70 +1,82 @@
 # Lessons
 
-## Repo conventions inferred during the finalisation audit (2026-06)
+This file records reusable patterns learned from user corrections and verified
+failures. Canonical product, architecture, security, and design rules belong in
+`PRODUCT.md`, `AGENTS.md`, `SECURITY.md`, and `DESIGN.md`. Keep each lesson
+actionable; keep one-off task evidence in the review for that task.
 
-- When starting persistent dev servers for smoke checks, always stop every
-  spawned app before handing back. Check `lsof -iTCP:3000-3003` or equivalent
-  host process state after `bun run dev` verification. Leaving app/web/api/email
-  listeners running causes the user's next `bun run dev` to fail with
-  `EADDRINUSE`.
-- The dev/integration database is built with `db push` (schema-direct), not
-  `migrate deploy`. The migration history has drifted from `schema.prisma`: several
-  tables and columns exist only in the schema. Always diff migration `CREATE TABLE`
-  names against `schema.prisma` `@@map` names before claiming the schema is shippable.
-  Treat `migrate:deploy` (the documented production command) as the source of truth for
-  launch readiness, not `db push`.
-- Tenant isolation is enforced through `scopedQuery(clerkOrgId, organisationId)` in
-  `packages/database/src/tenant-query.ts`. New tenant-scoped queries should compose this
-  helper. Writes (`update`/`delete`) on tenant tables should also carry both IDs in the
-  `where` clause even when keyed by a unique id (Prisma extended-where supports this).
-- The "optional env var must be absent, not empty string" rule applies to env Zod
-  schemas only (`packages/*/keys.ts`). Prisma column `@default("")` and Zod field
-  `.default("")` are not env vars and are out of scope for that rule.
-- Em-dash / Australian-English rules target shippable surfaces (code, UI copy, comments,
-  product docs). Agent-instruction files (CLAUDE/AGENTS/GEMINI) and vendored
-  `skills/next-forge/*` are governance/template material; flag rather than silently edit.
-- `packages/analytics` is in use and is NOT on the forbidden-package list. `/webhooks`
-  in `apps/api` is a Clerk user webhook (svix), unrelated to the forbidden
-  `@repo/webhooks` package.
-- Xero access tokens are short-lived (~30 min). Any sync/write path must refresh
-  proactively; `connectionActive` only checks expiry, it does not refresh.
-- After merging executor branches, check `git worktree list --porcelain`,
-  `git branch -vv`, and `git branch --no-merged main` before declaring the repo
-  tidy. A clean merge can still leave an auxiliary worktree checked out on an
-  already-merged branch, which looks suspicious to the user even when the branch is
-  contained in `main`.
-- Treat `git fsck` dangling objects as normal unless it reports missing or corrupt
-  objects. Do not present dangling commits/blobs from prior rebases or abandoned
-  work as repository corruption.
+## Product and design
 
-## CI debugging patterns (2026-08)
+- Keep internal design-direction names out of product chrome. User-facing
+  surface titles should use the established route or product name unless the
+  user explicitly approves a rename.
+- Make time the primary axis in calendar visualisations. Anchor today, preserve
+  chronological order at every viewport, and use atmosphere, intensity, and
+  provenance as supporting signals.
+- Put the decision signal on the timeline axis itself. For team coverage, show
+  known unavailable counts and peak thresholds in each date column; do not hide
+  them only in the selected-day detail or imply that unreported days mean zero.
+- Do not silently restyle vendored or governance files solely to satisfy product
+  language or presentation rules. Flag the difference and change the canonical
+  source when appropriate.
 
-- Registration tests that load an entire function registry should perform the
-  expensive module initialisation once at file setup, after mocks are declared,
-  rather than repeating dynamic imports inside a test's default five-second
-  timeout. A locally fast cached import is not evidence that the test is stable
-  under contended CI workers.
-- Before opening or handing off a PR, run the production build from a clean
-  generated-file state. `next.config.ts` is evaluated before Next generates
-  app artefacts, so it must not depend on application path aliases or full app
-  env validation for optional build wrappers. Never pass ignored,
-  Next-generated `next-env.d.ts` files as explicit lint targets.
-- CI failures are layered: fixing the first blocking stage (e.g. Lint) can expose a
-  further failure at a later stage (e.g. integration tests) that was already broken
-  and simply never reached. Before treating a newly-visible failure as caused by your
-  fix, check `gh run list`/`gh run view` history for an earlier run, on a different
-  commit, that reached the same stage and failed the same way. If one exists, it's
-  pre-existing, not a regression you introduced.
-- Integration tests go stale when a production behaviour change updates the unit test
-  file but not the integration test file for the same handler. When an integration
-  test fails on an assertion that looks like it's testing old semantics, `git log
-  --oneline -- <handler>.ts` and check whether a recent commit deliberately changed
-  that behaviour (and updated `*.test.ts` but not `*.integration.test.ts` alongside
-  it) before assuming the production code is the bug.
-- This WSL2 dev box has no local Postgres and no working `docker` CLI (Docker Desktop
-  WSL integration isn't enabled). To run `bun run test:integration` or reproduce a
-  CI-only DB-dependent failure, use the Neon MCP tools: `create_branch` off the
-  project's existing migrated branch (schema is already applied, no need to
-  `migrate:deploy`), export `DATABASE_URL` to that branch's connection string, run the
-  tests, then `delete_branch` when done. Always confirm with the user before creating
-  Neon resources, since these tools carry a destructive-hint notice.
+## Xero integration
+
+- Before claiming a live Xero sync works, verify the full path: event acceptance,
+  registered function execution, terminal run outcome, and authorised,
+  tenant-scoped source records persisted with their downstream data. Queue
+  acknowledgement and synthetic tests alone are insufficient evidence.
+- Keep inbound discovery separate from approval reconciliation. An inbound sync
+  discovers Xero leave; reconciliation only refreshes records Team Calendar
+  already knows about.
+- Test adapters with representative regional payloads. AU leave reads require
+  V2 semantics, period-level statuses, Pay Items leave-type metadata, and Xero
+  `/Date(...)/` normalisation.
+- Validate each outbound body against that operation's contract, not a read
+  fixture. AU LeaveApplications writes use a top-level JSON array, while reads
+  return a `LeaveApplications` envelope.
+- Omit `LeavePeriods` for date-only AU leave submissions. Xero should derive
+  hours from the employee's payroll calendar; Team Calendar day counts are not
+  valid `NumberOfUnits` for hour-based entitlements.
+- Refresh credentials before expiry on every sync and write path.
+  `connectionActive` describes connection state; it is not token-refresh logic.
+
+## Tenancy and configuration
+
+- Compose tenant-scoped database access with
+  `scopedQuery(clerkOrgId, organisationId)`. Include both identifiers in update
+  and delete filters, even when the record ID is unique.
+- Apply the absent-not-empty rule to optional environment variables with format
+  validation, not to unrelated Prisma or Zod defaults.
+- Treat migration deployment as the launch-readiness source of truth. A
+  successful schema-direct `db push` does not prove that production migrations
+  reproduce the schema.
+
+## Verification and CI
+
+- Initialise expensive module registries once after mocks are declared. A fast
+  cached import is not evidence that repeated initialisation will fit CI worker
+  timeouts.
+- Run production builds from a clean generated-file state. Configuration loaded
+  before application generation must not depend on application path aliases or
+  optional full-app environment validation, and ignored generated files such as
+  `next-env.d.ts` must not be explicit lint targets.
+- Treat CI as layered. When fixing one gate reveals another failure, inspect
+  earlier run history before attributing the newly visible failure to the latest
+  change.
+- Update unit and integration expectations together when production behaviour
+  changes. Use source history to distinguish a stale integration assertion from
+  a production regression.
+- Temporary external test resources require explicit user approval, isolated
+  identifiers, and cleanup. Do not present a test as complete if its required
+  database-backed coverage did not run.
+
+## Repository hygiene
+
+- Stop every persistent development process used for verification, then confirm
+  the expected ports are free before hand-off.
+- Before calling a repository tidy, inspect registered worktrees, branch tracking,
+  and branches not merged into the target branch. A clean working tree is only
+  one part of repository state.
+- Treat dangling Git objects as normal cleanup residue unless `git fsck` reports
+  missing or corrupt objects.

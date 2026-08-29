@@ -224,7 +224,7 @@ export async function reconcileXeroApprovalState(input: unknown): Promise<
     });
     if (!freshness.ok) {
       await completeRun(context, run.id, {
-        errorSummary: "Xero connection not active",
+        errorSummary: freshness.error.message,
         status: "failed",
       });
       return { ok: true, value: emptyResult(run.id, "failed") };

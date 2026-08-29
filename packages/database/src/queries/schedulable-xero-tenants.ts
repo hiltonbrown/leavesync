@@ -66,7 +66,10 @@ export async function findConnectionsNeedingTokenRotation(
       },
       where: {
         disconnected_at: null,
-        last_refreshed_at: { lt: refreshBefore },
+        OR: [
+          { last_error_code: "refresh_persist_failed" },
+          { last_refreshed_at: { lt: refreshBefore } },
+        ],
         organisation: {
           archived_at: null,
           is_active: true,

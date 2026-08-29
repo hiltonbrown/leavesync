@@ -13,7 +13,11 @@ import {
   setCachedFeedBody,
 } from "../cache/feed-cache";
 import { projectFeedEvents } from "../projection/feed-projection";
-import { hashFeedToken } from "../tokens/token-service";
+import {
+  hashFeedToken,
+  signedFeedTokenId,
+  verifySignedFeedToken,
+} from "../tokens/token-service";
 
 const feedTokenSelect = {
   clerk_org_id: true,
@@ -31,7 +35,12 @@ const feedTokenSelect = {
   last_used_at: true,
   organisation_id: true,
   status: true,
+  token_hash: true,
 } satisfies Prisma.FeedTokenSelect;
+
+type FeedTokenRow = Prisma.FeedTokenGetPayload<{
+  select: typeof feedTokenSelect;
+}>;
 
 // last_used_at is telemetry, not a correctness input. Writing it on every
 // calendar-client poll produces one row update per subscriber every few
@@ -123,10 +132,7 @@ export async function renderFeedBody(input: {
 export async function cachedEtagForToken(
   token: string
 ): Promise<null | string> {
-  const feedToken = await database.feedToken.findUnique({
-    select: feedTokenSelect,
-    where: { token_hash: hashFeedToken(token) },
-  });
+  const feedToken = await resolveFeedToken(token);
 
   if (
     feedToken?.status !== "active" ||
@@ -151,10 +157,7 @@ export async function cachedEtagForToken(
 export async function renderFeedForToken(
   token: string
 ): Promise<Result<RenderedFeed, FeedRenderError>> {
-  const feedToken = await database.feedToken.findUnique({
-    select: feedTokenSelect,
-    where: { token_hash: hashFeedToken(token) },
-  });
+  const feedToken = await resolveFeedToken(token);
 
   if (!feedToken) {
     return {
@@ -238,6 +241,34 @@ export async function renderFeedForToken(
   }
 
   return { ok: true, value: { body, etag, status: "active" } };
+}
+
+async function resolveFeedToken(token: string): Promise<FeedTokenRow | null> {
+  const tokenId = signedFeedTokenId(token);
+  if (!tokenId) {
+    return database.feedToken.findUnique({
+      select: feedTokenSelect,
+      where: { token_hash: hashFeedToken(token) },
+    });
+  }
+
+  const feedToken = await database.feedToken.findUnique({
+    select: feedTokenSelect,
+    where: { id: tokenId },
+  });
+  if (
+    !(
+      feedToken &&
+      verifySignedFeedToken({
+        token,
+        tokenHash: feedToken.token_hash,
+        tokenId: feedToken.id,
+      })
+    )
+  ) {
+    return null;
+  }
+  return feedToken;
 }
 
 function markTokenUsed(token: {

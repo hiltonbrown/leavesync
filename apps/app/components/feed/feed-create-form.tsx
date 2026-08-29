@@ -19,9 +19,8 @@ import { Textarea } from "@repo/design-system/components/ui/textarea";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { createFeedAction } from "@/app/(authenticated)/feeds/_actions";
-import { useFeedTokenSession } from "@/app/(authenticated)/feeds/feed-token-session";
 import { withOrg } from "@/lib/navigation/org-url";
-import { OneTimeTokenPanel } from "./one-time-token-panel";
+import { SubscribeUrlPanel } from "./subscribe-url-panel";
 
 type ScopeChoice = "manager_team" | "org" | "person" | "self" | "team";
 
@@ -39,7 +38,6 @@ export function FeedCreateForm({
   teams: Array<{ id: string; name: string }>;
 }) {
   const router = useRouter();
-  const tokenSession = useFeedTokenSession();
   const [scopeChoice, setScopeChoice] = useState<ScopeChoice>("self");
   const [privacyMode, setPrivacyMode] = useState<
     "masked" | "named" | "private"
@@ -48,7 +46,8 @@ export function FeedCreateForm({
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<{
     feedId: string;
-    plaintext: string;
+    feedName: string;
+    subscribeUrl: string;
   } | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -60,10 +59,11 @@ export function FeedCreateForm({
       return;
     }
     startTransition(async () => {
+      const feedName = String(formData.get("name") ?? "");
       const result = await createFeedAction({
         description: String(formData.get("description") ?? ""),
         includesPublicHolidays: includeHolidays,
-        name: String(formData.get("name") ?? ""),
+        name: feedName,
         organisationId,
         privacyMode,
         scopes,
@@ -72,24 +72,22 @@ export function FeedCreateForm({
         setError(result.error.message);
         return;
       }
-      tokenSession.setToken(result.value.feedId, result.value.token.plaintext);
       setCreated({
         feedId: result.value.feedId,
-        plaintext: result.value.token.plaintext,
+        feedName,
+        subscribeUrl: result.value.subscribeUrl,
       });
     });
   };
 
   if (created) {
     return (
-      <OneTimeTokenPanel
-        feedId={created.feedId}
+      <SubscribeUrlPanel
+        feedName={created.feedName}
         onDone={() => {
-          tokenSession.clearToken(created.feedId);
           router.push(withOrg(`/feeds/${created.feedId}`, orgQueryValue));
         }}
-        origin={tokenSession.origin}
-        plaintext={created.plaintext}
+        url={created.subscribeUrl}
       />
     );
   }

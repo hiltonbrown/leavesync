@@ -12,16 +12,16 @@ export function DashboardHeader({
   subtitle,
 }: DashboardHeaderProps) {
   return (
-    <section className="-mx-6 bg-surface-container-low px-6 py-8">
+    <section className="-mx-4 bg-surface-container-low px-4 py-6 sm:-mx-6 sm:px-6">
       <div className="space-y-1.5">
         <div className="flex flex-wrap items-center gap-3">
-          <h2 className="text-balance font-semibold text-display-sm leading-tight tracking-tight">
+          <h2 className="text-balance font-semibold text-headline-md leading-tight tracking-tight">
             {name}
           </h2>
           <Badge variant="outline">{roleLabel}</Badge>
         </div>
         {subtitle ? (
-          <p className="text-body-lg text-muted-foreground">{subtitle}</p>
+          <p className="text-body-md text-muted-foreground">{subtitle}</p>
         ) : null}
       </div>
     </section>

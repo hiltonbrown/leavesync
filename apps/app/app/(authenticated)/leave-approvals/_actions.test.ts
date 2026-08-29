@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   },
   decline: vi.fn(),
   dispatchApprovalReconciliation: vi.fn(),
+  dispatchXeroLeaveSync: vi.fn(),
   getActiveOrgContext: vi.fn(),
   requestMoreInfo: vi.fn(),
   retryApproval: vi.fn(),
@@ -27,6 +28,7 @@ vi.mock("@repo/availability", () => ({
   approve: mocks.approve,
   decline: mocks.decline,
   dispatchApprovalReconciliation: mocks.dispatchApprovalReconciliation,
+  dispatchXeroLeaveSync: mocks.dispatchXeroLeaveSync,
   requestMoreInfo: mocks.requestMoreInfo,
   retryApproval: mocks.retryApproval,
   retryDecline: mocks.retryDecline,
@@ -49,6 +51,7 @@ const {
   approveAction,
   declineAction,
   dispatchApprovalReconciliationAction,
+  dispatchXeroLeaveSyncAction,
   requestMoreInfoAction,
   retryApprovalAction,
   retryDeclineAction,
@@ -78,6 +81,10 @@ describe("leave approval server actions", () => {
         id: recordId,
         xeroWriteError: null,
       },
+    });
+    mocks.dispatchXeroLeaveSync.mockResolvedValue({
+      ok: true,
+      value: { queued: true },
     });
     mocks.decline.mockResolvedValue({
       ok: true,
@@ -319,6 +326,19 @@ describe("leave approval server actions", () => {
       expect(result).toEqual({ ok: true, value: { queued: true } });
       expect(mocks.dispatchApprovalReconciliation).toHaveBeenCalled();
       expect(mocks.revalidatePath).toHaveBeenCalledWith("/leave-approvals");
+    });
+
+    it("allows admin to dispatch an inbound Xero leave sync", async () => {
+      mocks.auth.mockResolvedValue({ orgRole: "org:admin" });
+
+      const result = await dispatchXeroLeaveSyncAction({ organisationId });
+
+      expect(result).toEqual({ ok: true, value: { queued: true } });
+      expect(mocks.dispatchXeroLeaveSync).toHaveBeenCalledWith(
+        expect.objectContaining({ organisationId, role: "admin" })
+      );
+      expect(mocks.revalidatePath).toHaveBeenCalledWith("/leave-approvals");
+      expect(mocks.revalidatePath).toHaveBeenCalledWith("/");
     });
   });
 });

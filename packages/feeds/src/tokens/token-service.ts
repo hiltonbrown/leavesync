@@ -1,6 +1,12 @@
 import "server-only";
 
-import { createHash, randomBytes } from "node:crypto";
+import {
+  createHash,
+  createHmac,
+  randomBytes,
+  randomUUID,
+  timingSafeEqual,
+} from "node:crypto";
 import type { Result } from "@repo/core";
 import { database } from "@repo/database";
 import type { Prisma } from "@repo/database/generated/client";
@@ -67,11 +73,73 @@ const RevokeTokenInputSchema = z.object({
 
 type InitialTokenInput = z.infer<typeof InitialTokenInputSchema>;
 
-export const generateFeedTokenPlaintext = (): string =>
+const SIGNED_TOKEN_PREFIX = "tc1";
+const SIGNED_TOKEN_CONTEXT = "team-calendar-feed-token";
+const SIGNED_TOKEN_PARTS = 3;
+const TokenIdSchema = z.string().uuid();
+
+export const generateFeedTokenSecret = (): string =>
   randomBytes(30).toString("base64url");
 
 export const hashFeedToken = (plaintext: string): string =>
   createHash("sha256").update(plaintext).digest("hex");
+
+/**
+ * Builds the bearer token shown in subscribe URLs from values already held on
+ * the token row. The database still stores no plaintext bearer credential.
+ * Revocation remains row-based, and legacy random tokens continue to resolve
+ * through their persisted SHA-256 hash.
+ */
+export function createSignedFeedToken(input: {
+  tokenHash: string;
+  tokenId: string;
+}): string {
+  const signature = createHmac("sha256", Buffer.from(input.tokenHash, "hex"))
+    .update(`${SIGNED_TOKEN_CONTEXT}:${input.tokenId}`)
+    .digest("base64url");
+  return `${SIGNED_TOKEN_PREFIX}.${input.tokenId}.${signature}`;
+}
+
+export function signedFeedTokenId(token: string): string | null {
+  const [prefix, tokenId, signature, ...extra] = token.split(".");
+  if (
+    prefix !== SIGNED_TOKEN_PREFIX ||
+    extra.length > 0 ||
+    !signature ||
+    !TokenIdSchema.safeParse(tokenId).success
+  ) {
+    return null;
+  }
+  return tokenId ?? null;
+}
+
+export function verifySignedFeedToken(input: {
+  token: string;
+  tokenHash: string;
+  tokenId: string;
+}): boolean {
+  const parts = input.token.split(".");
+  if (
+    parts.length !== SIGNED_TOKEN_PARTS ||
+    signedFeedTokenId(input.token) !== input.tokenId
+  ) {
+    return false;
+  }
+  const [, , provided] = parts;
+  if (!provided) {
+    return false;
+  }
+  const [, , expected] = createSignedFeedToken(input).split(".");
+  if (!expected) {
+    return false;
+  }
+  const providedBuffer = Buffer.from(provided);
+  const expectedBuffer = Buffer.from(expected);
+  return (
+    providedBuffer.length === expectedBuffer.length &&
+    timingSafeEqual(providedBuffer, expectedBuffer)
+  );
+}
 
 export async function createInitialTokenWithClient(
   tx: Prisma.TransactionClient,
@@ -103,14 +171,17 @@ export async function createInitialTokenWithClient(
     };
   }
 
-  const plaintext = generateFeedTokenPlaintext();
+  const tokenId = randomUUID();
+  const tokenHash = hashFeedToken(generateFeedTokenSecret());
+  const plaintext = createSignedFeedToken({ tokenHash, tokenId });
   const hint = plaintext.slice(-4);
   const token = await tx.feedToken.create({
     data: {
       clerk_org_id: input.clerkOrgId,
       feed_id: input.feedId,
+      id: tokenId,
       organisation_id: input.organisationId,
-      token_hash: hashFeedToken(plaintext),
+      token_hash: tokenHash,
       token_hint: hint,
     },
     select: { id: true },
@@ -180,15 +251,18 @@ export async function rotateToken(
         },
       });
 
-      const plaintext = generateFeedTokenPlaintext();
+      const tokenId = randomUUID();
+      const tokenHash = hashFeedToken(generateFeedTokenSecret());
+      const plaintext = createSignedFeedToken({ tokenHash, tokenId });
       const hint = plaintext.slice(-4);
       const token = await tx.feedToken.create({
         data: {
           clerk_org_id: parsed.data.clerkOrgId,
           feed_id: parsed.data.feedId,
+          id: tokenId,
           organisation_id: parsed.data.organisationId,
           rotated_from_token_id: previousToken.id,
-          token_hash: hashFeedToken(plaintext),
+          token_hash: tokenHash,
           token_hint: hint,
         },
         select: { id: true },

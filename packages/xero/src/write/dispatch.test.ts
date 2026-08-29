@@ -1,4 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("server-only", () => ({}));
+
+vi.mock("../adapter/auth-recovery", () => ({
+  executeWithXeroAuthRecovery: (
+    tenant: unknown,
+    operation: (currentTenant: unknown) => unknown
+  ) => operation(tenant),
+}));
+
 import {
   approveLeaveApplicationForRegion,
   declineLeaveApplicationForRegion,

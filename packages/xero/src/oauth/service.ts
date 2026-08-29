@@ -11,6 +11,8 @@ import type { ClerkOrgId, OrganisationId, Result } from "@repo/core";
 import { database } from "@repo/database";
 import type { Prisma } from "@repo/database/generated/client";
 import { ensureDefaultCalendarFeed } from "@repo/feeds";
+import { log } from "@repo/observability/log";
+import { z } from "zod";
 import { keys } from "../../keys";
 import { decryptXeroToken, encryptXeroToken } from "../crypto/tokens";
 import { orgRateLimitKey, xeroFetch } from "../rate-limit/xero-fetch";
@@ -40,11 +42,17 @@ interface OAuthStatePayload {
   userId: null | string;
 }
 
-interface TokenResponse {
-  access_token: string;
-  expires_in: number;
-  refresh_token: string;
-}
+const TokenResponseSchema = z.object({
+  access_token: z.string().trim().min(1),
+  expires_in: z.number().finite().int().positive(),
+  refresh_token: z.string().trim().min(1),
+});
+
+type TokenResponse = z.infer<typeof TokenResponseSchema>;
+
+const OAuthErrorResponseSchema = z.object({
+  error: z.string().trim().min(1),
+});
 
 interface ConnectionResponse {
   connectionId: string;
@@ -80,6 +88,7 @@ export type XeroOAuthError =
   | { code: "invalid_country"; message: string }
   | { code: "invalid_organisation_selection"; message: string }
   | { code: "invalid_state"; message: string }
+  | { code: "invalid_token_response"; message: string }
   | { code: "network_error"; message: string }
   | { code: "oauth_not_configured"; message: string }
   | { code: "organisation_not_found"; message: string }
@@ -87,6 +96,26 @@ export type XeroOAuthError =
   | { code: "session_not_found"; message: string }
   | { code: "tenant_not_found"; message: string }
   | { code: "unknown_error"; message: string };
+
+interface SuccessfulRefreshAttempt {
+  accessToken: ReturnType<typeof encryptXeroToken>;
+  expiresAt: Date;
+  previousRefreshTokenEncrypted: string;
+  refreshedAt: Date;
+  refreshToken: ReturnType<typeof encryptXeroToken>;
+}
+
+interface RefreshAttemptCallbacks {
+  onResponseAccepted?: () => void;
+  onSuccess?: (attempt: SuccessfulRefreshAttempt) => void;
+  onTokenLoaded?: (refreshTokenEncrypted: string) => void;
+}
+
+type RevokeConnectionResult =
+  | { ok: true; value: { remoteRevoked: boolean } }
+  | { error: XeroOAuthError; httpStatus: null | number; ok: false };
+
+class OrganisationSelectionRaceError extends Error {}
 
 export function buildXeroOAuthStartUrl(input: {
   clerkOrgId: string;
@@ -258,6 +287,65 @@ export async function getPendingXeroOAuthSession(input: {
   };
 }
 
+export async function scrubInactiveXeroOAuthSessionCredentials(
+  now: Date = new Date()
+): Promise<Result<{ scrubbed: number }, XeroOAuthError>> {
+  try {
+    const scrubbed = await database.$transaction(async (tx) => {
+      const expired = await tx.xeroOAuthSession.updateMany({
+        data: {
+          access_token_auth_tag: null,
+          access_token_encrypted: "",
+          access_token_iv: null,
+          available_tenants_json: { tenants: [] },
+          refresh_token_auth_tag: null,
+          refresh_token_encrypted: "",
+          refresh_token_iv: null,
+          status: "expired",
+          token_encrypted_at: null,
+        },
+        where: {
+          expires_at: { lte: now },
+          status: "pending",
+        },
+      });
+      const inactive = await tx.xeroOAuthSession.updateMany({
+        data: {
+          access_token_auth_tag: null,
+          access_token_encrypted: "",
+          access_token_iv: null,
+          available_tenants_json: { tenants: [] },
+          refresh_token_auth_tag: null,
+          refresh_token_encrypted: "",
+          refresh_token_iv: null,
+          token_encrypted_at: null,
+        },
+        where: {
+          OR: [
+            { access_token_auth_tag: { not: null } },
+            { access_token_encrypted: { not: "" } },
+            { access_token_iv: { not: null } },
+            { refresh_token_auth_tag: { not: null } },
+            { refresh_token_encrypted: { not: "" } },
+            { refresh_token_iv: { not: null } },
+          ],
+          status: { in: ["cancelled", "completed", "expired"] },
+        },
+      });
+      return expired.count + inactive.count;
+    });
+    return { ok: true, value: { scrubbed } };
+  } catch {
+    return {
+      error: {
+        code: "unknown_error",
+        message: "Failed to clean up inactive Xero OAuth sessions.",
+      },
+      ok: false,
+    };
+  }
+}
+
 export async function completeXeroTenantSelection(input: {
   clerkOrgId: string;
   organisationId?: null | string;
@@ -346,97 +434,189 @@ export async function completeXeroTenantSelection(input: {
   const encryptedAccessToken = encryptXeroToken(accessToken);
   const encryptedRefreshToken = encryptXeroToken(refreshToken);
   const now = new Date();
-  const [connection, xeroTenant] = await database.$transaction(async (tx) => {
-    const nextConnection = await tx.xeroConnection.upsert({
-      create: {
-        access_token_auth_tag: encryptedAccessToken.authTag,
-        access_token_encrypted: encryptedAccessToken.encrypted,
-        access_token_iv: encryptedAccessToken.iv,
-        clerk_org_id: input.clerkOrgId,
-        disconnected_at: null,
-        disconnected_by_user_id: null,
-        expires_at: session.token_expires_at,
-        last_connected_at: now,
-        last_disconnected_at: null,
-        last_error_code: null,
-        last_error_message: null,
-        last_refreshed_at: now,
-        organisation_id: organisation.value.id,
-        refresh_token_auth_tag: encryptedRefreshToken.authTag,
-        refresh_token_encrypted: encryptedRefreshToken.encrypted,
-        refresh_token_iv: encryptedRefreshToken.iv,
-        revoked_at: null,
-        stale_since: null,
-        status: "active",
-        token_encrypted_at: encryptedAccessToken.encryptedAt,
-        token_key_version: encryptedAccessToken.keyVersion,
-        xero_authorisation_connection_id: selectedTenant.connectionId,
-      },
-      select: { id: true },
-      update: {
-        access_token_auth_tag: encryptedAccessToken.authTag,
-        access_token_encrypted: encryptedAccessToken.encrypted,
-        access_token_iv: encryptedAccessToken.iv,
-        disconnected_at: null,
-        disconnected_by_user_id: null,
-        expires_at: session.token_expires_at,
-        last_connected_at: now,
-        last_disconnected_at: null,
-        last_error_code: null,
-        last_error_message: null,
-        last_refreshed_at: now,
-        refresh_token_auth_tag: encryptedRefreshToken.authTag,
-        refresh_token_encrypted: encryptedRefreshToken.encrypted,
-        refresh_token_iv: encryptedRefreshToken.iv,
-        revoked_at: null,
-        stale_since: null,
-        status: "active",
-        token_encrypted_at: encryptedAccessToken.encryptedAt,
-        token_key_version: encryptedAccessToken.keyVersion,
-        xero_authorisation_connection_id: selectedTenant.connectionId,
-      },
-      where: { organisation_id: organisation.value.id },
-    });
+  let selection:
+    | {
+        connection: { id: string };
+        createdOrganisation: boolean;
+        ok: true;
+        organisationId: string;
+        xeroTenant: { id: string };
+      }
+    | { ok: false; reason: "session" };
+  try {
+    selection = await database.$transaction(async (tx) => {
+      const claimed = await tx.xeroOAuthSession.updateMany({
+        data: { status: "completed" },
+        where: {
+          clerk_org_id: input.clerkOrgId,
+          created_by_user_id: input.userId,
+          expires_at: { gt: now },
+          id: session.id,
+          status: "pending",
+        },
+      });
+      if (claimed.count === 0) {
+        return { ok: false as const, reason: "session" as const };
+      }
 
-    const nextTenant = await tx.xeroTenant.upsert({
-      create: {
-        clerk_org_id: input.clerkOrgId,
-        organisation_id: organisation.value.id,
-        payroll_region: payrollRegion,
-        tenant_name: selectedTenant.tenantName,
-        xero_connection_id: nextConnection.id,
-        xero_tenant_id: selectedTenant.tenantId,
-      },
-      select: { id: true },
-      update: {
-        payroll_region: payrollRegion,
-        tenant_name: selectedTenant.tenantName,
-        xero_tenant_id: selectedTenant.tenantId,
-      },
-      where: { xero_connection_id: nextConnection.id },
-    });
+      const selectedOrganisation =
+        organisation.value.kind === "create"
+          ? await tx.organisation.create({
+              data: organisation.value.create,
+              select: { id: true },
+            })
+          : await tx.organisation.findFirst({
+              select: { id: true },
+              where: {
+                archived_at: null,
+                clerk_org_id: input.clerkOrgId,
+                id: organisation.value.id,
+              },
+            });
+      if (!selectedOrganisation) {
+        throw new OrganisationSelectionRaceError();
+      }
+      const organisationId = selectedOrganisation.id;
 
-    await tx.xeroOAuthSession.update({
-      data: {
-        organisation_id: organisation.value.id,
-        selected_payroll_region: payrollRegion,
-        selected_tenant_id: selectedTenant.tenantId,
-        selected_tenant_name: selectedTenant.tenantName,
-        status: "completed",
-      },
-      where: { id: session.id },
-    });
+      const nextConnection = await tx.xeroConnection.upsert({
+        create: {
+          access_token_auth_tag: encryptedAccessToken.authTag,
+          access_token_encrypted: encryptedAccessToken.encrypted,
+          access_token_iv: encryptedAccessToken.iv,
+          clerk_org_id: input.clerkOrgId,
+          disconnected_at: null,
+          disconnected_by_user_id: null,
+          expires_at: session.token_expires_at,
+          last_connected_at: now,
+          last_disconnected_at: null,
+          last_error_code: null,
+          last_error_message: null,
+          last_refreshed_at: now,
+          organisation_id: organisationId,
+          refresh_token_auth_tag: encryptedRefreshToken.authTag,
+          refresh_token_encrypted: encryptedRefreshToken.encrypted,
+          refresh_token_iv: encryptedRefreshToken.iv,
+          revoked_at: null,
+          stale_since: null,
+          status: "active",
+          token_encrypted_at: encryptedAccessToken.encryptedAt,
+          token_key_version: encryptedAccessToken.keyVersion,
+          xero_authorisation_connection_id: selectedTenant.connectionId,
+        },
+        select: { id: true },
+        update: {
+          access_token_auth_tag: encryptedAccessToken.authTag,
+          access_token_encrypted: encryptedAccessToken.encrypted,
+          access_token_iv: encryptedAccessToken.iv,
+          disconnected_at: null,
+          disconnected_by_user_id: null,
+          expires_at: session.token_expires_at,
+          last_connected_at: now,
+          last_disconnected_at: null,
+          last_error_code: null,
+          last_error_message: null,
+          last_refreshed_at: now,
+          refresh_token_auth_tag: encryptedRefreshToken.authTag,
+          refresh_token_encrypted: encryptedRefreshToken.encrypted,
+          refresh_token_iv: encryptedRefreshToken.iv,
+          revoked_at: null,
+          stale_since: null,
+          status: "active",
+          token_encrypted_at: encryptedAccessToken.encryptedAt,
+          token_key_version: encryptedAccessToken.keyVersion,
+          xero_authorisation_connection_id: selectedTenant.connectionId,
+        },
+        where: { organisation_id: organisationId },
+      });
 
-    return [nextConnection, nextTenant] as const;
-  });
+      const nextTenant = await tx.xeroTenant.upsert({
+        create: {
+          clerk_org_id: input.clerkOrgId,
+          organisation_id: organisationId,
+          payroll_region: payrollRegion,
+          tenant_name: selectedTenant.tenantName,
+          xero_connection_id: nextConnection.id,
+          xero_tenant_id: selectedTenant.tenantId,
+        },
+        select: { id: true },
+        update: {
+          payroll_region: payrollRegion,
+          tenant_name: selectedTenant.tenantName,
+          xero_tenant_id: selectedTenant.tenantId,
+        },
+        where: { xero_connection_id: nextConnection.id },
+      });
+
+      await tx.xeroOAuthSession.update({
+        data: {
+          access_token_auth_tag: null,
+          access_token_encrypted: "",
+          access_token_iv: null,
+          available_tenants_json: { tenants: [] },
+          organisation_id: organisationId,
+          refresh_token_auth_tag: null,
+          refresh_token_encrypted: "",
+          refresh_token_iv: null,
+          selected_payroll_region: payrollRegion,
+          selected_tenant_id: selectedTenant.tenantId,
+          selected_tenant_name: selectedTenant.tenantName,
+          token_encrypted_at: null,
+        },
+        where: { id: session.id },
+      });
+
+      return {
+        connection: nextConnection,
+        createdOrganisation: organisation.value.kind === "create",
+        ok: true as const,
+        organisationId,
+        xeroTenant: nextTenant,
+      };
+    });
+  } catch (error) {
+    if (error instanceof OrganisationSelectionRaceError) {
+      return {
+        error: {
+          code: "organisation_not_found",
+          message: "Organisation not found for the selected Xero tenant.",
+        },
+        ok: false,
+      };
+    }
+    return {
+      error: {
+        code: "unknown_error",
+        message: "Failed to save the selected Xero tenant.",
+      },
+      ok: false,
+    };
+  }
+
+  if (!selection.ok) {
+    return {
+      error: {
+        code: "session_not_found",
+        message:
+          "This Xero OAuth session has already been completed or is no longer available.",
+      },
+      ok: false,
+    };
+  }
+
+  if (selection.createdOrganisation) {
+    await provisionNewOrganisationDefaults({
+      clerkOrgId: input.clerkOrgId,
+      organisationId: selection.organisationId,
+    });
+  }
 
   return {
     ok: true,
     value: {
-      connectionId: connection.id,
-      organisationId: organisation.value.id,
+      connectionId: selection.connection.id,
+      organisationId: selection.organisationId,
       returnTo: session.return_to,
-      xeroTenantId: xeroTenant.id,
+      xeroTenantId: selection.xeroTenant.id,
     },
   };
 }
@@ -446,20 +626,30 @@ export async function refreshXeroOAuthConnection(input: {
   connectionId: string;
   organisationId: string;
 }): Promise<Result<{ refreshedAt: Date }, XeroOAuthError>> {
-  let exchangeSucceeded = false;
+  let responseAccepted = false;
+  let successfulAttempt: SuccessfulRefreshAttempt | null = null;
+  let loadedRefreshTokenEncrypted: string | null = null;
   try {
     return await database.$transaction(
       async (tx) => {
         // Same lock key as ensureFreshXeroConnection so a manual refresh cannot
         // race a scheduled refresh and consume each other's single-use tokens.
         await tx.$queryRaw`
-          SELECT pg_advisory_xact_lock(hashtextextended(${input.connectionId}, 0))
+          SELECT pg_advisory_xact_lock(hashtextextended(${input.connectionId}, 0))::text AS acquired
         `;
         const refreshed = await refreshXeroOAuthConnectionWithClient(
           tx,
           input,
-          () => {
-            exchangeSucceeded = true;
+          {
+            onResponseAccepted: () => {
+              responseAccepted = true;
+            },
+            onSuccess: (attempt) => {
+              successfulAttempt = attempt;
+            },
+            onTokenLoaded: (encrypted) => {
+              loadedRefreshTokenEncrypted = encrypted;
+            },
           }
         );
         if (!refreshed.ok) {
@@ -472,27 +662,18 @@ export async function refreshXeroOAuthConnection(input: {
       },
       { timeout: 15_000 }
     );
-  } catch (error) {
-    if (exchangeSucceeded) {
-      try {
-        await database.xeroConnection.update({
-          data: {
-            last_error_code: "refresh_persist_failed",
-            last_error_message:
-              error instanceof Error
-                ? error.message
-                : "Transaction failed to commit after token exchange.",
-            stale_since: new Date(),
-            status: "stale",
-          },
-          where: {
-            clerk_org_id: input.clerkOrgId,
-            id: input.connectionId,
-            organisation_id: input.organisationId,
-          },
-        });
-      } catch {
-        // Ignore secondary write errors to preserve original failure context.
+  } catch {
+    if (responseAccepted) {
+      const recovery = await reconcileRefreshPersistenceFailure({
+        ...input,
+        loadedRefreshTokenEncrypted,
+        successfulAttempt,
+      });
+      if (recovery.ok && recovery.value.committed) {
+        return {
+          ok: true,
+          value: { refreshedAt: recovery.value.refreshedAt },
+        };
       }
     }
     return {
@@ -512,14 +693,17 @@ async function refreshXeroOAuthConnectionWithClient(
     connectionId: string;
     organisationId: string;
   },
-  onExchangeSuccess?: () => void
+  callbacks: RefreshAttemptCallbacks = {}
 ): Promise<Result<{ expiresAt: Date; refreshedAt: Date }, XeroOAuthError>> {
   const connection = await client.xeroConnection.findFirst({
     select: {
+      disconnected_at: true,
       id: true,
       refresh_token_auth_tag: true,
       refresh_token_encrypted: true,
       refresh_token_iv: true,
+      revoked_at: true,
+      status: true,
       token_key_version: true,
     },
     where: {
@@ -538,8 +722,25 @@ async function refreshXeroOAuthConnectionWithClient(
     };
   }
 
+  if (
+    connection.disconnected_at !== null ||
+    connection.revoked_at !== null ||
+    connection.status !== "active"
+  ) {
+    return {
+      error: {
+        code: "connection_inactive",
+        message: "Xero connection is not active; reconnect required.",
+      },
+      ok: false,
+    };
+  }
+
+  callbacks.onTokenLoaded?.(connection.refresh_token_encrypted);
+
   const token = await exchangeToken({
     grantType: "refresh_token",
+    onResponseAccepted: callbacks.onResponseAccepted,
     orgKey: orgRateLimitKey({
       clerkOrgId: input.clerkOrgId,
       organisationId: input.organisationId,
@@ -555,7 +756,7 @@ async function refreshXeroOAuthConnectionWithClient(
       token.error.code === "refresh_token_invalid" ||
       token.error.code === "client_credentials_invalid"
     ) {
-      await client.xeroConnection.update({
+      await client.xeroConnection.updateMany({
         data: {
           last_error_code: token.error.code,
           last_error_message: token.error.message,
@@ -564,15 +765,35 @@ async function refreshXeroOAuthConnectionWithClient(
         },
         where: {
           clerk_org_id: input.clerkOrgId,
+          disconnected_at: null,
           id: input.connectionId,
           organisation_id: input.organisationId,
+          revoked_at: null,
+          status: "active",
+        },
+      });
+    } else if (token.error.code === "invalid_token_response") {
+      await client.xeroConnection.updateMany({
+        data: {
+          expires_at: new Date(),
+          last_error_code: "refresh_persist_failed",
+          last_error_message: token.error.message,
+          stale_since: null,
+          status: "active",
+        },
+        where: {
+          clerk_org_id: input.clerkOrgId,
+          disconnected_at: null,
+          id: input.connectionId,
+          organisation_id: input.organisationId,
+          refresh_token_encrypted: connection.refresh_token_encrypted,
+          revoked_at: null,
+          status: "active",
         },
       });
     }
     return token;
   }
-
-  onExchangeSuccess?.();
 
   const refreshedAt = new Date();
   const encryptedAccessToken = encryptXeroToken(token.value.access_token);
@@ -580,14 +801,19 @@ async function refreshXeroOAuthConnectionWithClient(
   const expiresAt = new Date(
     refreshedAt.getTime() + token.value.expires_in * 1000
   );
+  callbacks.onSuccess?.({
+    accessToken: encryptedAccessToken,
+    expiresAt,
+    previousRefreshTokenEncrypted: connection.refresh_token_encrypted,
+    refreshedAt,
+    refreshToken: encryptedRefreshToken,
+  });
 
   const persisted = await client.xeroConnection.updateMany({
     data: {
       access_token_auth_tag: encryptedAccessToken.authTag,
       access_token_encrypted: encryptedAccessToken.encrypted,
       access_token_iv: encryptedAccessToken.iv,
-      disconnected_at: null,
-      disconnected_by_user_id: null,
       expires_at: expiresAt,
       last_error_code: null,
       last_error_message: null,
@@ -595,15 +821,19 @@ async function refreshXeroOAuthConnectionWithClient(
       refresh_token_auth_tag: encryptedRefreshToken.authTag,
       refresh_token_encrypted: encryptedRefreshToken.encrypted,
       refresh_token_iv: encryptedRefreshToken.iv,
-      revoked_at: null,
       stale_since: null,
       status: "active",
       token_encrypted_at: encryptedAccessToken.encryptedAt,
       token_key_version: encryptedAccessToken.keyVersion,
     },
     where: {
+      clerk_org_id: input.clerkOrgId,
+      disconnected_at: null,
       id: input.connectionId,
+      organisation_id: input.organisationId,
       refresh_token_encrypted: connection.refresh_token_encrypted,
+      revoked_at: null,
+      status: "active",
     },
   });
 
@@ -619,6 +849,150 @@ async function refreshXeroOAuthConnectionWithClient(
   }
 
   return { ok: true, value: { expiresAt, refreshedAt } };
+}
+
+async function reconcileRefreshPersistenceFailure(input: {
+  clerkOrgId: string;
+  connectionId: string;
+  loadedRefreshTokenEncrypted: null | string;
+  organisationId: string;
+  successfulAttempt: null | SuccessfulRefreshAttempt;
+}): Promise<
+  Result<
+    { committed: boolean; expiresAt: Date; refreshedAt: Date },
+    XeroOAuthError
+  >
+> {
+  try {
+    const current = await database.xeroConnection.findFirst({
+      select: {
+        disconnected_at: true,
+        expires_at: true,
+        refresh_token_encrypted: true,
+        revoked_at: true,
+        status: true,
+      },
+      where: {
+        clerk_org_id: input.clerkOrgId,
+        id: input.connectionId,
+        organisation_id: input.organisationId,
+      },
+    });
+    if (!current) {
+      return {
+        error: {
+          code: "organisation_not_found",
+          message: "Xero connection not found.",
+        },
+        ok: false,
+      };
+    }
+
+    const tokenChanged =
+      input.loadedRefreshTokenEncrypted !== null &&
+      current.refresh_token_encrypted !== input.loadedRefreshTokenEncrypted;
+    if (tokenChanged) {
+      return {
+        ok: true,
+        value: {
+          committed: true,
+          expiresAt: current.expires_at,
+          refreshedAt: input.successfulAttempt?.refreshedAt ?? new Date(),
+        },
+      };
+    }
+
+    if (
+      input.successfulAttempt !== null &&
+      current.status === "active" &&
+      current.revoked_at === null &&
+      current.disconnected_at === null
+    ) {
+      const recovered = await database.xeroConnection.updateMany({
+        data: {
+          access_token_auth_tag: input.successfulAttempt.accessToken.authTag,
+          access_token_encrypted: input.successfulAttempt.accessToken.encrypted,
+          access_token_iv: input.successfulAttempt.accessToken.iv,
+          expires_at: input.successfulAttempt.expiresAt,
+          last_error_code: null,
+          last_error_message: null,
+          last_refreshed_at: input.successfulAttempt.refreshedAt,
+          refresh_token_auth_tag: input.successfulAttempt.refreshToken.authTag,
+          refresh_token_encrypted:
+            input.successfulAttempt.refreshToken.encrypted,
+          refresh_token_iv: input.successfulAttempt.refreshToken.iv,
+          stale_since: null,
+          status: "active",
+          token_encrypted_at: input.successfulAttempt.accessToken.encryptedAt,
+          token_key_version: input.successfulAttempt.accessToken.keyVersion,
+        },
+        where: {
+          clerk_org_id: input.clerkOrgId,
+          disconnected_at: null,
+          id: input.connectionId,
+          organisation_id: input.organisationId,
+          refresh_token_encrypted:
+            input.successfulAttempt.previousRefreshTokenEncrypted,
+          revoked_at: null,
+          status: "active",
+        },
+      });
+      if (recovered.count === 1) {
+        return {
+          ok: true,
+          value: {
+            committed: true,
+            expiresAt: input.successfulAttempt.expiresAt,
+            refreshedAt: input.successfulAttempt.refreshedAt,
+          },
+        };
+      }
+    }
+
+    if (
+      current.status === "active" &&
+      current.revoked_at === null &&
+      current.disconnected_at === null &&
+      input.loadedRefreshTokenEncrypted !== null
+    ) {
+      await database.xeroConnection.updateMany({
+        data: {
+          expires_at: new Date(),
+          last_error_code: "refresh_persist_failed",
+          last_error_message:
+            "Xero accepted the token refresh, but Team Calendar could not save the rotated credentials. Automatic recovery will retry shortly.",
+          stale_since: null,
+          status: "active",
+        },
+        where: {
+          clerk_org_id: input.clerkOrgId,
+          disconnected_at: null,
+          id: input.connectionId,
+          organisation_id: input.organisationId,
+          refresh_token_encrypted: input.loadedRefreshTokenEncrypted,
+          revoked_at: null,
+          status: "active",
+        },
+      });
+    }
+
+    return {
+      ok: true,
+      value: {
+        committed: false,
+        expiresAt: current.expires_at,
+        refreshedAt: input.successfulAttempt?.refreshedAt ?? new Date(),
+      },
+    };
+  } catch {
+    return {
+      error: {
+        code: "unknown_error",
+        message: "Failed to recover the Xero token refresh.",
+      },
+      ok: false,
+    };
+  }
 }
 
 // Xero access tokens live for 30 minutes. Refresh proactively when the token is within this
@@ -663,8 +1037,10 @@ export function xeroConnectionRefreshDecision(
 export async function ensureFreshXeroConnection(input: {
   clerkOrgId: string;
   connectionId: string;
+  forceRefresh?: boolean;
   organisationId: string;
   now?: Date;
+  previousAccessTokenEncrypted?: string;
 }): Promise<Result<{ expiresAt: Date; refreshed: boolean }, XeroOAuthError>> {
   const now = input.now ?? new Date();
   const connection = await database.xeroConnection.findFirst({
@@ -690,8 +1066,17 @@ export async function ensureFreshXeroConnection(input: {
       ok: false,
     };
   }
+  if (
+    input.previousAccessTokenEncrypted !== undefined &&
+    connection.access_token_encrypted !== input.previousAccessTokenEncrypted
+  ) {
+    return {
+      ok: true,
+      value: { expiresAt: connection.expires_at, refreshed: false },
+    };
+  }
 
-  const decision = xeroConnectionRefreshDecision(
+  let decision = xeroConnectionRefreshDecision(
     {
       expiresAt: connection.expires_at,
       hasAccessToken: connection.access_token_encrypted.length > 0,
@@ -701,6 +1086,9 @@ export async function ensureFreshXeroConnection(input: {
     },
     now
   );
+  if (decision === "active" && input.forceRefresh) {
+    decision = "refresh";
+  }
   if (decision === "inactive") {
     return {
       error: {
@@ -717,7 +1105,9 @@ export async function ensureFreshXeroConnection(input: {
     };
   }
 
-  let exchangeSucceeded = false;
+  let responseAccepted = false;
+  let successfulAttempt: SuccessfulRefreshAttempt | null = null;
+  let loadedRefreshTokenEncrypted: string | null = null;
   try {
     return await database.$transaction(
       async (tx) => {
@@ -725,7 +1115,7 @@ export async function ensureFreshXeroConnection(input: {
         // transaction-scoped, so it releases automatically on commit or rollback.
         // Any future token rotation write path must take this same lock key.
         await tx.$queryRaw`
-          SELECT pg_advisory_xact_lock(hashtextextended(${input.connectionId}, 0))
+          SELECT pg_advisory_xact_lock(hashtextextended(${input.connectionId}, 0))::text AS acquired
         `;
 
         // Re-read inside the lock: a concurrent winner may have refreshed already.
@@ -755,8 +1145,17 @@ export async function ensureFreshXeroConnection(input: {
             ok: false,
           };
         }
+        if (
+          input.previousAccessTokenEncrypted !== undefined &&
+          current.access_token_encrypted !== input.previousAccessTokenEncrypted
+        ) {
+          return {
+            ok: true,
+            value: { expiresAt: current.expires_at, refreshed: false },
+          };
+        }
 
-        const lockedDecision = xeroConnectionRefreshDecision(
+        let lockedDecision = xeroConnectionRefreshDecision(
           {
             expiresAt: current.expires_at,
             hasAccessToken: current.access_token_encrypted.length > 0,
@@ -766,6 +1165,9 @@ export async function ensureFreshXeroConnection(input: {
           },
           now
         );
+        if (lockedDecision === "active" && input.forceRefresh) {
+          lockedDecision = "refresh";
+        }
         if (lockedDecision === "inactive") {
           return {
             error: {
@@ -789,8 +1191,16 @@ export async function ensureFreshXeroConnection(input: {
             connectionId: input.connectionId,
             organisationId: input.organisationId,
           },
-          () => {
-            exchangeSucceeded = true;
+          {
+            onResponseAccepted: () => {
+              responseAccepted = true;
+            },
+            onSuccess: (attempt) => {
+              successfulAttempt = attempt;
+            },
+            onTokenLoaded: (encrypted) => {
+              loadedRefreshTokenEncrypted = encrypted;
+            },
           }
         );
         if (!refreshed.ok) {
@@ -804,27 +1214,21 @@ export async function ensureFreshXeroConnection(input: {
       },
       { timeout: 15_000 }
     );
-  } catch (error) {
-    if (exchangeSucceeded) {
-      try {
-        await database.xeroConnection.update({
-          data: {
-            last_error_code: "refresh_persist_failed",
-            last_error_message:
-              error instanceof Error
-                ? error.message
-                : "Transaction failed to commit after token exchange.",
-            stale_since: new Date(),
-            status: "stale",
+  } catch {
+    if (responseAccepted) {
+      const recovery = await reconcileRefreshPersistenceFailure({
+        ...input,
+        loadedRefreshTokenEncrypted,
+        successfulAttempt,
+      });
+      if (recovery.ok && recovery.value.committed) {
+        return {
+          ok: true,
+          value: {
+            expiresAt: recovery.value.expiresAt,
+            refreshed: true,
           },
-          where: {
-            clerk_org_id: input.clerkOrgId,
-            id: input.connectionId,
-            organisation_id: input.organisationId,
-          },
-        });
-      } catch {
-        // Ignore secondary write errors to preserve original failure context.
+        };
       }
     }
     return {
@@ -837,21 +1241,280 @@ export async function ensureFreshXeroConnection(input: {
   }
 }
 
-export async function disconnectXeroOAuthConnection(input: {
+interface DisconnectXeroInput {
   clerkOrgId: string;
   connectionId: string;
   destructive: boolean;
   organisationId: string;
   performedByUserId?: null | string;
-}): Promise<
+}
+
+export async function disconnectXeroOAuthConnection(
+  input: DisconnectXeroInput
+): Promise<
   Result<{ disconnected: true; remoteRevoked: boolean }, XeroOAuthError>
 > {
-  const connection = await database.xeroConnection.findFirst({
+  try {
+    return await database.$transaction(
+      (tx) => disconnectXeroOAuthConnectionWithClient(tx, input),
+      { timeout: 20_000 }
+    );
+  } catch {
+    return {
+      error: {
+        code: "unknown_error",
+        message: "Failed to disconnect the Xero connection.",
+      },
+      ok: false,
+    };
+  }
+}
+
+type DisconnectConnection = NonNullable<
+  Awaited<ReturnType<typeof loadConnectionForDisconnect>>
+>;
+
+async function disconnectXeroOAuthConnectionWithClient(
+  tx: Prisma.TransactionClient,
+  input: DisconnectXeroInput
+): Promise<
+  Result<{ disconnected: true; remoteRevoked: boolean }, XeroOAuthError>
+> {
+  await tx.$queryRaw`
+    SELECT pg_advisory_xact_lock(hashtextextended(${input.connectionId}, 0))::text AS acquired
+  `;
+  const connection = await loadConnectionForDisconnect(tx, input);
+  if (!connection) {
+    return connectionNotFoundError();
+  }
+  if (connection.status === "disconnected") {
+    return {
+      ok: true,
+      value: { disconnected: true, remoteRevoked: false },
+    };
+  }
+
+  const now = new Date();
+  const prepared = await prepareConnectionForDisconnect(
+    tx,
+    input,
+    connection,
+    now
+  );
+  if (!prepared.ok) {
+    return prepared;
+  }
+  const revoked = await revokePreparedXeroConnection(
+    tx,
+    input,
+    prepared.value.connection,
+    prepared.value.terminalAuthorisation,
+    now
+  );
+  if (!revoked.ok) {
+    return revoked;
+  }
+
+  await finaliseLocalXeroDisconnect(tx, {
+    ...input,
+    now,
+    xeroTenantId: revoked.value.connection.xero_tenant?.id ?? null,
+  });
+  return {
+    ok: true,
+    value: {
+      disconnected: true,
+      remoteRevoked: revoked.value.remoteRevoked,
+    },
+  };
+}
+
+async function prepareConnectionForDisconnect(
+  tx: Prisma.TransactionClient,
+  input: DisconnectXeroInput,
+  connection: DisconnectConnection,
+  now: Date
+): Promise<
+  Result<
+    { connection: DisconnectConnection; terminalAuthorisation: boolean },
+    XeroOAuthError
+  >
+> {
+  const terminalAuthorisation =
+    connection.revoked_at !== null ||
+    (connection.status === "stale" &&
+      connection.last_error_code === "refresh_token_invalid");
+  if (
+    !connection.xero_authorisation_connection_id ||
+    terminalAuthorisation ||
+    xeroConnectionRefreshDecision(
+      {
+        expiresAt: connection.expires_at,
+        hasAccessToken: connection.access_token_encrypted.length > 0,
+        hasRefreshToken: connection.refresh_token_encrypted.length > 0,
+        revokedAt: connection.revoked_at,
+        status: connection.status,
+      },
+      now
+    ) !== "refresh"
+  ) {
+    return { ok: true, value: { connection, terminalAuthorisation } };
+  }
+  return await refreshConnectionForDisconnect(tx, input, connection);
+}
+
+async function refreshConnectionForDisconnect(
+  tx: Prisma.TransactionClient,
+  input: DisconnectXeroInput,
+  connection: DisconnectConnection
+): Promise<
+  Result<
+    { connection: DisconnectConnection; terminalAuthorisation: boolean },
+    XeroOAuthError
+  >
+> {
+  const refreshed = await refreshXeroOAuthConnectionWithClient(tx, input);
+  if (!refreshed.ok) {
+    if (refreshed.error.code === "refresh_token_invalid") {
+      return {
+        ok: true,
+        value: { connection, terminalAuthorisation: true },
+      };
+    }
+    return refreshed;
+  }
+  const reloaded = await loadConnectionForDisconnect(tx, input);
+  return reloaded
+    ? {
+        ok: true,
+        value: { connection: reloaded, terminalAuthorisation: false },
+      }
+    : connectionNotFoundError();
+}
+
+async function revokePreparedXeroConnection(
+  tx: Prisma.TransactionClient,
+  input: DisconnectXeroInput,
+  connection: DisconnectConnection,
+  terminalAuthorisation: boolean,
+  now: Date
+): Promise<
+  Result<
+    { connection: DisconnectConnection; remoteRevoked: boolean },
+    XeroOAuthError
+  >
+> {
+  if (!connection.xero_authorisation_connection_id || terminalAuthorisation) {
+    return { ok: true, value: { connection, remoteRevoked: false } };
+  }
+  if (!hasUsableAccessTokenForDisconnect(connection, now)) {
+    return {
+      error: {
+        code: "connection_inactive",
+        message:
+          "Team Calendar could not confirm the Xero connection revocation. Reconnect Xero, then try disconnecting again.",
+      },
+      ok: false,
+    };
+  }
+
+  const first = await revokeStoredXeroConnection(input, connection);
+  if (first.ok) {
+    return {
+      ok: true,
+      value: { connection, remoteRevoked: first.value.remoteRevoked },
+    };
+  }
+  if (first.httpStatus !== 401) {
+    return { error: first.error, ok: false };
+  }
+
+  const recovered = await refreshConnectionForDisconnect(tx, input, connection);
+  if (!recovered.ok) {
+    return recovered;
+  }
+  if (recovered.value.terminalAuthorisation) {
+    return {
+      ok: true,
+      value: { connection: recovered.value.connection, remoteRevoked: false },
+    };
+  }
+  const second = await revokeStoredXeroConnection(
+    input,
+    recovered.value.connection
+  );
+  return second.ok
+    ? {
+        ok: true,
+        value: {
+          connection: recovered.value.connection,
+          remoteRevoked: second.value.remoteRevoked,
+        },
+      }
+    : { error: second.error, ok: false };
+}
+
+function hasUsableAccessTokenForDisconnect(
+  connection: DisconnectConnection,
+  now: Date
+): boolean {
+  return (
+    connection.revoked_at === null &&
+    connection.access_token_encrypted.length > 0 &&
+    connection.access_token_auth_tag !== null &&
+    connection.access_token_iv !== null &&
+    connection.expires_at.getTime() > now.getTime()
+  );
+}
+
+function revokeStoredXeroConnection(
+  input: DisconnectXeroInput,
+  connection: DisconnectConnection
+): Promise<RevokeConnectionResult> {
+  return revokeXeroConnectionAtSource({
+    accessToken: decryptXeroToken({
+      authTag: connection.access_token_auth_tag,
+      encrypted: connection.access_token_encrypted,
+      iv: connection.access_token_iv,
+    }),
+    orgKey: orgRateLimitKey({
+      clerkOrgId: input.clerkOrgId,
+      organisationId: input.organisationId,
+    }),
+    xeroAuthorisationConnectionId:
+      connection.xero_authorisation_connection_id ?? "",
+  });
+}
+
+function connectionNotFoundError(): Result<never, XeroOAuthError> {
+  return {
+    error: {
+      code: "organisation_not_found",
+      message: "Xero connection not found.",
+    },
+    ok: false,
+  };
+}
+
+function loadConnectionForDisconnect(
+  tx: Prisma.TransactionClient,
+  input: {
+    clerkOrgId: string;
+    connectionId: string;
+    organisationId: string;
+  }
+) {
+  return tx.xeroConnection.findFirst({
     select: {
       access_token_auth_tag: true,
       access_token_encrypted: true,
       access_token_iv: true,
-      id: true,
+      disconnected_at: true,
+      expires_at: true,
+      last_error_code: true,
+      refresh_token_encrypted: true,
+      revoked_at: true,
+      status: true,
       xero_authorisation_connection_id: true,
       xero_tenant: { select: { id: true } },
     },
@@ -861,139 +1524,142 @@ export async function disconnectXeroOAuthConnection(input: {
       organisation_id: input.organisationId,
     },
   });
-  if (!connection) {
-    return {
-      error: {
-        code: "organisation_not_found",
-        message: "Xero connection not found.",
-      },
-      ok: false,
-    };
+}
+
+async function finaliseLocalXeroDisconnect(
+  tx: Prisma.TransactionClient,
+  input: {
+    clerkOrgId: string;
+    connectionId: string;
+    destructive: boolean;
+    now: Date;
+    organisationId: string;
+    performedByUserId?: null | string;
+    xeroTenantId: null | string;
   }
-
-  let remoteRevoked = false;
-  if (
-    connection.xero_authorisation_connection_id &&
-    connection.access_token_encrypted.length > 0 &&
-    connection.access_token_iv &&
-    connection.access_token_auth_tag
-  ) {
-    const accessToken = decryptXeroToken({
-      authTag: connection.access_token_auth_tag,
-      encrypted: connection.access_token_encrypted,
-      iv: connection.access_token_iv,
-    });
-    remoteRevoked = await revokeXeroConnectionAtSource({
-      accessToken,
-      orgKey: orgRateLimitKey({
-        clerkOrgId: input.clerkOrgId,
-        organisationId: input.organisationId,
-      }),
-      xeroAuthorisationConnectionId:
-        connection.xero_authorisation_connection_id,
-    });
-  }
-
-  const now = new Date();
-  await database.$transaction(async (tx) => {
-    await tx.xeroConnection.update({
-      data: {
-        access_token_auth_tag: null,
-        access_token_encrypted: "",
-        access_token_iv: null,
-        disconnected_at: now,
-        disconnected_by_user_id: input.performedByUserId ?? null,
-        expires_at: now,
-        last_disconnected_at: now,
-        refresh_token_auth_tag: null,
-        refresh_token_encrypted: "",
-        refresh_token_iv: null,
-        status: "disconnected",
-      },
-      where: { id: connection.id },
-    });
-
-    if (input.destructive) {
-      await tx.leaveBalance.deleteMany({
-        where: {
-          clerk_org_id: input.clerkOrgId,
-          organisation_id: input.organisationId,
-        },
-      });
-      await tx.xeroPersonMatch.deleteMany({
-        where: {
-          clerk_org_id: input.clerkOrgId,
-          organisation_id: input.organisationId,
-        },
-      });
-      await tx.person.updateMany({
-        data: {
-          archived_at: now,
-          clerk_user_id: null,
-        },
-        where: {
-          clerk_org_id: input.clerkOrgId,
-          organisation_id: input.organisationId,
-          source_system: "XERO",
-        },
-      });
-      await tx.person.updateMany({
-        data: { xero_employee_id: null },
-        where: {
-          clerk_org_id: input.clerkOrgId,
-          organisation_id: input.organisationId,
-        },
-      });
-      await tx.availabilityRecord.updateMany({
-        data: {
-          archived_at: now,
-          publish_status: "archived",
-        },
-        where: {
-          clerk_org_id: input.clerkOrgId,
-          organisation_id: input.organisationId,
-          source_type: { in: ["xero", "xero_leave"] },
-        },
-      });
-      if (connection.xero_tenant) {
-        await tx.syncRun.deleteMany({
-          where: {
-            clerk_org_id: input.clerkOrgId,
-            organisation_id: input.organisationId,
-            xero_tenant_id: connection.xero_tenant.id,
-          },
-        });
-        await tx.xeroSyncCursor.deleteMany({
-          where: {
-            clerk_org_id: input.clerkOrgId,
-            organisation_id: input.organisationId,
-            xero_tenant_id: connection.xero_tenant.id,
-          },
-        });
-      }
-    }
+): Promise<void> {
+  await tx.xeroConnection.update({
+    data: {
+      access_token_auth_tag: null,
+      access_token_encrypted: "",
+      access_token_iv: null,
+      disconnected_at: input.now,
+      disconnected_by_user_id: input.performedByUserId ?? null,
+      expires_at: input.now,
+      last_disconnected_at: input.now,
+      refresh_token_auth_tag: null,
+      refresh_token_encrypted: "",
+      refresh_token_iv: null,
+      status: "disconnected",
+    },
+    where: {
+      clerk_org_id: input.clerkOrgId,
+      id: input.connectionId,
+      organisation_id: input.organisationId,
+    },
   });
 
-  return { ok: true, value: { disconnected: true, remoteRevoked } };
+  if (!input.destructive) {
+    return;
+  }
+  await tx.leaveBalance.deleteMany({
+    where: {
+      clerk_org_id: input.clerkOrgId,
+      organisation_id: input.organisationId,
+    },
+  });
+  await tx.xeroPersonMatch.deleteMany({
+    where: {
+      clerk_org_id: input.clerkOrgId,
+      organisation_id: input.organisationId,
+    },
+  });
+  await tx.person.updateMany({
+    data: { archived_at: input.now, clerk_user_id: null },
+    where: {
+      clerk_org_id: input.clerkOrgId,
+      organisation_id: input.organisationId,
+      source_system: "XERO",
+    },
+  });
+  await tx.person.updateMany({
+    data: { xero_employee_id: null },
+    where: {
+      clerk_org_id: input.clerkOrgId,
+      organisation_id: input.organisationId,
+    },
+  });
+  await tx.availabilityRecord.updateMany({
+    data: { archived_at: input.now, publish_status: "archived" },
+    where: {
+      clerk_org_id: input.clerkOrgId,
+      organisation_id: input.organisationId,
+      source_type: { in: ["xero", "xero_leave"] },
+    },
+  });
+  if (!input.xeroTenantId) {
+    return;
+  }
+  await tx.syncRun.deleteMany({
+    where: {
+      clerk_org_id: input.clerkOrgId,
+      organisation_id: input.organisationId,
+      xero_tenant_id: input.xeroTenantId,
+    },
+  });
+  await tx.xeroSyncCursor.deleteMany({
+    where: {
+      clerk_org_id: input.clerkOrgId,
+      organisation_id: input.organisationId,
+      xero_tenant_id: input.xeroTenantId,
+    },
+  });
 }
 
 async function revokeXeroConnectionAtSource(input: {
   accessToken: string;
   orgKey: string;
   xeroAuthorisationConnectionId: string;
-}): Promise<boolean> {
+}): Promise<RevokeConnectionResult> {
   try {
     const response = await xeroFetch({
       init: {
         headers: { Authorization: `Bearer ${input.accessToken}` },
         method: "DELETE",
       },
+      maxAttempts: 1,
       orgKey: input.orgKey,
       url: `${XERO_CONNECTIONS_URL}/${input.xeroAuthorisationConnectionId}`,
     });
-    return response.ok;
+    if (response.ok) {
+      return { ok: true, value: { remoteRevoked: true } };
+    }
+    if (response.status === 404) {
+      return { ok: true, value: { remoteRevoked: false } };
+    }
+    return {
+      error: {
+        code:
+          response.status === 401 || response.status === 403
+            ? "connection_inactive"
+            : "network_error",
+        message:
+          response.status === 401 || response.status === 403
+            ? "Xero rejected the connection revocation. Reconnect Xero, then try disconnecting again."
+            : "Xero could not confirm the connection revocation. Try again.",
+      },
+      httpStatus: response.status,
+      ok: false,
+    };
   } catch {
-    return false;
+    return {
+      error: {
+        code: "network_error",
+        message: "Xero could not confirm the connection revocation. Try again.",
+      },
+      httpStatus: null,
+      ok: false,
+    };
   }
 }
 
@@ -1013,8 +1679,11 @@ export async function markXeroConnectionStale(input: {
     },
     where: {
       clerk_org_id: input.clerkOrgId,
+      disconnected_at: null,
       id: input.connectionId,
       organisation_id: input.organisationId,
+      revoked_at: null,
+      status: "active",
     },
   });
 }
@@ -1024,7 +1693,24 @@ async function resolveOrganisationForTenantSelection(input: {
   organisationId: null | string;
   tenantName: string;
   tenantPayrollRegion: "AU" | "NZ" | "UK";
-}): Promise<Result<{ id: string }, XeroOAuthError>> {
+}): Promise<
+  Result<
+    | {
+        create: {
+          clerk_org_id: string;
+          country_code: string;
+          locale: string;
+          name: string;
+          reporting_unit: string;
+          timezone: string;
+          working_hours_per_day: number;
+        };
+        kind: "create";
+      }
+    | { id: string; kind: "existing" },
+    XeroOAuthError
+  >
+> {
   const existingOrganisations = await database.organisation.findMany({
     orderBy: { created_at: "asc" },
     select: {
@@ -1039,37 +1725,21 @@ async function resolveOrganisationForTenantSelection(input: {
 
   if (existingOrganisations.length === 0) {
     const defaults = organisationDefaultsForRegion(input.tenantPayrollRegion);
-    const organisation = await database.organisation.create({
-      data: {
-        clerk_org_id: input.clerkOrgId,
-        country_code: defaults.countryCode,
-        locale: defaults.locale,
-        name: input.tenantName,
-        reporting_unit: defaults.reportingUnit,
-        timezone: defaults.timezone,
-        working_hours_per_day: defaults.workingHoursPerDay,
-      },
-      select: { id: true },
-    });
-    const defaultFeed = await ensureDefaultCalendarFeed({
-      clerkOrgId: input.clerkOrgId,
-      organisationId: organisation.id,
-    });
-    if (!defaultFeed.ok) {
-      return {
-        error: {
-          code: "unknown_error",
-          message: defaultFeed.error.message,
+    return {
+      ok: true,
+      value: {
+        create: {
+          clerk_org_id: input.clerkOrgId,
+          country_code: defaults.countryCode,
+          locale: defaults.locale,
+          name: input.tenantName,
+          reporting_unit: defaults.reportingUnit,
+          timezone: defaults.timezone,
+          working_hours_per_day: defaults.workingHoursPerDay,
         },
-        ok: false,
-      };
-    }
-    // Provision default public holidays; ignore errors (non-blocking)
-    await ensureDefaultPublicHolidaysForOrganisation({
-      clerkOrgId: input.clerkOrgId as ClerkOrgId,
-      organisationId: organisation.id as OrganisationId,
-    });
-    return { ok: true, value: { id: organisation.id } };
+        kind: "create",
+      },
+    };
   }
 
   if (!input.organisationId) {
@@ -1117,7 +1787,33 @@ async function resolveOrganisationForTenantSelection(input: {
     };
   }
 
-  return { ok: true, value: { id: organisation.id } };
+  return { ok: true, value: { id: organisation.id, kind: "existing" } };
+}
+
+async function provisionNewOrganisationDefaults(input: {
+  clerkOrgId: string;
+  organisationId: string;
+}): Promise<void> {
+  const defaultFeed = await ensureDefaultCalendarFeed(input);
+  if (!defaultFeed.ok) {
+    log.error("Failed to provision the default feed after Xero connection", {
+      clerkOrgId: input.clerkOrgId,
+      error: defaultFeed.error,
+      organisationId: input.organisationId,
+    });
+  }
+  const publicHolidays = await ensureDefaultPublicHolidaysForOrganisation({
+    // The OAuth boundary has already validated both IDs against persisted rows.
+    clerkOrgId: input.clerkOrgId as ClerkOrgId,
+    organisationId: input.organisationId as OrganisationId,
+  });
+  if (!publicHolidays.ok) {
+    log.error("Failed to provision public holidays after Xero connection", {
+      clerkOrgId: input.clerkOrgId,
+      error: publicHolidays.error,
+      organisationId: input.organisationId,
+    });
+  }
 }
 
 async function inferPayrollRegionForTenant(input: {
@@ -1277,6 +1973,7 @@ function readAvailableTenants(payload: unknown): PendingXeroSessionTenant[] {
 async function exchangeToken(input: {
   code?: string;
   grantType: "authorization_code" | "refresh_token";
+  onResponseAccepted?: () => void;
   orgKey: string;
   refreshToken?: string;
 }): Promise<Result<TokenResponse, XeroOAuthError>> {
@@ -1325,28 +2022,32 @@ async function exchangeToken(input: {
     };
   }
 
-  const payload = (await response.json()) as Partial<TokenResponse>;
-  if (
-    !(payload.access_token && payload.refresh_token) ||
-    typeof payload.expires_in !== "number"
-  ) {
+  input.onResponseAccepted?.();
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
     return {
       error: {
-        code: "unknown_error",
+        code: "invalid_token_response",
         message: "Xero token response was invalid.",
       },
       ok: false,
     };
   }
 
-  return {
-    ok: true,
-    value: {
-      access_token: payload.access_token,
-      expires_in: payload.expires_in,
-      refresh_token: payload.refresh_token,
-    },
-  };
+  const parsed = TokenResponseSchema.safeParse(payload);
+  if (!parsed.success) {
+    return {
+      error: {
+        code: "invalid_token_response",
+        message: "Xero token response was invalid.",
+      },
+      ok: false,
+    };
+  }
+
+  return { ok: true, value: parsed.data };
 }
 
 async function classifyTokenExchangeFailure(
@@ -1388,16 +2089,8 @@ async function classifyTokenExchangeFailure(
 
 async function readOAuthErrorCode(response: Response): Promise<null | string> {
   try {
-    const body: unknown = await response.json();
-    if (
-      typeof body === "object" &&
-      body !== null &&
-      "error" in body &&
-      typeof body.error === "string"
-    ) {
-      return body.error;
-    }
-    return null;
+    const parsed = OAuthErrorResponseSchema.safeParse(await response.json());
+    return parsed.success ? parsed.data.error : null;
   } catch {
     return null;
   }

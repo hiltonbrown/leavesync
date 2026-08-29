@@ -3,6 +3,7 @@ import type {
   XeroWriteError,
   XeroWriteResult,
 } from "../write/types";
+import { normaliseXeroDateTime } from "./date";
 
 export type XeroLeaveApplicationStatus =
   | "APPROVED"
@@ -184,6 +185,7 @@ function normaliseStatus(value: string | null): XeroLeaveApplicationStatus {
   if (
     status === "APPROVED" ||
     status === "SCHEDULED" ||
+    status === "PROCESSED" ||
     status === "COMPLETED" ||
     status === "ESTIMATED"
   ) {
@@ -198,15 +200,19 @@ function normaliseStatus(value: string | null): XeroLeaveApplicationStatus {
   if (status === "DELETED") {
     return "DELETED";
   }
-  if (status === "SUBMITTED" || status === "PENDING") {
+  if (
+    status === "SUBMITTED" ||
+    status === "PENDING" ||
+    status === "REQUESTED"
+  ) {
     return "SUBMITTED";
   }
   return "UNKNOWN";
 }
 
 function parseDate(value: string): Date | null {
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+  const normalised = normaliseXeroDateTime(value);
+  return normalised ? new Date(normalised) : null;
 }
 
 function messageFromPayload(payload: unknown): string | null {

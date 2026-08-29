@@ -11,6 +11,7 @@ const knownTypes = [
   ["Sick Leave", "sick_leave"],
   ["Long Service Leave", "long_service_leave"],
   ["Unpaid Leave", "unpaid_leave"],
+  ["Community Service Leave", "leave"],
   ["Public Holiday", "holiday"],
 ] as const;
 

@@ -1,20 +1,17 @@
 import type { ManagerDashboardView } from "@repo/availability";
 import { ActionItemsCard } from "./action-items-card";
+import { buildManagerCalendarTimeline } from "./ambient-calendar-data";
+import { AmbientCalendarField } from "./ambient-calendar-field";
 import { ApprovalQueueCard } from "./approval-queue-card";
 import { BalancesCard } from "./balances-card";
-import { CoverageTimeline } from "./coverage-timeline";
-import { buildCoverageDays } from "./coverage-timeline-data";
 import {
   DashboardScaffold,
   toDashboardHeaderProps,
 } from "./dashboard-scaffold";
 import { NextPublicHolidayCard } from "./next-public-holiday-card";
 import { QuickActionsCard } from "./quick-actions-card";
-import { TeamThisWeekCard } from "./team-this-week-card";
-import { TeamTodayCard } from "./team-today-card";
 import { TeamXeroSyncFailedCard } from "./team-xero-sync-failed-card";
 import { TodayStatusCard } from "./today-status-card";
-import { UpcomingPeaksCard } from "./upcoming-peaks-card";
 import { UpcomingRecordsCard } from "./upcoming-records-card";
 import { XeroDisconnectedBanner } from "./xero-disconnected-banner";
 
@@ -30,15 +27,10 @@ export function ManagerView({
   personId,
 }: ManagerViewProps) {
   const xero = view.header.hasActiveXeroConnection;
-  const coverage =
-    view.teamToday.status === "ready"
-      ? buildCoverageDays(
-          view.teamToday.data,
-          view.upcomingPeaks.status === "ready"
-            ? view.upcomingPeaks.data.peaks
-            : null
-        )
-      : null;
+  const timeline = buildManagerCalendarTimeline(view, {
+    now: new Date(),
+    timezone: view.header.timezone ?? "Australia/Brisbane",
+  });
 
   return (
     <DashboardScaffold
@@ -50,17 +42,12 @@ export function ManagerView({
           />
         )
       }
+      feature={
+        <AmbientCalendarField model={timeline} orgQueryValue={orgQueryValue} />
+      }
       header={toDashboardHeaderProps(view.header)}
       lead={
         <>
-          {coverage && coverage.total > 0 ? (
-            <CoverageTimeline
-              days={coverage.days}
-              orgQueryValue={orgQueryValue}
-              total={coverage.total}
-            />
-          ) : null}
-          <TeamTodayCard orgQueryValue={orgQueryValue} state={view.teamToday} />
           {xero ? (
             <ApprovalQueueCard
               orgQueryValue={orgQueryValue}
@@ -78,14 +65,6 @@ export function ManagerView({
           <TodayStatusCard
             orgQueryValue={orgQueryValue}
             state={view.todayStatus}
-          />
-          <UpcomingPeaksCard
-            orgQueryValue={orgQueryValue}
-            state={view.upcomingPeaks}
-          />
-          <TeamThisWeekCard
-            orgQueryValue={orgQueryValue}
-            state={view.teamThisWeek}
           />
           <UpcomingRecordsCard
             orgQueryValue={orgQueryValue}

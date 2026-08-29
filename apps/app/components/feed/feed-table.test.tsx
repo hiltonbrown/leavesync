@@ -16,8 +16,6 @@ const mocks = vi.hoisted(() => ({
   restoreFeedAction: vi.fn(),
   resumeFeedAction: vi.fn(),
   rotateTokenAction: vi.fn(),
-  setToken: vi.fn(),
-  tokenForFeed: vi.fn(),
   writeText: vi.fn(),
 }));
 
@@ -31,16 +29,6 @@ vi.mock("@/app/(authenticated)/feeds/_actions", () => ({
   resumeFeedAction: (input: unknown) => mocks.resumeFeedAction(input),
   rotateTokenAction: (input: unknown) => mocks.rotateTokenAction(input),
 }));
-vi.mock("@/app/(authenticated)/feeds/feed-token-session", () => ({
-  buildSubscribeUrl: (origin: string, token: string) =>
-    `${origin}/ical/${token}.ics`,
-  useFeedTokenSession: () => ({
-    origin: "https://calendar.example",
-    setToken: mocks.setToken,
-    tokenForFeed: mocks.tokenForFeed,
-  }),
-}));
-
 const feed: FeedTableItem = {
   activeTokenHint: { hint: "abcd", lastUsedAt: null },
   createdAt: new Date("2026-08-01T00:00:00.000Z"),
@@ -53,6 +41,7 @@ const feed: FeedTableItem = {
   scopeCount: 1,
   scopeSummary: "All people",
   status: "active",
+  subscribeUrl: "https://calendar.example/ical/tc1.feed-token.signature.ics",
 };
 
 describe("FeedTable", () => {
@@ -107,7 +96,6 @@ describe("FeedTable", () => {
   });
 
   it("announces clipboard rejection", async () => {
-    mocks.tokenForFeed.mockReturnValueOnce("plaintext");
     mocks.writeText.mockRejectedValueOnce(new Error("Clipboard blocked"));
     render(
       <FeedTable
@@ -122,9 +110,64 @@ describe("FeedTable", () => {
 
     await waitFor(() => {
       expect(screen.getByRole("alert").textContent).toContain(
-        "Could not copy the subscribe URL"
+        "Could not copy the URL"
       );
     });
+  });
+
+  it("shows and copies the full subscribe URL without rotating", async () => {
+    mocks.writeText.mockResolvedValueOnce(undefined);
+    render(
+      <FeedTable
+        canManage={false}
+        feeds={[feed]}
+        organisationId="00000000-0000-4000-8000-000000000001"
+        orgQueryValue={null}
+      />
+    );
+
+    expect(
+      screen.getByRole("textbox", {
+        name: `Subscribe URL for ${feed.name}`,
+      })
+    ).toHaveProperty("value", feed.subscribeUrl);
+    expect(screen.queryByRole("button", { name: "Rotate token" })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Copy URL" }));
+
+    await waitFor(() => {
+      expect(mocks.writeText).toHaveBeenCalledWith(feed.subscribeUrl);
+      expect(screen.getByRole("status").textContent).toContain(
+        "Subscribe URL copied."
+      );
+    });
+  });
+
+  it("keeps paused feed URLs visible and shows no copy control without an active URL", () => {
+    const { rerender } = render(
+      <FeedTable
+        canManage
+        feeds={[{ ...feed, status: "paused" }]}
+        organisationId="00000000-0000-4000-8000-000000000001"
+        orgQueryValue={null}
+      />
+    );
+
+    expect(
+      screen.getByRole("textbox", { name: `Subscribe URL for ${feed.name}` })
+    ).toHaveProperty("value", feed.subscribeUrl);
+
+    rerender(
+      <FeedTable
+        canManage
+        feeds={[{ ...feed, status: "archived", subscribeUrl: null }]}
+        organisationId="00000000-0000-4000-8000-000000000001"
+        orgQueryValue={null}
+      />
+    );
+
+    expect(screen.getByText("No active subscribe URL")).toBeDefined();
+    expect(screen.queryByRole("button", { name: "Copy URL" })).toBeNull();
   });
 
   it("restores an archived feed into its safe paused state", async () => {

@@ -265,6 +265,9 @@ Do not queue outbound writes as background jobs. Failures are surfaced inline to
 ## Feed rules
 
 - Feed endpoint: `GET /ical/:token.ics` in `apps/api`.
+- Display and return the complete active calendar feed URL to every authorised viewer. Never mask, truncate, hash, redact, or replace it with a token hint. Copy actions must use the exact displayed URL.
+- Internal token hashes and signing material are server-only implementation details. They must never be returned in place of the usable subscribe URL.
+- The `masked` privacy mode applies to published event details only. It must never mask the calendar feed URL.
 - UID generation uses the deterministic hash formula in PRODUCT.md. Never use Xero's LeaveApplicationID as the sole UID.
 - SEQUENCE incremented on material changes to the published representation.
 - Privacy transforms applied during publication projection.
@@ -355,8 +358,8 @@ bun run preflight
 - Organisation scoping on all data access (`organisation_id` within the Clerk Org).
 - Clerk auth on all authenticated routes; middleware in `apps/app/proxy.ts`.
 - Xero tokens encrypted at rest; never in plaintext.
-- Feed tokens signed and revocable; plaintext never persisted.
-- No tokens or raw payloads exposed to client.
+- Feed tokens signed and revocable; plaintext never persisted. The complete active subscribe URL is intentionally returned to authorised viewers.
+- No Xero tokens, internal feed token hashes, signing material, or raw payloads exposed to client.
 - Never log or commit secrets or `.env` files.
 - SSE connections are per-user and per-Clerk-Organisation. Must not leak notifications across `clerk_org_id` boundaries.
 

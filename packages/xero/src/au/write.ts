@@ -35,22 +35,15 @@ export async function submitLeaveApplication(
 ): Promise<
   XeroWriteResult<{ rawResponse: unknown; xeroLeaveApplicationId: string }>
 > {
-  const payload = {
-    LeaveApplications: [
-      {
-        EmployeeID: input.xeroEmployeeId,
-        EndDate: dateOnly(input.endsAt),
-        LeavePeriods: [
-          {
-            NumberOfUnits: input.units,
-          },
-        ],
-        LeaveTypeID: input.xeroLeaveTypeId,
-        StartDate: dateOnly(input.startsAt),
-        Title: input.title ?? "Leave request",
-      },
-    ],
-  };
+  const payload = [
+    {
+      EmployeeID: input.xeroEmployeeId,
+      EndDate: dateOnly(input.endsAt),
+      LeaveTypeID: input.xeroLeaveTypeId,
+      StartDate: dateOnly(input.startsAt),
+      Title: input.title ?? "Leave request",
+    },
+  ];
 
   const response = await xeroRequest(input.xeroTenant, {
     body: payload,
@@ -242,8 +235,11 @@ function mapHttpError(response: Response, rawPayload: unknown): XeroWriteError {
   if (response.status === 400) {
     return { ...details, code: "validation_error" };
   }
-  if (response.status === 401 || response.status === 403) {
+  if (response.status === 401) {
     return { ...details, code: "auth_error" };
+  }
+  if (response.status === 403) {
+    return { ...details, code: "permission_error" };
   }
   if (response.status === 404) {
     return { ...details, code: "not_found_error" };

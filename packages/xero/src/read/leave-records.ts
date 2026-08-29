@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normaliseXeroDateOnly, normaliseXeroDateTime } from "./date";
 
 export type XeroLeaveRecordStatus =
   | "APPROVED"
@@ -24,6 +25,7 @@ export interface XeroLeaveRecord {
 
 const LeavePeriodSchema = z
   .object({
+    LeavePeriodStatus: z.string().optional().nullable(),
     NumberOfUnits: z.number().optional().nullable(),
   })
   .passthrough();
@@ -57,36 +59,49 @@ export type MapXeroLeaveRecordsResult =
   | { ok: true; records: XeroLeaveRecord[] }
   | { ok: false };
 
-export function mapXeroLeaveRecords(payload: unknown): XeroLeaveRecord[] {
-  const result = tryMapXeroLeaveRecords(payload);
+export function mapXeroLeaveRecords(
+  payload: unknown,
+  leaveTypeNamesById: ReadonlyMap<string, string> = new Map()
+): XeroLeaveRecord[] {
+  const result = tryMapXeroLeaveRecords(payload, leaveTypeNamesById);
   return result.ok ? result.records : [];
 }
 
 export function tryMapXeroLeaveRecords(
-  payload: unknown
+  payload: unknown,
+  leaveTypeNamesById: ReadonlyMap<string, string> = new Map()
 ): MapXeroLeaveRecordsResult {
   const parsed = LeaveApplicationsResponseSchema.safeParse(payload);
   if (!parsed.success) {
     return { ok: false };
   }
 
-  const records = parsed.data.LeaveApplications.map((application) => ({
-    employeeId: text(application.EmployeeID ?? application.EmployeeId),
-    endDate: text(application.EndDate),
-    leaveApplicationId: text(
-      application.LeaveApplicationID ?? application.LeaveApplicationId
-    ),
-    leaveTypeId: text(application.LeaveTypeID ?? application.LeaveTypeId),
-    leaveTypeName: nullableText(application.LeaveType),
-    rawPayload: application,
-    startDate: text(application.StartDate),
-    status: normaliseStatus(application.Status),
-    title: nullableText(application.Title),
-    units: sumUnits(application.LeavePeriods ?? []),
-    updatedDateUtc: nullableText(
-      application.UpdatedDateUTC ?? application.UpdatedDateUtc
-    ),
-  }));
+  const records = parsed.data.LeaveApplications.map((application) => {
+    const leaveTypeId = text(
+      application.LeaveTypeID ?? application.LeaveTypeId
+    );
+    const periods = application.LeavePeriods ?? [];
+    return {
+      employeeId: text(application.EmployeeID ?? application.EmployeeId),
+      endDate: normaliseXeroDateOnly(application.EndDate) ?? "",
+      leaveApplicationId: text(
+        application.LeaveApplicationID ?? application.LeaveApplicationId
+      ),
+      leaveTypeId,
+      leaveTypeName:
+        nullableText(application.LeaveType) ??
+        leaveTypeNamesById.get(leaveTypeId) ??
+        null,
+      rawPayload: application,
+      startDate: normaliseXeroDateOnly(application.StartDate) ?? "",
+      status: normaliseApplicationStatus(application.Status, periods),
+      title: nullableText(application.Title),
+      units: sumUnits(periods),
+      updatedDateUtc: normaliseXeroDateTime(
+        application.UpdatedDateUTC ?? application.UpdatedDateUtc
+      ),
+    };
+  });
 
   return { ok: true, records };
 }
@@ -100,11 +115,45 @@ function nullableText(value: string | null | undefined): string | null {
   return normalised.length > 0 ? normalised : null;
 }
 
+function normaliseApplicationStatus(
+  applicationStatus: string | null | undefined,
+  periods: Array<{ LeavePeriodStatus?: null | string }>
+): XeroLeaveRecordStatus {
+  const explicit = normaliseStatus(applicationStatus);
+  if (explicit !== "UNKNOWN") {
+    return explicit;
+  }
+
+  const statuses = periods.map((period) =>
+    normaliseStatus(period.LeavePeriodStatus)
+  );
+  if (statuses.includes("SUBMITTED")) {
+    return "SUBMITTED";
+  }
+  if (statuses.includes("APPROVED")) {
+    return "APPROVED";
+  }
+  if (statuses.includes("REJECTED")) {
+    return "REJECTED";
+  }
+  if (statuses.includes("WITHDRAWN")) {
+    return "WITHDRAWN";
+  }
+  if (statuses.includes("DELETED")) {
+    return "DELETED";
+  }
+  return "UNKNOWN";
+}
+
 function normaliseStatus(
   value: string | null | undefined
 ): XeroLeaveRecordStatus {
   const status = value?.trim().toUpperCase();
-  if (status === "APPROVED" || status === "SCHEDULED") {
+  if (
+    status === "APPROVED" ||
+    status === "SCHEDULED" ||
+    status === "PROCESSED"
+  ) {
     return "APPROVED";
   }
   if (status === "REJECTED" || status === "DECLINED") {
@@ -116,7 +165,11 @@ function normaliseStatus(
   if (status === "DELETED") {
     return "DELETED";
   }
-  if (status === "SUBMITTED" || status === "PENDING") {
+  if (
+    status === "SUBMITTED" ||
+    status === "PENDING" ||
+    status === "REQUESTED"
+  ) {
     return "SUBMITTED";
   }
   return "UNKNOWN";

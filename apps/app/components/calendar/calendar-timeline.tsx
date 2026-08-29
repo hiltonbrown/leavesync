@@ -1,24 +1,37 @@
+"use client";
+
 import type {
   CalendarDay,
   CalendarEvent,
   CalendarPerson,
   CalendarRange,
 } from "@repo/availability";
+import { getAvailabilityRecordLabel } from "@repo/core";
+import { Button } from "@repo/design-system/components/ui/button";
 import { cn } from "@repo/design-system/lib/utils";
 import {
   AlertTriangleIcon,
+  ArrowUpRightIcon,
   CalendarRangeIcon,
   ChevronRightIcon,
+  LeafIcon,
+  PencilIcon,
+  UsersIcon,
+  XIcon,
 } from "lucide-react";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import {
-  labelForValue,
+  approvalStatusLabel,
+  contactabilityLabel,
   statusToneClasses,
   toneForCalendarEvent,
 } from "@/components/availability/availability-status";
 import { withOrg } from "@/lib/navigation/org-url";
-import { CalendarEventPopover } from "./calendar-event-popover";
+import {
+  calendarEventSourceLabel,
+  isManualCalendarEvent,
+} from "./calendar-event-provenance";
 
 interface CalendarTimelineProps {
   data: CalendarRange;
@@ -39,266 +52,434 @@ interface TimelineLane {
   segments: TimelineSegment[];
 }
 
-const maxVisibleLanes = 10;
+const compactLaneLimit = 10;
 const namePartPattern = /\s+/;
 
 export function CalendarTimeline({
   data,
   orgQueryValue,
 }: CalendarTimelineProps) {
-  const { days } = data;
-  if (days.length === 0) {
+  const events = useMemo(() => uniqueEvents(data), [data]);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(
+    events[0]?.id ?? null
+  );
+  const [showAllPeople, setShowAllPeople] = useState(false);
+  const selectedTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const selectedEvent =
+    events.find((event) => event.id === selectedEventId) ?? null;
+
+  useEffect(() => {
+    if (selectedEventId && !events.some(({ id }) => id === selectedEventId)) {
+      setSelectedEventId(events[0]?.id ?? null);
+    }
+  }, [events, selectedEventId]);
+
+  useEffect(() => {
+    if (!selectedEventId) {
+      return;
+    }
+    const closeOnEscape = (keyboardEvent: KeyboardEvent) => {
+      if (keyboardEvent.key !== "Escape") {
+        return;
+      }
+      setSelectedEventId(null);
+      requestAnimationFrame(() => selectedTriggerRef.current?.focus());
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [selectedEventId]);
+
+  const selectEvent = (
+    event: CalendarEvent | null,
+    trigger?: HTMLButtonElement
+  ) => {
+    if (trigger) {
+      selectedTriggerRef.current = trigger;
+    }
+    const update = () => setSelectedEventId(event?.id ?? null);
+    const reduceMotion =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reduceMotion || !("startViewTransition" in document)) {
+      update();
+      return;
+    }
+
+    document.startViewTransition(update);
+  };
+
+  const closeDetail = () => {
+    selectEvent(null);
+    requestAnimationFrame(() => selectedTriggerRef.current?.focus());
+  };
+
+  if (data.days.length === 0) {
     return null;
   }
 
-  const daySummaries = days.map((day) => daySummary(day));
-  const maxEvents = Math.max(
+  const summaries = data.days.map((day) => daySummary(day));
+  const maxAffected = Math.max(
     1,
-    ...daySummaries.map((summary) => summary.eventCount)
+    ...summaries.map(({ distinctPeopleCount }) => distinctPeopleCount)
   );
   const lanes = buildTimelineLanes(data);
-  const visibleLanes = lanes.slice(0, maxVisibleLanes);
+  const visibleLanes = showAllPeople ? lanes : lanes.slice(0, compactLaneLimit);
   const hiddenLaneCount = lanes.length - visibleLanes.length;
-  const gridTemplateColumns = `repeat(${days.length}, minmax(3rem, 1fr))`;
+  const affectedPeople = lanes.filter(
+    ({ segments }) => segments.length > 0
+  ).length;
 
   return (
-    <section className="rounded-2xl bg-muted p-4">
-      <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <CalendarRangeIcon className="size-4" />
-            </span>
-            <div>
-              <h2 className="font-semibold text-base">
-                Coverage across this range
-              </h2>
-              <p className="text-muted-foreground text-sm">
-                See who is unavailable each day, then open a day for detail.
-              </p>
+    <section
+      aria-labelledby="team-runway-title"
+      className="overflow-hidden rounded-[20px] bg-surface-container"
+    >
+      <RunwayHeader
+        affectedPeople={affectedPeople}
+        data={data}
+        laneCount={lanes.length}
+      />
+
+      <div className="hidden md:block">
+        <div className="calendar-runway-scroll overflow-x-auto pb-1">
+          <div className="min-w-[64rem]">
+            <RunwayDayHeader
+              maxAffected={maxAffected}
+              orgQueryValue={orgQueryValue}
+              summaries={summaries}
+            />
+            <div className="px-3 pb-3">
+              {visibleLanes.length > 0 ? (
+                <div className="overflow-hidden rounded-2xl bg-surface-container-lowest">
+                  {visibleLanes.map((lane, index) => (
+                    <TimelineLaneRow
+                      days={data.days}
+                      index={index}
+                      key={lane.personId}
+                      lane={lane}
+                      onSelect={selectEvent}
+                      orgQueryValue={orgQueryValue}
+                      selectedEventId={selectedEventId}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <RunwayEmptyState />
+              )}
             </div>
           </div>
         </div>
-        {data.xeroSyncFailedCount > 0 ? (
-          <div className="flex flex-wrap gap-2 text-sm">
-            <TimelinePill
-              icon={<AlertTriangleIcon className="size-3.5" />}
-              label={`${data.xeroSyncFailedCount} Xero ${data.xeroSyncFailedCount === 1 ? "record needs" : "records need"} attention`}
-              tone="failed"
-            />
-          </div>
-        ) : null}
       </div>
 
-      <div className="mt-4 overflow-x-auto pb-1">
-        <div className="min-w-[42rem]">
-          <div className="grid gap-1" style={{ gridTemplateColumns }}>
-            {daySummaries.map((summary) => (
-              <CoverageDay
-                key={summary.dateOnly}
-                maxEvents={maxEvents}
-                orgQueryValue={orgQueryValue}
-                summary={summary}
-              />
-            ))}
-          </div>
+      <div className="md:hidden">
+        <RunwayDetail
+          event={selectedEvent}
+          onClose={closeDetail}
+          orgQueryValue={orgQueryValue}
+        />
+        <MobileRunway
+          data={data}
+          maxAffected={maxAffected}
+          onSelect={selectEvent}
+          orgQueryValue={orgQueryValue}
+          selectedEventId={selectedEventId}
+        />
+      </div>
 
-          <div className="mt-4 grid gap-2">
-            {visibleLanes.length > 0 ? (
-              visibleLanes.map((lane) => (
-                <TimelineLaneRow
-                  days={days}
-                  gridTemplateColumns={gridTemplateColumns}
-                  key={lane.personId}
-                  lane={lane}
-                  orgQueryValue={orgQueryValue}
-                />
-              ))
-            ) : (
-              <div className="rounded-2xl bg-background p-4 text-muted-foreground text-sm">
-                No one is unavailable in this range.
-              </div>
-            )}
-          </div>
-        </div>
+      <div className="hidden px-3 pb-3 md:block">
+        <RunwayDetail
+          event={selectedEvent}
+          onClose={closeDetail}
+          orgQueryValue={orgQueryValue}
+        />
       </div>
 
       {hiddenLaneCount > 0 ? (
-        <div className="mt-3 flex justify-end">
-          <span className="rounded-xl bg-background px-3 py-2 text-muted-foreground text-sm">
-            Showing {visibleLanes.length} of {lanes.length} people with leave or
-            availability
-          </span>
+        <div className="flex flex-col gap-2 px-4 pb-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-muted-foreground text-sm">
+            Showing {visibleLanes.length} of {lanes.length} people in this
+            scope.
+          </p>
+          <Button
+            onClick={() => setShowAllPeople(true)}
+            size="sm"
+            type="button"
+            variant="secondary"
+          >
+            Show all people
+          </Button>
         </div>
+      ) : null}
+
+      {data.truncated ? (
+        <p className="mx-4 mb-4 rounded-xl bg-warning-container px-3 py-2 text-on-warning-container text-sm">
+          Showing the first {data.people.length} of {data.totalPeopleInScope}
+          people. Narrow the people or location filter to see everyone.
+        </p>
       ) : null}
     </section>
   );
 }
 
-function TimelinePill({
-  icon,
-  label,
-  tone = "default",
+function RunwayHeader({
+  affectedPeople,
+  data,
+  laneCount,
 }: {
-  icon?: ReactNode;
-  label: string;
-  tone?: "default" | "failed";
+  affectedPeople: number;
+  data: CalendarRange;
+  laneCount: number;
 }) {
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-xl px-3 py-2 font-medium",
-        tone === "failed"
-          ? statusToneClasses.failed
-          : "bg-background text-foreground"
-      )}
-    >
+    <div className="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-start lg:justify-between">
+      <div className="flex min-w-0 items-start gap-3">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+          <CalendarRangeIcon aria-hidden="true" className="size-5" />
+        </span>
+        <div className="min-w-0">
+          <h2 className="font-semibold text-title-lg" id="team-runway-title">
+            Calendar
+          </h2>
+          <p className="mt-1 max-w-[65ch] text-body-sm text-muted-foreground">
+            Scan who is away, where coverage tightens, and what changed across
+            the week.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-label-sm text-muted-foreground">
+            <LegendItem
+              icon={<LeafIcon className="size-3.5" />}
+              label="Xero leave"
+            />
+            <LegendItem
+              icon={<PencilIcon className="size-3.5" />}
+              label="Manual availability"
+            />
+            <LegendItem
+              icon={<UsersIcon className="size-3.5" />}
+              label={`${affectedPeople} of ${laneCount} people affected`}
+            />
+          </div>
+        </div>
+      </div>
+      {data.xeroSyncFailedCount > 0 ? (
+        <span
+          className={cn(
+            "inline-flex items-center gap-2 self-start rounded-xl px-3 py-2 font-medium text-sm",
+            statusToneClasses.failed
+          )}
+        >
+          <AlertTriangleIcon aria-hidden="true" className="size-4" />
+          {data.xeroSyncFailedCount} Xero{" "}
+          {data.xeroSyncFailedCount === 1 ? "record needs" : "records need"}{" "}
+          attention
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function LegendItem({ icon, label }: { icon: ReactNode; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
       {icon}
       {label}
     </span>
   );
 }
 
-function CoverageDay({
-  maxEvents,
+function RunwayDayHeader({
+  maxAffected,
+  orgQueryValue,
+  summaries,
+}: {
+  maxAffected: number;
+  orgQueryValue: string | null;
+  summaries: ReturnType<typeof daySummary>[];
+}) {
+  const gridTemplateColumns = `13rem repeat(${summaries.length}, minmax(6.5rem, 1fr))`;
+  return (
+    <div
+      className="sticky top-0 z-20 grid gap-px bg-surface-variant/40 px-3"
+      style={{ gridTemplateColumns }}
+    >
+      <div className="sticky left-0 z-30 flex items-end bg-surface-container-high px-3 py-3">
+        <span className="font-medium text-label-sm text-muted-foreground uppercase tracking-wide">
+          People
+        </span>
+      </div>
+      {summaries.map((summary) => (
+        <CoverageDayHeader
+          key={summary.dateOnly}
+          maxAffected={maxAffected}
+          orgQueryValue={orgQueryValue}
+          summary={summary}
+        />
+      ))}
+    </div>
+  );
+}
+
+function CoverageDayHeader({
+  maxAffected,
   orgQueryValue,
   summary,
 }: {
-  maxEvents: number;
+  maxAffected: number;
   orgQueryValue: string | null;
   summary: ReturnType<typeof daySummary>;
 }) {
-  const pressureLabel =
-    summary.eventCount === 0
-      ? "Clear"
-      : `${summary.eventCount} ${summary.eventCount === 1 ? "record" : "records"}`;
-  const dayHref = withOrg(
-    `/calendar?view=day&anchor=${summary.dateOnly}`,
-    orgQueryValue
+  const pressure = Math.max(
+    summary.distinctPeopleCount === 0 ? 6 : 18,
+    Math.round((summary.distinctPeopleCount / maxAffected) * 100)
   );
+  const pressureLabel =
+    summary.distinctPeopleCount === 0
+      ? "No recorded unavailability"
+      : `${summary.distinctPeopleCount} ${summary.distinctPeopleCount === 1 ? "person" : "people"} affected`;
 
   return (
     <Link
       aria-label={`${formatFullDay(summary.date)}: ${pressureLabel}`}
       className={cn(
-        "group flex min-h-32 flex-col justify-between rounded-2xl bg-background p-2 text-left transition hover:bg-surface-container-lowest focus-visible:outline-2 focus-visible:outline-ring motion-safe:duration-200 motion-safe:ease-out",
-        summary.isToday && "bg-secondary text-secondary-foreground"
+        "group relative flex min-h-28 flex-col justify-between bg-surface-container-high px-3 py-3 outline-none transition-colors hover:bg-surface-container-highest focus-visible:z-10 focus-visible:ring-3 focus-visible:ring-ring",
+        summary.isToday && "bg-primary-container text-on-primary-container"
       )}
-      href={dayHref}
+      href={withOrg(
+        `/calendar?view=day&anchor=${summary.dateOnly}`,
+        orgQueryValue
+      )}
     >
-      <span>
-        <span className="block font-medium text-xs">
-          {formatWeekday(summary.date)}
-        </span>
-        <span className="block font-semibold text-lg tabular-nums">
-          {summary.date.getUTCDate()}
-        </span>
-      </span>
-      <span className="flex h-14 items-end">
+      {summary.isToday ? (
         <span
-          className={cn(
-            "block w-full rounded-xl transition group-hover:brightness-95 motion-safe:duration-200 motion-safe:ease-out",
-            coverageHeightClass(summary.eventCount, maxEvents),
-            coverageToneClass(summary)
-          )}
+          aria-hidden="true"
+          className="absolute inset-y-0 left-1/2 w-px bg-primary/45"
         />
-      </span>
-      <span className="flex items-center justify-between gap-1 text-xs">
-        <span className="font-medium tabular-nums">
-          {summary.distinctPeopleCount}
+      ) : null}
+      <span className="relative flex items-start justify-between gap-2">
+        <span>
+          <span className="block font-medium text-label-sm uppercase tracking-wide opacity-75">
+            {formatWeekday(summary.date)}
+          </span>
+          <span className="mt-1 block font-semibold text-title-lg tabular-nums">
+            {summary.date.getUTCDate()}
+          </span>
         </span>
-        <CoverageDayStatus summary={summary} />
+        {summary.isToday ? (
+          <span className="rounded-xl bg-primary px-2 py-1 font-medium text-primary-foreground text-xs">
+            Today
+          </span>
+        ) : (
+          <ChevronRightIcon
+            aria-hidden="true"
+            className="size-4 opacity-0 transition-opacity group-hover:opacity-70"
+          />
+        )}
+      </span>
+      <span className="relative">
+        <span className="flex items-center justify-between gap-2 text-xs">
+          <span className="font-medium tabular-nums">
+            {summary.distinctPeopleCount} affected
+          </span>
+          {summary.holidayCount > 0 ? <span>Holiday</span> : null}
+        </span>
+        <span
+          aria-hidden="true"
+          className="mt-2 block h-1.5 overflow-hidden rounded-full bg-surface-variant/60"
+        >
+          <span
+            className={cn(
+              "block h-full rounded-full",
+              coverageToneClass(summary)
+            )}
+            style={{ width: `${pressure}%` }}
+          />
+        </span>
       </span>
     </Link>
   );
 }
 
-function CoverageDayStatus({
-  summary,
-}: {
-  summary: ReturnType<typeof daySummary>;
-}) {
-  if (summary.failedCount > 0) {
-    return <AlertTriangleIcon className="size-3 text-destructive" />;
-  }
-  if (summary.holidayCount > 0) {
-    return (
-      <span className="rounded-xl bg-accent-container px-1.5 py-0.5 text-on-accent-container">
-        Hol
-      </span>
-    );
-  }
-  return (
-    <ChevronRightIcon className="size-3 text-muted-foreground opacity-0 transition group-hover:opacity-100" />
-  );
-}
-
 function TimelineLaneRow({
   days,
-  gridTemplateColumns,
+  index,
   lane,
+  onSelect,
   orgQueryValue,
+  selectedEventId,
 }: {
   days: readonly CalendarDay[];
-  gridTemplateColumns: string;
+  index: number;
   lane: TimelineLane;
+  onSelect: (event: CalendarEvent, trigger: HTMLButtonElement) => void;
   orgQueryValue: string | null;
+  selectedEventId: string | null;
 }) {
   const trackCount = Math.max(
     1,
-    ...lane.segments.map((segment) => segment.level + 1)
+    ...lane.segments.map(({ level }) => level + 1)
   );
   const personName = lane.person?.displayName ?? lane.fallbackName;
   const personMeta = [lane.person?.teamName, lane.person?.locationName]
     .filter(Boolean)
-    .join(" • ");
+    .join(" · ");
+  const gridTemplateColumns = `repeat(${days.length}, minmax(6.5rem, 1fr))`;
+  const rowTone =
+    index % 2 === 0
+      ? "bg-surface-container-lowest"
+      : "bg-surface-container-low";
 
   return (
-    <div className="grid min-w-[42rem] grid-cols-[12rem_minmax(0,1fr)] gap-2 rounded-2xl bg-background p-2">
+    <div className={cn("grid grid-cols-[13rem_minmax(0,1fr)] gap-px", rowTone)}>
       <Link
-        className="flex min-w-0 items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
+        className={cn(
+          "sticky left-0 z-10 flex min-w-0 items-center gap-2.5 px-3 py-3 outline-none hover:bg-surface-container-high focus-visible:ring-3 focus-visible:ring-ring",
+          rowTone
+        )}
         href={withOrg(`/people/${lane.personId}`, orgQueryValue)}
       >
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-muted font-semibold text-sm">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface-container-high font-semibold text-sm">
           {initialsForName(personName)}
         </span>
         <span className="min-w-0">
           <span className="block truncate font-medium text-sm">
             {personName}
           </span>
-          {personMeta ? (
-            <span className="block truncate text-muted-foreground text-xs">
-              {personMeta}
-            </span>
-          ) : null}
+          <span className="block truncate text-muted-foreground text-xs">
+            {lane.segments.length > 0
+              ? personMeta || "Availability recorded"
+              : "No recorded unavailability"}
+          </span>
         </span>
       </Link>
       <div
-        className="grid gap-1"
+        className="grid min-h-16 gap-px bg-surface-variant/30 py-2"
         style={{
           gridTemplateColumns,
-          gridTemplateRows: `repeat(${trackCount}, minmax(1.75rem, auto))`,
+          gridTemplateRows: `repeat(${trackCount}, minmax(2.5rem, auto))`,
         }}
       >
-        {days.map((day, index) => (
+        {days.map((day, dayIndex) => (
           <span
             aria-hidden="true"
             className={cn(
-              "rounded-xl bg-muted/55",
-              day.isToday && "bg-secondary/70"
+              "relative bg-surface-container-lowest",
+              index % 2 === 1 && "bg-surface-container-low",
+              day.isToday &&
+                "bg-primary-container/55 after:absolute after:inset-y-0 after:left-1/2 after:w-px after:bg-primary/35"
             )}
             key={`${lane.personId}-${day.date.toISOString()}`}
             style={{
-              gridColumn: `${index + 1}`,
+              gridColumn: `${dayIndex + 1}`,
               gridRow: `1 / ${trackCount + 1}`,
             }}
           />
         ))}
         {lane.segments.map((segment) => (
-          <TimelineEventSegment
+          <TimelineEventButton
             key={`${segment.event.id}-${segment.startIndex}-${segment.level}`}
-            orgQueryValue={orgQueryValue}
+            onSelect={onSelect}
             segment={segment}
+            selected={selectedEventId === segment.event.id}
           />
         ))}
       </div>
@@ -306,43 +487,308 @@ function TimelineLaneRow({
   );
 }
 
-function TimelineEventSegment({
-  orgQueryValue,
+function TimelineEventButton({
+  onSelect,
   segment,
+  selected,
 }: {
-  orgQueryValue: string | null;
+  onSelect: (event: CalendarEvent, trigger: HTMLButtonElement) => void;
   segment: TimelineSegment;
+  selected: boolean;
 }) {
-  const tone = toneForCalendarEvent(segment.event);
+  const { event } = segment;
+  const tone = toneForCalendarEvent(event);
   const label =
-    segment.event.recordType === "private"
+    event.recordType === "private"
       ? "Private"
-      : labelForValue(segment.event.recordType);
+      : getAvailabilityRecordLabel(event.recordType);
+  const ProvenanceIcon = isManualCalendarEvent(event) ? PencilIcon : LeafIcon;
+  const duration = segment.endIndex - segment.startIndex + 1;
+  const treatment = treatmentLabel(event.renderTreatment);
 
   return (
-    <CalendarEventPopover event={segment.event} orgQueryValue={orgQueryValue}>
-      <button
-        className={cn(
-          "min-w-0 rounded-xl px-2.5 py-1 text-left font-medium text-xs ring-1 transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-ring motion-safe:duration-200 motion-safe:ease-out",
-          statusToneClasses[tone],
-          segment.event.renderTreatment === "dashed" &&
-            "border border-dashed opacity-85",
-          segment.event.renderTreatment === "draft" && "opacity-70"
-        )}
-        style={{
-          gridColumn: `${segment.startIndex + 1} / ${segment.endIndex + 2}`,
-          gridRow: `${segment.level + 1}`,
-        }}
-        type="button"
-      >
-        <span className="flex min-w-0 items-center gap-1.5">
-          {segment.event.renderTreatment === "failed" ? (
-            <AlertTriangleIcon className="size-3 shrink-0" />
-          ) : null}
-          <span className="truncate">{label}</span>
+    <button
+      aria-label={`${event.displayName}: ${label}, ${calendarEventSourceLabel(event)}${treatment ? `, ${treatment}` : ""}`}
+      aria-pressed={selected}
+      className={cn(
+        "relative z-[1] m-1 flex min-w-0 items-center gap-1.5 rounded-xl px-2.5 py-2 text-left font-medium text-xs outline-none ring-1 transition-[filter,transform,box-shadow] hover:brightness-95 focus-visible:z-10 focus-visible:ring-3 focus-visible:ring-ring active:translate-y-px motion-safe:duration-200 motion-safe:ease-out",
+        statusToneClasses[tone],
+        event.renderTreatment === "dashed" && "border border-dashed opacity-90",
+        event.renderTreatment === "draft" && "opacity-70",
+        selected && "calendar-runway-selection ring-2 ring-primary"
+      )}
+      onClick={(clickEvent) => onSelect(event, clickEvent.currentTarget)}
+      style={{
+        gridColumn: `${segment.startIndex + 1} / ${segment.endIndex + 2}`,
+        gridRow: `${segment.level + 1}`,
+      }}
+      type="button"
+    >
+      {event.renderTreatment === "failed" ? (
+        <AlertTriangleIcon aria-hidden="true" className="size-3.5 shrink-0" />
+      ) : (
+        <ProvenanceIcon aria-hidden="true" className="size-3.5 shrink-0" />
+      )}
+      <span className="truncate">{label}</span>
+      {duration >= 3 ? (
+        <span className="ml-auto shrink-0 font-semibold tabular-nums opacity-70">
+          {duration}d
         </span>
-      </button>
-    </CalendarEventPopover>
+      ) : null}
+    </button>
+  );
+}
+
+function RunwayDetail({
+  event,
+  onClose,
+  orgQueryValue,
+}: {
+  event: CalendarEvent | null;
+  onClose: () => void;
+  orgQueryValue: string | null;
+}) {
+  if (!event) {
+    return (
+      <div className="calendar-runway-detail mx-3 mb-3 flex min-h-20 items-center gap-3 rounded-2xl bg-surface-container-lowest px-4 py-3 text-muted-foreground text-sm">
+        <ArrowUpRightIcon aria-hidden="true" className="size-4 shrink-0" />
+        Select an entry to see its dates, status, source and contactability.
+      </div>
+    );
+  }
+
+  const typeLabel =
+    event.recordType === "private"
+      ? "Private"
+      : getAvailabilityRecordLabel(event.recordType);
+  const sourceLabel = calendarEventSourceLabel(event);
+  const SourceIcon = isManualCalendarEvent(event) ? PencilIcon : LeafIcon;
+
+  return (
+    <div
+      aria-live="polite"
+      className="calendar-runway-detail mx-3 mb-3 rounded-2xl bg-surface-container-lowest p-4 sm:p-5"
+    >
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+        <div className="flex min-w-0 items-start gap-3">
+          <span
+            className={cn(
+              "flex size-10 shrink-0 items-center justify-center rounded-xl ring-1",
+              statusToneClasses[toneForCalendarEvent(event)]
+            )}
+          >
+            <SourceIcon aria-hidden="true" className="size-4" />
+          </span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <h3 className="font-semibold text-title-md">
+                {event.displayName} · {typeLabel}
+              </h3>
+              <span className="rounded-xl bg-surface-container-high px-2.5 py-1 font-medium text-label-sm text-muted-foreground">
+                {sourceLabel}
+              </span>
+            </div>
+            <p className="mt-1 text-body-sm text-muted-foreground">
+              {formatEventDateRange(event)}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+              <DetailDatum
+                label="Status"
+                value={approvalStatusLabel(event.approvalStatus) ?? "Unknown"}
+              />
+              {event.contactabilityStatus ? (
+                <DetailDatum
+                  label="Contactability"
+                  value={
+                    contactabilityLabel(event.contactabilityStatus) ?? "Unknown"
+                  }
+                />
+              ) : null}
+              {event.notesInternal ? (
+                <DetailDatum label="Notes" value={event.notesInternal} />
+              ) : null}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-2">
+          {event.isEditableByActor ? (
+            <Button asChild size="sm" variant="secondary">
+              <Link href={withOrg(`/plans/${event.id}/edit`, orgQueryValue)}>
+                View plan
+                <ArrowUpRightIcon aria-hidden="true" className="size-3.5" />
+              </Link>
+            </Button>
+          ) : (
+            <span className="rounded-xl bg-surface-container-low px-3 py-2 text-muted-foreground text-sm">
+              View-only access
+            </span>
+          )}
+          <Button
+            aria-label="Close entry details"
+            onClick={onClose}
+            size="icon"
+            type="button"
+            variant="ghost"
+          >
+            <XIcon aria-hidden="true" className="size-4" />
+          </Button>
+        </div>
+      </div>
+      {event.xeroWriteError ? (
+        <p
+          className={cn(
+            "mt-4 rounded-xl px-3 py-2 text-sm",
+            statusToneClasses.failed
+          )}
+        >
+          {event.xeroWriteError}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function DetailDatum({ label, value }: { label: string; value: string }) {
+  return (
+    <span>
+      <span className="font-medium text-foreground">{label}: </span>
+      {value}
+    </span>
+  );
+}
+
+function MobileRunway({
+  data,
+  maxAffected,
+  onSelect,
+  orgQueryValue,
+  selectedEventId,
+}: {
+  data: CalendarRange;
+  maxAffected: number;
+  onSelect: (event: CalendarEvent, trigger: HTMLButtonElement) => void;
+  orgQueryValue: string | null;
+  selectedEventId: string | null;
+}) {
+  return (
+    <ol aria-label="Team availability by day" className="space-y-2 px-3 pb-3">
+      {data.days.map((day) => {
+        const summary = daySummary(day);
+        const pressure = Math.max(
+          summary.distinctPeopleCount === 0 ? 6 : 18,
+          Math.round((summary.distinctPeopleCount / maxAffected) * 100)
+        );
+        const dateOnly = day.date.toISOString().slice(0, 10);
+        return (
+          <li
+            className={cn(
+              "rounded-2xl bg-surface-container-lowest p-3",
+              day.isToday && "ring-2 ring-primary"
+            )}
+            key={dateOnly}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-semibold text-base">
+                  {formatFullDay(day.date)}
+                </p>
+                <p className="mt-0.5 text-muted-foreground text-sm">
+                  {summary.distinctPeopleCount === 0
+                    ? "No recorded unavailability"
+                    : `${summary.distinctPeopleCount} ${summary.distinctPeopleCount === 1 ? "person" : "people"} affected`}
+                </p>
+              </div>
+              <Button asChild size="sm" variant="ghost">
+                <Link
+                  href={withOrg(
+                    `/calendar?view=day&anchor=${dateOnly}`,
+                    orgQueryValue
+                  )}
+                >
+                  Open day
+                </Link>
+              </Button>
+            </div>
+            <span
+              aria-hidden="true"
+              className="mt-3 block h-1.5 overflow-hidden rounded-full bg-surface-variant/60"
+            >
+              <span
+                className={cn(
+                  "block h-full rounded-full",
+                  coverageToneClass(summary)
+                )}
+                style={{ width: `${pressure}%` }}
+              />
+            </span>
+            {day.publicHolidays.length > 0 ? (
+              <p className="mt-3 rounded-xl bg-warning-container px-3 py-2 text-on-warning-container text-sm">
+                {day.publicHolidays.map(({ name }) => name).join(", ")}
+              </p>
+            ) : null}
+            {day.events.length > 0 ? (
+              <ul className="mt-3 space-y-2">
+                {day.events.map((event) => (
+                  <li key={`${event.id}-${dateOnly}`}>
+                    <MobileEventButton
+                      event={event}
+                      onSelect={onSelect}
+                      selected={selectedEventId === event.id}
+                    />
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function MobileEventButton({
+  event,
+  onSelect,
+  selected,
+}: {
+  event: CalendarEvent;
+  onSelect: (event: CalendarEvent, trigger: HTMLButtonElement) => void;
+  selected: boolean;
+}) {
+  const label =
+    event.recordType === "private"
+      ? "Private"
+      : getAvailabilityRecordLabel(event.recordType);
+  const SourceIcon = isManualCalendarEvent(event) ? PencilIcon : LeafIcon;
+  return (
+    <button
+      aria-pressed={selected}
+      className={cn(
+        "flex min-h-11 w-full items-center gap-2 rounded-xl px-3 py-2 text-left outline-none ring-1 focus-visible:ring-3 focus-visible:ring-ring",
+        statusToneClasses[toneForCalendarEvent(event)],
+        selected && "ring-2 ring-primary"
+      )}
+      onClick={(clickEvent) => onSelect(event, clickEvent.currentTarget)}
+      type="button"
+    >
+      <SourceIcon aria-hidden="true" className="size-4 shrink-0" />
+      <span className="min-w-0">
+        <span className="block truncate font-medium text-sm">
+          {event.displayName}
+        </span>
+        <span className="block truncate text-xs opacity-75">
+          {label} · {calendarEventSourceLabel(event)}
+        </span>
+      </span>
+    </button>
+  );
+}
+
+function RunwayEmptyState() {
+  return (
+    <div className="flex min-h-40 items-center justify-center rounded-2xl bg-surface-container-lowest p-6 text-center text-muted-foreground text-sm">
+      No people match this calendar scope.
+    </div>
   );
 }
 
@@ -351,37 +797,36 @@ function buildTimelineLanes(data: CalendarRange): TimelineLane[] {
     string,
     { dayIndexes: number[]; event: CalendarEvent }
   >();
-
   for (const [dayIndex, day] of data.days.entries()) {
     for (const event of day.events) {
       const existing = eventIndex.get(event.id);
       if (existing) {
         existing.dayIndexes.push(dayIndex);
-        continue;
+      } else {
+        eventIndex.set(event.id, { dayIndexes: [dayIndex], event });
       }
-      eventIndex.set(event.id, { dayIndexes: [dayIndex], event });
     }
   }
 
-  const peopleById = new Map(data.people.map((person) => [person.id, person]));
   const lanes = new Map<string, TimelineLane>();
-
+  for (const person of data.people) {
+    lanes.set(person.id, {
+      fallbackName: person.displayName,
+      person,
+      personId: person.id,
+      segments: [],
+    });
+  }
   for (const { dayIndexes, event } of eventIndex.values()) {
-    const startIndex = Math.min(...dayIndexes);
-    const endIndex = Math.max(...dayIndexes);
-    const person = peopleById.get(event.personId) ?? null;
     const lane = lanes.get(event.personId) ?? {
       fallbackName: event.displayName,
-      person,
+      person: null,
       personId: event.personId,
       segments: [],
     };
-    lane.segments.push({
-      endIndex,
-      event,
-      level: 0,
-      startIndex,
-    });
+    for (const [startIndex, endIndex] of contiguousRuns(dayIndexes)) {
+      lane.segments.push({ endIndex, event, level: 0, startIndex });
+    }
     lanes.set(event.personId, lane);
   }
 
@@ -396,13 +841,31 @@ function buildTimelineLanes(data: CalendarRange): TimelineLane[] {
       if (firstFailed !== secondFailed) {
         return secondFailed - firstFailed;
       }
-      if (first.segments.length !== second.segments.length) {
-        return second.segments.length - first.segments.length;
+      const firstAffected = first.segments.length > 0 ? 1 : 0;
+      const secondAffected = second.segments.length > 0 ? 1 : 0;
+      if (firstAffected !== secondAffected) {
+        return secondAffected - firstAffected;
       }
       return (first.person?.displayName ?? first.fallbackName).localeCompare(
         second.person?.displayName ?? second.fallbackName
       );
     });
+}
+
+function contiguousRuns(dayIndexes: number[]): [number, number][] {
+  const sorted = [...new Set(dayIndexes)].sort(
+    (first, second) => first - second
+  );
+  const runs: [number, number][] = [];
+  for (const index of sorted) {
+    const current = runs.at(-1);
+    if (current && index === current[1] + 1) {
+      current[1] = index;
+    } else {
+      runs.push([index, index]);
+    }
+  }
+  return runs;
 }
 
 function assignSegmentLevels(segments: TimelineSegment[]): TimelineSegment[] {
@@ -423,47 +886,35 @@ function assignSegmentLevels(segments: TimelineSegment[]): TimelineSegment[] {
 }
 
 function laneHasFailure(lane: TimelineLane): boolean {
-  return lane.segments.some(
-    (segment) => segment.event.renderTreatment === "failed"
-  );
+  return lane.segments.some(({ event }) => event.renderTreatment === "failed");
+}
+
+function uniqueEvents(data: CalendarRange): CalendarEvent[] {
+  const events = new Map<string, CalendarEvent>();
+  for (const day of data.days) {
+    for (const event of day.events) {
+      events.set(event.id, event);
+    }
+  }
+  return [...events.values()];
 }
 
 function daySummary(day: CalendarDay) {
   return {
     date: day.date,
     dateOnly: day.date.toISOString().slice(0, 10),
-    distinctPeopleCount: new Set(day.events.map((event) => event.personId))
+    distinctPeopleCount: new Set(day.events.map(({ personId }) => personId))
       .size,
     eventCount: day.events.length,
     failedCount: day.events.filter(
-      (event) => event.renderTreatment === "failed"
+      ({ renderTreatment }) => renderTreatment === "failed"
     ).length,
     holidayCount: day.publicHolidays.length,
     isToday: day.isToday,
     manualCount: day.events.filter(
-      (event) => event.recordTypeCategory === "local_only"
+      ({ recordTypeCategory }) => recordTypeCategory === "local_only"
     ).length,
   };
-}
-
-function coverageHeightClass(eventCount: number, maxEvents: number): string {
-  if (eventCount === 0) {
-    return "h-1.5";
-  }
-  const ratio = eventCount / maxEvents;
-  if (ratio >= 0.85) {
-    return "h-14";
-  }
-  if (ratio >= 0.65) {
-    return "h-11";
-  }
-  if (ratio >= 0.45) {
-    return "h-8";
-  }
-  if (ratio >= 0.25) {
-    return "h-6";
-  }
-  return "h-4";
 }
 
 function coverageToneClass(summary: ReturnType<typeof daySummary>): string {
@@ -471,30 +922,74 @@ function coverageToneClass(summary: ReturnType<typeof daySummary>): string {
     return "bg-destructive";
   }
   if (summary.eventCount === 0 && summary.holidayCount === 0) {
-    return "bg-muted-foreground/20";
+    return "bg-muted-foreground/30";
   }
   if (summary.manualCount > 0 && summary.manualCount >= summary.eventCount) {
     return "bg-on-accent-container";
   }
   if (summary.holidayCount > 0 && summary.eventCount === 0) {
-    return "bg-accent-container";
+    return "bg-warning";
   }
   return "bg-primary";
 }
 
+function treatmentLabel(
+  treatment: CalendarEvent["renderTreatment"]
+): string | null {
+  if (treatment === "dashed") {
+    return "Pending";
+  }
+  if (treatment === "draft") {
+    return "Draft";
+  }
+  if (treatment === "failed") {
+    return "Sync failed";
+  }
+  return null;
+}
+
 function formatWeekday(date: Date): string {
-  return new Intl.DateTimeFormat("en-AU", { weekday: "short" }).format(date);
+  return new Intl.DateTimeFormat("en-AU", {
+    timeZone: "UTC",
+    weekday: "short",
+  }).format(date);
 }
 
 function formatFullDay(date: Date): string {
   return new Intl.DateTimeFormat("en-AU", {
     day: "numeric",
     month: "long",
+    timeZone: "UTC",
     weekday: "long",
   }).format(date);
 }
 
+function formatEventDateRange(event: CalendarEvent): string {
+  const dateFormatter = new Intl.DateTimeFormat("en-AU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  const timeFormatter = new Intl.DateTimeFormat("en-AU", {
+    hour: "2-digit",
+    hour12: false,
+    minute: "2-digit",
+  });
+  const startDate = new Date(event.startsAt);
+  const endDate = new Date(event.endsAt);
+  const start = dateFormatter.format(startDate);
+  const end = dateFormatter.format(endDate);
+  if (!event.allDay) {
+    return `${start}, ${timeFormatter.format(startDate)} to ${timeFormatter.format(endDate)}`;
+  }
+  return start === end ? start : `${start} to ${end}`;
+}
+
 function initialsForName(name: string): string {
-  const parts = name.trim().split(namePartPattern).slice(0, 2);
-  return parts.map((part) => part.charAt(0).toUpperCase()).join("");
+  return name
+    .trim()
+    .split(namePartPattern)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
 }

@@ -102,6 +102,7 @@ vi.mock("ical-generator", () => ({
 const { cachedEtagForToken, renderFeedBody, renderFeedForToken } = await import(
   "./render-feed"
 );
+const { createSignedFeedToken } = await import("../tokens/token-service");
 
 function feedTokenFixture(overrides: Record<string, unknown> = {}) {
   return {
@@ -119,6 +120,7 @@ function feedTokenFixture(overrides: Record<string, unknown> = {}) {
     last_used_at: null,
     organisation_id: "40000000-0000-4000-8000-000000000001",
     status: "active",
+    token_hash: "ab".repeat(32),
     ...overrides,
   };
 }
@@ -640,6 +642,28 @@ describe("cachedEtagForToken", () => {
     expect(mocks.projectFeedEvents).not.toHaveBeenCalled();
   });
 
+  it("resolves a valid signed token by id and rejects a tampered signature", async () => {
+    const fixture = feedTokenFixture();
+    mocks.feedTokenFindUnique.mockResolvedValue(fixture);
+    const token = createSignedFeedToken({
+      tokenHash: fixture.token_hash,
+      tokenId: fixture.id,
+    });
+
+    const valid = await renderFeedForToken(token);
+    const tampered = await renderFeedForToken(`${token.slice(0, -1)}x`);
+
+    expect(valid.ok).toBe(true);
+    expect(tampered).toEqual({
+      error: { code: "not_found", message: "Feed not found" },
+      ok: false,
+    });
+    expect(mocks.feedTokenFindUnique).toHaveBeenNthCalledWith(1, {
+      select: expect.objectContaining({ token_hash: true }),
+      where: { id: fixture.id },
+    });
+  });
+
   it("queries feedToken using narrowed select instead of include feed true", async () => {
     mocks.feedTokenFindUnique.mockResolvedValue(feedTokenFixture());
     mocks.getCachedFeedBody.mockResolvedValue({ ok: true, value: null });
@@ -663,6 +687,7 @@ describe("cachedEtagForToken", () => {
         last_used_at: true,
         organisation_id: true,
         status: true,
+        token_hash: true,
       },
       where: { token_hash: expect.any(String) },
     });

@@ -8,6 +8,7 @@ import {
   approve,
   decline,
   dispatchApprovalReconciliation,
+  dispatchXeroLeaveSync,
   requestMoreInfo,
   retryApproval,
   retryDecline,
@@ -191,6 +192,28 @@ export async function dispatchApprovalReconciliationAction(input: {
     return result;
   }
   revalidatePath("/leave-approvals");
+  return result;
+}
+
+export async function dispatchXeroLeaveSyncAction(input: {
+  organisationId: string;
+}): Promise<ApprovalActionResult<{ queued: boolean; reason?: string }>> {
+  const parsed = ReconciliationActionSchema.safeParse(input);
+  if (!parsed.success) {
+    return validationError(parsed.error.issues[0]?.message);
+  }
+  const context = await resolveActionContext(parsed.data.organisationId, {
+    adminOnly: true,
+  });
+  if (!context.ok) {
+    return context;
+  }
+  const result = await dispatchXeroLeaveSync(context.value);
+  if (!result.ok) {
+    return result;
+  }
+  revalidatePath("/leave-approvals");
+  revalidatePath("/");
   return result;
 }
 

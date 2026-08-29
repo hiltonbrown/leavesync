@@ -249,6 +249,50 @@ describe("syncXeroPeople unit tests", () => {
     );
   });
 
+  it("does not fail a person when an adapter supplies an invalid optional start date", async () => {
+    mocks.fetchEmployeesForRegion.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        complete: true,
+        employees: [
+          {
+            email: "date@example.com",
+            employeeId: "33333333-3333-4333-8333-333333333333",
+            employmentType: "Employee",
+            firstName: "Date",
+            jobTitle: null,
+            lastName: "Fallback",
+            rawPayload: {},
+            startDate: "not-a-date",
+            status: "ACTIVE",
+          },
+        ],
+        failures: [],
+        rawItemCount: 1,
+        rawResponse: {},
+        seenEmployeeIds: ["33333333-3333-4333-8333-333333333333"],
+      },
+    });
+
+    const result = await syncXeroPeople({
+      clerkOrgId: "org_1",
+      organisationId: "00000000-0000-4000-8000-000000000001",
+      triggerType: "manual",
+      xeroTenantId: "00000000-0000-4000-8000-000000000003",
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: { failed: 0, status: "succeeded", upserted: 1 },
+    });
+    expect(mocks.personUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({ start_date: null }),
+        update: expect.objectContaining({ start_date: null }),
+      })
+    );
+  });
+
   it("handles regional fetch blanket error", async () => {
     mocks.xeroTenantFindFirst.mockResolvedValue(buildTenant("NZ"));
     mocks.fetchEmployeesForRegion.mockResolvedValueOnce({

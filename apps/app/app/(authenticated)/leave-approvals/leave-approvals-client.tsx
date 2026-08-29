@@ -35,7 +35,7 @@ import {
 } from "react";
 import { z } from "zod";
 import {
-  dispatchApprovalReconciliationAction,
+  dispatchXeroLeaveSyncAction,
   retryApprovalAction,
   retryDeclineAction,
   revertApprovalAttemptAction,
@@ -206,9 +206,9 @@ export function LeaveApprovalsClient({
     });
   };
 
-  const syncApprovalState = () => {
+  const syncXeroLeave = () => {
     startTransition(async () => {
-      const result = await dispatchApprovalReconciliationAction({
+      const result = await dispatchXeroLeaveSyncAction({
         organisationId,
       });
       if (!result.ok) {
@@ -216,10 +216,11 @@ export function LeaveApprovalsClient({
         return;
       }
       if (!result.value.queued) {
-        toast.message("Reconciliation is not yet enabled");
+        toast.message("Xero leave sync is not yet enabled");
         return;
       }
-      toast.success("Approval reconciliation queued");
+      toast.success("Xero leave sync queued");
+      router.refresh();
     });
   };
 
@@ -238,12 +239,12 @@ export function LeaveApprovalsClient({
         {canDispatchReconciliation ? (
           <Button
             disabled={isPending}
-            onClick={syncApprovalState}
-            title="Sync approval state"
+            onClick={syncXeroLeave}
+            title="Sync Xero leave"
             type="button"
             variant="secondary"
           >
-            Sync approval state
+            Sync Xero leave
           </Button>
         ) : null}
       </div>

@@ -1,4 +1,5 @@
 import { log } from "@repo/observability/log";
+import { z } from "zod";
 import { keys } from "../../keys";
 import { tryDecryptXeroToken } from "../crypto/tokens";
 import { orgRateLimitKey, xeroFetch } from "../rate-limit/xero-fetch";
@@ -31,6 +32,25 @@ import type {
 const XERO_DEFAULT_BASE_URL = "https://api.xero.com";
 const XERO_PAGE_SIZE = 100;
 const XERO_MAX_PAGES = 200;
+
+const AuPayItemsSchema = z
+  .object({
+    PayItems: z
+      .object({
+        LeaveTypes: z
+          .array(
+            z
+              .object({
+                LeaveTypeID: z.string(),
+                Name: z.string(),
+              })
+              .passthrough()
+          )
+          .optional(),
+      })
+      .passthrough(),
+  })
+  .passthrough();
 
 // Xero permits 60 calls/min per connected organisation. Space the per-employee
 // detail reads at least this far apart so a full balance sync stays within that
@@ -180,6 +200,14 @@ export async function fetchLeaveRecords(input: {
   const decryptedAccessToken = tokenResult.token;
 
   try {
+    const leaveTypeNamesResult = await fetchAuLeaveTypeNames({
+      accessToken: decryptedAccessToken,
+      xeroTenant: input.xeroTenant,
+    });
+    if (!leaveTypeNamesResult.ok) {
+      return leaveTypeNamesResult;
+    }
+
     const leaveRecords: XeroLeaveRecord[] = [];
     let page = 1;
     let rawResponse: unknown = null;
@@ -198,7 +226,7 @@ export async function fetchLeaveRecords(input: {
           clerkOrgId: input.xeroTenant.clerk_org_id,
           organisationId: input.xeroTenant.organisation_id,
         }),
-        url: `${baseUrl()}/payroll.xro/1.0/LeaveApplications?page=${page}`,
+        url: `${baseUrl()}/payroll.xro/1.0/LeaveApplications/v2?page=${page}`,
       });
       const rawPayload = await readXeroPayload(response);
 
@@ -210,7 +238,10 @@ export async function fetchLeaveRecords(input: {
       }
 
       rawResponse ??= rawPayload;
-      const mappedPage = tryMapXeroLeaveRecords(rawPayload);
+      const mappedPage = tryMapXeroLeaveRecords(
+        rawPayload,
+        leaveTypeNamesResult.value
+      );
       if (!mappedPage.ok) {
         log.warn("Xero leave record page could not be parsed", {
           clerkOrgId: input.xeroTenant.clerk_org_id,
@@ -253,6 +284,56 @@ export async function fetchLeaveRecords(input: {
       ok: false,
     };
   }
+}
+
+async function fetchAuLeaveTypeNames(input: {
+  accessToken: string;
+  xeroTenant: XeroTenantForWrite;
+}): Promise<XeroWriteResult<ReadonlyMap<string, string>>> {
+  const response = await xeroFetch({
+    init: {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${input.accessToken}`,
+        "Xero-Tenant-Id": input.xeroTenant.xero_tenant_id,
+      },
+      method: "GET",
+    },
+    orgKey: orgRateLimitKey({
+      clerkOrgId: input.xeroTenant.clerk_org_id,
+      organisationId: input.xeroTenant.organisation_id,
+    }),
+    url: `${baseUrl()}/payroll.xro/1.0/PayItems`,
+  });
+  const rawPayload = await readXeroPayload(response);
+  if (!response.ok) {
+    return {
+      error: mapXeroReadHttpError(response, rawPayload),
+      ok: false,
+    };
+  }
+
+  const parsed = AuPayItemsSchema.safeParse(rawPayload);
+  if (!parsed.success) {
+    return {
+      error: {
+        code: "validation_error",
+        message: "Xero returned invalid AU payroll leave types.",
+        rawPayload,
+      },
+      ok: false,
+    };
+  }
+
+  return {
+    ok: true,
+    value: new Map(
+      (parsed.data.PayItems.LeaveTypes ?? []).map((leaveType) => [
+        leaveType.LeaveTypeID,
+        leaveType.Name,
+      ])
+    ),
+  };
 }
 
 export async function fetchLeaveBalances(input: {
@@ -331,6 +412,7 @@ export async function fetchLeaveBalances(input: {
       // from Xero returning 404) are isolated so the rest still sync.
       if (
         mappedError.code === "auth_error" ||
+        mappedError.code === "permission_error" ||
         mappedError.code === "rate_limit_error"
       ) {
         return { error: mappedError, ok: false };

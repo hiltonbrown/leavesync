@@ -7,11 +7,10 @@ function getInngestClient(): Inngest {
   const signingKey = process.env.INNGEST_SIGNING_KEY;
   const devUrl = process.env.INNGEST_DEV;
 
-  // In local dev without keys, Inngest SDK will try to hit production and fail.
-  // If INNGEST_DEV is a URL (e.g. http://localhost:8288) use it as baseUrl so
-  // `inngest.send` hits the local dev server. If no dev server is configured
-  // and no keys are present, the call will still fail — callers handle
-  // `dispatch_failed` by falling back to inline execution in development.
+  // INNGEST_DEV enables the local dev server without production keys. A URL
+  // override is passed explicitly; boolean values use the SDK's default
+  // http://localhost:8288 endpoint. The API boundary handles a temporarily
+  // unavailable local server without changing production dispatch behaviour.
   const baseUrl = devUrl?.startsWith("http") ? devUrl : undefined;
 
   return new Inngest({

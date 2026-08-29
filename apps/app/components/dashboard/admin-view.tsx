@@ -1,6 +1,8 @@
 import type { AdminDashboardView } from "@repo/availability";
 import { ActionItemsCard } from "./action-items-card";
 import { ActiveFeedsCard } from "./active-feeds-card";
+import { buildPersonalCalendarTimeline } from "./ambient-calendar-data";
+import { AmbientCalendarField } from "./ambient-calendar-field";
 import { BalancesCard } from "./balances-card";
 import {
   DashboardScaffold,
@@ -12,8 +14,6 @@ import { OrgXeroSyncFailedCard } from "./org-xero-sync-failed-card";
 import { QuickActionsCard } from "./quick-actions-card";
 import { RecentAuditEventsCard } from "./recent-audit-events-card";
 import { SyncHealthCard } from "./sync-health-card";
-import { TodayStatusCard } from "./today-status-card";
-import { UpcomingRecordsCard } from "./upcoming-records-card";
 import { UsageVsLimitsCard } from "./usage-vs-limits-card";
 import { XeroDisconnectedBanner } from "./xero-disconnected-banner";
 
@@ -25,6 +25,10 @@ interface AdminViewProps {
 
 export function AdminView({ view, orgQueryValue, personId }: AdminViewProps) {
   const xero = view.header.hasActiveXeroConnection;
+  const timeline = buildPersonalCalendarTimeline(view, {
+    now: new Date(),
+    timezone: view.header.timezone ?? "Australia/Brisbane",
+  });
 
   return (
     <DashboardScaffold
@@ -35,6 +39,9 @@ export function AdminView({ view, orgQueryValue, personId }: AdminViewProps) {
             orgQueryValue={orgQueryValue}
           />
         )
+      }
+      feature={
+        <AmbientCalendarField model={timeline} orgQueryValue={orgQueryValue} />
       }
       header={toDashboardHeaderProps(view.header)}
       lead={
@@ -55,10 +62,6 @@ export function AdminView({ view, orgQueryValue, personId }: AdminViewProps) {
             orgQueryValue={orgQueryValue}
             state={view.actionItems}
           />
-          <TodayStatusCard
-            orgQueryValue={orgQueryValue}
-            state={view.todayStatus}
-          />
         </>
       }
       rail={
@@ -78,10 +81,6 @@ export function AdminView({ view, orgQueryValue, personId }: AdminViewProps) {
           <RecentAuditEventsCard
             orgQueryValue={orgQueryValue}
             state={view.recentAuditEvents}
-          />
-          <UpcomingRecordsCard
-            orgQueryValue={orgQueryValue}
-            state={view.upcoming}
           />
           <NextPublicHolidayCard
             orgQueryValue={orgQueryValue}

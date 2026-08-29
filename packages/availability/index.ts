@@ -54,6 +54,7 @@ export {
   approve,
   decline,
   dispatchApprovalReconciliation,
+  dispatchXeroLeaveSync,
   getApprovalDetail,
   getApprovalSummaryCounts,
   listForApprover,

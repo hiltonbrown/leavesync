@@ -430,6 +430,7 @@ async function processBatch(
       const employmentType = mapEmploymentType(employee.employmentType);
       const personType =
         employmentType === "contractor" ? "contractor" : "employee";
+      const startDate = optionalValidDate(employee.startDate);
       await database.person.upsert({
         create: {
           clerk_org_id: context.clerkOrgId,
@@ -444,7 +445,7 @@ async function processBatch(
           person_type: personType,
           source_person_key: employee.employeeId,
           source_system: "XERO",
-          start_date: employee.startDate ? new Date(employee.startDate) : null,
+          start_date: startDate,
           xero_employee_id: employee.employeeId,
         },
         update: {
@@ -461,7 +462,7 @@ async function processBatch(
           job_title: employee.jobTitle ?? null,
           last_name: employee.lastName,
           person_type: personType,
-          start_date: employee.startDate ? new Date(employee.startDate) : null,
+          start_date: startDate,
           updated_at: new Date(),
           xero_employee_id: employee.employeeId,
           xero_missing_since: null,
@@ -527,6 +528,14 @@ function validateEmployee(
     return { message: "Last name is required", valid: false };
   }
   return { valid: true };
+}
+
+function optionalValidDate(value: string | null): Date | null {
+  if (!value) {
+    return null;
+  }
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 function mapEmploymentType(
@@ -654,7 +663,7 @@ async function prepareTenant(
   if (!freshness.ok) {
     await completeRun(context, runId, {
       counts: emptyCounts(),
-      errorSummary: "Xero connection not active",
+      errorSummary: freshness.error.message,
       status: "failed",
     });
     return {

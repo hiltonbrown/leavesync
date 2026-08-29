@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+process.env.NEXT_PUBLIC_API_URL ||= "https://api.test.local";
+
 const mocks = vi.hoisted(() => ({
   feedCount: vi.fn(),
   feedFindFirst: vi.fn(),
@@ -36,9 +38,12 @@ vi.mock("@repo/database", () => ({
   scopedTo: mocks.scopedTo,
 }));
 
-const { getFeedDetail, getFeedSummaryForDashboard, listFeeds } = await import(
-  "./feed-service"
-);
+const {
+  createSignedFeedToken,
+  getFeedDetail,
+  getFeedSummaryForDashboard,
+  listFeeds,
+} = await import("../index");
 
 const baseInput = {
   actingRole: "owner" as const,
@@ -215,6 +220,52 @@ describe("feed-service list", () => {
     expect(mocks.personFindMany).toHaveBeenCalledTimes(1);
     expect(mocks.teamFindMany).toHaveBeenCalledTimes(1);
   });
+
+  it("returns the full active subscribe URL to an authorised viewer", async () => {
+    const tokenId = "30000000-0000-4000-8000-000000000001";
+    const tokenHash = "ab".repeat(32);
+    mocks.feedFindMany.mockResolvedValue([
+      buildFeed({
+        id: "10000000-0000-4000-8000-000000000001",
+        scopes: [
+          {
+            id: "20000000-0000-4000-8000-000000000001",
+            scope_type: "team",
+            scope_value: teamId,
+          },
+        ],
+        tokens: [
+          {
+            created_at: new Date("2026-08-01T00:00:00.000Z"),
+            id: tokenId,
+            last_used_at: null,
+            revoked_at: null,
+            rotated_from_token_id: null,
+            status: "active",
+            token_hash: tokenHash,
+            token_hint: "hint",
+          },
+        ],
+      }),
+    ]);
+
+    const result = await listFeeds({
+      ...baseInput,
+      actingPersonId,
+      actingRole: "viewer",
+      filters: { status: ["active"] },
+      pagination: { pageSize: 5 },
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      value: [
+        {
+          subscribeUrl: `https://api.test.local/ical/${createSignedFeedToken({ tokenHash, tokenId })}.ics`,
+        },
+      ],
+    });
+  });
 });
 
 function buildFeed(input: {
@@ -223,6 +274,16 @@ function buildFeed(input: {
     id: string;
     scope_type: "manager_team" | "org" | "person" | "self" | "team";
     scope_value: string | null;
+  }>;
+  tokens?: Array<{
+    created_at: Date;
+    id: string;
+    last_used_at: Date | null;
+    revoked_at: Date | null;
+    rotated_from_token_id: string | null;
+    status: "active" | "expired" | "revoked";
+    token_hash: string;
+    token_hint: string;
   }>;
 }) {
   return {
@@ -236,7 +297,7 @@ function buildFeed(input: {
     privacy_mode: "named",
     scopes: input.scopes,
     status: "active",
-    tokens: [],
+    tokens: input.tokens ?? [],
   };
 }
 

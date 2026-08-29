@@ -85,13 +85,23 @@ describe("AU payroll write path", () => {
       "https://api.xero.com/payroll.xro/1.0/LeaveApplications",
       expect.objectContaining({ method: "POST" })
     );
+    const request = fetchMock.mock.calls[0]?.[1];
+    expect(JSON.parse(String(request?.body))).toEqual([
+      {
+        EmployeeID: "employee-1",
+        EndDate: "2026-05-05",
+        LeaveTypeID: "type-1",
+        StartDate: "2026-05-04",
+        Title: "Leave request",
+      },
+    ]);
     expectBearerAccessToken(fetchMock);
   });
 
   it.each([
     [400, "validation_error"],
     [401, "auth_error"],
-    [403, "auth_error"],
+    [403, "permission_error"],
     [404, "not_found_error"],
     [409, "conflict_error"],
     [429, "rate_limit_error"],
@@ -169,7 +179,7 @@ describe("AU payroll write path", () => {
   it.each([
     [400, "validation_error"],
     [401, "auth_error"],
-    [403, "auth_error"],
+    [403, "permission_error"],
     [404, "not_found_error"],
     [409, "conflict_error"],
     [429, "rate_limit_error"],
@@ -235,7 +245,7 @@ describe("AU payroll write path", () => {
   it.each([
     [400, "validation_error"],
     [401, "auth_error"],
-    [403, "auth_error"],
+    [403, "permission_error"],
     [404, "not_found_error"],
     [409, "conflict_error"],
     [429, "rate_limit_error"],

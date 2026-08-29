@@ -132,6 +132,7 @@ export async function disconnectXeroAction(input: {
     connectionId: parsed.data.connectionId,
     destructive: parsed.data.mode === "destructive",
     organisationId: context.value.organisationId,
+    performedByUserId: context.value.actingUserId,
   });
   if (!result.ok) {
     return unknownError(result.error.message);

@@ -7,7 +7,10 @@ import {
   type SchedulableXeroTenant,
 } from "@repo/database";
 import { log } from "@repo/observability/log";
-import { ensureFreshXeroConnection } from "@repo/xero";
+import {
+  ensureFreshXeroConnection,
+  scrubInactiveXeroOAuthSessionCredentials,
+} from "@repo/xero";
 import type { InngestFunction } from "inngest";
 import { inngest } from "../client";
 import {
@@ -350,6 +353,16 @@ export const scheduleXeroSyncsFunction: InngestFunction.Any =
       let totalSkipped = 0;
       let totalInvalidTimezone = 0;
       let hasMorePages = true;
+
+      const cleanupResult = await step.run(
+        "cleanup-xero-oauth-sessions",
+        async () => scrubInactiveXeroOAuthSessionCredentials()
+      );
+      if (!cleanupResult.ok) {
+        log.error("Failed to clean up inactive Xero OAuth sessions", {
+          error: cleanupResult.error,
+        });
+      }
 
       const rotationResult = await step.run(
         "rotate-dormant-connections",

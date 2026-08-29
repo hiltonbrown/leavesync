@@ -1,27 +1,30 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { CalendarTimeline } from "./calendar-timeline";
 
-const AFFECTED_COPY = /affected/;
-const BUSIEST_COPY = /Busiest:/;
-const HIDDEN_PEOPLE_COPY = /Showing 10 of 12 people with leave or availability/;
+const HIDDEN_PEOPLE_COPY = /Showing 10 of 12 people in this scope/;
 
 describe("CalendarTimeline", () => {
   afterEach(() => cleanup());
 
-  it("renders range coverage and person lanes", () => {
+  it("combines coverage pressure, provenance and person lanes", () => {
     render(<CalendarTimeline data={calendarRange()} orgQueryValue={null} />);
 
-    expect(screen.getByText("Coverage across this range")).toBeDefined();
-    expect(screen.queryByText(AFFECTED_COPY)).toBeNull();
-    expect(screen.queryByText(BUSIEST_COPY)).toBeNull();
-    expect(screen.getByText("Ari Report")).toBeDefined();
-    expect(screen.getByText("Mika Planner")).toBeDefined();
+    expect(screen.getByRole("heading", { name: "Calendar" })).toBeDefined();
+    expect(screen.getByText("Xero leave")).toBeDefined();
+    expect(screen.getByText("Manual availability")).toBeDefined();
+    expect(screen.getAllByText("Ari Report").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Mika Planner").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Annual Leave").length).toBeGreaterThan(0);
-    expect(screen.getByText("Training")).toBeDefined();
+    expect(screen.getAllByText("Training").length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole("link", {
+        name: "Wednesday 15 April: 2 people affected",
+      })
+    ).toBeDefined();
   });
 
-  it("caps visible people lanes in compact mode", () => {
+  it("caps the initial lane set and lets the viewer reveal everyone", () => {
     render(
       <CalendarTimeline
         data={calendarRange({
@@ -37,9 +40,12 @@ describe("CalendarTimeline", () => {
     );
 
     expect(screen.getByText(HIDDEN_PEOPLE_COPY)).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: "Show all people" }));
+    expect(screen.getAllByText("Person 12").length).toBeGreaterThan(0);
+    expect(screen.queryByText(HIDDEN_PEOPLE_COPY)).toBeNull();
   });
 
-  it("renders the empty range state", () => {
+  it("renders an honest empty scope state", () => {
     render(
       <CalendarTimeline
         data={{
@@ -53,8 +59,65 @@ describe("CalendarTimeline", () => {
     );
 
     expect(
-      screen.getByText("No one is unavailable in this range.")
+      screen.getByText("No people match this calendar scope.")
     ).toBeDefined();
+    expect(
+      screen.getAllByText("No recorded unavailability").length
+    ).toBeGreaterThan(0);
+  });
+
+  it("keeps people without records visible in the runway", () => {
+    const data = calendarRange();
+    render(
+      <CalendarTimeline
+        data={{
+          ...data,
+          people: [
+            ...data.people,
+            person({
+              displayName: "Casey Clear",
+              id: "00000000-0000-4000-8000-000000000099",
+            }),
+          ],
+          totalPeopleInScope: 3,
+        }}
+        orgQueryValue={null}
+      />
+    );
+
+    expect(screen.getByText("Casey Clear")).toBeDefined();
+    expect(
+      screen.getAllByText("No recorded unavailability").length
+    ).toBeGreaterThan(0);
+  });
+
+  it("does not bridge gaps between non-contiguous event days", () => {
+    const data = calendarRange();
+    const sharedEvent = event({
+      displayName: data.people[0]?.displayName ?? "Ari Report",
+      id: "shared-event",
+      personId: data.people[0]?.id ?? "00000000-0000-4000-8000-000000000001",
+      recordType: "annual_leave",
+      recordTypeCategory: "xero_leave",
+    });
+    render(
+      <CalendarTimeline
+        data={{
+          ...data,
+          days: data.days.map((day, index) => ({
+            ...day,
+            events: index === 0 || index === 2 ? [sharedEvent] : [],
+          })),
+        }}
+        orgQueryValue={null}
+      />
+    );
+
+    expect(
+      screen.getAllByRole("button", {
+        name: "Ari Report: Annual Leave, Team Calendar leave",
+      })
+    ).toHaveLength(2);
   });
 });
 
