@@ -182,6 +182,14 @@ describe("syncXeroPeople unit tests", () => {
           is_active: true,
           last_name: "Tane",
         }),
+        where: {
+          clerk_org_id: "org_1",
+          organisation_id_source_system_source_person_key: {
+            organisation_id: "00000000-0000-4000-8000-000000000001",
+            source_person_key: "11111111-1111-4111-8111-111111111111",
+            source_system: "XERO",
+          },
+        },
       })
     );
   });
