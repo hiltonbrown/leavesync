@@ -112,7 +112,7 @@ const syncDetails = [
     title: "Write-back",
   },
   {
-    copy: "Every feed is scoped, signed, revocable, and cached by feed and etag so calendar clients receive the latest published view within 60 seconds of a change.",
+    copy: "Every feed is scoped, signed, and revocable. Team Calendar republishes after relevant changes; calendar clients refresh subscribed feeds on their own schedules.",
     title: "Feed publishing",
   },
 ];
