@@ -74,6 +74,19 @@ describe("AnalyticsFilters", () => {
     expect(destination).toContain("to=2026-03-31");
     expect(destination).not.toContain("cursor=");
   });
+
+  it("preserves the selected person type with organisation state", () => {
+    render(<AnalyticsFilters personType="contractor" preset="this_year" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
+    const destination = mocks.push.mock.calls[0]?.[0];
+    expect(destination).toContain("org=org-1");
+    expect(destination).toContain("personType=contractor");
+    expect(screen.getByLabelText("People").textContent).toContain(
+      "Contractors"
+    );
+  });
 });
 
 describe("validateCustomRange", () => {

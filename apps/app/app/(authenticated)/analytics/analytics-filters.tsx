@@ -19,6 +19,8 @@ export interface CustomRangeErrors {
   start?: string;
 }
 
+export type AnalyticsPersonType = "all" | "contractor" | "employee";
+
 export const validateCustomRange = (
   start: string,
   end: string
@@ -38,12 +40,14 @@ export const validateCustomRange = (
 interface AnalyticsFiltersProps {
   customEnd?: string;
   customStart?: string;
+  personType?: AnalyticsPersonType;
   preset: string;
 }
 
 export function AnalyticsFilters({
   customEnd,
   customStart,
+  personType,
   preset,
 }: AnalyticsFiltersProps) {
   const router = useRouter();
@@ -51,6 +55,7 @@ export function AnalyticsFilters({
   const [localPreset, setLocalPreset] = useState(preset);
   const [localStart, setLocalStart] = useState(customStart ?? "");
   const [localEnd, setLocalEnd] = useState(customEnd ?? "");
+  const [localPersonType, setLocalPersonType] = useState(personType ?? "all");
   const [errors, setErrors] = useState<CustomRangeErrors>({});
 
   const apply = () => {
@@ -65,6 +70,9 @@ export function AnalyticsFilters({
     }
     const params = new URLSearchParams(searchParams.toString());
     params.set("preset", localPreset);
+    if (personType) {
+      params.set("personType", localPersonType);
+    }
     if (localPreset === "custom") {
       if (localStart) {
         params.set("from", localStart);
@@ -87,11 +95,17 @@ export function AnalyticsFilters({
   return (
     <div className="flex flex-wrap items-end gap-4 rounded-[20px] bg-muted p-4">
       <div className="flex flex-col gap-1.5">
-        <Label className="text-muted-foreground text-xs uppercase tracking-widest">
+        <Label
+          className="text-muted-foreground text-xs uppercase tracking-widest"
+          htmlFor="analytics-period"
+        >
           Period
         </Label>
         <Select onValueChange={setLocalPreset} value={localPreset}>
-          <SelectTrigger className="min-w-48 rounded-xl bg-background">
+          <SelectTrigger
+            className="min-w-48 rounded-xl bg-background"
+            id="analytics-period"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -103,6 +117,34 @@ export function AnalyticsFilters({
           </SelectContent>
         </Select>
       </div>
+      {personType ? (
+        <div className="flex flex-col gap-1.5">
+          <Label
+            className="text-muted-foreground text-xs uppercase tracking-widest"
+            htmlFor="analytics-person-type"
+          >
+            People
+          </Label>
+          <Select
+            onValueChange={(value: AnalyticsPersonType) =>
+              setLocalPersonType(value)
+            }
+            value={localPersonType}
+          >
+            <SelectTrigger
+              className="min-w-40 rounded-xl bg-background"
+              id="analytics-person-type"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All people</SelectItem>
+              <SelectItem value="employee">Employees</SelectItem>
+              <SelectItem value="contractor">Contractors</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      ) : null}
       {localPreset === "custom" ? (
         <>
           <div className="flex flex-col gap-1.5">
