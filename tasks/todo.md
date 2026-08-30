@@ -220,6 +220,34 @@ Impeccable for its rendered surface where applicable.
 
 ## Follow-ups
 
+## Active plan: Make feed subscription primary and administration progressive
+
+Status: Complete
+
+### Tasks
+
+- [x] Confirm Plan 133 drift, scope and Impeccable distillation guidance.
+- [x] Gate feed creation for viewers before form data is loaded.
+- [x] Keep the complete subscribe URL primary and move lifecycle actions into a labelled overflow.
+- [x] Add filter clearing, active feedback and truthful filtered-empty copy.
+- [x] Reorder feed detail around subscription, preview and progressive administration.
+- [x] Complete detector, build and repository verification.
+- [x] Commit Plan 133 and push it to `origin/preview` before Plan 134.
+
+### Review
+
+- Plan 133 implementation landed at `69cacf3`.
+- Seventeen focused tests cover viewer create gating without data access,
+  organisation-preserving return, active-filter reset, distinct empty states,
+  complete URL copy, lifecycle overflow and confirmation focus return.
+- Impeccable detection, the canonical app build, repository check/typecheck,
+  453 app tests and all 119 integration tests pass. The two configured live-Xero
+  checks remain skipped.
+- The protected `/feeds/new` route correctly redirects a signed-out browser to
+  Clerk with `x-clerk-auth-reason: dev-browser-missing`. Authenticated desktop,
+  mobile, dark-mode and 200% rendered checks remain unclaimed and are recorded
+  in the plan README as requested.
+
 ## Active plan: Make the calendar timezone-correct and mobile-operable
 
 Status: Complete
