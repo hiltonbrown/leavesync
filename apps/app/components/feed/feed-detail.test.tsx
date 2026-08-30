@@ -30,6 +30,8 @@ vi.mock("@/app/(authenticated)/feeds/_actions", () => ({
 }));
 
 const currentUrl = "https://calendar.example/ical/tc1.current.signature.ics";
+const ACTIVE_FEED_NEEDED_PATTERN =
+  /An active feed is needed before you can add/;
 const SHOW_URL_PATTERN = /show url/i;
 const detail = {
   activeTokenHint: {
@@ -79,6 +81,17 @@ describe("FeedDetail", () => {
     ).toHaveProperty("value", currentUrl);
     expect(screen.getByText("Public holidays are included.")).toBeDefined();
     expect(screen.queryByRole("button", { name: "Rotate token" })).toBeNull();
+
+    const subscribeHeading = screen.getByRole("heading", {
+      name: "Put team availability on your calendar",
+    });
+    const previewHeading = screen.getByRole("heading", {
+      name: "Preview and visibility",
+    });
+    const headings = screen.getAllByRole("heading");
+    expect(headings.indexOf(subscribeHeading)).toBeLessThan(
+      headings.indexOf(previewHeading)
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Copy URL" }));
     await waitFor(() => {
@@ -130,7 +143,8 @@ describe("FeedDetail", () => {
       />
     );
 
-    expect(screen.getByText("No active subscribe URL")).toBeDefined();
+    expect(screen.getByText("How to subscribe")).toBeDefined();
+    expect(screen.getByText(ACTIVE_FEED_NEEDED_PATTERN)).toBeDefined();
     expect(screen.queryByRole("textbox")).toBeNull();
   });
 
