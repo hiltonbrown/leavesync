@@ -48,6 +48,16 @@ before the next plan begins.
   practice composition and route-aware bypass target.
 - [x] Plan 126: run Impeccable, React, Axe, browser, build and repository
   verification; commit, document and push before Plan 127.
+- [x] Plan 127: lock feed privacy, direct-person visibility, role assignment,
+  holiday administration, observability and route-boundary contracts with
+  failing tests.
+- [x] Plan 127: implement the stricter privacy projection, central person
+  authorisation, owner-aware mutations, Sentry scrubbing and default-protected
+  Clerk route matrices.
+- [x] Plan 127: rebuild `/security` from verified evidence and align the private
+  vulnerability-reporting policy.
+- [x] Plan 127: run Impeccable, React, browser, build and repository verification;
+  commit, document and push before Plan 128.
 - [ ] Execute, verify, commit and push Plans 130 through 143 in dependency
   order.
 - [ ] Run the final preview verification and record exact evidence.
@@ -109,6 +119,19 @@ before the next plan begins.
   eventual Turbopack HMR panic after evidence collection; the process was
   stopped, port 3001 was freed, and the subsequent clean production build
   passed. This is recorded as a development-tooling issue, not a route defect.
+- Plan 127 closes six control gaps before publishing the rewritten trust page:
+  effective feed privacy, direct-person scope, owner assignment and holiday
+  actions, observability scrubbing and default route protection. The public
+  page now distinguishes access, protection, processing and response with only
+  implemented or deliberately qualified claims.
+- Plan 127 focused verification passed 9 files and 91 tests. All three affected
+  production builds, repository check, typecheck, unit and 119 integration
+  tests passed, with the two configured Xero skips. Impeccable returned no
+  findings. True 1440px and 390px Chrome emulation in light and dark modes
+  reported zero overflow, one main, one H1, four topics and 44px visible
+  actions. The shared header's missing `/security` bypass mapping and absent
+  workspace Axe dependency are recorded in `plans/README.md` without blocking
+  the authorised sequence.
 
 ## Active plan: Add a role-aware dashboard calendar timeline
 

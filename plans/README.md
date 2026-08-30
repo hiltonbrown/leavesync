@@ -8,7 +8,7 @@ from `plans/` into the completed-plan ledger below. All 14 rejected plan files
 (Plans 024, 031, 051, 058, 062, 063, 064, 065, 067, 068, 070, 071, 072, 073, 074)
 have also been removed, with their decision rationales and superseding plan linkages
 preserved in the Reconciliation decisions section below. The execution queue contains
-17 TODO plans. The two regional activation plans remain `BLOCKED` (Plans 108 and 109),
+16 TODO plans. The two regional activation plans remain `BLOCKED` (Plans 108 and 109),
 pending named live Xero environments and UK partner permission.
 
 ## Execution policy
@@ -89,7 +89,7 @@ This reconciliation was read-only outside `plans/`.
 | Plan 105 execution | approved at `22c69b2`; employee-aware regional approval reconciliation for NZ and UK tenants, missing employee ID validation failure |
 | Plan 106 execution | approved at `bd8248c`; orchestrated 40-person regional balance pages for NZ and UK tenants, per-employee cursor CAS updates, NZD currency mapping |
 | Plan 107 execution | approved at `6b66916`; formatLeaveBalance helper with Intl.NumberFormat NZD and unit handling, services restricted to day subtraction only |
-| Current indexed plans | 98: 29 TODO, 53 DONE (including queue completions), 14 REJECTED (ledgered decisions), 2 BLOCKED |
+| Current indexed plans | 98: 28 TODO, 54 DONE (including queue completions), 14 REJECTED (ledgered decisions), 2 BLOCKED |
 
 ## Execution queue
 
@@ -169,6 +169,32 @@ trust-page plan. It follows Plan 120 so the page reuses the settled marketing
 focus, metadata and scoped-stylesheet conventions. Its security remediations
 must land before its public claims are published.
 
+Execution note recorded 30 August 2026: Plan 127 now applies the stricter feed
+and record privacy mode, centralises direct-person visibility, restricts owner
+invitations to owners, admits owners to holiday administration, scrubs all
+Sentry runtimes and protects future app/API routes by default. The rebuilt
+`/security` page uses only verified or qualified claims and the confirmed
+private GitHub Security Advisory route; the unverified security mailbox was
+removed. Provider region and replication settings were not available locally,
+so the page deliberately describes them as deployment-dependent.
+
+Focused verification passed 9 files and 91 tests. App, API and web production
+builds passed, as did check, typecheck, all unit tests and all 119 integration
+tests with the two configured Xero skips. Impeccable returned no findings after
+removing its flagged side-stripe treatment. Windows Chrome CDP captured true
+1440px and 390px full-page light/dark renders; both widths reported zero
+horizontal overflow, one main, one H1 and four topic sections. The visible
+actions measured at least 44px.
+
+Residual notes: the existing platform keep-alive route has no data payload and
+remains on the explicit public operator-probe allowlist. The shared marketing
+header does not yet map `/security` to its route-aware bypass link, so first Tab
+focuses the brand link even though `security-main` is focusable; that header is
+outside this plan's scope. `axe-core` is not installed in the workspace, so no
+Axe result is claimed. The web-focused test command was run through the web
+workspace configuration because a root-level direct Vitest invocation does not
+load its React transform.
+
 Plan 128 rolls the full `/status` critique into one Better Stack-backed
 operational Read surface. It follows Plans 121 and 122 so it consumes canonical
 support values and shared marketing style-loading contracts without duplicating
@@ -206,7 +232,7 @@ itself redirects to `/settings/general`.
 | [124](124-rebuild-help-centre-read-surface.md) | Rebuild help centre as an accurate task-led Read surface | P1 | 121, 122, 123 | DONE at `2beed1a`; LANDED ON PREVIEW; browser matrix and 37/40 Impeccable critique confirmed |
 | [125](125-rebuild-blog-read-mode.md) | Rebuild Blog as a validated, accessible Read-mode publishing surface | P1 | — | DONE at `2502bcf`; LANDED ON PREVIEW |
 | [126](126-reshape-careers-page.md) | Turn Careers into a candid, accessible applicant page | P1 | 122 | DONE at `3debb01`; LANDED ON PREVIEW |
-| [127](127-harden-security-controls-and-trust-page.md) | Close verified control gaps and rebuild `/security` from evidence | P0 | 120 | TODO |
+| [127](127-harden-security-controls-and-trust-page.md) | Close verified control gaps and rebuild `/security` from evidence | P0 | 120 | DONE at `6e8bdb5`; LANDED ON PREVIEW |
 | [128](128-build-betterstack-status-page.md) | Publish validated Better Stack component health and incident history | P1 | 121, 122 | TODO |
 | [129](129-rebuild-pricing-as-coherent-launch-mode-experience.md) | Rebuild pricing with approved AU plans and NZ/UK currency states | P1 | 120, 121 | TODO |
 | [130](130-refine-leave-reports.md) | Make leave reports trustworthy, accessible and decision-led | P1 | — | TODO |
