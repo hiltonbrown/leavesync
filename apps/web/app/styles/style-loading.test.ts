@@ -83,4 +83,18 @@ describe("Marketing stylesheet ownership", () => {
     expect(shellSource).not.toContain(".practiceGrid");
     expect(readAppFile("about/page.tsx")).not.toContain("careers.module.css");
   });
+
+  it("keeps Status composition in its route-owned CSS Module", () => {
+    const statusSource = readAppFile("status/page.tsx");
+    const statusStyles = readAppFile("status/status.module.css");
+    const shellSource = readAppFile("styles/shell.css");
+
+    expect(statusSource).toContain('import styles from "./status.module.css";');
+    expect(statusStyles).toContain(".componentList");
+    expect(shellSource).not.toContain(".componentList");
+    expect(shellSource).not.toContain(".incidentCard");
+    for (const styleImport of routeStyleImports) {
+      expect(statusSource).not.toContain(styleImport);
+    }
+  });
 });
