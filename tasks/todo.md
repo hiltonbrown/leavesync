@@ -8,7 +8,7 @@ evidence actually collected. Completed plans move to `tasks/archive.md`.
 
 ## Active plan: Deliver Plans 110 through 143 to preview
 
-Status: In progress
+Status: Complete
 
 ### Outcome
 
@@ -219,6 +219,33 @@ Impeccable for its rendered surface where applicable.
   untracked plan files.
 
 ## Follow-ups
+
+## Active plan: Publish Better Stack service status
+
+Status: In progress
+
+### Tasks
+
+- [x] Confirm Plan 121 and 122 contracts, drift, and current official Better Stack read schemas.
+- [x] Lock the provider and environment contracts with focused tests.
+- [x] Replace the private-monitor React adapter with a validated public status service.
+- [x] Build the accessible `/status` operational hierarchy and route-scoped styles.
+- [x] Update support, environment, deployment, and status bookkeeping documentation.
+- [x] Run focused checks, visual verification, production build, and all repository gates.
+- [x] Commit Plan 128 and push it to `origin/preview` before starting Plan 129.
+
+### Review
+
+- Plan 128 landed at `ad3df8a`. The provider boundary validates public Better
+  Stack resources and reports, the page fails closed to Unknown, and only the
+  five canonical customer-facing services can appear.
+- Focused suites passed 51 tests. Production build, Impeccable, browser
+  desktop/mobile light/dark checks, 200% reflow, forced colours, reduced motion,
+  check, typecheck, unit and all 119 integration tests passed. The two configured
+  Xero credential checks remained skipped.
+- Live Better Stack credentials and the five exact public resources are not
+  configured locally. Preview remains truthfully Unknown until the documented
+  web-deployment trio and provider resources are supplied.
 
 ### Calendar subscribe URL verification
 

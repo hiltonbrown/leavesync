@@ -200,6 +200,37 @@ operational Read surface. It follows Plans 121 and 122 so it consumes canonical
 support values and shared marketing style-loading contracts without duplicating
 them.
 
+Execution note recorded 30 August 2026: Plan 128 landed at `ad3df8a`. The public
+adapter now reads only Zod-validated status-page resources, reports and updates;
+it cannot report Operational unless the five required public resources are
+present exactly once and all five are operational. The route renders an explicit
+Unknown recovery state when the provider, configuration, publication state or
+incident history is not trustworthy. The status-report contract has no report
+`updated_at` field, so active reports use the newest published update timestamp,
+falling back to their start time, for deterministic recent-first ordering.
+
+Focused verification passed 28 provider/configuration tests and 23 web contract
+tests. The production build prerendered `/status` with a one-minute revalidation
+window; the route loaded 155,164 bytes of production CSS across the global,
+shell and 7,007-byte route-owned chunks, without homepage or feature-demo style
+imports. Impeccable returned no findings. Windows Chrome verified 1440×1000 and
+390×844 in light and dark modes, reduced motion, 200% zoom, forced colours, long
+incident copy, one main and h1, five services, 3px focus and no horizontal
+overflow. State variants are covered by static-render and provider fixtures; the
+unconfigured Unknown state was the live browser state.
+
+Residual operator issue: no Better Stack status-page trio or live five-resource
+configuration is present in this workspace, so preview correctly remains
+Unknown until `BETTERSTACK_API_KEY`, `BETTERSTACK_STATUS_PAGE_ID` and
+`BETTERSTACK_STATUS_PAGE_URL` are configured together on the web deployment and
+the five exact public resource names exist. No credentials or resource IDs were
+invented. A pre-change production CSS artefact was not retained, so the current
+route size is recorded rather than claiming an unevidenced before/after delta.
+`axe-core` is not installed; semantic, keyboard, reflow and forced-colour checks
+were performed directly in Chrome instead. All repository check, typecheck,
+unit and 119 integration tests passed, with the two configured Xero credential
+checks skipped.
+
 Plan 129 rolls the full `/pricing` critique into one Impeccable Persuade-mode
 plan. It centralises the approved Australian Starter/Premium/Enterprise offer,
 adds truthful AUD/NZD/GBP availability selection, and rebuilds both launch modes
@@ -233,7 +264,7 @@ itself redirects to `/settings/general`.
 | [125](125-rebuild-blog-read-mode.md) | Rebuild Blog as a validated, accessible Read-mode publishing surface | P1 | — | DONE at `2502bcf`; LANDED ON PREVIEW |
 | [126](126-reshape-careers-page.md) | Turn Careers into a candid, accessible applicant page | P1 | 122 | DONE at `3debb01`; LANDED ON PREVIEW |
 | [127](127-harden-security-controls-and-trust-page.md) | Close verified control gaps and rebuild `/security` from evidence | P0 | 120 | DONE at `6e8bdb5`; LANDED ON PREVIEW |
-| [128](128-build-betterstack-status-page.md) | Publish validated Better Stack component health and incident history | P1 | 121, 122 | TODO |
+| [128](128-build-betterstack-status-page.md) | Publish validated Better Stack component health and incident history | P1 | 121, 122 | DONE at `ad3df8a`; LANDED ON PREVIEW |
 | [129](129-rebuild-pricing-as-coherent-launch-mode-experience.md) | Rebuild pricing with approved AU plans and NZ/UK currency states | P1 | 120, 121 | TODO |
 | [130](130-refine-leave-reports.md) | Make leave reports trustworthy, accessible and decision-led | P1 | — | TODO |
 | [131](131-refine-out-of-office-analytics.md) | Make out-of-office analytics accessible and insight-led | P1 | 130 | TODO |
