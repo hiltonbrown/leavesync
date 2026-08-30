@@ -14,13 +14,39 @@ const navLinks = [
   { href: "/features", title: "Features" },
   { href: "/integrations", title: "Integrations" },
   { href: "/pricing", title: "Pricing" },
+  { href: "/about", title: "About" },
 ];
+
+const isRouteActive = (pathname: string, href: string) => {
+  if (href === "/") {
+    return pathname === "/";
+  }
+
+  const normalisedPathname = pathname.endsWith("/")
+    ? pathname.slice(0, -1)
+    : pathname;
+
+  return (
+    normalisedPathname === href || normalisedPathname.startsWith(`${href}/`)
+  );
+};
+
+const getMainContentId = (pathname: string): string | null => {
+  if (isRouteActive(pathname, "/customers")) {
+    return "customers-main";
+  }
+
+  if (isRouteActive(pathname, "/about")) {
+    return "about-main";
+  }
+
+  return null;
+};
 
 export const Header = () => {
   const [isOpen, setOpen] = useState(false);
   const pathname = usePathname();
-  const isCustomersRoute =
-    pathname === "/customers" || pathname === "/customers/";
+  const mainContentId = getMainContentId(pathname);
   const mobileNavigationId = "marketing-mobile-navigation";
 
   useEffect(() => {
@@ -40,11 +66,11 @@ export const Header = () => {
 
   return (
     <>
-      {isCustomersRoute ? (
-        <a className="marketing-skip-link" href="#customers-main">
+      {mainContentId === null ? null : (
+        <a className="marketing-skip-link" href={`#${mainContentId}`}>
           Skip to main content
         </a>
-      ) : null}
+      )}
       <header className="marketing-site-header">
         <div className="marketing-glass marketing-site-header__inner">
           <Link className="marketing-site-header__brand" href="/">
@@ -59,10 +85,7 @@ export const Header = () => {
 
           <nav aria-label="Primary" className="marketing-site-header__nav">
             {navLinks.map((link) => {
-              const isActive =
-                link.href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(link.href);
+              const isActive = isRouteActive(pathname, link.href);
 
               return (
                 <Link
@@ -114,15 +137,21 @@ export const Header = () => {
             data-open={isOpen ? "true" : "false"}
             id={mobileNavigationId}
           >
-            {navLinks.map((link) => (
-              <Link
-                href={link.href}
-                key={link.href}
-                onClick={() => setOpen(false)}
-              >
-                {link.title}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const isActive = isRouteActive(pathname, link.href);
+
+              return (
+                <Link
+                  aria-current={isActive ? "page" : undefined}
+                  className={isActive ? "is-active" : ""}
+                  href={link.href}
+                  key={link.href}
+                  onClick={() => setOpen(false)}
+                >
+                  {link.title}
+                </Link>
+              );
+            })}
             <Link href={signInHref} onClick={() => setOpen(false)}>
               Sign in
             </Link>
@@ -146,11 +175,20 @@ export const Header = () => {
               aria-label="Mobile navigation without JavaScript"
               className="marketing-site-header__noscript"
             >
-              {navLinks.map((link) => (
-                <Link href={link.href} key={link.href}>
-                  {link.title}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const isActive = isRouteActive(pathname, link.href);
+
+                return (
+                  <Link
+                    aria-current={isActive ? "page" : undefined}
+                    className={isActive ? "is-active" : ""}
+                    href={link.href}
+                    key={link.href}
+                  >
+                    {link.title}
+                  </Link>
+                );
+              })}
               <Link href={signInHref}>Sign in</Link>
               <Link
                 className="marketing-btn marketing-btn--primary"

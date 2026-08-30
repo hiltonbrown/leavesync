@@ -63,4 +63,13 @@ describe("Marketing stylesheet ownership", () => {
       expect(source).not.toContain(styleImport);
     }
   });
+
+  it("keeps About composition in its route-owned CSS Module", () => {
+    const aboutSource = readAppFile("about/page.tsx");
+    const shellSource = readAppFile("styles/shell.css");
+
+    expect(aboutSource).toContain('import styles from "./about.module.css";');
+    expect(shellSource).not.toContain(".about-");
+    expect(shellSource).not.toContain(".aboutPage");
+  });
 });

@@ -45,4 +45,17 @@ describe("Marketing header bypass link", () => {
     expect(html).not.toContain("#customers-main");
     expect(html).not.toContain("Skip to main content");
   });
+
+  it("marks About active across navigation variants and targets its main", () => {
+    navigation.pathname = "/about";
+
+    const html = renderToStaticMarkup(React.createElement(Header));
+    const skipIndex = html.indexOf('href="#about-main"');
+    const headerIndex = html.indexOf('<header class="marketing-site-header"');
+
+    expect(html.match(/href="\/about"/g)).toHaveLength(3);
+    expect(html.match(/aria-current="page"/g)).toHaveLength(3);
+    expect(skipIndex).toBeGreaterThan(-1);
+    expect(skipIndex).toBeLessThan(headerIndex);
+  });
 });
