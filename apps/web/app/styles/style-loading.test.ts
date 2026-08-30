@@ -72,4 +72,15 @@ describe("Marketing stylesheet ownership", () => {
     expect(shellSource).not.toContain(".about-");
     expect(shellSource).not.toContain(".aboutPage");
   });
+
+  it("keeps Careers composition in its route-owned CSS Module", () => {
+    const careersSource = readAppFile("careers/page.tsx");
+    const shellSource = readAppFile("styles/shell.css");
+
+    expect(careersSource).toContain(
+      'import styles from "./careers.module.css";'
+    );
+    expect(shellSource).not.toContain(".practiceGrid");
+    expect(readAppFile("about/page.tsx")).not.toContain("careers.module.css");
+  });
 });

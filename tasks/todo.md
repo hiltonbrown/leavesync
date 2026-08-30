@@ -42,6 +42,12 @@ before the next plan begins.
   metadata, social image, RSS and error recovery.
 - [x] Plan 125: run Impeccable, React, browser, build and repository verification;
   commit, document and push before Plan 126.
+- [x] Plan 126: lock Careers applicant truth, landmark, email and responsive
+  contracts with focused failing tests.
+- [x] Plan 126: rebuild Careers as a candid applicant page with one-or-three
+  practice composition and route-aware bypass target.
+- [x] Plan 126: run Impeccable, React, Axe, browser, build and repository
+  verification; commit, document and push before Plan 127.
 - [ ] Execute, verify, commit and push Plans 130 through 143 in dependency
   order.
 - [ ] Run the final preview verification and record exact evidence.
@@ -86,6 +92,23 @@ before the next plan begins.
   The optional `agent-browser` executable and Node browser bridge were
   unavailable, so the required browser matrix used the installed headless
   Chromium directly.
+- Plan 126 makes the no-vacancy and no-timeline state explicit, replaces generic
+  product values with three factual working practices, and adds a bounded
+  low-data email introduction path. The practice grid stays one column below
+  64rem and changes directly to three columns at 64rem.
+- Plan 126 focused verification passed 4 files and 25 tests; web tests passed 23
+  files and 75 tests. Axe 4.12.1 reported 36 passes, zero violations and zero
+  incomplete checks at desktop and mobile. The first Tab reached the Careers
+  bypass link, Enter focused `careers-main`, the CTA measured 44px, and 720px
+  reflow plus 320px mobile both reported zero horizontal overflow. The
+  Impeccable detector returned `[]` and the final critique scored 32/32 with no
+  P0 or P1 issues.
+- Plan 126 production build, check, typecheck, unit and all 119 integration
+  tests passed, with two configured Xero skips. The mandated `127.0.0.1` Axe
+  sessions caused repeated cross-origin development-resource warnings and an
+  eventual Turbopack HMR panic after evidence collection; the process was
+  stopped, port 3001 was freed, and the subsequent clean production build
+  passed. This is recorded as a development-tooling issue, not a route defect.
 
 ## Active plan: Add a role-aware dashboard calendar timeline
 

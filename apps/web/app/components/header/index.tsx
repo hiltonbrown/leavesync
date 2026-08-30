@@ -34,6 +34,10 @@ const isRouteActive = (pathname: string, href: string) => {
 };
 
 const getMainContentId = (pathname: string): string | null => {
+  if (isRouteActive(pathname, "/careers")) {
+    return "careers-main";
+  }
+
   if (isRouteActive(pathname, "/blog")) {
     return "blog-main";
   }

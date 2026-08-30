@@ -87,4 +87,16 @@ describe("Marketing header bypass link", () => {
       expect(html).toContain('href="#blog-main"');
     }
   );
+
+  it.each(["/careers", "/careers/"])(
+    "targets the Careers main on %s without changing primary membership",
+    (pathname) => {
+      navigation.pathname = pathname;
+
+      const html = renderToStaticMarkup(React.createElement(Header));
+
+      expect(html).toContain('href="#careers-main"');
+      expect(html).not.toContain('href="/careers"');
+    }
+  );
 });
