@@ -220,6 +220,35 @@ Impeccable for its rendered surface where applicable.
 
 ## Follow-ups
 
+## Active plan: Make leave reports trustworthy, accessible and decision-led
+
+Status: Complete
+
+### Tasks
+
+- [x] Confirm Plan 130 drift, scope and Impeccable Operate direction.
+- [x] Thread the selected period through CSV export and truthful filenames.
+- [x] Add field-linked custom-range validation that preserves query state.
+- [x] Add a semantic exact-value alternative for the team chart.
+- [x] Replace equal metric cards with a decision-led summary band.
+- [x] Complete focused, visual and repository verification.
+- [x] Commit Plan 130 and prepare it to push to `origin/preview` before Plan 131.
+
+### Review
+
+- Plan 130 implementation landed at `4d726fa`.
+- Focused action and UI suites pass 19 tests, including every preset, a custom
+  range, linked validation errors, query preservation and the semantic chart
+  table. App type-checking, production build, Impeccable detection and diff
+  checks pass.
+- The production route correctly redirects a signed-out browser to Clerk with
+  `x-clerk-auth-reason: dev-browser-missing`. No authenticated local browser
+  state is available, so desktop, mobile, dark-mode and 200% rendered checks
+  remain unclaimed. This named Plan 130 visual-gate limitation is recorded here
+  as requested; source, component tests and detector evidence remain valid.
+- Repository check, typecheck, 434 app tests and all 119 integration tests pass;
+  the two configured live-Xero checks remain skipped.
+
 ## Active plan: Rebuild pricing launch modes
 
 Status: Complete

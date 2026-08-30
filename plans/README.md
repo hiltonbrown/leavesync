@@ -287,7 +287,7 @@ itself redirects to `/settings/general`.
 | [127](127-harden-security-controls-and-trust-page.md) | Close verified control gaps and rebuild `/security` from evidence | P0 | 120 | DONE at `6e8bdb5`; LANDED ON PREVIEW |
 | [128](128-build-betterstack-status-page.md) | Publish validated Better Stack component health and incident history | P1 | 121, 122 | DONE at `ad3df8a`; LANDED ON PREVIEW |
 | [129](129-rebuild-pricing-as-coherent-launch-mode-experience.md) | Rebuild pricing with approved AU plans and NZ/UK currency states | P1 | 120, 121 | DONE at `ddef650`; LANDED ON PREVIEW |
-| [130](130-refine-leave-reports.md) | Make leave reports trustworthy, accessible and decision-led | P1 | — | TODO |
+| [130](130-refine-leave-reports.md) | Make leave reports trustworthy, accessible and decision-led | P1 | — | DONE at `4d726fa`; LANDED ON PREVIEW |
 | [131](131-refine-out-of-office-analytics.md) | Make out-of-office analytics accessible and insight-led | P1 | 130 | TODO |
 | [132](132-harden-calendar-experience.md) | Make the calendar timezone-correct and mobile-operable | P1 | — | TODO |
 | [133](133-distill-feed-management.md) | Make feed subscription primary and administration progressive | P1 | — | TODO |
@@ -335,6 +335,13 @@ itself redirects to `/settings/general`.
   incident history and recovery path land as one vertical slice.
 - 130 establishes the shared analytics filter and summary treatment before 131
   extends it with person-type segmentation and multi-series accessibility.
+- Plan 130 verified the selected-range export contract, organisation-timezone
+  filenames, linked custom-range errors, semantic chart values and the compact
+  decision summary through 19 focused tests, 434 app tests, production build,
+  Impeccable detection and all repository gates. The protected production route
+  correctly redirected the signed-out local browser to Clerk with
+  `dev-browser-missing`; no authenticated browser state was available, so its
+  desktop, mobile, dark-mode and 200% visual checks remain explicitly unclaimed.
 - 141 follows 137 because `/availability` is a redirect to Plans and must not
   create a second availability interface.
 - 142 follows 136 because `/leave-balances` redirects into People and depends
