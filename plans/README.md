@@ -236,6 +236,27 @@ plan. It centralises the approved Australian Starter/Premium/Enterprise offer,
 adds truthful AUD/NZD/GBP availability selection, and rebuilds both launch modes
 as coherent, static-first, accessible pricing experiences.
 
+Execution note recorded 30 August 2026: Plan 129 landed through `c03bc44`,
+`f63ddc4` and `ddef650`. One public catalogue now drives database seed limits
+and public plan names: internal `basic` is Starter with 9 staff, Premium has 50
+staff, and both purchasable plans have one Xero connection. Paid AUD renders the
+approved $9/$19 offers; Enterprise, NZD and GBP remain non-purchase Coming soon
+states. Early access is a closed Australian cohort with one primary enquiry.
+The page is static in both deployment modes, native FAQ disclosure replaces the
+broad client boundary, and only the labelled currency selector hydrates.
+
+Focused core, database and pricing tests passed, as did Impeccable (`[]`), both
+mode production builds, repository check/typecheck/unit gates and all 119
+integration tests, with the two configured Xero credential checks skipped.
+Chrome verified 1440×1000, 1024×768 and 390×844 light/dark coverage, one main
+and h1, native FAQ, mobile comparison cards, 44px primary actions, 3px focus and
+zero page overflow. The selector kept focus and changed its native selected
+AUD/NZD/GBP value under headless keyboard automation, but that harness did not
+observe React replacing the dependent panel. Pure projection tests prove the
+three truthful outputs; this automation limitation is recorded without claiming
+an interactive panel screenshot. No live purchase, NZD/GBP amount, tax claim or
+checkout behaviour was invented.
+
 Plans 130–143 were added on 30 August 2026 from a read-only Improve survey of
 the requested authenticated product routes, shaped by the Impeccable Operate
 critique contract. There is one plan per requested path. Plans 141, 142 and 143
@@ -265,7 +286,7 @@ itself redirects to `/settings/general`.
 | [126](126-reshape-careers-page.md) | Turn Careers into a candid, accessible applicant page | P1 | 122 | DONE at `3debb01`; LANDED ON PREVIEW |
 | [127](127-harden-security-controls-and-trust-page.md) | Close verified control gaps and rebuild `/security` from evidence | P0 | 120 | DONE at `6e8bdb5`; LANDED ON PREVIEW |
 | [128](128-build-betterstack-status-page.md) | Publish validated Better Stack component health and incident history | P1 | 121, 122 | DONE at `ad3df8a`; LANDED ON PREVIEW |
-| [129](129-rebuild-pricing-as-coherent-launch-mode-experience.md) | Rebuild pricing with approved AU plans and NZ/UK currency states | P1 | 120, 121 | TODO |
+| [129](129-rebuild-pricing-as-coherent-launch-mode-experience.md) | Rebuild pricing with approved AU plans and NZ/UK currency states | P1 | 120, 121 | DONE at `ddef650`; LANDED ON PREVIEW |
 | [130](130-refine-leave-reports.md) | Make leave reports trustworthy, accessible and decision-led | P1 | — | TODO |
 | [131](131-refine-out-of-office-analytics.md) | Make out-of-office analytics accessible and insight-led | P1 | 130 | TODO |
 | [132](132-harden-calendar-experience.md) | Make the calendar timezone-correct and mobile-operable | P1 | — | TODO |

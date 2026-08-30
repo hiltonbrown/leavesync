@@ -220,6 +220,31 @@ Impeccable for its rendered surface where applicable.
 
 ## Follow-ups
 
+## Active plan: Rebuild pricing launch modes
+
+Status: Complete
+
+### Tasks
+
+- [x] Confirm Plan 129 drift, prerequisites, approved pricing contract, and Impeccable Persuade direction.
+- [x] Centralise the public plan catalogue and database projection with tests.
+- [x] Rebuild coherent early-access and paid pricing experiences.
+- [x] Isolate the AUD/NZD/GBP selector and add accessible comparison and FAQ surfaces.
+- [x] Verify responsive modes, build, full repository gates, commit, and push.
+
+### Review
+
+- Plan 129 landed through `c03bc44`, `f63ddc4` and `ddef650`. The shared
+  catalogue, database projection, early-access mode, paid AUD mode, regional
+  availability states, native FAQ and responsive comparison are implemented.
+- Both static builds, Impeccable, browser desktop/tablet/mobile checks, focused
+  tests, repository check/typecheck/unit gates and all 119 integration tests
+  passed. The two configured Xero checks remained skipped.
+- Headless keyboard automation changed and retained the native currency value
+  but did not capture the dependent React panel replacement. The pure state
+  projections are covered in tests; this harness limitation is recorded in the
+  plan README rather than represented as product evidence.
+
 ## Active plan: Publish Better Stack service status
 
 Status: In progress
