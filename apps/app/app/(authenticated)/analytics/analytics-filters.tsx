@@ -14,6 +14,27 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
+export interface CustomRangeErrors {
+  end?: string;
+  start?: string;
+}
+
+export const validateCustomRange = (
+  start: string,
+  end: string
+): CustomRangeErrors => {
+  const errors: CustomRangeErrors = {};
+  if (!start) {
+    errors.start = "Choose a start date.";
+  }
+  if (!end) {
+    errors.end = "Choose an end date.";
+  } else if (start && end < start) {
+    errors.end = "The end date must be on or after the start date.";
+  }
+  return errors;
+};
+
 interface AnalyticsFiltersProps {
   customEnd?: string;
   customStart?: string;
@@ -30,8 +51,18 @@ export function AnalyticsFilters({
   const [localPreset, setLocalPreset] = useState(preset);
   const [localStart, setLocalStart] = useState(customStart ?? "");
   const [localEnd, setLocalEnd] = useState(customEnd ?? "");
+  const [errors, setErrors] = useState<CustomRangeErrors>({});
 
   const apply = () => {
+    if (localPreset === "custom") {
+      const customErrors = validateCustomRange(localStart, localEnd);
+      setErrors(customErrors);
+      if (Object.keys(customErrors).length > 0) {
+        return;
+      }
+    } else {
+      setErrors({});
+    }
     const params = new URLSearchParams(searchParams.toString());
     params.set("preset", localPreset);
     if (localPreset === "custom") {
@@ -54,7 +85,7 @@ export function AnalyticsFilters({
   };
 
   return (
-    <div className="flex flex-wrap items-end gap-4 rounded-2xl bg-muted p-4">
+    <div className="flex flex-wrap items-end gap-4 rounded-[20px] bg-muted p-4">
       <div className="flex flex-col gap-1.5">
         <Label className="text-muted-foreground text-xs uppercase tracking-widest">
           Period
@@ -75,22 +106,58 @@ export function AnalyticsFilters({
       {localPreset === "custom" ? (
         <>
           <div className="flex flex-col gap-1.5">
-            <Label className="text-muted-foreground text-xs">From</Label>
+            <Label
+              className="text-muted-foreground text-xs"
+              htmlFor="analytics-from"
+            >
+              From
+            </Label>
             <Input
+              aria-describedby={
+                errors.start ? "analytics-from-error" : undefined
+              }
+              aria-invalid={Boolean(errors.start)}
               className="rounded-xl bg-background"
+              id="analytics-from"
               onChange={(e) => setLocalStart(e.target.value)}
               type="date"
               value={localStart}
             />
+            {errors.start ? (
+              <p
+                className="text-destructive text-xs"
+                id="analytics-from-error"
+                role="alert"
+              >
+                {errors.start}
+              </p>
+            ) : null}
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label className="text-muted-foreground text-xs">To</Label>
+            <Label
+              className="text-muted-foreground text-xs"
+              htmlFor="analytics-to"
+            >
+              To
+            </Label>
             <Input
+              aria-describedby={errors.end ? "analytics-to-error" : undefined}
+              aria-invalid={Boolean(errors.end)}
               className="rounded-xl bg-background"
+              id="analytics-to"
               onChange={(e) => setLocalEnd(e.target.value)}
               type="date"
               value={localEnd}
             />
+            {errors.end ? (
+              <p
+                className="text-destructive text-xs"
+                id="analytics-to-error"
+                role="alert"
+              >
+                {errors.end}
+              </p>
+            ) : null}
           </div>
         </>
       ) : null}
