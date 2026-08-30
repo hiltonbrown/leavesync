@@ -83,11 +83,13 @@ async function loadProfileViewModel(
 
   const historyCursor = firstString(searchParams.historyCursor);
   const historyResult = await listHistoryPage({
+    actingPersonId: actingPerson?.id ?? null,
     clerkOrgId,
     cursor: historyCursor,
     organisationId,
     pageSize: 25,
     personId,
+    role,
   });
 
   return {
