@@ -288,7 +288,7 @@ itself redirects to `/settings/general`.
 | [128](128-build-betterstack-status-page.md) | Publish validated Better Stack component health and incident history | P1 | 121, 122 | DONE at `ad3df8a`; LANDED ON PREVIEW |
 | [129](129-rebuild-pricing-as-coherent-launch-mode-experience.md) | Rebuild pricing with approved AU plans and NZ/UK currency states | P1 | 120, 121 | DONE at `ddef650`; LANDED ON PREVIEW |
 | [130](130-refine-leave-reports.md) | Make leave reports trustworthy, accessible and decision-led | P1 | — | DONE at `4d726fa`; LANDED ON PREVIEW |
-| [131](131-refine-out-of-office-analytics.md) | Make out-of-office analytics accessible and insight-led | P1 | 130 | TODO |
+| [131](131-refine-out-of-office-analytics.md) | Make out-of-office analytics accessible and insight-led | P1 | 130 | DONE at `b5031c9`; LANDED ON PREVIEW |
 | [132](132-harden-calendar-experience.md) | Make the calendar timezone-correct and mobile-operable | P1 | — | TODO |
 | [133](133-distill-feed-management.md) | Make feed subscription primary and administration progressive | P1 | — | TODO |
 | [134](134-clarify-leave-approvals.md) | Make leave approvals scan-fast and action-safe | P1 | — | TODO |
@@ -342,6 +342,12 @@ itself redirects to `/settings/general`.
   correctly redirected the signed-out local browser to Clerk with
   `dev-browser-missing`; no authenticated browser state was available, so its
   desktop, mobile, dark-mode and 200% visual checks remain explicitly unclaimed.
+- Plan 131 verified employee and contractor segmentation, labelled non-colour
+  chart series, exact semantic values and the decision-led presence summary
+  through nine focused tests, 439 app tests, production build, Impeccable
+  detection and all repository gates. The protected route also redirected the
+  signed-out local browser with `dev-browser-missing`, so authenticated desktop,
+  mobile, dark-mode and 200% visual evidence remains explicitly unclaimed.
 - 141 follows 137 because `/availability` is a redirect to Plans and must not
   create a second availability interface.
 - 142 follows 136 because `/leave-balances` redirects into People and depends

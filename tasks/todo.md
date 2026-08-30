@@ -220,6 +220,33 @@ Impeccable for its rendered surface where applicable.
 
 ## Follow-ups
 
+## Active plan: Make out-of-office analytics accessible and insight-led
+
+Status: Complete
+
+### Tasks
+
+- [x] Confirm Plan 131 drift, dependency and Impeccable Operate direction.
+- [x] Add validated employee and contractor segmentation to the shared filter.
+- [x] Add exact semantic values and non-colour labels to both charts.
+- [x] Replace equal cards with a decision-led presence summary.
+- [x] Delay the two-chart layout until wide screens and cover long labels.
+- [x] Complete detector, build and repository verification.
+- [x] Commit Plan 131 and prepare it to push to `origin/preview` before Plan 132.
+
+### Review
+
+- Plan 131 implementation landed at `b5031c9`.
+- Nine focused tests cover person-type URL state, aggregation input, invalid
+  values, long labels and exact semantic values across both charts.
+- Impeccable detection, production build, repository check/typecheck, 439 app
+  tests and all 119 integration tests pass. The two configured live-Xero checks
+  remain skipped.
+- The production route correctly redirects a signed-out browser to Clerk with
+  `x-clerk-auth-reason: dev-browser-missing`. Authenticated desktop, mobile,
+  dark-mode and 200% rendered checks remain unclaimed and are recorded here as
+  requested.
+
 ## Active plan: Make leave reports trustworthy, accessible and decision-led
 
 Status: Complete
