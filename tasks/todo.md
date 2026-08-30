@@ -220,6 +220,37 @@ Impeccable for its rendered surface where applicable.
 
 ## Follow-ups
 
+## Active plan: Make the calendar timezone-correct and mobile-operable
+
+Status: Complete
+
+### Tasks
+
+- [x] Confirm Plan 132 drift, timezone contract and Impeccable guidance.
+- [x] Place timed events in the organisation timezone with off-hours groups.
+- [x] Complete compact event accessible names with type, source and status.
+- [x] Add a chronological mobile month agenda with complete day paths.
+- [x] Add a safe-area mobile create action and responsive toolbar grouping.
+- [x] Add calendar-shaped loading and retry recovery surfaces.
+- [x] Complete detector, build and repository verification.
+- [x] Commit Plan 132 and prepare it to push to `origin/preview` before Plan 133.
+
+### Review
+
+- Plan 132 landed at `e159764`; the Plan 131 Next route-export correction found
+  by the build gate landed separately at `93fef28`.
+- Twenty-three focused tests cover Brisbane and New York local-hour placement,
+  UTC boundaries, off-hours groups, complete event labels, agenda navigation,
+  safe-area creation, loading and retry.
+- Impeccable detection, canonical production build, repository check/typecheck,
+  447 app tests and all 119 integration tests pass. Two configured live-Xero
+  checks remain skipped.
+- Turbopack twice panicked on a cached source-map task. Moving the generated
+  `.next` directory to `/tmp/teamcalendar-app-next-plan132-panic` allowed the
+  canonical build to complete. The protected browser route then correctly
+  redirected to Clerk with `dev-browser-missing`; authenticated visual claims
+  remain unmade.
+
 ## Active plan: Make out-of-office analytics accessible and insight-led
 
 Status: Complete

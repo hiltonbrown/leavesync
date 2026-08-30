@@ -289,7 +289,7 @@ itself redirects to `/settings/general`.
 | [129](129-rebuild-pricing-as-coherent-launch-mode-experience.md) | Rebuild pricing with approved AU plans and NZ/UK currency states | P1 | 120, 121 | DONE at `ddef650`; LANDED ON PREVIEW |
 | [130](130-refine-leave-reports.md) | Make leave reports trustworthy, accessible and decision-led | P1 | — | DONE at `4d726fa`; LANDED ON PREVIEW |
 | [131](131-refine-out-of-office-analytics.md) | Make out-of-office analytics accessible and insight-led | P1 | 130 | DONE at `b5031c9`; LANDED ON PREVIEW |
-| [132](132-harden-calendar-experience.md) | Make the calendar timezone-correct and mobile-operable | P1 | — | TODO |
+| [132](132-harden-calendar-experience.md) | Make the calendar timezone-correct and mobile-operable | P1 | — | DONE at `e159764`; LANDED ON PREVIEW |
 | [133](133-distill-feed-management.md) | Make feed subscription primary and administration progressive | P1 | — | TODO |
 | [134](134-clarify-leave-approvals.md) | Make leave approvals scan-fast and action-safe | P1 | — | TODO |
 | [135](135-refine-notification-centre.md) | Make notifications calmer, accessible and mobile-first | P1 | — | TODO |
@@ -348,6 +348,14 @@ itself redirects to `/settings/general`.
   detection and all repository gates. The protected route also redirected the
   signed-out local browser with `dev-browser-missing`, so authenticated desktop,
   mobile, dark-mode and 200% visual evidence remains explicitly unclaimed.
+- Plan 132 verified Brisbane and New York wall-clock placement, date-boundary
+  and off-hours discovery, complete event names, mobile month agenda, safe-area
+  creation, loading and retry through 23 focused tests, 447 app tests,
+  production build, Impeccable detection and all repository gates. Turbopack
+  twice panicked while generating a cached source map; moving only the generated
+  `.next` cache aside produced a clean canonical build. The protected route
+  redirected the signed-out local browser with `dev-browser-missing`, so
+  authenticated desktop/mobile/dark/200% evidence remains unclaimed.
 - 141 follows 137 because `/availability` is a redirect to Plans and must not
   create a second availability interface.
 - 142 follows 136 because `/leave-balances` redirects into People and depends
