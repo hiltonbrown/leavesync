@@ -1,5 +1,7 @@
 import { createMetadata } from "@repo/seo/metadata";
 import type { Metadata } from "next";
+import "../styles/features.css";
+import "../styles/motion.css";
 import { PricingExperience } from "./components/pricing-experience";
 
 // Pricing content depends on NEXT_PUBLIC_LAUNCH_MODE at runtime.

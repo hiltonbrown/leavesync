@@ -35,6 +35,127 @@
   @apply inline-block text-muted-foreground text-right mb-6 text-sm;
 }
 
+.fmkt-page {
+  --fmkt-slide-h: 100svh;
+  --fmkt-slide-pin: 120svh;
+  --fmkt-sticky-content-offset: clamp(132px, 14svh, 164px);
+  --fmkt-section-header-gap: 48px;
+  --fmkt-card-grid-gap: 20px;
+  --fmkt-card-body-pad-block-start: 28px;
+  --fmkt-card-body-pad-inline: 32px;
+  --fmkt-card-body-pad-block-end: 32px;
+
+  min-height: 100vh;
+  font-family: var(--marketing-font);
+  color: var(--marketing-on-surface);
+  background: var(--marketing-surface);
+}
+
+.fmkt-container {
+  width: min(calc(100% - 48px), 1200px);
+  margin: 0 auto;
+}
+
+.fmkt-overline {
+  display: inline-flex;
+  gap: 12px;
+  align-items: center;
+  margin: 0 0 8px;
+  font: italic 500 var(--text-title-sm) / 1.4 var(--marketing-serif);
+  color: var(--marketing-primary);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.fmkt-overline::before {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 22px;
+  height: 2px;
+  content: "";
+  background: var(--marketing-primary);
+  border-radius: 12px;
+}
+
+.fmkt-section-header {
+  max-width: 720px;
+  margin: 0 0 var(--fmkt-section-header-gap);
+}
+
+.fmkt-section-title {
+  margin: 0 0 14px;
+  font: 600 var(--text-display-md) / 1.15 var(--marketing-font);
+  color: var(--marketing-inverse-surface);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.fmkt-section-title em,
+.fmkt-pricing-hero h1 em {
+  font-family: var(--marketing-serif);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--marketing-primary);
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 1024px) {
+  .fmkt-page {
+    --fmkt-card-grid-gap: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .fmkt-page {
+    --fmkt-section-header-gap: 40px;
+    --fmkt-card-grid-gap: 20px;
+    --fmkt-card-body-pad-block-start: 24px;
+    --fmkt-card-body-pad-inline: 24px;
+    --fmkt-card-body-pad-block-end: 28px;
+  }
+
+  .fmkt-container {
+    width: min(calc(100% - 32px), 640px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fmkt-page * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+.marketing-skip-link {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  font: 600 0.875rem / 1.4 var(--marketing-font);
+  color: var(--marketing-on-primary);
+  text-decoration: none;
+  background: var(--marketing-primary);
+  border-radius: 14px;
+  transform: translateY(-160%);
+  transition: transform 160ms ease;
+}
+
+.marketing-skip-link:focus-visible {
+  outline: 3px solid var(--marketing-primary);
+  outline-offset: 3px;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marketing-skip-link {
+    transition: none;
+  }
+}
+
 .marketing-site-header {
   position: sticky;
   top: 24px;

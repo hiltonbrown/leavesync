@@ -786,21 +786,6 @@
    Features Marketing Page: fmkt-* namespace
    ============================================================ */
 
-.fmkt-page {
-  --fmkt-slide-h: 100svh;
-  --fmkt-slide-pin: 120svh;
-
-  min-height: 100vh;
-  font-family: var(--marketing-font);
-  color: var(--marketing-on-surface);
-  background: var(--marketing-surface);
-}
-
-.fmkt-container {
-  width: min(calc(100% - 48px), 1200px);
-  margin: 0 auto;
-}
-
 .fmkt-pill {
   display: inline-flex;
   align-items: center;
@@ -812,63 +797,6 @@
   letter-spacing: 0.04em;
   background: var(--accent-container);
   border-radius: 999px;
-}
-
-/* Section signature: a forest-green Lora-italic lead-in with a short rule.
-   The brand's second voice, deliberately recurring; not an uppercase eyebrow. */
-.fmkt-overline {
-  display: inline-flex;
-  gap: 12px;
-  align-items: center;
-  margin: 0 0 8px;
-  font: italic 500 var(--text-title-sm) / 1.4 var(--marketing-serif);
-  color: var(--marketing-primary);
-  text-transform: none;
-  letter-spacing: 0;
-}
-
-.fmkt-overline::before {
-  flex: 0 0 auto;
-  align-self: center;
-  width: 22px;
-  height: 2px;
-  content: "";
-  background: var(--marketing-primary);
-  border-radius: 12px;
-}
-
-.fmkt-page {
-  --fmkt-sticky-content-offset: clamp(132px, 14svh, 164px);
-  --fmkt-section-header-gap: 48px;
-  --fmkt-card-grid-gap: 20px;
-  --fmkt-card-body-pad-block-start: 28px;
-  --fmkt-card-body-pad-inline: 32px;
-  --fmkt-card-body-pad-block-end: 32px;
-}
-
-.fmkt-section-header {
-  max-width: 720px;
-  margin: 0 0 var(--fmkt-section-header-gap);
-}
-
-.fmkt-section-title {
-  margin: 0 0 14px;
-  font: 600 var(--text-display-md) / 1.15 var(--marketing-font);
-  color: var(--marketing-inverse-surface);
-  letter-spacing: -0.02em;
-  text-wrap: balance;
-}
-
-/* Second voice: the Lora italic that carries the hero's emphasis line also
-   accents select section headings. Used deliberately, not above every section,
-   so it reads as the brand's signature rather than a kicker scaffold. */
-.fmkt-section-title em,
-.fmkt-pricing-hero h1 em {
-  font-family: var(--marketing-serif);
-  font-style: italic;
-  font-weight: 500;
-  color: var(--marketing-primary);
-  letter-spacing: -0.01em;
 }
 
 /* ---- Hero ---- */
@@ -2822,10 +2750,6 @@
 /* ---- Responsive: tablet ---- */
 
 @media (max-width: 1024px) {
-  .fmkt-page {
-    --fmkt-card-grid-gap: 20px;
-  }
-
   .fmkt-hero {
     grid-template-columns: 1fr;
     gap: 32px;
@@ -2904,18 +2828,6 @@
 /* ---- Responsive: mobile ---- */
 
 @media (max-width: 640px) {
-  .fmkt-page {
-    --fmkt-section-header-gap: 40px;
-    --fmkt-card-grid-gap: 20px;
-    --fmkt-card-body-pad-block-start: 24px;
-    --fmkt-card-body-pad-inline: 24px;
-    --fmkt-card-body-pad-block-end: 28px;
-  }
-
-  .fmkt-container {
-    width: min(calc(100% - 32px), 640px);
-  }
-
   .fmkt-hero {
     padding: 64px 16px 48px;
   }
@@ -3092,13 +3004,6 @@
   .fmkt-cta__actions {
     flex-direction: column;
     align-items: center;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fmkt-page * {
-    transition: none !important;
-    animation: none !important;
   }
 }
 
