@@ -8,7 +8,7 @@ from `plans/` into the completed-plan ledger below. All 14 rejected plan files
 (Plans 024, 031, 051, 058, 062, 063, 064, 065, 067, 068, 070, 071, 072, 073, 074)
 have also been removed, with their decision rationales and superseding plan linkages
 preserved in the Reconciliation decisions section below. The execution queue contains
-16 TODO plans. The two regional activation plans remain `BLOCKED` (Plans 108 and 109),
+19 TODO plans. The two regional activation plans remain `BLOCKED` (Plans 108 and 109),
 pending named live Xero environments and UK partner permission.
 
 ## Execution policy
@@ -89,7 +89,7 @@ This reconciliation was read-only outside `plans/`.
 | Plan 105 execution | approved at `22c69b2`; employee-aware regional approval reconciliation for NZ and UK tenants, missing employee ID validation failure |
 | Plan 106 execution | approved at `bd8248c`; orchestrated 40-person regional balance pages for NZ and UK tenants, per-employee cursor CAS updates, NZD currency mapping |
 | Plan 107 execution | approved at `6b66916`; formatLeaveBalance helper with Intl.NumberFormat NZD and unit handling, services restricted to day subtraction only |
-| Current indexed plans | 98: 32 TODO, 50 DONE (including queue completions), 14 REJECTED (ledgered decisions), 2 BLOCKED |
+| Current indexed plans | 98: 31 TODO, 51 DONE (including queue completions), 14 REJECTED (ledgered decisions), 2 BLOCKED |
 
 ## Execution queue
 
@@ -119,6 +119,10 @@ calendar refreshes as client-controlled rather than promising a numeric delay.
 The shipped decline action requires a reason between 3 and 1000 characters.
 The remaining mismatch between that action and the configurable `Require decline
 reason` setting is documented for follow-up and does not block this plan.
+Verification note: headless Chromium ignored browser zoom shortcuts, so 720 CSS
+pixels verified the equivalent 200% reflow of a 1440-pixel viewport. The guide's
+static phase navigation does not claim saved progress, and its intentionally
+expanded mobile procedure remains a monitoring item rather than a launch block.
 
 Plan 125 rolls the full Blog critique into one Impeccable Read-mode publishing
 plan. It keeps the MDX pipeline, editorial model, content truth, interface,
@@ -168,7 +172,7 @@ itself redirects to `/settings/general`.
 | [121](121-refine-contact-page.md) | Make the contact page a clear, specific and maintainable enquiry path | P1 | 120 | DONE at `61d351c`; LANDED ON PREVIEW |
 | [122](122-reshape-customers-page-as-who-its-for.md) | Reshape `/customers` into an honest, specific “Who it’s for” page | P1 | 120 | DONE at `ccf1caf`; LANDED ON PREVIEW |
 | [123](123-reshape-about-as-founder-led-trust-page.md) | Reshape `/about` as a founder-led trust page | P1 | 122, approved human content and assets | DONE at `d31a0f3`; LANDED ON PREVIEW; PREVIEW PLACEHOLDERS, production identity assets remain release-gated |
-| [124](124-rebuild-help-centre-read-surface.md) | Rebuild help centre as an accurate task-led Read surface | P1 | 121, 122, 123 | TODO |
+| [124](124-rebuild-help-centre-read-surface.md) | Rebuild help centre as an accurate task-led Read surface | P1 | 121, 122, 123 | DONE at `2beed1a`; LANDED ON PREVIEW; browser matrix and 37/40 Impeccable critique confirmed |
 | [125](125-rebuild-blog-read-mode.md) | Rebuild Blog as a validated, accessible Read-mode publishing surface | P1 | — | TODO |
 | [126](126-reshape-careers-page.md) | Turn Careers into a candid, accessible applicant page | P1 | 122 | TODO |
 | [127](127-harden-security-controls-and-trust-page.md) | Close verified control gaps and rebuild `/security` from evidence | P0 | 120 | TODO |
