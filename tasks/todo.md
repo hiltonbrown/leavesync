@@ -91,6 +91,35 @@ Status: Complete
   the current state service and is recorded in `plans/README.md` rather than
   represented by a non-functional control.
 
+## Active plan: Give public-holiday management one safe, responsive home
+
+Status: In progress
+
+### Tasks
+
+- [x] Confirm Plan 138 ownership, refresh and persisted jurisdiction contracts.
+- [x] Make Public Holidays the operational surface and Settings the summary.
+- [x] Add consequence-aware suppress/delete confirmation and restore receipts.
+- [x] Add organisation-wide and imported-jurisdiction custom holiday scope.
+- [x] Remove viewer action chrome and add responsive rows plus Suppressed labels.
+- [x] Complete focused tests, detector, build and repository verification.
+- [x] Commit, document issues and push Plan 138 to `origin/preview`.
+
+### Review
+
+- Plan 138 implementation landed at `b7f037a`.
+- Public Holidays is the one operational home, with source refresh, scoped
+  custom creation, consequence-aware suppress/delete confirmation, restore
+  receipts, viewer-safe rendering and responsive labelled rows.
+- Nine focused UI tests, 16 focused holiday-service tests, 486 app tests, the
+  production build, Impeccable detection and all 119 integration tests passed;
+  the two configured live-Xero checks remain skipped.
+- The authenticated browser route redirected with `dev-browser-missing`, so
+  desktop, mobile, dark-mode and 200% rendered checks remain unclaimed.
+- The create contract safely persists organisation-wide or imported-
+  jurisdiction scope. Location-specific holiday assignments are not accepted
+  by that contract and remain recorded in `plans/README.md`.
+
 ### Review
 
 - Plans 110 through 123 and their bookkeeping commits are on

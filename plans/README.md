@@ -295,7 +295,7 @@ itself redirects to `/settings/general`.
 | [135](135-refine-notification-centre.md) | Make notifications calmer, accessible and mobile-first | P1 | — | DONE at `3a965e8`; LANDED ON PREVIEW |
 | [136](136-refine-people-and-balances.md) | Make People responsive and restore profile source-of-truth cues | P1 | — | DONE at `9b2a7c9`; LANDED ON PREVIEW |
 | [137](137-distill-plans-experience.md) | Make plans clear, responsive and truthful about provenance | P1 | — | DONE at `ef6469f`; LANDED ON PREVIEW |
-| [138](138-shape-public-holiday-management.md) | Give public-holiday management one safe, responsive home | P1 | — | TODO |
+| [138](138-shape-public-holiday-management.md) | Give public-holiday management one safe, responsive home | P1 | — | DONE at `b7f037a`; LANDED ON PREVIEW |
 | [139](139-restructure-settings-shell.md) | Make Settings responsive, context-safe and goal-grouped | P1 | — | TODO |
 | [140](140-distill-sync-health.md) | Make sync status truthful, accessible and easier to operate | P1 | — | TODO |
 | [141](141-harden-availability-compatibility-route.md) | Keep availability deep links correct and remove legacy UI ambiguity | P2 | 137 | TODO |
@@ -405,6 +405,25 @@ itself redirects to `/settings/general`.
   button because the existing write service rejects withdrawal from
   `xero_sync_failed`; extending that state transition is outside Plan 137 and
   remains a named recovery gap rather than a non-functional UI action.
+- Plan 138 makes Public Holidays the single operational home, adds selected-year
+  refresh for the organisation and location jurisdictions, server-resolved
+  organisation-wide or imported-jurisdiction custom scope, consequence-aware
+  destructive confirmation, explicit suppressed state and responsive labelled
+  rows. Settings Holidays is now a truthful summary with one launch action.
+  Nine focused UI tests, 16 focused service tests, 486 app tests, the production
+  build, Impeccable detection and all 119 integration tests passed; the two
+  configured live-Xero checks remain skipped. The protected route redirected
+  the signed-out browser with `dev-browser-missing`, so authenticated desktop,
+  mobile, dark-mode and 200% rendered checks remain explicitly unclaimed.
+
+  Location-specific custom-holiday assignments are not exposed because the
+  current create-action contract persists organisation-wide or jurisdiction
+  scope only; inventing a client-only location choice would be unsafe. Live
+  Nager.Date network refresh was not exercised by the repository integration
+  suite, so action dispatch is covered with mocks and the existing adapter
+  contract rather than claimed as live verification. Impeccable context also
+  identified the deprecated `PRODUCT.md` `Register` section; Plan 138 did not
+  rely on it and leaves its deletion for explicit documentation maintenance.
 - 141 follows 137 because `/availability` is a redirect to Plans and must not
   create a second availability interface.
 - 142 follows 136 because `/leave-balances` redirects into People and depends
