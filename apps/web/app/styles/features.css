@@ -2389,16 +2389,11 @@
   flex-direction: column;
   padding: 32px;
   background: var(--marketing-surface-container);
-  border-radius: 16px;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  border-radius: 20px;
 }
 
 .fmkt-pricing-card--highlighted {
-  background: var(--marketing-surface-low);
-  border: 2px solid var(--marketing-primary);
-  transform: scale(1.02);
+  background: var(--marketing-primary-container);
 }
 
 .fmkt-pricing-card__badge {
@@ -2407,11 +2402,11 @@
   left: 50%;
   padding: 4px 12px;
   font: 600 0.75rem var(--marketing-font);
-  color: #ffffff;
+  color: var(--marketing-on-primary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: #336a3b;
-  border-radius: 999px;
+  background: var(--marketing-primary);
+  border-radius: 12px;
   transform: translateX(-50%);
 }
 
@@ -2469,7 +2464,7 @@
 .fmkt-pricing-card__feature-icon {
   flex-shrink: 0;
   font-weight: 700;
-  color: #336a3b;
+  color: var(--marketing-primary);
 }
 
 .fmkt-pricing-card__footer {
@@ -2516,7 +2511,7 @@
 .fmkt-pricing-table-wrap {
   overflow-x: auto;
   background: var(--marketing-surface-container);
-  border-radius: 16px;
+  border-radius: 20px;
   scrollbar-color: var(--marketing-outline-variant) transparent;
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
@@ -2584,7 +2579,7 @@
   border-radius: 16px;
 }
 
-.fmkt-pricing-faq__item button {
+.fmkt-pricing-faq__item summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2594,17 +2589,18 @@
   color: var(--marketing-on-surface);
   text-align: left;
   cursor: pointer;
+  list-style: none;
   background: transparent;
   border: 0;
 }
 
-.fmkt-pricing-faq__item button:focus-visible,
+.fmkt-pricing-faq__item summary:focus-visible,
 .fmkt-pricing-form :where(input, select, textarea, button):focus-visible {
-  outline: 2px solid var(--marketing-primary);
+  outline: 3px solid var(--marketing-primary);
   outline-offset: 3px;
 }
 
-.fmkt-pricing-faq__item button span {
+.fmkt-pricing-faq__item summary span {
   font-size: var(--text-title-lg);
   color: var(--marketing-primary);
 }
@@ -2658,6 +2654,74 @@
   color: var(--marketing-on-secondary-container);
   background: var(--marketing-secondary-container);
   border-radius: 12px;
+}
+
+.fmkt-pricing-cohort {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 28px;
+}
+
+.fmkt-pricing-cohort article {
+  padding: clamp(24px, 4vw, 40px);
+  background: var(--marketing-surface-container);
+  border-radius: 20px;
+}
+
+.fmkt-pricing-cohort h3,
+.fmkt-pricing-region__panel > h2 {
+  font: 650 var(--text-headline-md) / 1.2 var(--marketing-font);
+  color: var(--marketing-on-surface);
+}
+
+.fmkt-pricing-cohort ul,
+.fmkt-pricing-cohort p {
+  margin: 20px 0;
+  line-height: 1.65;
+  color: var(--marketing-on-surface-variant);
+}
+
+.fmkt-pricing-region {
+  padding: 76px 0 0;
+}
+
+.fmkt-pricing-currency {
+  display: grid;
+  gap: 8px;
+  width: min(100% - 32px, 1160px);
+  margin: 0 auto;
+  font-weight: 700;
+}
+
+.fmkt-pricing-currency select {
+  min-height: 44px;
+  padding: 10px 14px;
+  color: var(--marketing-on-surface);
+  background: var(--marketing-surface-high);
+  border: 0;
+  border-radius: 14px;
+}
+
+.fmkt-pricing-currency select:focus-visible,
+.fmkt-pricing-table-wrap:focus-visible {
+  outline: 3px solid var(--marketing-primary);
+  outline-offset: 3px;
+}
+
+.fmkt-pricing-region__panel > h2 {
+  width: min(100% - 32px, 1160px);
+  margin: 32px auto 0;
+}
+
+.fmkt-pricing-comparison-cards {
+  display: none;
+}
+
+.fmkt-pricing-table caption {
+  padding: 16px 20px;
+  font-weight: 650;
+  text-align: left;
 }
 
 /* ---- Final CTA ---- */
@@ -2905,6 +2969,40 @@
   .fmkt-pricing-hero__summary {
     padding: 24px;
     border-radius: 20px;
+  }
+
+  .fmkt-pricing-cohort {
+    grid-template-columns: 1fr;
+  }
+
+  .fmkt-pricing-table-wrap {
+    display: none;
+  }
+
+  .fmkt-pricing-comparison-cards {
+    display: grid;
+    gap: 16px;
+  }
+
+  .fmkt-pricing-comparison-cards article {
+    padding: 22px;
+    background: var(--marketing-surface-container);
+    border-radius: 20px;
+  }
+
+  .fmkt-pricing-comparison-cards h3 {
+    font: 700 1.25rem var(--marketing-font);
+  }
+
+  .fmkt-pricing-comparison-cards dl > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
+    padding-top: 12px;
+  }
+
+  .fmkt-pricing-comparison-cards dt {
+    color: var(--marketing-on-surface-variant);
   }
 
   .fmkt-cards-section {
