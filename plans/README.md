@@ -159,7 +159,7 @@ itself redirects to `/settings/general`.
 | [119](119-extract-integrations-css.md) | Scope integrations CSS to its route | P3 | 118 | DONE at `a65db00`; LANDED ON PREVIEW; build and visual parity confirmed with Plan 120 |
 | [120](120-align-integrations-shape-scale.md) | Align integrations surfaces with the shape scale | P3 | 119 | DONE at `b8b791f`; LANDED ON PREVIEW |
 | [121](121-refine-contact-page.md) | Make the contact page a clear, specific and maintainable enquiry path | P1 | 120 | DONE at `61d351c`; LANDED ON PREVIEW |
-| [122](122-reshape-customers-page-as-who-its-for.md) | Reshape `/customers` into an honest, specific “Who it’s for” page | P1 | 120 | TODO |
+| [122](122-reshape-customers-page-as-who-its-for.md) | Reshape `/customers` into an honest, specific “Who it’s for” page | P1 | 120 | DONE at `ccf1caf`; LANDED ON PREVIEW |
 | [123](123-reshape-about-as-founder-led-trust-page.md) | Reshape `/about` as a founder-led trust page | P1 | 122, approved human content and assets | TODO |
 | [124](124-rebuild-help-centre-read-surface.md) | Rebuild help centre as an accurate task-led Read surface | P1 | 121, 122, 123 | TODO |
 | [125](125-rebuild-blog-read-mode.md) | Rebuild Blog as a validated, accessible Read-mode publishing surface | P1 | — | TODO |
