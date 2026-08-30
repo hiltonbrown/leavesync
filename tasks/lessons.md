@@ -23,6 +23,9 @@ actionable; keep one-off task evidence in the review for that task.
   route consumers. If a route stylesheet owns global layout primitives, expand
   the approved scope explicitly and extract those primitives before changing
   imports.
+- Before generating a placeholder for a real personal subject or pet, confirm
+  distinctive appearance details first. Treat a later correction as an asset
+  invariant and preserve it in the prompt, alt text and visible disclosure.
 
 ## Xero integration
 
