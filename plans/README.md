@@ -8,7 +8,7 @@ from `plans/` into the completed-plan ledger below. All 14 rejected plan files
 (Plans 024, 031, 051, 058, 062, 063, 064, 065, 067, 068, 070, 071, 072, 073, 074)
 have also been removed, with their decision rationales and superseding plan linkages
 preserved in the Reconciliation decisions section below. The execution queue contains
-18 TODO plans. The two regional activation plans remain `BLOCKED` (Plans 108 and 109),
+17 TODO plans. The two regional activation plans remain `BLOCKED` (Plans 108 and 109),
 pending named live Xero environments and UK partner permission.
 
 ## Execution policy
@@ -89,7 +89,7 @@ This reconciliation was read-only outside `plans/`.
 | Plan 105 execution | approved at `22c69b2`; employee-aware regional approval reconciliation for NZ and UK tenants, missing employee ID validation failure |
 | Plan 106 execution | approved at `bd8248c`; orchestrated 40-person regional balance pages for NZ and UK tenants, per-employee cursor CAS updates, NZD currency mapping |
 | Plan 107 execution | approved at `6b66916`; formatLeaveBalance helper with Intl.NumberFormat NZD and unit handling, services restricted to day subtraction only |
-| Current indexed plans | 98: 30 TODO, 52 DONE (including queue completions), 14 REJECTED (ledgered decisions), 2 BLOCKED |
+| Current indexed plans | 98: 29 TODO, 53 DONE (including queue completions), 14 REJECTED (ledgered decisions), 2 BLOCKED |
 
 ## Execution queue
 
@@ -148,6 +148,22 @@ page plan. It follows Plan 122 so Careers extends the established route-aware
 skip-link and route-owned stylesheet seams rather than creating competing
 shared-shell mechanisms.
 
+Execution note recorded 30 August 2026: Plan 126 now leads with the truthful
+no-role and no-timeline state, explains three concrete working practices and
+offers one bounded, low-data email introduction path. Focused verification
+passed 4 files and 25 tests; the production build prerendered `/careers`.
+Axe 4.12.1 reported 36 passes, zero violations and zero incomplete checks at
+desktop and mobile. Browser checks confirmed first-focus bypass transfer, a
+44px CTA, zero overflow at 320px and 720px reflow, and a direct one-to-three
+column switch at 64rem across the light/dark matrix. Impeccable scored 32/32
+with zero P0/P1 issues. Full check, typecheck, 75 web tests and all 119
+integration tests passed, with the two configured Xero skips. The mandated
+`127.0.0.1` Axe sessions generated Next development cross-origin warnings and
+eventually an HMR-only Turbopack panic after evidence collection; the process
+was stopped, port 3001 was freed and a clean production build passed. Unit and
+integration gates used `--env-mode=loose` so this host's Linux temp-directory
+override reached Turborepo workers.
+
 Plan 127 rolls the full `/security` critique into one release-gated control and
 trust-page plan. It follows Plan 120 so the page reuses the settled marketing
 focus, metadata and scoped-stylesheet conventions. Its security remediations
@@ -189,7 +205,7 @@ itself redirects to `/settings/general`.
 | [123](123-reshape-about-as-founder-led-trust-page.md) | Reshape `/about` as a founder-led trust page | P1 | 122, approved human content and assets | DONE at `d31a0f3`; LANDED ON PREVIEW; PREVIEW PLACEHOLDERS, production identity assets remain release-gated |
 | [124](124-rebuild-help-centre-read-surface.md) | Rebuild help centre as an accurate task-led Read surface | P1 | 121, 122, 123 | DONE at `2beed1a`; LANDED ON PREVIEW; browser matrix and 37/40 Impeccable critique confirmed |
 | [125](125-rebuild-blog-read-mode.md) | Rebuild Blog as a validated, accessible Read-mode publishing surface | P1 | — | DONE at `2502bcf`; LANDED ON PREVIEW |
-| [126](126-reshape-careers-page.md) | Turn Careers into a candid, accessible applicant page | P1 | 122 | TODO |
+| [126](126-reshape-careers-page.md) | Turn Careers into a candid, accessible applicant page | P1 | 122 | DONE at `3debb01`; LANDED ON PREVIEW |
 | [127](127-harden-security-controls-and-trust-page.md) | Close verified control gaps and rebuild `/security` from evidence | P0 | 120 | TODO |
 | [128](128-build-betterstack-status-page.md) | Publish validated Better Stack component health and incident history | P1 | 121, 122 | TODO |
 | [129](129-rebuild-pricing-as-coherent-launch-mode-experience.md) | Rebuild pricing with approved AU plans and NZ/UK currency states | P1 | 120, 121 | TODO |
