@@ -220,6 +220,35 @@ Impeccable for its rendered surface where applicable.
 
 ## Follow-ups
 
+## Active plan: Make notifications calmer, accessible and mobile-first
+
+Status: Complete
+
+### Tasks
+
+- [x] Confirm Plan 135 drift, scope and Impeccable Distill direction.
+- [x] Promote unread and category filters; disclose event types and reset.
+- [x] Give preference switches unique labels and described disabled reasons.
+- [x] Reflow notification rows around one primary navigation action.
+- [x] Move deep-link scroll and keyboard focus to the actual target.
+- [x] Add row-level saving, saved and rollback receipts.
+- [x] Complete detector, build and repository verification.
+- [x] Commit Plan 135 and push it to `origin/preview` before Plan 136.
+
+### Review
+
+- Plan 135 implementation landed at `3a965e8`.
+- Nine focused tests cover category and type hierarchy, reset, switch naming,
+  last-channel reasoning, saved and rollback receipts, deep-link focus and the
+  single primary mobile navigation action.
+- Impeccable detection, the canonical app build, repository check/typecheck,
+  466 app tests and all 119 integration tests pass. The two configured live-Xero
+  checks remain skipped.
+- The protected route correctly redirects a signed-out browser to Clerk with
+  `x-clerk-auth-reason: dev-browser-missing`. Authenticated desktop, mobile,
+  dark-mode and 200% rendered checks remain unclaimed and are recorded in the
+  plan README as requested.
+
 ## Active plan: Make leave approvals scan-fast and action-safe
 
 Status: Complete

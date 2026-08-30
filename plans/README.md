@@ -292,7 +292,7 @@ itself redirects to `/settings/general`.
 | [132](132-harden-calendar-experience.md) | Make the calendar timezone-correct and mobile-operable | P1 | — | DONE at `e159764`; LANDED ON PREVIEW |
 | [133](133-distill-feed-management.md) | Make feed subscription primary and administration progressive | P1 | — | DONE at `69cacf3`; LANDED ON PREVIEW |
 | [134](134-clarify-leave-approvals.md) | Make leave approvals scan-fast and action-safe | P1 | — | DONE at `c48d8f6`; LANDED ON PREVIEW |
-| [135](135-refine-notification-centre.md) | Make notifications calmer, accessible and mobile-first | P1 | — | TODO |
+| [135](135-refine-notification-centre.md) | Make notifications calmer, accessible and mobile-first | P1 | — | DONE at `3a965e8`; LANDED ON PREVIEW |
 | [136](136-refine-people-and-balances.md) | Make People responsive and restore profile source-of-truth cues | P1 | — | TODO |
 | [137](137-distill-plans-experience.md) | Make plans clear, responsive and truthful about provenance | P1 | — | TODO |
 | [138](138-shape-public-holiday-management.md) | Give public-holiday management one safe, responsive home | P1 | — | TODO |
@@ -370,6 +370,14 @@ itself redirects to `/settings/general`.
   tests, the production build, Impeccable detection and all 119 integration
   tests passed; the two configured live-Xero checks remain skipped. The
   protected route redirected the signed-out local browser to Clerk with
+  `dev-browser-missing`, so authenticated desktop, mobile, dark-mode and 200%
+  rendered checks remain explicitly unclaimed.
+- Plan 135 promotes unread and four exhaustive categories, discloses event-type
+  filters, removes duplicate row navigation, labels and describes every switch,
+  focuses deep links and announces optimistic save outcomes. Nine focused tests,
+  466 app tests, the production build, Impeccable detection and all 119
+  integration tests passed; the two configured live-Xero checks remain skipped.
+  The protected route redirected the signed-out local browser to Clerk with
   `dev-browser-missing`, so authenticated desktop, mobile, dark-mode and 200%
   rendered checks remain explicitly unclaimed.
 - 141 follows 137 because `/availability` is a redirect to Plans and must not
