@@ -291,7 +291,7 @@ itself redirects to `/settings/general`.
 | [131](131-refine-out-of-office-analytics.md) | Make out-of-office analytics accessible and insight-led | P1 | 130 | DONE at `b5031c9`; LANDED ON PREVIEW |
 | [132](132-harden-calendar-experience.md) | Make the calendar timezone-correct and mobile-operable | P1 | — | DONE at `e159764`; LANDED ON PREVIEW |
 | [133](133-distill-feed-management.md) | Make feed subscription primary and administration progressive | P1 | — | DONE at `69cacf3`; LANDED ON PREVIEW |
-| [134](134-clarify-leave-approvals.md) | Make leave approvals scan-fast and action-safe | P1 | — | TODO |
+| [134](134-clarify-leave-approvals.md) | Make leave approvals scan-fast and action-safe | P1 | — | DONE at `c48d8f6`; LANDED ON PREVIEW |
 | [135](135-refine-notification-centre.md) | Make notifications calmer, accessible and mobile-first | P1 | — | TODO |
 | [136](136-refine-people-and-balances.md) | Make People responsive and restore profile source-of-truth cues | P1 | — | TODO |
 | [137](137-distill-plans-experience.md) | Make plans clear, responsive and truthful about provenance | P1 | — | TODO |
@@ -364,6 +364,14 @@ itself redirects to `/settings/general`.
   protected `/feeds/new` route redirected the signed-out local browser to Clerk
   with `dev-browser-missing`, so authenticated desktop, mobile, dark-mode and
   200% rendered checks remain explicitly unclaimed.
+- Plan 134 replaces horizontal approval panning with one responsive semantic
+  decision row, preserves A/D/Enter shortcuts, differentiates every status and
+  names failed approval versus decline recovery. Sixteen focused tests, 461 app
+  tests, the production build, Impeccable detection and all 119 integration
+  tests passed; the two configured live-Xero checks remain skipped. The
+  protected route redirected the signed-out local browser to Clerk with
+  `dev-browser-missing`, so authenticated desktop, mobile, dark-mode and 200%
+  rendered checks remain explicitly unclaimed.
 - 141 follows 137 because `/availability` is a redirect to Plans and must not
   create a second availability interface.
 - 142 follows 136 because `/leave-balances` redirects into People and depends

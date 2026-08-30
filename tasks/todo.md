@@ -220,6 +220,36 @@ Impeccable for its rendered surface where applicable.
 
 ## Follow-ups
 
+## Active plan: Make leave approvals scan-fast and action-safe
+
+Status: Complete
+
+### Tasks
+
+- [x] Confirm Plan 134 drift, scope and Impeccable Clarify direction.
+- [x] Give every approval status a distinct labelled icon treatment.
+- [x] Thread failed approval and decline actions into Xero recovery copy.
+- [x] Replace horizontal panning with one responsive decision row.
+- [x] Lead the queue summary with pending and failed work.
+- [x] Preserve primary decisions and move secondary actions into context.
+- [x] Complete detector, build and repository verification.
+- [x] Commit Plan 134 and push it to `origin/preview` before Plan 135.
+
+### Review
+
+- Plan 134 implementation landed at `c48d8f6`.
+- Sixteen focused tests cover keyboard disclosure and approval, balance units,
+  every status label/icon, action-specific Xero failures, and the wrapping
+  mobile decision path. Existing modal tests continue to cover cancellation and
+  duplicate-submit protection.
+- Impeccable detection, the canonical app build, repository check/typecheck,
+  461 app tests and all 119 integration tests pass. The two configured live-Xero
+  checks remain skipped.
+- The protected route correctly redirects a signed-out browser to Clerk with
+  `x-clerk-auth-reason: dev-browser-missing`. Authenticated desktop, mobile,
+  dark-mode and 200% rendered checks remain unclaimed and are recorded in the
+  plan README as requested.
+
 ## Active plan: Make feed subscription primary and administration progressive
 
 Status: Complete
