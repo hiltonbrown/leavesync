@@ -8,7 +8,13 @@ vi.mock("@/env", () => ({
 }));
 
 vi.mock("@/src/lib/blog", () => ({
-  getAllPosts: vi.fn(async () => [{ slug: "launch-note" }]),
+  getAllPosts: vi.fn(() => [
+    {
+      publishedAt: "2026-02-20",
+      slug: "launch-note",
+      updatedAt: "2026-03-02",
+    },
+  ]),
 }));
 
 describe("public sitemap", () => {
@@ -27,5 +33,15 @@ describe("public sitemap", () => {
     ).toHaveLength(1);
     expect(paths).not.toContain("/help-centre/components");
     expect(paths).toContain("/blog/launch-note");
+
+    const publicEntry = entries.find((entry) => entry.url.endsWith("/about"));
+    const blogEntry = entries.find((entry) =>
+      entry.url.endsWith("/blog/launch-note")
+    );
+
+    expect(publicEntry?.lastModified).toBeUndefined();
+    expect(blogEntry?.lastModified).toEqual(
+      new Date("2026-03-02T00:00:00.000Z")
+    );
   });
 });

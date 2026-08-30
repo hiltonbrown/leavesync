@@ -80,6 +80,10 @@ actionable; keep one-off task evidence in the review for that task.
 
 ## Repository hygiene
 
+- When the operator asks an execution sequence not to block, continue through
+  safe in-scope fallbacks and put concrete tooling or environment limitations
+  in `plans/README.md`; do not turn a non-product constraint into a new approval
+  stop.
 - When the user authorises a concrete resolution for a plan's documented truth
   conflict, record the decision and residual issue in `plans/README.md`, then
   continue execution. Do not reopen the same STOP condition as a blocker.

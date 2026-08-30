@@ -22,21 +22,22 @@ export const publicRoutes = [
   "/terms-of-service",
 ] as const;
 
-const sitemap = async (): Promise<MetadataRoute.Sitemap> => {
+const sitemap = (): MetadataRoute.Sitemap => {
   const url = resolveCanonicalWebUrl({
     vercelProjectProductionUrl: env.VERCEL_PROJECT_PRODUCTION_URL,
     webUrl: env.NEXT_PUBLIC_WEB_URL,
   });
-  const blogs = (await getAllPosts()).map((post) => post.slug);
+  const blogs = getAllPosts();
 
   return [
     ...publicRoutes.map((route) => ({
-      lastModified: new Date(),
       url: new URL(route, url).href,
     })),
-    ...blogs.map((slug) => ({
-      lastModified: new Date(),
-      url: new URL(`/blog/${slug}`, url).href,
+    ...blogs.map((post) => ({
+      lastModified: new Date(
+        `${post.updatedAt ?? post.publishedAt}T00:00:00.000Z`
+      ),
+      url: new URL(`/blog/${post.slug}`, url).href,
     })),
   ];
 };

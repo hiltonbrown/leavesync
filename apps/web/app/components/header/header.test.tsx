@@ -74,4 +74,17 @@ describe("Marketing header bypass link", () => {
       expect(skipIndex).toBeLessThan(headerIndex);
     }
   );
+
+  it.each(["/blog", "/blog/ics-feeds-explained"])(
+    "marks Blog active and targets the Blog main on %s",
+    (pathname) => {
+      navigation.pathname = pathname;
+
+      const html = renderToStaticMarkup(React.createElement(Header));
+
+      expect(html.match(/href="\/blog"/g)).toHaveLength(3);
+      expect(html.match(/aria-current="page"/g)).toHaveLength(3);
+      expect(html).toContain('href="#blog-main"');
+    }
+  );
 });

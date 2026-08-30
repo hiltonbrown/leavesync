@@ -34,6 +34,14 @@ before the next plan begins.
   repository gates; commit and push both implementation and review evidence.
 - [ ] Execute, verify, commit and push Plans 125 through 129 in dependency
   order.
+- [x] Plan 125: characterise Blog landmarks, guide-led positioning, navigation
+  and stable sitemap dates with failing tests.
+- [x] Plan 125: replace `mdx-bundler` with the supported Next MDX Server
+  Component pipeline and one validated static catalogue.
+- [x] Plan 125: correct both articles, build the Read-mode index/article system,
+  metadata, social image, RSS and error recovery.
+- [x] Plan 125: run Impeccable, React, browser, build and repository verification;
+  commit, document and push before Plan 126.
 - [ ] Execute, verify, commit and push Plans 130 through 143 in dependency
   order.
 - [ ] Run the final preview verification and record exact evidence.
@@ -59,6 +67,25 @@ before the next plan begins.
 - Full `bun run check`, `bun run typecheck`, `bun run test` and
   `bun run test:integration` gates passed. The two configured credential-bound
   Xero integration checks remained skipped.
+- Plan 125 replaces the client-evaluated `mdx-bundler` path with official
+  `@next/mdx` Server Components and one Zod-validated static catalogue. The
+  catalogue now owns published ordering, explicit feature state, related
+  reading, metadata, stable sitemap dates and static RSS. Both articles use AU
+  launch truth, withdrawal vocabulary and a shared Read-mode article ending.
+- Plan 125 focused verification passed 7 files and 15 tests. The web build
+  prerendered the Blog, both articles, `/blog/opengraph-image`, `/rss.xml` and
+  `/sitemap.xml`. Chromium returned HTTP 200 for all five public checks and
+  captured 390×844, 820×1180 and 1440×1000 light/dark views; server-rendered
+  prose remained present with JavaScript disabled. The Impeccable detector
+  returned no findings and the critique improved from 18/32 to 32/32 with no
+  P0 or P1 issues.
+- Plan 125 full check, typecheck and unit gates passed. The first integration
+  command lost Linux temporary-directory values at Turborepo's strict
+  environment boundary and collected no tests; the unchanged loose-environment
+  rerun passed all 119 integration tests with the two configured Xero skips.
+  The optional `agent-browser` executable and Node browser bridge were
+  unavailable, so the required browser matrix used the installed headless
+  Chromium directly.
 
 ## Active plan: Add a role-aware dashboard calendar timeline
 

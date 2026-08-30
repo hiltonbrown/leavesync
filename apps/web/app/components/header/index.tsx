@@ -15,6 +15,7 @@ const navLinks = [
   { href: "/integrations", title: "Integrations" },
   { href: "/pricing", title: "Pricing" },
   { href: "/about", title: "About" },
+  { href: "/blog", title: "Blog" },
   { href: "/help-centre", title: "Help centre" },
 ];
 
@@ -33,6 +34,10 @@ const isRouteActive = (pathname: string, href: string) => {
 };
 
 const getMainContentId = (pathname: string): string | null => {
+  if (isRouteActive(pathname, "/blog")) {
+    return "blog-main";
+  }
+
   if (isRouteActive(pathname, "/help-centre")) {
     return "help-centre-main";
   }
