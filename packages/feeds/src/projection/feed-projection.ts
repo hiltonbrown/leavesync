@@ -167,8 +167,11 @@ export function projectSummaryLine(input: {
     }
     return `Public holiday: ${input.recordTypeLabel}`;
   }
+  if (input.privacyMode === "masked") {
+    return "Out of office";
+  }
   if (input.privacyMode === "private") {
-    return "Unavailable";
+    return "Busy";
   }
   return `${input.displayName}: ${input.recordTypeLabel}`;
 }
@@ -330,10 +333,10 @@ export function displayNameForPrivacy(
   personName: string
 ): string {
   if (privacyMode === "private") {
-    return "Unavailable";
+    return "Busy";
   }
   if (privacyMode === "masked") {
-    return "Team member";
+    return "Out of office";
   }
   return personName;
 }

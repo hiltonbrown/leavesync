@@ -34,6 +34,7 @@ import {
   rotateTokenAction,
 } from "@/app/(authenticated)/feeds/_actions";
 import { FeedStatusDot } from "./feed-status-dot";
+import { feedPrivacyDescription, feedPrivacyLabel } from "./privacy-mode-copy";
 import { SubscribeUrlField } from "./subscribe-url-field";
 
 interface PreviewEvent {
@@ -145,7 +146,7 @@ export function FeedDetail({
           <div className="flex items-center gap-2">
             <FeedStatusDot status={detail.status} />
             <Badge variant="secondary">
-              {privacyLabel(detail.privacyMode)}
+              {feedPrivacyLabel(detail.privacyMode)}
             </Badge>
           </div>
           <h2 className="mt-3 font-semibold text-foreground text-title-lg">
@@ -192,7 +193,7 @@ export function FeedDetail({
         <div className="rounded-2xl bg-muted p-4 text-sm">
           <div className="font-medium">Privacy</div>
           <p className="mt-1 text-muted-foreground">
-            {privacyExplanation(detail.privacyMode)}
+            {feedPrivacyDescription(detail.privacyMode)}
           </p>
           <p className="mt-1 text-muted-foreground">
             Public holidays are{" "}
@@ -446,7 +447,7 @@ function PreviewTabs({
       <TabsList>
         {modes.map((mode) => (
           <TabsTrigger key={mode} value={mode}>
-            {privacyLabel(mode)}
+            {feedPrivacyLabel(mode)}
           </TabsTrigger>
         ))}
       </TabsList>
@@ -480,26 +481,6 @@ function PreviewTabs({
       ))}
     </Tabs>
   );
-}
-
-function privacyLabel(value: "masked" | "named" | "private"): string {
-  if (value === "named") {
-    return "Named";
-  }
-  if (value === "masked") {
-    return "Masked";
-  }
-  return "Private";
-}
-
-function privacyExplanation(value: "masked" | "named" | "private"): string {
-  if (value === "named") {
-    return "Subscribers see names and leave types";
-  }
-  if (value === "masked") {
-    return "Subscribers see Team member with leave types";
-  }
-  return "Subscribers see Unavailable only";
 }
 
 function formatDate(date: Date): string {

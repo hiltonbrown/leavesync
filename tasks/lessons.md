@@ -80,6 +80,9 @@ actionable; keep one-off task evidence in the review for that task.
 
 ## Repository hygiene
 
+- When the user authorises a concrete resolution for a plan's documented truth
+  conflict, record the decision and residual issue in `plans/README.md`, then
+  continue execution. Do not reopen the same STOP condition as a blocker.
 - Stop every persistent development process used for verification, then confirm
   the expected ports are free before hand-off.
 - Before calling a repository tidy, inspect registered worktrees, branch tracking,

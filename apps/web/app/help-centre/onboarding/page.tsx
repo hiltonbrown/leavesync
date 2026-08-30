@@ -49,7 +49,7 @@ const steps = [
     title: "Link people and assign manager roles",
   },
   {
-    copy: "Staff submit leave from the top navigation CTA or Calendar page. Managers review pending requests in Leave Approvals. Approved leave writes back synchronously to Xero Payroll within 60 seconds; declines require a reason if configured.",
+    copy: "Staff submit leave from the top navigation CTA or Calendar page. Managers review pending requests in Leave Approvals. Approved leave writes back synchronously to Xero Payroll; calendar apps refresh subscribed feeds on their own schedules.",
     icon: FileCheck,
     number: "5",
     title: "Submit, approve, and decline leave",

@@ -138,12 +138,12 @@ describe("projectFeedEvents", () => {
     expect(masked.ok && masked.value[0]).toMatchObject({
       description: null,
       location: "Brisbane",
-      summary: "Team member: Annual Leave",
+      summary: "Out of office",
     });
     expect(privateFeed.ok && privateFeed.value[0]).toMatchObject({
       description: null,
       location: null,
-      summary: "Unavailable",
+      summary: "Busy",
     });
   });
 

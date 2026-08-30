@@ -113,6 +113,13 @@ Plan 124 rolls the full `/help-centre` critique into one Impeccable Read-mode
 plan. It keeps content truth, task architecture, accessibility, responsive
 reading, sitemap discovery and contract tests together as one page-level change.
 
+Execution decision recorded 30 August 2026: Plan 124 uses the PRODUCT privacy
+labels (`Out of office` for Masked and `Busy` for Private), and describes
+calendar refreshes as client-controlled rather than promising a numeric delay.
+The shipped decline action requires a reason between 3 and 1000 characters.
+The remaining mismatch between that action and the configurable `Require decline
+reason` setting is documented for follow-up and does not block this plan.
+
 Plan 125 rolls the full Blog critique into one Impeccable Read-mode publishing
 plan. It keeps the MDX pipeline, editorial model, content truth, interface,
 accessibility, discovery, metadata, RSS and verification in one vertical slice.

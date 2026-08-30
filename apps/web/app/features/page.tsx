@@ -230,7 +230,8 @@ const FeaturesFlow = () => (
             Conflicts flagged. Source labelled.
           </p>
           <span className="ft-flow__hub__rule">
-            <MarketingIcon id="sync" size={12} /> Publishes within 60s
+            <MarketingIcon id="sync" size={12} /> Calendar apps refresh on their
+            own schedules
           </span>
         </div>
 
@@ -429,7 +430,7 @@ const faqs = [
     q: "What happens to leave I've already keyed into Xero?",
   },
   {
-    a: "Yes. Outlook, Google and Apple subscribe to a .ics feed per person or per team. Edits happen in Team Calendar; calendars refresh within a minute.",
+    a: "Yes. Outlook, Google and Apple subscribe to a read-only .ics feed per person or team. Edits happen in Team Calendar; each calendar app refreshes the subscription on its own schedule.",
     q: "Is the calendar feed read-only?",
   },
   {

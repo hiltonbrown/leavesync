@@ -21,7 +21,7 @@ const steps: ProcessStep[] = [
     title: "Update the source of truth",
   },
   {
-    copy: "Shared calendars show who is available and when, updated within 60 seconds of approval.",
+    copy: "Team Calendar republishes approved changes; calendar apps refresh subscribed feeds on their own schedules.",
     number: 4,
     title: "Publish to calendars",
   },

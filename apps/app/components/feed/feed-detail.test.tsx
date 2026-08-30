@@ -133,4 +133,20 @@ describe("FeedDetail", () => {
     expect(screen.getByText("No active subscribe URL")).toBeDefined();
     expect(screen.queryByRole("textbox")).toBeNull();
   });
+
+  it.each([
+    ["masked", "Subscribers see Out of office"],
+    ["private", "Subscribers see Busy only"],
+  ] as const)("describes the %s privacy output accurately", (mode, copy) => {
+    render(
+      <FeedDetail
+        canManage
+        detail={{ ...detail, privacyMode: mode }}
+        organisationId="00000000-0000-4000-8000-000000000001"
+        previews={{ [mode]: [] }}
+      />
+    );
+
+    expect(screen.getByText(copy)).toBeDefined();
+  });
 });
