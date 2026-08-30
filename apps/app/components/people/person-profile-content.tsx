@@ -32,6 +32,10 @@ import { XeroSyncFailedState } from "@/components/states/xero-sync-failed-state"
 import { formatLeaveBalance } from "@/lib/format-leave-balance";
 import { withOrg } from "@/lib/navigation/org-url";
 import { AlternativeContactsPanel } from "./alternative-contacts-panel";
+import {
+  PeopleProvenanceBadge,
+  PeopleStatusChip,
+} from "./people-status-provenance";
 
 interface PersonProfileContentProps {
   balanceRefreshEnabled: boolean;
@@ -114,10 +118,11 @@ export function PersonProfileContent({
                 {profile.header.jobTitle ?? "No job title"}
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <StatusChip
+                <PeopleStatusChip
                   label={profile.currentStatus.label}
                   statusKey={profile.currentStatus.statusKey}
                 />
+                <PeopleProvenanceBadge xeroLinked={profile.header.xeroLinked} />
                 {profile.header.archivedAt ? (
                   <Badge variant="outline">Archived</Badge>
                 ) : null}
@@ -322,6 +327,7 @@ export function PersonProfileContent({
           <BalancesPanel
             canEditManual={canRefreshBalances}
             organisationId={organisationId}
+            orgQueryValue={orgQueryValue}
             profile={profile}
           />
         )}
@@ -432,17 +438,23 @@ function RecordList({
   );
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Balance ownership, role and connection states are intentionally resolved in one panel.
 function BalancesPanel({
   canEditManual,
   organisationId,
+  orgQueryValue,
   profile,
 }: {
   canEditManual: boolean;
   organisationId: string;
+  orgQueryValue: string | null;
   profile: PersonProfile;
 }) {
   const [isPending, startTransition] = useTransition();
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{
+    text: string;
+    tone: "error" | "status";
+  } | null>(null);
   const [balance, setBalance] = useState("");
   const [balanceUnit, setBalanceUnit] = useState<"days" | "hours">("hours");
   const [leaveTypeName, setLeaveTypeName] = useState("");
@@ -456,7 +468,10 @@ function BalancesPanel({
       return;
     }
     if (!hasValidBalanceInput(balance)) {
-      setMessage("Enter a numeric balance before saving.");
+      setMessage({
+        text: "Enter a numeric balance before saving.",
+        tone: "error",
+      });
       return;
     }
     startTransition(async () => {
@@ -469,18 +484,34 @@ function BalancesPanel({
         personId: profile.header.id,
       });
       if (!result.ok) {
-        setMessage(result.error.message);
+        setMessage({ text: result.error.message, tone: "error" });
         return;
       }
-      setMessage("Manual balance saved.");
+      setMessage({ text: "Manual balance saved.", tone: "status" });
     });
   };
 
   if (!(showXeroBalances || showManualEditor)) {
     return (
-      <div className="rounded-2xl bg-surface-container-high p-6 text-muted-foreground text-sm">
-        Balances available only when Xero is connected and this person is
-        linked.
+      <div className="rounded-2xl bg-surface-container-high p-6 text-sm">
+        <p className="font-medium">This profile is not linked to Xero.</p>
+        <p className="mt-1 text-muted-foreground">
+          {canEditManual
+            ? "Review Xero matches to link this person before refreshing balances."
+            : "Ask an administrator to review the Xero match before balances can be shown."}
+        </p>
+        {canEditManual ? (
+          <Button asChild className="mt-4" size="sm" variant="secondary">
+            <Link
+              href={withOrg(
+                "/settings/integrations/xero/matches",
+                orgQueryValue
+              )}
+            >
+              Review Xero matches
+            </Link>
+          </Button>
+        ) : null}
       </div>
     );
   }
@@ -491,7 +522,9 @@ function BalancesPanel({
           <TableRow>
             <TableHead>Leave type</TableHead>
             <TableHead className="text-right">Balance</TableHead>
-            {showManualEditor && <TableHead className="text-right" />}
+            {showManualEditor && canEditManual ? (
+              <TableHead className="text-right">Edit</TableHead>
+            ) : null}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -505,7 +538,7 @@ function BalancesPanel({
                   unit: row.unitType,
                 })}
               </TableCell>
-              {showManualEditor && (
+              {showManualEditor && canEditManual ? (
                 <TableCell className="text-right">
                   <Button
                     onClick={() => {
@@ -523,7 +556,7 @@ function BalancesPanel({
                     Edit
                   </Button>
                 </TableCell>
-              )}
+              ) : null}
             </TableRow>
           ))}
         </TableBody>
@@ -539,7 +572,7 @@ function BalancesPanel({
       {showManualEditor && canEditManual ? (
         <div className="grid gap-3 rounded-2xl bg-surface-container-high p-4 sm:grid-cols-[1fr_1fr_120px_120px_auto]">
           <label className="flex flex-col gap-1 text-xs">
-            Leave type id
+            Leave type reference
             <input
               className="rounded-xl bg-background px-3 py-2 text-sm"
               onChange={(event) => setLeaveTypeXeroId(event.target.value)}
@@ -604,30 +637,19 @@ function BalancesPanel({
         </p>
       )}
       {message ? (
-        <p className="text-muted-foreground text-xs">{message}</p>
+        <p
+          aria-live={message.tone === "error" ? "assertive" : "polite"}
+          className={
+            message.tone === "error"
+              ? "text-destructive text-xs"
+              : "text-muted-foreground text-xs"
+          }
+          role={message.tone === "error" ? "alert" : "status"}
+        >
+          {message.text}
+        </p>
       ) : null}
     </div>
-  );
-}
-
-function StatusChip({
-  label,
-  statusKey,
-}: {
-  label: string;
-  statusKey: string;
-}) {
-  const tone =
-    statusKey === "available"
-      ? "bg-primary/10 text-primary"
-      : "bg-surface-container-high text-on-surface-variant";
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1 font-medium text-xs ${tone}`}
-    >
-      <span className="size-1.5 rounded-full bg-current" />
-      {label}
-    </span>
   );
 }
 
