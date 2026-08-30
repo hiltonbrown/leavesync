@@ -120,6 +120,39 @@ Status: In progress
   jurisdiction scope. Location-specific holiday assignments are not accepted
   by that contract and remain recorded in `plans/README.md`.
 
+## Active plan: Make Settings responsive, context-safe and goal-grouped
+
+Status: In progress
+
+### Tasks
+
+- [x] Read Plan 139, Impeccable references and Settings drift.
+- [x] Preserve the exact active organisation across grouped Settings navigation.
+- [x] Replace the fixed mobile sidebar with an accessible responsive navigator.
+- [x] Label auto-save controls and expose scoped save receipts.
+- [x] Distil Xero actions and protect disconnect with shared confirmation.
+- [x] Make unsupported country choices truthful and read-only.
+- [x] Add focused coverage, run detector, build and all repository gates.
+- [x] Commit, record issues and push Plan 139 to `origin/preview`.
+
+### Review
+
+- Plan 139 implementation landed at `26b60f2`.
+- Settings now preserves the exact payroll organisation across nine grouped
+  destinations, uses a labelled focus-restoring mobile sheet and retains the
+  tonal desktop navigation without a content-separation border.
+- Auto-save controls expose visible labels, descriptions and scoped live
+  receipts. Xero promotes one recommended sync, groups manual and connection
+  controls, exposes audited pause/resume, and uses typed confirmation for both
+  disconnect consequences with duplicate-submit protection.
+- Eighteen focused tests, 497 app tests, the production build, Impeccable
+  detection and all 119 integration tests passed; the two configured live-Xero
+  checks remain skipped.
+- A concurrent integration attempt timed out during Xero module setup under
+  build/test load; the unchanged serial rerun passed. Protected Settings routes
+  redirected with `dev-browser-missing`, so the authenticated visual matrix
+  remains explicitly unclaimed. Both issues are recorded in `plans/README.md`.
+
 ### Review
 
 - Plans 110 through 123 and their bookkeeping commits are on

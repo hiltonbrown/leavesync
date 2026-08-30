@@ -296,7 +296,7 @@ itself redirects to `/settings/general`.
 | [136](136-refine-people-and-balances.md) | Make People responsive and restore profile source-of-truth cues | P1 | — | DONE at `9b2a7c9`; LANDED ON PREVIEW |
 | [137](137-distill-plans-experience.md) | Make plans clear, responsive and truthful about provenance | P1 | — | DONE at `ef6469f`; LANDED ON PREVIEW |
 | [138](138-shape-public-holiday-management.md) | Give public-holiday management one safe, responsive home | P1 | — | DONE at `b7f037a`; LANDED ON PREVIEW |
-| [139](139-restructure-settings-shell.md) | Make Settings responsive, context-safe and goal-grouped | P1 | — | TODO |
+| [139](139-restructure-settings-shell.md) | Make Settings responsive, context-safe and goal-grouped | P1 | — | DONE at `26b60f2`; LANDED ON PREVIEW |
 | [140](140-distill-sync-health.md) | Make sync status truthful, accessible and easier to operate | P1 | — | TODO |
 | [141](141-harden-availability-compatibility-route.md) | Keep availability deep links correct and remove legacy UI ambiguity | P2 | 137 | TODO |
 | [142](142-harden-leave-balances-redirect.md) | Preserve leave-balance deep links and orient users at the person profile | P2 | 136 | TODO |
@@ -424,6 +424,24 @@ itself redirects to `/settings/general`.
   contract rather than claimed as live verification. Impeccable context also
   identified the deprecated `PRODUCT.md` `Register` section; Plan 138 did not
   rely on it and leaves its deletion for explicit documentation maintenance.
+- Plan 139 groups every Settings destination under Organisation, Publishing or
+  Operations, preserves the exact active payroll organisation, and replaces the
+  fixed small-screen sidebar with a labelled sheet that restores focus. Feed
+  and leave-approval defaults now have associated labels, descriptions and
+  setting-scoped auto-save receipts. General presents country as immutable
+  context, while Xero promotes one recommended sync and progressively discloses
+  manual sync, audited pause/resume and consequence-aware disconnect controls.
+  Eighteen focused tests, 497 app tests, the production build, zero Impeccable
+  detector findings and all 119 integration tests passed; the two configured
+  live-Xero checks remain skipped.
+
+  The first integration attempt ran concurrently with the production build and
+  unit suite; Xero's setup import exceeded its 10-second hook timeout before any
+  tests executed. The unchanged gate passed when rerun alone, so Settings did
+  not alter that integration path, but integration remains sensitive to local
+  CPU contention. Representative General, Xero, Feeds and Leave approval routes
+  redirected the signed-out browser with `dev-browser-missing`, so authenticated
+  desktop, mobile, dark-mode and 200% rendered checks remain unclaimed.
 - 141 follows 137 because `/availability` is a redirect to Plans and must not
   create a second availability interface.
 - 142 follows 136 because `/leave-balances` redirects into People and depends

@@ -74,11 +74,11 @@ Status definitions: `Matches`, `Drifted` (exists but differs from catalogue), `U
 | S-14 | Feed detail | `/feeds/[feedId]` | Matches | Complete subscribe URL, token history, public-holiday inclusion, and semantic lifecycle status are rendered. |
 | S-15 | Leave reports | `/analytics/leave-reports` | Drifted | Date-range preset/custom-range UI now fully built, contradicting the prior "no filter UI" claim; CSV export silently ignores the selected range. |
 | S-16 | Out-of-office analytics | `/analytics/out-of-office` | Drifted | Same date-range UI addition as S-15; chart/variable-naming findings otherwise unchanged. |
-| S-17 | Settings: General | `/settings/general` | Matches | No drift found. |
-| S-18 | Settings: Leave approval | `/settings/leave-approval` | Matches | No drift found. |
+| S-17 | Settings: General | `/settings/general` | Matches | Country is truthful read-only context; the unreachable confirmation path is removed. |
+| S-18 | Settings: Leave approval | `/settings/leave-approval` | Matches | Auto-save controls are labelled and expose setting-scoped saving, saved and error receipts. |
 | S-19 | Settings: Integrations | `/settings/integrations` | Matches | No drift found. |
-| S-20 | Settings: Xero detail | `/settings/integrations/xero` | Matches | No drift; disconnect still inline buttons not a modal; pause/resume still fully built server-side with zero UI entry point. |
-| S-21 | Settings: Feeds | `/settings/feeds` | Matches | No drift; in-code comment vs. header-copy contradiction persists. |
+| S-20 | Settings: Xero detail | `/settings/integrations/xero` | Matches | One recommended sync is promoted; manual and connection controls are disclosed progressively; disconnect is confirmed and pause/resume is reachable. |
+| S-21 | Settings: Feeds | `/settings/feeds` | Matches | Feed defaults have visible labels, descriptions and scoped auto-save receipts. |
 | S-22 | Settings: Billing | `/settings/billing` | Drifted | Amber-to-token migration confirmed complete and consistent; role-blindness of `getBillingSummary` vs. role-aware dashboard widget re-confirmed. |
 | S-23 | Settings: Holidays | `/settings/holidays` | Matches | Truthful summary and launch page; all holiday operations live on S-11. |
 | S-24 | Settings: Audit log | `/settings/audit-log` | Drifted | Pagination confirmed functional, contrary to the prior "non-functional" claim; no actor badges or field-level diff, unchanged. |
@@ -616,6 +616,13 @@ Spot-checked guard literals for S-03, S-10, S-17, S-22, S-27 against live `requi
 
 ## Settings
 
+**Shared shell:** Every Settings destination is grouped under Organisation,
+Publishing or Operations and preserves the exact active payroll organisation.
+Desktop uses a tonal side navigation; below the desktop breakpoint a labelled
+sheet exposes the same information architecture, marks the current page and
+returns focus to its trigger when dismissed. Content no longer reserves a fixed
+sidebar width on small screens.
+
 ### S-17: Settings > General
 
 **Route:** `/settings/general`.
@@ -625,14 +632,14 @@ Spot-checked guard literals for S-03, S-10, S-17, S-22, S-27 against live `requi
 
 **Purpose:** Core Clerk-Organisation and payroll-Organisation configuration.
 
-**User interactions, as-built:** Account card: Account name (editable, writes through to Clerk), Account slug (disabled). Payroll entity card: Organisation name; Country as a `RadioGroup` (AU/NZ/UK, NZ and UK disabled and suffixed "(planned)"); Region (depends on country); Primary timezone (fixed list of 6 IANA zones). Changing country/region shows an info note; changing country also requires a confirmation checkbox before Save is enabled, though since NZ/UK are disabled this path is only reachable as an AU→AU no-op. The server independently hard-blocks any non-AU country regardless of the UI: "Team Calendar currently supports Australian Xero Payroll files only."
+**User interactions, as-built:** Account card: Account name (editable, writes through to Clerk), Account slug (disabled). Payroll entity card: Organisation name; current Country as read-only context; Region (depends on the persisted country); Primary timezone (fixed list of six IANA zones). Region changes show a consequence note. The unreachable country-change confirmation flow has been removed; New Zealand and United Kingdom payroll sync remain explicitly planned.
 
 **Role variations:** None; admin and owner see the identical page.
 
-**Design requirements:** No flag icons on the country selector (it is a `RadioGroup`, not a flagged `Select`).
+**Design requirements:** No flag icons or disabled pseudo-choices; persisted country is a labelled read-only field.
 
 **`[v5 proposal]` interaction improvements:**
-- Since NZ/UK are permanently disabled and the server hard-blocks them, drop the confirmation-checkbox flow entirely or replace it with a clear "coming soon" state. **Still open.**
+- ~~Drop the unreachable confirmation-checkbox flow and make regional rollout status explicit.~~ **Done.**
 
 ---
 
@@ -644,7 +651,7 @@ Spot-checked guard literals for S-03, S-10, S-17, S-22, S-27 against live `requi
 
 **Purpose:** Configure approval display behaviour and manager visibility scope.
 
-**User interactions, as-built:** All controls auto-save immediately: "Show pending leave on calendar", "Show declined records by default", "Notify managers on status change" (switches); "Manager visibility scope"; "Leave request advance days"; "Require decline reason"; "Default privacy mode"; "Restore defaults". No synchronous-Xero-writes info callout exists on this page. `defaultFeedPrivacyMode`/`feedsIncludePublicHolidaysDefault` are reset here by "Restore defaults" but have no corresponding control on this page: they live on `/settings/feeds` (S-21) instead.
+**User interactions, as-built:** All controls auto-save immediately: "Show pending leave on calendar", "Show declined records by default", "Notify managers on status change" (switches); "Manager visibility scope"; "Leave request advance days"; "Require decline reason"; "Default privacy mode"; "Restore defaults". Every switch/radio/input has a visible associated label and description, and its own live Saving, Saved or recovery receipt. No synchronous-Xero-writes info callout exists on this page. `defaultFeedPrivacyMode`/`feedsIncludePublicHolidaysDefault` are reset here by "Restore defaults" but have no corresponding control on this page: they live on `/settings/feeds` (S-21) instead.
 
 **`[v5 proposal]` interaction improvements:**
 - Add a synchronous-Xero-writes info callout to this page. **Still open.**
@@ -675,13 +682,13 @@ Spot-checked guard literals for S-03, S-10, S-17, S-22, S-27 against live `requi
 
 **Purpose:** Xero OAuth management and per-tenant sync configuration, one card per payroll Organisation.
 
-**User interactions, as-built:** Per-org card: status badge, plain-language error banner, payroll region text, 4-stat sync-timestamp grid, "Connect Xero"/"Reconnect Xero", "Refresh tokens", per-tenant manual sync triggers. **Disconnect is two inline buttons** ("Standard disconnect" / "Destructive disconnect"), gated by a "type the organisation name" text input, not a modal: `ConfirmActionDialog` exists and is used elsewhere (member removal) but not here. `pauseTenantSyncAction`/`resumeTenantSyncAction` are fully implemented server-side with audit events but are not imported anywhere in the client: confirmed dead capability, no UI entry point.
+**User interactions, as-built:** Per-org card: connection and paused-state badges, plain-language error banner, payroll region text and a four-stat sync-timestamp grid. The oldest or never-run sync is promoted as the one recommended action. Other manual sync types live under a native disclosure. Token refresh, audited pause/resume and both disconnect modes live under a separate Connection controls disclosure. Disconnect opens `ConfirmActionDialog`, previews soft versus destructive consequences, requires the exact organisation name and prevents duplicate submission while pending.
 
-**Design requirements:** The soft/destructive button pair carries genuinely unequal visual weight, satisfying the intent of the design rule even though the mechanism (inline buttons, not a modal) differs from spec.
+**Design requirements:** Routine health and one recommended sync remain primary; manual and high-risk connection controls use progressive disclosure. Destructive purge keeps explicit destructive emphasis inside its confirmation flow.
 
 **`[v5 proposal]` interaction improvements:**
-- Wire "Pause sync"/"Resume sync" into the UI using the already-built, audited server actions. **Still open.**
-- Move the disconnect flow into `ConfirmActionDialog` for consistency and to give the irreversible option modal weight. **Still open.**
+- ~~Wire "Pause sync"/"Resume sync" into the UI using the audited server actions.~~ **Done.**
+- ~~Move disconnect into `ConfirmActionDialog` with explicit consequence copy.~~ **Done.**
 
 ---
 
@@ -693,7 +700,7 @@ Spot-checked guard literals for S-03, S-10, S-17, S-22, S-27 against live `requi
 
 **Purpose:** Organisation-wide defaults for new feeds, plus a browse/launch list into `/feeds`. Does not itself create or configure individual feeds, contrary to its own in-code comment.
 
-**User interactions, as-built:** "Default privacy mode for new feeds" and "Include public holidays in new feeds" (auto-saved), plus an "All feeds" read-only list with "Open" links and a "Create new feed" button linking to `/feeds/new`.
+**User interactions, as-built:** "Default privacy mode for new feeds" and "Include public holidays in new feeds" are auto-saved with visible labels, descriptions and setting-scoped live receipts. The page also provides an "All feeds" read-only list with "Open" links and a "Create new feed" button linking to `/feeds/new`.
 
 **`[v5 proposal]` interaction improvements:**
 - The page's own in-code comment still claims it "creates and configures feeds", contradicting the shipped header copy. **Still open**, unresolved documentation-vs-code mismatch in the source itself.
