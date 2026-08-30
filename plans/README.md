@@ -294,7 +294,7 @@ itself redirects to `/settings/general`.
 | [134](134-clarify-leave-approvals.md) | Make leave approvals scan-fast and action-safe | P1 | — | DONE at `c48d8f6`; LANDED ON PREVIEW |
 | [135](135-refine-notification-centre.md) | Make notifications calmer, accessible and mobile-first | P1 | — | DONE at `3a965e8`; LANDED ON PREVIEW |
 | [136](136-refine-people-and-balances.md) | Make People responsive and restore profile source-of-truth cues | P1 | — | DONE at `9b2a7c9`; LANDED ON PREVIEW |
-| [137](137-distill-plans-experience.md) | Make plans clear, responsive and truthful about provenance | P1 | — | TODO |
+| [137](137-distill-plans-experience.md) | Make plans clear, responsive and truthful about provenance | P1 | — | DONE at `ef6469f`; LANDED ON PREVIEW |
 | [138](138-shape-public-holiday-management.md) | Give public-holiday management one safe, responsive home | P1 | — | TODO |
 | [139](139-restructure-settings-shell.md) | Make Settings responsive, context-safe and goal-grouped | P1 | — | TODO |
 | [140](140-distill-sync-health.md) | Make sync status truthful, accessible and easier to operate | P1 | — | TODO |
@@ -388,6 +388,23 @@ itself redirects to `/settings/general`.
   The protected route redirected the signed-out local browser to Clerk with
   `dev-browser-missing`, so authenticated list/profile desktop, mobile,
   dark-mode and 200% rendered checks remain explicitly unclaimed.
+- Plan 137 separates Leave/Availability category from Xero/Manual provenance,
+  converts the wide table into a responsive semantic plan list, adds labelled
+  source filtering, active chips, context-preserving reset, route loading/error
+  states and record-scoped pending feedback. Fourteen focused tests, 479 app
+  tests, the production build, Impeccable detection and all 119 integration
+  tests passed; the two configured live-Xero checks remain skipped. A 25-record
+  characterisation proved exactly one working-day computation per record, so a
+  caching or batching change was rejected as unnecessary. The protected route
+  redirected the signed-out local browser to Clerk with
+  `dev-browser-missing`, so authenticated desktop, mobile, dark-mode and 200%
+  rendered checks remain explicitly unclaimed.
+
+  Failed submissions now expose submission-specific retry and revert controls.
+  Failed withdrawals receive truthful withdrawal-specific copy but no retry
+  button because the existing write service rejects withdrawal from
+  `xero_sync_failed`; extending that state transition is outside Plan 137 and
+  remains a named recovery gap rather than a non-functional UI action.
 - 141 follows 137 because `/availability` is a redirect to Plans and must not
   create a second availability interface.
 - 142 follows 136 because `/leave-balances` redirects into People and depends

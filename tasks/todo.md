@@ -62,6 +62,35 @@ before the next plan begins.
   order.
 - [ ] Run the final preview verification and record exact evidence.
 
+## Active plan: Make plans clear, responsive and truthful about provenance
+
+Status: Complete
+
+### Tasks
+
+- [x] Confirm Plan 137 drift, data contracts and Impeccable direction.
+- [x] Separate Leave/Availability category from Xero/Manual provenance.
+- [x] Add action-specific Xero recovery and per-record pending feedback.
+- [x] Reflow the records table into a mobile plan list with disclosed detail.
+- [x] Distil summary and filter controls, including active chips and reset.
+- [x] Add route-local loading/error states and characterise working-day work.
+- [x] Complete detector, build and repository verification; commit and push.
+
+### Review
+
+- Plan 137 implementation landed at `ef6469f`.
+- Fourteen focused tests cover provenance/category independence, action-specific
+  failure copy, filter reset, route recovery, record-scoped pending feedback
+  and one working-day computation per item across a 25-record list.
+- Impeccable returned no findings. The app production build, repository check,
+  typecheck, 479 app tests and all 119 integration tests passed; the two
+  configured live-Xero checks remain skipped.
+- The protected route redirected the signed-out browser with
+  `dev-browser-missing`, so authenticated desktop, mobile, dark-mode and 200%
+  rendered checks remain unclaimed. Failed withdrawal retry is not supported by
+  the current state service and is recorded in `plans/README.md` rather than
+  represented by a non-functional control.
+
 ### Review
 
 - Plans 110 through 123 and their bookkeeping commits are on
