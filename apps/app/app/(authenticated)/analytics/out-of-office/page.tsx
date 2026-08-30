@@ -289,9 +289,7 @@ function SummaryFact({ label, value }: { label: string; value: number }) {
   );
 }
 
-export function resolvePersonType(
-  value: string | undefined
-): AnalyticsPersonType {
+function resolvePersonType(value: string | undefined): AnalyticsPersonType {
   if (value === "employee" || value === "contractor") {
     return value;
   }
