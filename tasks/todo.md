@@ -220,6 +220,36 @@ Impeccable for its rendered surface where applicable.
 
 ## Follow-ups
 
+## Active plan: Make People responsive and restore profile source-of-truth cues
+
+Status: Complete
+
+### Tasks
+
+- [x] Confirm Plan 136 drift, scope and Impeccable Adapt direction.
+- [x] Share status and Xero/manual provenance across list and profile.
+- [x] Gate manual balance headers and controls for viewers.
+- [x] Add role-aware recovery for Xero-connected unlinked profiles.
+- [x] Distil secondary filters and expose active-filter chips.
+- [x] Replace horizontal person panning with a wrapping semantic directory.
+- [x] Add live balance save/error semantics and plain labels.
+- [x] Complete detector, build and repository verification.
+- [x] Commit Plan 136 and push it to `origin/preview` before Plan 137.
+
+### Review
+
+- Plan 136 implementation landed at `9b2a7c9`.
+- Nineteen focused tests cover viewer balance gating, provenance, shared status,
+  unlinked recovery, manual-balance receipts, filter disclosure, the responsive
+  semantic directory, sync feedback and Clerk access reconciliation.
+- Impeccable detection, the canonical app build, repository check/typecheck,
+  473 app tests and all 119 integration tests pass. The two configured live-Xero
+  checks remain skipped.
+- The protected route correctly redirects a signed-out browser to Clerk with
+  `x-clerk-auth-reason: dev-browser-missing`. Authenticated list/profile desktop,
+  mobile, dark-mode and 200% rendered checks remain unclaimed and are recorded
+  in the plan README as requested.
+
 ## Active plan: Make notifications calmer, accessible and mobile-first
 
 Status: Complete
