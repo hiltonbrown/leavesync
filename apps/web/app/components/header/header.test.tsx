@@ -58,4 +58,20 @@ describe("Marketing header bypass link", () => {
     expect(skipIndex).toBeGreaterThan(-1);
     expect(skipIndex).toBeLessThan(headerIndex);
   });
+
+  it.each(["/help-centre", "/help-centre/onboarding"])(
+    "marks Help centre active and targets the shared main on %s",
+    (pathname) => {
+      navigation.pathname = pathname;
+
+      const html = renderToStaticMarkup(React.createElement(Header));
+      const skipIndex = html.indexOf('href="#help-centre-main"');
+      const headerIndex = html.indexOf('<header class="marketing-site-header"');
+
+      expect(html.match(/href="\/help-centre"/g)).toHaveLength(3);
+      expect(html.match(/aria-current="page"/g)).toHaveLength(3);
+      expect(skipIndex).toBeGreaterThan(-1);
+      expect(skipIndex).toBeLessThan(headerIndex);
+    }
+  );
 });

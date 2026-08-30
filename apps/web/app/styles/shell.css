@@ -374,6 +374,18 @@
   outline-offset: 3px;
 }
 
+.marketing-content-link:focus-visible {
+  outline: 3px solid var(--marketing-primary);
+  outline-offset: 3px;
+}
+
+@media (forced-colors: active) {
+  .marketing-content-link:focus-visible,
+  .marketing-skip-link:focus-visible {
+    outline-color: Highlight;
+  }
+}
+
 .marketing-btn--primary {
   color: var(--marketing-on-primary);
   background: var(--marketing-primary);
@@ -996,7 +1008,7 @@
   color: var(--marketing-inverse-on-surface);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  opacity: 0.68;
+  opacity: 0.82;
 }
 
 .marketing-footer__column a {

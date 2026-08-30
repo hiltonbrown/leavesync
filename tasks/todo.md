@@ -19,10 +19,20 @@ before the next plan begins.
 
 ### Tasks
 
-- [ ] Reconcile the approved Plan 110 through 119 commits with
+- [x] Reconcile the approved Plan 110 through 119 commits with
   `origin/preview` and record their landing evidence.
-- [ ] Execute, verify, commit and push Plan 120.
-- [ ] Execute, verify, commit and push Plans 121 through 129 in dependency
+- [x] Execute, verify, commit and push Plan 120.
+- [x] Execute, verify, commit and push Plans 121 through 123 in dependency
+  order.
+- [x] Plan 124: lock the help content, markup and sitemap contracts with focused
+  failing tests.
+- [x] Plan 124: centralise the eight-step AU onboarding content and rebuild the
+  task gateway and phased guide.
+- [x] Plan 124: add Help centre navigation, route-aware bypass links, focus
+  treatment and nested sitemap discovery.
+- [x] Plan 124: run the Impeccable audit, bounded browser review, build and all
+  repository gates; commit and push both implementation and review evidence.
+- [ ] Execute, verify, commit and push Plans 125 through 129 in dependency
   order.
 - [ ] Execute, verify, commit and push Plans 130 through 143 in dependency
   order.
@@ -30,7 +40,25 @@ before the next plan begins.
 
 ### Review
 
-- Pending.
+- Plans 110 through 123 and their bookkeeping commits are on
+  `origin/preview`. Plan 124 replaces the generic help cards with a typed,
+  four-phase AU onboarding guide and task gateway, then adds exact product
+  labels, role boundaries, recovery receipts, Help centre navigation, focus
+  transfer and explicit nested sitemap discovery.
+- Plan 124 focused verification passed 5 files and 13 tests. The web production
+  build prerendered both help routes and `/sitemap.xml`; the Impeccable detector
+  returned no findings. The fresh critique improved from 17/40 to 37/40 with
+  zero P0 or P1 findings.
+- Chromium captured both routes at 390×844, 820×1180 and 1440×1000 in light and
+  dark modes. There was no horizontal overflow. Axe reported zero violations,
+  the first keyboard target was the 3px skip link, activation focused the main
+  landmark, reduced motion was enabled, and forced colours were verified with
+  Chromium high-contrast mode. Headless Chromium ignored browser zoom
+  shortcuts, so 720 CSS pixels verified the equivalent reflow of a 1440-pixel
+  viewport at 200%.
+- Full `bun run check`, `bun run typecheck`, `bun run test` and
+  `bun run test:integration` gates passed. The two configured credential-bound
+  Xero integration checks remained skipped.
 
 ## Active plan: Add a role-aware dashboard calendar timeline
 
