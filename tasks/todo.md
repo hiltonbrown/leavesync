@@ -94,6 +94,35 @@ Status: In progress
   Authenticated desktop, mobile, dark-mode and 200% rendered checks therefore
   remain explicitly unclaimed and are recorded in `plans/README.md`.
 
+## Active plan: Keep availability deep links correct and remove legacy UI ambiguity
+
+Status: In progress
+
+### Tasks
+
+- [x] Confirm Plan 141 dependency, canonical route ownership, drift and zero-import proof.
+- [x] Centralise legacy redirect query handling with first-valid organisation selection.
+- [x] Cover all three redirects, repeated query values and create/edit deep links.
+- [x] Collapse duplicate command actions onto the canonical New plan destination.
+- [x] Remove the unreferenced manual availability form and guard against its return.
+- [x] Run focused tests and every repository gate without a redirect screenshot claim.
+- [x] Commit, document and push Plan 141 to `origin/preview` before Plan 142.
+
+### Review
+
+- Plan 141 implementation landed at `42f0d7c`.
+- All three compatibility routes now share first-valid UUID organisation
+  selection and preserve every repeated non-organisation query value. The
+  command palette exposes one canonical New plan action with leave and
+  availability search terms, and the zero-import legacy form is deleted.
+- Fifteen focused tests, 513 app tests, the production build, repository check,
+  full typecheck and all 119 integration tests passed; the two configured
+  live-Xero checks remain skipped. No screenshot claim was made for redirect
+  shims whose rendered destination was already completed by Plan 137.
+- Public Help centre copy still names the removed duplicate command label. That
+  separate marketing-content mismatch is recorded in `plans/README.md` rather
+  than expanding this redirect-only plan's explicit scope.
+
 ## Active plan: Make plans clear, responsive and truthful about provenance
 
 Status: Complete

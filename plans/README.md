@@ -461,6 +461,22 @@ itself redirects to `/settings/general`.
   mobile, dark-mode and 200% rendered checks therefore remain explicitly
   unclaimed; component tests and the deterministic detector provide the bounded
   local evidence without substituting for an authenticated visual claim.
+- Plan 141 centralises all three legacy availability redirects behind one
+  first-valid UUID organisation normaliser while preserving repeated non-org
+  query values, person/date create links and record edit links exactly. The
+  command palette now has one canonical New plan action searchable by both
+  Leave and Availability intent, and the fresh zero-import proof allowed the
+  superseded manual availability form to be deleted. Fifteen focused tests, 513
+  app tests, the production build, repository check, full typecheck and all 119
+  integration tests passed; the two configured live-Xero checks remain skipped.
+  No visual screenshot is claimed for redirect-only routes; Plan 137 owns the
+  rendered `/plans` destination.
+
+  `apps/web/app/help-centre/content.ts` still tells readers to choose the former
+  command label “New leave request”. Updating public Help centre content and
+  its onboarding assertions is outside Plan 141's explicit app-only scope, so
+  this wording remains a named documentation follow-up rather than preserving
+  duplicate application actions.
 - 141 follows 137 because `/availability` is a redirect to Plans and must not
   create a second availability interface.
 - 142 follows 136 because `/leave-balances` redirects into People and depends
