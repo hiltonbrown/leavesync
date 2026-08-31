@@ -6,6 +6,32 @@ Keep this file limited to active work and unresolved follow-ups. Each plan must
 state an outcome, use verifiable checkboxes, and end with a review containing the
 evidence actually collected. Completed plans move to `tasks/archive.md`.
 
+## Active plan: Bind homepage hero motion to its SVG paths
+
+Status: Complete
+
+### Tasks
+
+- [x] Inspect the live desktop hero at multiple animation times.
+- [x] Bind each moving packet directly to its visible SVG path.
+- [x] Normalise the line-reveal lengths and preserve reduced-motion behaviour.
+- [x] Add a regression contract for all three path-to-packet mappings.
+- [x] Run focused tests, rendered verification, Impeccable detection, web checks and the production build.
+- [x] Commit and push the verified motion fix to `origin/preview`.
+
+### Review
+
+- Each packet now uses an SVG `mpath` reference to the exact visible Xero,
+  calendar or return curve. Packets hold at the start while hidden, travel at a
+  constant pace while visible, then finish and fade at the path endpoint.
+- All three curves use `pathLength="1"`; their scroll-driven reveals no longer
+  depend on guessed pixel lengths or a second CSS motion-path coordinate system.
+- Chromium captures at 1.5, 3 and 4.5 seconds confirmed every packet remained
+  centred on its line. A reduced-motion capture kept all lines visible and
+  removed every moving packet.
+- Two focused motion tests, all 99 web tests, web typecheck, the 918-file
+  repository check, Impeccable detection and the web production build passed.
+
 ## Active plan: Restore the homepage team timeline
 
 Status: Complete

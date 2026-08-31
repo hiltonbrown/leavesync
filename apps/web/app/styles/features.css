@@ -1041,19 +1041,19 @@
 }
 
 .fmkt-sync-path--primary {
-  stroke-dasharray: 320;
+  stroke-dasharray: 1;
   stroke-dashoffset: var(--fmkt-sync-draw-1);
 }
 
 .fmkt-sync-path--team {
-  stroke-dasharray: 300;
+  stroke-dasharray: 1;
   stroke-dashoffset: var(--fmkt-sync-draw-2);
 }
 
 .fmkt-sync-path--return {
   opacity: 0.74;
   stroke: color-mix(in oklch, var(--marketing-xero-cyan) 80%, transparent);
-  stroke-dasharray: 420;
+  stroke-dasharray: 1;
   stroke-dashoffset: var(--fmkt-sync-draw-3);
 }
 
@@ -1117,20 +1117,8 @@
   transform-box: fill-box;
 }
 
-.fmkt-sync-packet--team {
-  animation: fmkt-packet-travel 5.8s cubic-bezier(0.16, 1, 0.3, 1) 1.5s infinite;
-  offset-path: url(#sync-path-team);
-}
-
-.fmkt-sync-packet--xero {
-  animation: fmkt-packet-travel 5.8s cubic-bezier(0.16, 1, 0.3, 1) 0s infinite;
-  offset-path: url(#sync-path-xero);
-}
-
 .fmkt-sync-packet--return {
   fill: var(--marketing-xero-cyan);
-  animation: fmkt-packet-travel 6.4s cubic-bezier(0.16, 1, 0.3, 1) 2.8s infinite;
-  offset-path: url(#sync-path-return);
 }
 
 /* Desktop: show diagram, visually-hide text list (still DOM-accessible for screen readers) */
