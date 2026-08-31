@@ -31,7 +31,7 @@ export const HowItWorksSection = () => (
   <section className="fmkt-how" id="how-it-works">
     <div className="fmkt-container">
       <div className="fmkt-section-header">
-        <h2 className="fmkt-section-title">Four steps. One calm workflow.</h2>
+        <h2 className="fmkt-section-title">One easy workflow</h2>
       </div>
       <div className="fmkt-how__steps">
         {steps.map((step) => (

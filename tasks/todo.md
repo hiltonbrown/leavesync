@@ -6,6 +6,24 @@ Keep this file limited to active work and unresolved follow-ups. Each plan must
 state an outcome, use verifiable checkboxes, and end with a review containing the
 evidence actually collected. Completed plans move to `tasks/archive.md`.
 
+## Active plan: Simplify the marketing workflow heading
+
+Status: Complete
+
+### Tasks
+
+- [x] Replace the homepage workflow heading with “One easy workflow”.
+- [x] Add a focused copy regression test.
+- [x] Run focused tests, web checks and the production build.
+- [x] Commit and push the verified copy update to `origin/preview`.
+
+### Review
+
+- The homepage workflow heading is now “One easy workflow”; the former wording
+  is absent from the rendered section.
+- One focused regression test, all 100 web tests, web typecheck, the 919-file
+  repository check, Impeccable detection and the web production build passed.
+
 ## Active plan: Bind homepage hero motion to its SVG paths
 
 Status: Complete
