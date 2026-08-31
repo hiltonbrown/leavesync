@@ -7,6 +7,9 @@ actionable; keep one-off task evidence in the review for that task.
 
 ## Product and design
 
+- When a page's authored scrollytelling already demonstrates the product, keep
+  the hero to one promise, one proof sentence and one action. Do not make the
+  visitor decode a second full interactive demo before the narrative begins.
 - For homepage hero copy, default to the shortest complete message hierarchy:
   one outcome, one scope statement and one proof sentence. Do not repeat product
   concepts across the heading and body.

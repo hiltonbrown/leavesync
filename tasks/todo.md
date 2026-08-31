@@ -833,3 +833,106 @@ Status: Complete
 - [ ] Ask GitHub Support to purge retained pull-request refs and cached commit
   views that cannot be rewritten by a normal Git push.
 - [ ] Re-audit a fresh remote mirror after the purge and record the result.
+
+## Active plan: Clarify the marketing homepage hero
+
+Status: Complete
+
+### Tasks
+
+- [x] Review the existing hero, product truth and brand voice.
+- [x] Replace the headline and supporting copy with the approved message.
+- [x] Verify formatting, type safety and the focused marketing build.
+
+### Review
+
+- Reworked the homepage hero around the Xero-to-calendar outcome, then named
+  travel, out of office and staff leave as the core use cases.
+- Reduced the revised hero to one outcome, one scope line and one proof
+  paragraph after user review, without removing the Xero write-back or supported
+  calendar providers.
+- Tightened the following problem section around one escalation: scattered leave
+  admin becomes leave clashes, uncovered shifts, Xero gaps and payroll errors.
+- Marketing formatting, focused and repository type checks, the production web
+  build, all unit tests and all integration tests pass. The two configured live
+  Xero checks remain skipped. Test reruns used `/tmp` because the shell inherited
+  a stale Windows temporary-directory path under WSL.
+
+## Active plan: Overdrive the marketing features page
+
+Status: Complete
+
+### Outcome
+
+The `/features` page becomes a cinematic but calm product narrative. One living
+calendar canvas carries a leave entry from Xero or manual input through approval
+and team visibility into subscribed calendars, with progressive enhancement,
+accessible static fallbacks and equal desktop, mobile and dark-mode care.
+
+### Tasks
+
+- [x] Lock the existing page, interaction and product-truth contracts with
+  focused regression coverage.
+- [x] Build the sticky calendar narrative and connect each story beat to one
+  coherent source-to-calendar state transition.
+- [x] Recompose the supporting feature content around the narrative without
+  changing unverified product claims or provenance semantics.
+- [x] Honour keyboard access, reduced motion, reduced transparency, forced
+  colours and narrow viewports.
+- [x] Run focused tests, Impeccable and React checks, desktop and mobile browser
+  verification, the web production build and repository gates.
+
+### Review
+
+- The former persona, capability and sync-flow sequence is now one continuous
+  source-to-calendar story. A sticky calendar advances through source,
+  approval, team-cover and publication states while the factual narrative stays
+  available in normal document order.
+- Sage Xero provenance, lavender manual provenance, synchronous approval
+  write-back and calendar-app refresh timing remain explicit. The four story
+  beats are keyboard-selectable, use one cleaned-up observer and settle to a
+  complete state for reduced-motion visitors.
+- Chromium captures at 1440px and 390px confirmed the light composition,
+  narrow calendar fit and dark palette. The preferred `agent-browser` binary
+  was unavailable, so the bounded rendered review used the installed headless
+  Chromium runtime directly.
+- Two focused feature tests, all 102 web tests, all 17 unit-test workspaces,
+  all 19 typecheck tasks, the 922-file repository check, zero Impeccable
+  detector findings, the web production build and all 119 configured
+  integration tests passed. The two credential-dependent live-Xero checks
+  remained skipped as expected.
+
+## Active plan: Distil the marketing features hero
+
+Status: Complete
+
+### Outcome
+
+The `/features` hero becomes a quiet, decisive entry to the page: one promise,
+one short proof sentence and one primary action. The living calendar story below
+remains the page's single authored product demonstration.
+
+### Tasks
+
+- [x] Remove the duplicated interactive sandbox and secondary hero action.
+- [x] Tighten the hero copy and spacing without changing product truth.
+- [x] Remove the retired client logic and route-scoped sandbox styling.
+- [x] Verify desktop, mobile, dark mode, focused tests and web gates.
+
+### Review
+
+- The hero now carries one headline, one factual proof sentence and one signup
+  action. The full sandbox, feed tab, approval controls, legend, particles and
+  secondary scroll action are removed because the living calendar immediately
+  below owns the product demonstration.
+- The former 1,272-line client component is now an 18-line server component.
+  Its retired route-scoped sandbox styles and responsive overrides are removed,
+  eliminating the duplicate interaction and its JavaScript from the hero.
+- Headless Chromium captures at 1440px and 390px confirmed the simplified light
+  composition, mobile reflow and dark palette without requiring a correction
+  pass.
+- Three focused feature tests, all 103 web tests, all 17 unit-test workspaces,
+  all 19 typecheck tasks, the 922-file repository check, zero Impeccable
+  detector findings, the web production build and all 119 configured
+  integration tests passed. The two credential-dependent live-Xero checks
+  remained skipped as expected.
