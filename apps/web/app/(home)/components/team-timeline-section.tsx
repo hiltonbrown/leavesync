@@ -344,7 +344,7 @@ const Detail = ({ selected, onClose }: DetailProps) => {
         <span aria-hidden="true" className="tl-detail-hint-icon">
           <MarketingIcon id="arrowUpRight" size={14} />
         </span>
-        Select any entry above to see its details, owner and provenance.
+        Click any block above to see the entry details, owner and provenance.
       </div>
     );
   }
@@ -509,17 +509,14 @@ export const TeamTimelineSection = () => {
     return (
       <section className="fmkt-timeline" id="team-timeline">
         <div className="fmkt-container">
+          <p className="fmkt-overline">Team availability, live</p>
           <h2 className="fmkt-section-title">
             See who is in, who is out and where they are.
           </h2>
           <p className="fmkt-timeline__lead">
             Sage entries arrive from Xero Payroll the moment they are approved.
             Purple entries are manual: working from home, client site, training.
-            Select any entry for details.
-          </p>
-
-          <p aria-hidden="true" className="tl-scrollhint">
-            Swipe to see the full week
+            Click any block for details.
           </p>
 
           <div className="tl-card tl-card--skeleton">
@@ -641,17 +638,14 @@ export const TeamTimelineSection = () => {
   return (
     <section className="fmkt-timeline" id="team-timeline">
       <div className="fmkt-container">
+        <p className="fmkt-overline">Team availability, live</p>
         <h2 className="fmkt-section-title">
           See who is in, who is out and where they are.
         </h2>
         <p className="fmkt-timeline__lead">
           Sage entries arrive from Xero Payroll the moment they are approved.
           Purple entries are manual: working from home, client site, training.
-          Select any entry for details.
-        </p>
-
-        <p aria-hidden="true" className="tl-scrollhint">
-          Swipe to see the full week
+          Click any block for details.
         </p>
 
         <div className="tl-card">

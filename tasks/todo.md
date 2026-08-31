@@ -6,6 +6,32 @@ Keep this file limited to active work and unresolved follow-ups. Each plan must
 state an outcome, use verifiable checkboxes, and end with a review containing the
 evidence actually collected. Completed plans move to `tasks/archive.md`.
 
+## Active plan: Restore the homepage team timeline
+
+Status: Complete
+
+### Tasks
+
+- [x] Identify the last pre-redesign TeamTimelineSection visual contract.
+- [x] Restore the section markup, copy and local interaction styling without reverting unrelated homepage work.
+- [x] Add a regression contract for the restored section.
+- [x] Run focused tests, Impeccable detection, web checks and the production build.
+- [x] Commit and push the verified restoration to `origin/preview`.
+
+### Review
+
+- Git commit `b1541ce6^` supplied the last pre-redesign visual contract. The
+  original overline, heading spacing, interaction copy, flat event blocks,
+  day-count treatment and compact mobile controls are restored locally without
+  reverting unrelated homepage work.
+- Two focused regression tests, all 97 web tests, web typecheck, the 917-file
+  repository check, source-based Impeccable detection and the web production
+  build passed.
+- The existing local homepage returned HTTP 200, but rendered Impeccable URL
+  scans could not start because Puppeteer is not installed. No new rendered
+  desktop or mobile screenshot claim is made; the restoration is bounded by
+  the historical Git diff, component contract and production build.
+
 ## Active plan: Restore the focused marketing header menu
 
 Status: Complete
