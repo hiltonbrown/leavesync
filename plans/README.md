@@ -487,6 +487,24 @@ itself redirects to `/settings/general`.
   live-Xero checks remain skipped. No visual screenshot or design-health claim
   is made for the redirect shim; completed Plan 136 remains the profile visual
   source of truth.
+- Plan 143 keeps the full Getting Started checklist in Settings and reduces the
+  Dashboard surface to a dismissible progress summary. The checklist promotes
+  exactly one required next action, treats Xero as optional, labels progress,
+  discloses completed and deferred work, and gives completed setup one direct
+  return to the Dashboard. Every action preserves the active organisation.
+  The legacy `/setup` redirect now chooses the first valid organisation UUID
+  while preserving repeated non-routing values, and the zero-import legacy
+  client was deleted. Sixteen focused tests, 537 app tests, the production
+  build, repository check, full typecheck, zero general and layout Impeccable
+  detector findings and all 119 integration tests passed; the two configured
+  live-Xero checks remain skipped.
+
+  The optional `agent-browser` executable is absent. Signed-out requests to `/`
+  and `/settings/getting-started` redirect to Clerk with
+  `x-clerk-auth-reason: dev-browser-missing`, so authenticated desktop, mobile,
+  dark-mode and 200% rendered checks remain explicitly unclaimed. Component
+  tests, source review and deterministic detector passes provide the bounded
+  local evidence without being presented as authenticated visual proof.
 - 141 follows 137 because `/availability` is a redirect to Plans and must not
   create a second availability interface.
 - 142 follows 136 because `/leave-balances` redirects into People and depends

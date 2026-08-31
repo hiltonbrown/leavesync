@@ -149,6 +149,39 @@ Status: In progress
   live-Xero checks remain skipped. No screenshot or design-health claim was
   made for the redirect shim; Plan 136 remains the profile visual authority.
 
+## Active plan: Make setup a single, confident next-step experience
+
+Status: Complete
+
+### Tasks
+
+- [x] Confirm Plan 143 dependency, redirect drift, dashboard semantics and dead-client proof.
+- [x] Keep one full checklist in Settings and reduce Dashboard to a dismissible summary.
+- [x] Promote one required next action and disclose completed/optional/later groups.
+- [x] Add labelled progress, all-complete recovery and organisation-safe CTAs.
+- [x] Cover scalar/repeated setup redirects and delete the unreachable legacy client.
+- [x] Run focused tests, detector, bounded visual checks and every repository gate.
+- [x] Commit, document and push Plan 143 to `origin/preview`.
+
+### Review
+
+- Plan 143 implementation landed at `63fee49`.
+- The full setup checklist now lives only in Settings, promotes exactly one
+  required next action, labels progress and discloses completed, optional and
+  later work. The Dashboard keeps a dismissible summary, and completed setup
+  offers a direct return to the Dashboard.
+- The legacy setup redirect now selects the first valid organisation UUID and
+  preserves repeated non-routing query values. The unreachable legacy client
+  was deleted after its zero-import proof.
+- Sixteen focused tests, 537 app tests, the production build, repository check,
+  full typecheck, zero general and layout Impeccable detector findings and all
+  119 integration tests passed; the two configured live-Xero checks remain
+  skipped.
+- The optional `agent-browser` executable is absent, while signed-out requests
+  to `/` and `/settings/getting-started` redirect to Clerk with
+  `dev-browser-missing`. Authenticated desktop, mobile, dark-mode and 200%
+  rendered checks remain explicitly unclaimed.
+
 ## Active plan: Make plans clear, responsive and truthful about provenance
 
 Status: Complete
