@@ -46,21 +46,23 @@ describe("Marketing header bypass link", () => {
     expect(html).not.toContain("Skip to main content");
   });
 
-  it("marks About active across navigation variants and targets its main", () => {
-    navigation.pathname = "/about";
+  it("renders only the focused menu in every navigation variant", () => {
+    navigation.pathname = "/integrations";
 
     const html = renderToStaticMarkup(React.createElement(Header));
-    const skipIndex = html.indexOf('href="#about-main"');
-    const headerIndex = html.indexOf('<header class="marketing-site-header"');
 
-    expect(html.match(/href="\/about"/g)).toHaveLength(3);
+    expect(html.match(/href="\/"/g)).toHaveLength(4);
+    expect(html.match(/href="\/features"/g)).toHaveLength(3);
+    expect(html.match(/href="\/integrations"/g)).toHaveLength(3);
+    expect(html.match(/href="\/pricing"/g)).toHaveLength(3);
+    expect(html).not.toContain('href="/about"');
+    expect(html).not.toContain('href="/blog"');
+    expect(html).not.toContain('href="/help-centre"');
     expect(html.match(/aria-current="page"/g)).toHaveLength(3);
-    expect(skipIndex).toBeGreaterThan(-1);
-    expect(skipIndex).toBeLessThan(headerIndex);
   });
 
   it.each(["/help-centre", "/help-centre/onboarding"])(
-    "marks Help centre active and targets the shared main on %s",
+    "keeps the Help centre bypass target without restoring it to the menu on %s",
     (pathname) => {
       navigation.pathname = pathname;
 
@@ -68,25 +70,38 @@ describe("Marketing header bypass link", () => {
       const skipIndex = html.indexOf('href="#help-centre-main"');
       const headerIndex = html.indexOf('<header class="marketing-site-header"');
 
-      expect(html.match(/href="\/help-centre"/g)).toHaveLength(3);
-      expect(html.match(/aria-current="page"/g)).toHaveLength(3);
+      expect(html).not.toContain('href="/help-centre"');
+      expect(html).not.toContain('aria-current="page"');
       expect(skipIndex).toBeGreaterThan(-1);
       expect(skipIndex).toBeLessThan(headerIndex);
     }
   );
 
   it.each(["/blog", "/blog/ics-feeds-explained"])(
-    "marks Blog active and targets the Blog main on %s",
+    "keeps the Blog bypass target without restoring it to the menu on %s",
     (pathname) => {
       navigation.pathname = pathname;
 
       const html = renderToStaticMarkup(React.createElement(Header));
 
-      expect(html.match(/href="\/blog"/g)).toHaveLength(3);
-      expect(html.match(/aria-current="page"/g)).toHaveLength(3);
+      expect(html).not.toContain('href="/blog"');
+      expect(html).not.toContain('aria-current="page"');
       expect(html).toContain('href="#blog-main"');
     }
   );
+
+  it("keeps the About bypass target without restoring it to the menu", () => {
+    navigation.pathname = "/about";
+
+    const html = renderToStaticMarkup(React.createElement(Header));
+    const skipIndex = html.indexOf('href="#about-main"');
+    const headerIndex = html.indexOf('<header class="marketing-site-header"');
+
+    expect(html).not.toContain('href="/about"');
+    expect(html).not.toContain('aria-current="page"');
+    expect(skipIndex).toBeGreaterThan(-1);
+    expect(skipIndex).toBeLessThan(headerIndex);
+  });
 
   it.each(["/careers", "/careers/"])(
     "targets the Careers main on %s without changing primary membership",

@@ -6,6 +6,28 @@ Keep this file limited to active work and unresolved follow-ups. Each plan must
 state an outcome, use verifiable checkboxes, and end with a review containing the
 evidence actually collected. Completed plans move to `tasks/archive.md`.
 
+## Active plan: Restore the focused marketing header menu
+
+Status: Complete
+
+### Tasks
+
+- [x] Restore Home, Features, Integrations and Pricing as the only header menu links.
+- [x] Preserve route-specific skip links for removed menu destinations.
+- [x] Update the header contract tests for desktop, mobile and no-JavaScript navigation.
+- [x] Run focused tests, Impeccable detection, web checks and the production build.
+- [x] Commit and push the verified change to `origin/preview`.
+
+### Review
+
+- The desktop, mobile and no-JavaScript header menus now contain only Home,
+  Features, Integrations and Pricing. About, Blog and Help Centre remain
+  available through their routes and footer navigation, but no longer compete
+  in the primary menu.
+- Route-specific skip links remain intact on About, Blog and Help Centre pages.
+- Eleven focused header tests, all 95 web tests, web typecheck, the 916-file
+  repository check, Impeccable detection and the web production build passed.
+
 ## Active plan: Deliver Plans 110 through 143 to preview
 
 Status: Complete
