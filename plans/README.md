@@ -477,6 +477,16 @@ itself redirects to `/settings/general`.
   its onboarding assertions is outside Plan 141's explicit app-only scope, so
   this wording remains a named documentation follow-up rather than preserving
   duplicate application actions.
+- Plan 142 validates scalar or repeated organisation and person identifiers,
+  preserves arbitrary repeated non-routing query values and sends valid person
+  links to the canonical profile with `tab=balances`. Full-page and intercepted
+  profile routes now share one typed parser for all four existing profile tabs,
+  so Balances is rendered immediately rather than requiring manual hunting.
+  Fifteen focused tests, 525 app tests, the production build, repository check,
+  full typecheck and all 119 integration tests passed; the two configured
+  live-Xero checks remain skipped. No visual screenshot or design-health claim
+  is made for the redirect shim; completed Plan 136 remains the profile visual
+  source of truth.
 - 141 follows 137 because `/availability` is a redirect to Plans and must not
   create a second availability interface.
 - 142 follows 136 because `/leave-balances` redirects into People and depends

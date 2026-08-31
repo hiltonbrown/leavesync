@@ -123,6 +123,32 @@ Status: In progress
   separate marketing-content mismatch is recorded in `plans/README.md` rather
   than expanding this redirect-only plan's explicit scope.
 
+## Active plan: Preserve leave-balance deep links and orient users at the person profile
+
+Status: In progress
+
+### Tasks
+
+- [x] Confirm Plan 142 dependency, profile-tab mechanism and redirect drift.
+- [x] Normalise scalar/repeated organisation and person identifiers safely.
+- [x] Preserve repeated query values and open person links on Balances.
+- [x] Teach full-page and modal profiles the same validated tab contract.
+- [x] Cover exact list/detail redirects and balance-tab discovery.
+- [x] Run focused tests and every repository gate without a redirect screenshot claim.
+- [x] Commit, document and push Plan 142 to `origin/preview` before Plan 143.
+
+### Review
+
+- Plan 142 implementation landed at `9b8e677`.
+- Legacy balance links now select the first valid organisation and person UUID,
+  preserve repeated non-routing values and open a person profile with
+  `tab=balances`. Full-page and intercepted profiles share one typed parser for
+  every supported tab, so the destination renders Balances immediately.
+- Fifteen focused tests, 525 app tests, the production build, repository check,
+  full typecheck and all 119 integration tests passed; the two configured
+  live-Xero checks remain skipped. No screenshot or design-health claim was
+  made for the redirect shim; Plan 136 remains the profile visual authority.
+
 ## Active plan: Make plans clear, responsive and truthful about provenance
 
 Status: Complete
