@@ -7,6 +7,9 @@ actionable; keep one-off task evidence in the review for that task.
 
 ## Product and design
 
+- For homepage hero copy, default to the shortest complete message hierarchy:
+  one outcome, one scope statement and one proof sentence. Do not repeat product
+  concepts across the heading and body.
 - When a restoration request names `main` or a live surface as the reference,
   treat that explicit reference as authoritative. Do not substitute an older
   historical snapshot merely because the request also says “previous”.
