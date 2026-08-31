@@ -442,6 +442,25 @@ itself redirects to `/settings/general`.
   CPU contention. Representative General, Xero, Feeds and Leave approval routes
   redirected the signed-out browser with `dev-browser-missing`, so authenticated
   desktop, mobile, dark-mode and 200% rendered checks remain unclaimed.
+- Plan 140 keys pending sync dispatch by both Xero tenant and operation,
+  preserves all four registered run types behind one recommended action,
+  exposes connection, pause and active-run constraints as visible accessible
+  copy, adds organisation-preserving filter recovery and projects run history
+  into complete mobile records plus a labelled keyboard-scrollable wide table.
+  Re-run, cancellation and CSV export now expose operation-specific progress;
+  re-run and cancellation reject duplicate submissions. Fourteen focused tests,
+  504 app tests, the production build, repository check, full typecheck, zero
+  Impeccable detector findings and all 119 integration tests passed; the two
+  configured live-Xero checks remain skipped.
+
+  The first focused invocation inherited an unavailable Windows temporary path
+  and failed before loading any tests; the established `/tmp` override passed
+  the unchanged suites. The optional `agent-browser` executable was not
+  installed, and the protected `/sync` route returned Clerk's signed-out 404
+  with `x-clerk-auth-reason: dev-browser-missing`. Authenticated desktop,
+  mobile, dark-mode and 200% rendered checks therefore remain explicitly
+  unclaimed; component tests and the deterministic detector provide the bounded
+  local evidence without substituting for an authenticated visual claim.
 - 141 follows 137 because `/availability` is a redirect to Plans and must not
   create a second availability interface.
 - 142 follows 136 because `/leave-balances` redirects into People and depends

@@ -8,7 +8,7 @@ evidence actually collected. Completed plans move to `tasks/archive.md`.
 
 ## Active plan: Deliver Plans 110 through 143 to preview
 
-Status: Complete
+Status: In progress
 
 ### Outcome
 
@@ -61,6 +61,38 @@ before the next plan begins.
 - [ ] Execute, verify, commit and push Plans 130 through 143 in dependency
   order.
 - [ ] Run the final preview verification and record exact evidence.
+
+## Active plan: Make sync status truthful, accessible and easier to operate
+
+Status: In progress
+
+### Tasks
+
+- [x] Read Plan 140, its Impeccable references and the Sync drift.
+- [x] Key dispatch progress by tenant and operation with two-tenant coverage.
+- [x] Distil tenant actions into a labelled sync-type choice and one primary action.
+- [x] Expose disabled reasons visibly and accessibly on list and detail surfaces.
+- [x] Add organisation-preserving filter reset, active feedback and empty recovery.
+- [x] Add a complete mobile history projection with accessible wide-table fallback.
+- [x] Protect cancel and re-run independently with operation-specific progress.
+- [x] Run focused tests, bounded visual/detector checks and every repository gate.
+- [x] Commit, document issues and push Plan 140 to `origin/preview` before Plan 141.
+
+### Review
+
+- Plan 140 implementation landed at `1af2433`.
+- Sync dispatch progress is keyed by Xero tenant and operation, every registered
+  run type remains available through one labelled control, disabled reasons are
+  visible, and run history has complete mobile and keyboard-scrollable wide
+  projections. Detail re-run and cancellation expose independent progress and
+  reject duplicate submission.
+- Fourteen focused tests, 504 app tests, the production build, repository check,
+  full typecheck, zero Impeccable detector findings and all 119 integration
+  tests passed; the two configured live-Xero checks remain skipped.
+- The protected route returned Clerk's signed-out 404 with
+  `dev-browser-missing`, and the optional `agent-browser` executable was absent.
+  Authenticated desktop, mobile, dark-mode and 200% rendered checks therefore
+  remain explicitly unclaimed and are recorded in `plans/README.md`.
 
 ## Active plan: Make plans clear, responsive and truthful about provenance
 
