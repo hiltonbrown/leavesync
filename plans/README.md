@@ -1,15 +1,13 @@
 # Team Calendar implementation plans
 
 This directory is the implementation backlog maintained through the `improve`
-skill. It was fully reconciled on 29 August 2026 against `preview` at `f79b1de`.
-All 48 completed plans (Plans 001–023, 025–030, 032–040, 042–061, 066, 069, 075–107)
-have been implemented, tested and verified. All completed plan files have been removed
-from `plans/` into the completed-plan ledger below. All 14 rejected plan files
-(Plans 024, 031, 051, 058, 062, 063, 064, 065, 067, 068, 070, 071, 072, 073, 074)
-have also been removed, with their decision rationales and superseding plan linkages
-preserved in the Reconciliation decisions section below. The execution queue contains
-16 TODO plans. The two regional activation plans remain `BLOCKED` (Plans 108 and 109),
-pending named live Xero environments and UK partner permission.
+skill. It was initially reconciled on 29 August 2026 against `preview` at
+`f79b1de`. Plans 110–143 were subsequently implemented, verified and landed on
+`preview`; the exact implementation commit for every plan is recorded below.
+Earlier completed and rejected plans remain in the historical ledger. There are
+no executable TODO plans in the current queue. The two regional activation
+plans remain `BLOCKED` (Plans 108 and 109), pending named live Xero environments
+and UK partner permission.
 
 ## Execution policy
 
@@ -34,9 +32,10 @@ for this repo only:
   retroactively change how already-merged work landed (092 and 076 merged to
   `main`, before this policy existed).
 
-## Verification snapshot
+## Historical verification snapshot
 
-This reconciliation was read-only outside `plans/`.
+The following snapshot belongs to the 29 August reconciliation and was
+read-only outside `plans/`.
 
 | Evidence | Result |
 |---|---|
@@ -89,7 +88,22 @@ This reconciliation was read-only outside `plans/`.
 | Plan 105 execution | approved at `22c69b2`; employee-aware regional approval reconciliation for NZ and UK tenants, missing employee ID validation failure |
 | Plan 106 execution | approved at `bd8248c`; orchestrated 40-person regional balance pages for NZ and UK tenants, per-employee cursor CAS updates, NZD currency mapping |
 | Plan 107 execution | approved at `6b66916`; formatLeaveBalance helper with Intl.NumberFormat NZD and unit handling, services restricted to day subtraction only |
-| Current indexed plans | 98: 28 TODO, 54 DONE (including queue completions), 14 REJECTED (ledgered decisions), 2 BLOCKED |
+| Current indexed plans | 98: 0 TODO, 82 DONE, 14 REJECTED (ledgered decisions), 2 BLOCKED |
+
+## Final preview audit, 31 August 2026
+
+- Every implementation commit for Plans 110–143 is an ancestor of the current
+  `preview` branch, and `origin/preview` matched the audited head before this
+  record was committed.
+- `bun run check` checked 916 files with no fixes. `bun run typecheck` passed
+  all 19 tasks. `bun run test` passed all 17 unit workspaces and 1,969 tests.
+- Production builds passed for both `app` and `web`.
+- `bun run test:integration` passed all 119 configured checks. The two
+  credential-bound live-Xero checks remain skipped and are not represented as
+  live integration evidence.
+- Per-plan browser, provider and copy follow-ups remain documented below. They
+  do not erase the source, test or build evidence, and they are not presented
+  as completed visual or live-provider verification.
 
 ## Execution queue
 
@@ -297,10 +311,10 @@ itself redirects to `/settings/general`.
 | [137](137-distill-plans-experience.md) | Make plans clear, responsive and truthful about provenance | P1 | — | DONE at `ef6469f`; LANDED ON PREVIEW |
 | [138](138-shape-public-holiday-management.md) | Give public-holiday management one safe, responsive home | P1 | — | DONE at `b7f037a`; LANDED ON PREVIEW |
 | [139](139-restructure-settings-shell.md) | Make Settings responsive, context-safe and goal-grouped | P1 | — | DONE at `26b60f2`; LANDED ON PREVIEW |
-| [140](140-distill-sync-health.md) | Make sync status truthful, accessible and easier to operate | P1 | — | TODO |
-| [141](141-harden-availability-compatibility-route.md) | Keep availability deep links correct and remove legacy UI ambiguity | P2 | 137 | TODO |
-| [142](142-harden-leave-balances-redirect.md) | Preserve leave-balance deep links and orient users at the person profile | P2 | 136 | TODO |
-| [143](143-distill-setup-checklist.md) | Make setup a single, confident next-step experience | P2 | 139 | TODO |
+| [140](140-distill-sync-health.md) | Make sync status truthful, accessible and easier to operate | P1 | — | DONE at `1af2433`; LANDED ON PREVIEW |
+| [141](141-harden-availability-compatibility-route.md) | Keep availability deep links correct and remove legacy UI ambiguity | P2 | 137 | DONE at `42f0d7c`; LANDED ON PREVIEW |
+| [142](142-harden-leave-balances-redirect.md) | Preserve leave-balance deep links and orient users at the person profile | P2 | 136 | DONE at `9b8e677`; LANDED ON PREVIEW |
+| [143](143-distill-setup-checklist.md) | Make setup a single, confident next-step experience | P2 | 139 | DONE at `63fee49`; LANDED ON PREVIEW |
 | [108](108-activate-new-zealand-xero-sync.md) | Activate New Zealand Xero sync | P1 | 076, 100, 102, 104, 105, 106, 107 DONE; live NZ tenant & credentials | BLOCKED |
 | [109](109-activate-united-kingdom-xero-sync.md) | Validate and activate UK Xero sync | P1 | 076, 100, 101, 103, 104, 105, 106, 107 DONE; live UK partner & tenant | BLOCKED |
 
@@ -921,7 +935,7 @@ when needed. The following outcomes across the full plan series remain key archi
 | 106 | 40-person paginated regional balance synchronization for NZ and UK tenants |
 | 107 | Currency-safe leave balance presentation (`formatLeaveBalance` with NZD formatting) |
 
-## What this reconciliation did not verify
+## What the 29 August reconciliation did not verify
 
 - Current full `check`, `typecheck`, unit and integration gates as one release
   run. Focused suites passed; database integration could not run without

@@ -8,7 +8,7 @@ evidence actually collected. Completed plans move to `tasks/archive.md`.
 
 ## Active plan: Deliver Plans 110 through 143 to preview
 
-Status: In progress
+Status: Complete
 
 ### Outcome
 
@@ -32,7 +32,7 @@ before the next plan begins.
   treatment and nested sitemap discovery.
 - [x] Plan 124: run the Impeccable audit, bounded browser review, build and all
   repository gates; commit and push both implementation and review evidence.
-- [ ] Execute, verify, commit and push Plans 125 through 129 in dependency
+- [x] Execute, verify, commit and push Plans 125 through 129 in dependency
   order.
 - [x] Plan 125: characterise Blog landmarks, guide-led positioning, navigation
   and stable sitemap dates with failing tests.
@@ -58,13 +58,26 @@ before the next plan begins.
   vulnerability-reporting policy.
 - [x] Plan 127: run Impeccable, React, browser, build and repository verification;
   commit, document and push before Plan 128.
-- [ ] Execute, verify, commit and push Plans 130 through 143 in dependency
+- [x] Execute, verify, commit and push Plans 130 through 143 in dependency
   order.
-- [ ] Run the final preview verification and record exact evidence.
+- [x] Run the final preview verification and record exact evidence.
+
+### Review
+
+- All 34 implementation commits for Plans 110 through 143 are ancestors of
+  `preview`; the plan index records the exact implementation commit for each.
+- The final current-state release run checked 916 files with no fixes, passed
+  all 19 typecheck tasks and all 17 unit-test workspaces (1,969 tests), and
+  built both the authenticated app and public web app successfully.
+- All 119 configured integration tests passed. The two live-Xero checks remain
+  skipped because their external credentials are not configured.
+- Authenticated visual limitations and external configuration follow-ups remain
+  recorded per plan in `plans/README.md`; none is represented as completed
+  browser evidence.
 
 ## Active plan: Make sync status truthful, accessible and easier to operate
 
-Status: In progress
+Status: Complete
 
 ### Tasks
 
@@ -96,7 +109,7 @@ Status: In progress
 
 ## Active plan: Keep availability deep links correct and remove legacy UI ambiguity
 
-Status: In progress
+Status: Complete
 
 ### Tasks
 
@@ -125,7 +138,7 @@ Status: In progress
 
 ## Active plan: Preserve leave-balance deep links and orient users at the person profile
 
-Status: In progress
+Status: Complete
 
 ### Tasks
 
@@ -213,7 +226,7 @@ Status: Complete
 
 ## Active plan: Give public-holiday management one safe, responsive home
 
-Status: In progress
+Status: Complete
 
 ### Tasks
 
@@ -242,7 +255,7 @@ Status: In progress
 
 ## Active plan: Make Settings responsive, context-safe and goal-grouped
 
-Status: In progress
+Status: Complete
 
 ### Tasks
 
@@ -662,7 +675,7 @@ Status: Complete
 
 ## Active plan: Publish Better Stack service status
 
-Status: In progress
+Status: Complete
 
 ### Tasks
 
