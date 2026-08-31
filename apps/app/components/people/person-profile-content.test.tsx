@@ -129,6 +129,16 @@ describe("PersonProfileContent", () => {
       "Manual balance saved."
     );
   });
+
+  it("opens the balance panel when a deep link selects Balances", () => {
+    renderProfile(false);
+
+    expect(screen.getByRole("button", { name: "Balances" })).toBeDefined();
+    expect(
+      screen.getByRole("columnheader", { name: "Leave type" })
+    ).toBeDefined();
+    expect(screen.getByText("Annual leave")).toBeDefined();
+  });
 });
 
 function renderProfile(canRefreshBalances: boolean, value = profile) {

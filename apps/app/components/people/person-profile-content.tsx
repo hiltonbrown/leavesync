@@ -31,6 +31,7 @@ import {
 import { XeroSyncFailedState } from "@/components/states/xero-sync-failed-state";
 import { formatLeaveBalance } from "@/lib/format-leave-balance";
 import { withOrg } from "@/lib/navigation/org-url";
+import type { PersonProfileTab } from "@/lib/navigation/person-profile-tab";
 import { AlternativeContactsPanel } from "./alternative-contacts-panel";
 import {
   PeopleProvenanceBadge,
@@ -45,15 +46,13 @@ interface PersonProfileContentProps {
     nextCursor: string | null;
     records: AvailabilityRecordSummary[];
   };
-  initialTab?: ProfileTab;
+  initialTab?: PersonProfileTab;
   organisationId: string;
   orgQueryValue: string | null;
   profile: PersonProfile;
 }
 
-type ProfileTab = "alternative_contacts" | "balances" | "history" | "upcoming";
-
-const tabs: Array<{ label: string; value: ProfileTab }> = [
+const tabs: Array<{ label: string; value: PersonProfileTab }> = [
   { label: "Upcoming", value: "upcoming" },
   { label: "History", value: "history" },
   { label: "Balances", value: "balances" },
@@ -71,7 +70,7 @@ export function PersonProfileContent({
   orgQueryValue,
   profile,
 }: PersonProfileContentProps) {
-  const [tab, setTab] = useState<ProfileTab>(initialTab);
+  const [tab, setTab] = useState<PersonProfileTab>(initialTab);
   const [isPending, startTransition] = useTransition();
   const [editMessage, setEditMessage] = useState<string | null>(null);
   const [refreshMessage, setRefreshMessage] = useState<string | null>(null);
