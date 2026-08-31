@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { parseBetterStackConfiguration } from "./keys";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { keys, parseBetterStackConfiguration } from "./keys";
 
 const configured = {
   BETTERSTACK_API_KEY: "secret-token",
@@ -8,6 +8,10 @@ const configured = {
 };
 
 describe("Better Stack environment configuration", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("allows the complete group to be absent", () => {
     expect(parseBetterStackConfiguration({}, "production")).toEqual({});
   });
@@ -49,5 +53,11 @@ describe("Better Stack environment configuration", () => {
         "production"
       )
     ).toThrow("must use HTTPS in production");
+  });
+
+  it("does not read server-only status keys in a browser", () => {
+    vi.stubGlobal("window", {});
+
+    expect(() => keys()).not.toThrow();
   });
 });

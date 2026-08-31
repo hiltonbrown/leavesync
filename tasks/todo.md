@@ -24,6 +24,35 @@ Status: Complete
 - One focused regression test, all 100 web tests, web typecheck, the 919-file
   repository check, Impeccable detection and the web production build passed.
 
+## Active plan: Restore the TeamTimelineSection branch and live contract
+
+Status: Complete
+
+### Tasks
+
+- [x] Compare the preview implementation with `main` and the published marketing page.
+- [x] Restore the timeline copy, horizontal-scroll affordance and interaction styling owned by the section.
+- [x] Remove the client-side environment access that prevented the interactive timeline from hydrating.
+- [x] Replace the incorrect pre-redesign regression expectations with the current branch/live contract.
+- [x] Verify desktop and mobile rendering, focused tests, web checks and the production build.
+- [x] Commit and push the verified fix to `origin/preview`.
+
+### Review
+
+- The section markup and owned styling now match `main` and the published
+  marketing page: the current selection copy, mobile swipe affordance,
+  interaction feedback and 44px mobile controls are restored.
+- A client-only Better Stack configuration read was also preventing the page's
+  React tree from hydrating. Observability keys now validate the grouped secret
+  configuration on the server without reading those fields in the browser.
+- The production build hydrated to 13 labelled event buttons. Browser-backed
+  interaction coverage confirmed week navigation and selected-entry details;
+  desktop and mobile production captures matched the live timeline composition.
+- Three focused timeline tests, 101 web tests, all 17 unit-test workspaces, all
+  19 typecheck tasks, the 920-file repository check, source Impeccable detection,
+  the web production build and all 119 configured integration tests passed. The
+  two credential-dependent live-Xero checks remained skipped as expected.
+
 ## Active plan: Bind homepage hero motion to its SVG paths
 
 Status: Complete

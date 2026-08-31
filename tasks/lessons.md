@@ -7,6 +7,9 @@ actionable; keep one-off task evidence in the review for that task.
 
 ## Product and design
 
+- When a restoration request names `main` or a live surface as the reference,
+  treat that explicit reference as authoritative. Do not substitute an older
+  historical snapshot merely because the request also says “previous”.
 - Keep internal design-direction names out of product chrome. User-facing
   surface titles should use the established route or product name unless the
   user explicitly approves a rename.

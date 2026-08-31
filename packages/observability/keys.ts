@@ -79,8 +79,9 @@ export const keys = () => {
     },
   });
 
-  return {
-    ...environment,
-    ...parseBetterStackConfiguration(environment),
-  };
+  if (typeof window === "undefined") {
+    parseBetterStackConfiguration(environment);
+  }
+
+  return environment;
 };
